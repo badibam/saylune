@@ -1,0 +1,25 @@
+# Scratchpad and temporaries
+NOTES.md
+tmp/
+
+# Gradle / Android build
+.gradle/
+build/
+app/build/
+local.properties
+*.apk
+*.aab
+
+# Release signing (never versioned)
+keystore/
+*.keystore
+*.jks
+.env
+
+# IDE
+.idea/
+*.iml
+captures/
+
+# OS
+.DS_Store

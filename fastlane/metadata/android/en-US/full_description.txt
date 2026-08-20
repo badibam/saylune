@@ -1,0 +1,9 @@
+Speakup is a spoken English practice app built around one idea: you are never interrupted.
+
+You talk to an AI out loud, in English, as long as you like. The conversation is yours to lead and nothing cuts in to correct you.
+
+When you want feedback, you ask for it. One tap replays the sentence you just spoke through pronunciation analysis, and you see exactly which sounds missed: not a vague score, but the phoneme you actually produced next to the one that was expected. Repeat the sentence until every sound passes, then carry on with the conversation where you left it.
+
+The target accent is a single setting. It governs the voice you hear and the reference your pronunciation is graded against, so you are never scored on one variety of English while listening to another.
+
+Speakup has no account and no server of its own. It runs against speech and language services you configure yourself with your own API keys, stored encrypted on your device.

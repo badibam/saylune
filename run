@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""Entry point for speakup development tasks.
+
+Bare invocation opens the interactive menu; `./run <task>` runs one directly,
+without requiring questionary.
+"""
+
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+GRADLEW = ROOT / "gradlew"
+DEBUG_APPLICATION_ID = "app.speakup.debug"
+
+
+def gradle(*args):
+    """Delegate to the wrapper, never to a system-wide gradle."""
+    subprocess.run([str(GRADLEW), *args], cwd=ROOT, check=False)
+
+
+def attached_devices():
+    """Return [(serial, state)] as adb reports them."""
+    probe = subprocess.run(
+        ["adb", "devices"], capture_output=True, text=True, check=False
+    )
+    rows = []
+    for line in probe.stdout.splitlines()[1:]:
+        fields = line.split()
+        if len(fields) >= 2:
+            rows.append((fields[0], fields[1]))
+    return rows
+
+
+def ready_device():
+    """Return the serial of the one usable device, or None after explaining why not.
+
+    adb reports a phone that is plugged in but not paired as `unauthorized`, and
+    gradle then claims there is no device at all. Diagnosing here turns a dead end
+    into an instruction.
+    """
+    if shutil.which("adb") is None:
+        print("adb not found in PATH.", file=sys.stderr)
+        return None
+
+    devices = attached_devices()
+    ready = [serial for serial, state in devices if state == "device"]
+    if len(ready) == 1:
+        return ready[0]
+    if len(ready) > 1:
+        print("Several devices are ready:", file=sys.stderr)
+        for serial in ready:
+            print(f"  {serial}", file=sys.stderr)
+        print("Pick one with: export ANDROID_SERIAL=<serial>", file=sys.stderr)
+        return None
+
+    if not devices:
+        print(
+            "No device attached. Check that the cable carries data rather than power\n"
+            "only, and that USB debugging is on in the developer options.",
+            file=sys.stderr,
+        )
+        return None
+
+    for serial, state in devices:
+        if state == "unauthorized":
+            print(
+                f"{serial} has not authorised this computer.\n"
+                "Unlock the phone and accept the 'Allow USB debugging' prompt, ticking\n"
+                "'Always allow from this computer'. If no prompt shows up, replug, or\n"
+                "revoke the USB debugging authorisations in the developer options.",
+                file=sys.stderr,
+            )
+        elif state == "offline":
+            print(
+                f"{serial} is offline. Replug it, or restart the bridge:\n"
+                "  adb kill-server && adb start-server",
+                file=sys.stderr,
+            )
+        else:
+            print(f"{serial} is in state '{state}', not usable.", file=sys.stderr)
+    return None
+
+
+def task_build():
+    gradle("assembleDebug")
+
+
+def task_install():
+    if ready_device() is None:
+        return
+    gradle("installDebug")
+
+
+def task_release():
+    gradle("assembleRelease")
+
+
+def task_clean():
+    gradle("clean")
+
+
+def task_devices():
+    if shutil.which("adb") is None:
+        print("adb not found in PATH.", file=sys.stderr)
+        return
+    subprocess.run(["adb", "devices", "-l"], check=False)
+
+
+def task_logs():
+    if ready_device() is None:
+        return
+    probe = subprocess.run(
+        ["adb", "shell", "pidof", "-s", DEBUG_APPLICATION_ID],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    pid = probe.stdout.strip()
+    if not pid:
+        print(f"{DEBUG_APPLICATION_ID} is not running on the device.", file=sys.stderr)
+        return
+    subprocess.run(["adb", "logcat", f"--pid={pid}"], check=False)
+
+
+ACTIONS = {
+    "build": task_build,
+    "install": task_install,
+    "logs": task_logs,
+    "devices": task_devices,
+    "release": task_release,
+    "clean": task_clean,
+}
+
+LABELS = {
+    "build": "build      assemble the debug APK",
+    "install": "install    assemble and install on the connected device",
+    "logs": "logs       follow logcat, filtered on the app",
+    "devices": "devices    list attached devices and their state",
+    "release": "release    assemble the release APK",
+    "clean": "clean      drop build outputs",
+}
+
+_QUIT = object()
+
+
+def pause():
+    try:
+        input("\nEnter to continue ")
+    except (EOFError, KeyboardInterrupt):
+        pass
+
+
+def menu():
+    try:
+        import questionary
+        from questionary import Choice, Separator
+    except ImportError:
+        print(
+            "questionary is missing: sudo apt install python3-questionary\n"
+            "Direct invocation still works: ./run <task>",
+            file=sys.stderr,
+        )
+        return 1
+
+    choices = [Separator("Build")]
+    choices += [Choice(LABELS[k], k) for k in ("build", "install", "logs", "devices")]
+    choices += [Separator("Release"), Choice(LABELS["release"], "release")]
+    choices += [Separator(""), Choice(LABELS["clean"], "clean")]
+    choices += [Choice("quit", _QUIT)]
+
+    while True:
+        os.system("clear")
+        answer = questionary.select("speakup", choices=choices).ask()
+        if answer is None or answer is _QUIT:
+            return 0
+        ACTIONS[answer]()
+        pause()
+
+
+def usage():
+    print("Usage: ./run [task]\n\nTasks:")
+    for key in ACTIONS:
+        print(f"  {LABELS[key]}")
+
+
+def main(argv):
+    if not argv:
+        return menu()
+    task = argv[0]
+    if task in ("-h", "--help"):
+        usage()
+        return 0
+    if task not in ACTIONS:
+        print(f"Unknown task: {task}\n", file=sys.stderr)
+        usage()
+        return 1
+    ACTIONS[task]()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

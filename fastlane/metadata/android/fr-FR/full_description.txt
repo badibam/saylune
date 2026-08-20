@@ -1,0 +1,9 @@
+Speakup est une application de pratique de l'anglais oral construite autour d'une seule idée : on ne vous coupe jamais.
+
+Vous parlez à voix haute en anglais avec une IA, aussi longtemps que vous le voulez. La conversation vous appartient, rien ne s'interpose pour vous corriger.
+
+Le retour, c'est vous qui le demandez. Un appui rejoue la phrase que vous venez de dire dans l'analyse de prononciation, et vous voyez exactement quels sons ont manqué : pas un score flou, mais le phonème que vous avez réellement produit à côté de celui qui était attendu. Répétez la phrase jusqu'à ce que chaque son passe, puis reprenez la conversation là où vous l'aviez laissée.
+
+L'accent cible est un réglage unique. Il gouverne la voix que vous entendez et la référence contre laquelle votre prononciation est notée : vous n'êtes jamais évalué sur une variété d'anglais en en écoutant une autre.
+
+Speakup n'a ni compte ni serveur propre. L'application s'appuie sur des services de parole et de langage que vous configurez vous-même avec vos propres clés d'API, stockées chiffrées sur votre appareil.
