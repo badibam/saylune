@@ -10,9 +10,12 @@ Réponses obtenues :
 - **Locales : tranché.** Le phonème n'est nommé qu'en `en-US` ; `en-GB` note et classe sans nommer (cf. `docs/reference.md`, « Fournisseurs »).
 - **Forme de la réponse REST : les scores sont à plat sur l'entrée**, pas nichés sous `PronunciationAssessment` comme le montre l'exemple de la doc. À porter tel quel dans le code Android.
 
+- **Signal de marquage : la marge, pas le score absolu**, et à titre provisoire (cf. `docs/reference.md`, « Les trois curseurs »).
+
 Reste à obtenir :
-1. La reconstruction tient-elle sur les cas ambigus, et à quel taux de fausses marques. Les cas de `phrases.md` restent à enregistrer, en produisant vraiment la faute — au premier essai la prononciation était correcte, donc le piège ne s'est pas déclenché.
-2. Le coût réel d'un tour détecté, puisque c'est l'utilisateur qui paie.
+1. **La reconstruction sur les cas ambigus**, et le taux de fausses marques. Non mesurée : la reconnaissance a rendu `think` sur les deux prises, donc le piège du texte de référence ne s'est jamais déclenché. C'est déjà une information — le modèle de langue normalise vers le mot plausible — mais les cas 2, 3 et 5 de `phrases.md` (`He don't know`, `I have 25 years`, `The sink is broken`) attaquent d'autres angles et restent à enregistrer.
+2. **Affiner la règle de marquage** sur ces cas : la marge tient sur un seul contraste et trois prises. Reste à trouver un seuil chiffré, et à voir si la règle survit aux voyelles et aux consonnes non fricatives, dont les concurrents ne se répartissent pas de la même façon.
+3. **Le coût réel d'un tour détecté**, puisque c'est l'utilisateur qui paie.
 
 ## Chantier 2 — trancher le montage de la conversation
 
