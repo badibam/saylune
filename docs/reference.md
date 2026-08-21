@@ -104,22 +104,36 @@ Limite connue et acceptée : le BYOK est un mur d'adoption pour un public qui ne
 
 ## Fournisseurs
 
-L'analyse et la conversation sont deux briques **substituables**, jamais couplées.
+L'analyse et la conversation sont deux briques **substituables**, jamais couplées. Aucune des deux n'est tranchée.
 
-- **Analyse** : Azure Speech Pronunciation Assessment, via **API REST** — pas le SDK, qui est un binaire propriétaire incompatible avec F-Droid. Retourne un score par phonème et, via `NBestPhonemes`, le phonème réellement produit face à l'attendu. Alphabet IPA. Le REST est limité à l'audio court, ce qui convient à des phrases de conversation.
-- **Conversation** : non tranché (cf. `TODO.md`, chantier 2).
+**Analyse** — trois candidats (cf. `TODO.md`, chantier 1) :
 
-Restrictions connues du moteur d'analyse : la prosodie, le niveau syllabe et l'évaluation de contenu sont limités à `en-US`.
+- **Azure Speech Pronunciation Assessment** — instruit et mesuré (`design/azure-speech.md`). Il fonctionne, mais c'est de la reconnaissance vocale avec une notation greffée, et son verdict de conformité est inutilisable pour la détection.
+- **SpeechAce** — construit pour l'évaluation de locuteurs non natifs plutôt que dérivé d'un moteur de dictée, et annonce le repérage à la fois au niveau syllabe et phonème. À instruire.
+- **Reconnaissance phonétique embarquée** — un modèle sur l'appareil au lieu d'un service. Retirerait d'un coup le coût par tour, le BYOK et l'anti-feature `NonFreeNet`. Pas la v1, mais la porte reste ouverte et le reste de l'architecture ne doit pas la fermer.
 
-**Le niveau phonème n'est nommé qu'en `en-US`** — mesuré, pas déduit. En `en-GB`, le moteur note chaque phonème et classe bien cinq candidats pour chacun, mais renvoie la **chaîne vide** comme symbole partout : il sait quel son a été produit et refuse de le nommer. La distinction n'est donc pas « ça marche / ça ne marche pas » : `en-GB` **détecte** (position et score suffisent à poser une marque) mais ne peut ni nommer le son attendu, ni dire lequel a été produit — donc pas de consigne d'articulation, qui est la matière même de la parenthèse.
+**Conversation** — non tranché (cf. `TODO.md`, chantier 2).
 
-Conséquence sur le réglage d'accent : une v1 américaine tient entièrement ; les autres accents n'offriraient qu'une détection muette. Piste si l'accent devient prioritaire : les phonèmes non nommés arrivent **ordonnés et en nombre correct**, donc un lexique de phonémisation de la locale visée permettrait de recoller les étiquettes par alignement. Ça ajoute une ressource à embarquer, et ça n'est pas de la v1.
+### Ce que l'app exige de n'importe quel moteur d'analyse
+
+1. **Localiser** chaque son dans l'audio — position et durée.
+2. **Dire quel son a été produit**, pas seulement s'il est conforme à celui attendu. Condition non négociable : sans elle, pas de consigne d'articulation, et la parenthèse n'a rien à dire.
+3. Rendre ce jugement à l'échelle du **son** et à celle de la **syllabe**. Les deux sont complémentaires et aucune ne remplace l'autre — l'une voit les substitutions, l'autre le rythme et la réduction.
+4. **Nommer** les sons dans un alphabet lisible par un humain (IPA).
+5. **Déclarer ses capacités**, parce que rien dans l'app ne doit supposer qu'une brique est disponible.
+
+**Ce contrat est dérivé d'un seul moteur, donc suspect.** Il se confirmera ou se déformera à la lecture du deuxième. L'écrire maintenant sert à voir ce qui se déforme, pas à figer une forme.
+
+### Capacités déclarées, pas plus petit dénominateur commun
+
+Il y a deux manières d'être agnostique et elles sont opposées. La première n'expose que ce que *tous* les moteurs savent faire : on n'exploite alors jamais ce que le meilleur a de mieux, et le progrès d'un fournisseur ne profite à personne. La seconde, retenue : **chaque moteur déclare ce qu'il sait faire, et l'app allume ou éteint les briques en conséquence.**
+
+Contrepartie assumée : le jeu de fonctionnalités **dépend du fournisseur choisi**. Un utilisateur verra des options éteintes qu'un autre a. Une option indisponible doit donc **porter sa raison** dans l'interface — sinon elle passe pour un bug, et c'est l'app qu'on accusera, pas le service.
 
 ## Hors périmètre
 
 Écarté délibérément de la première version, non par oubli :
 
-- La **prosodie** comme axe à part entière : Azure la limite à `en-US` et la rend au niveau phrase, pas phonème. Un signal bonus sur une locale, pas une colonne de l'architecture.
 - Le **phonème isolé** comme niveau de zoom (cf. « La parenthèse »).
 - Pilotage de la conversation par les faiblesses phonétiques de l'utilisateur (l'IA orientant ses questions pour faire produire les sons ratés).
 - Suivi longitudinal, statistiques, carte phonétique dans la durée.
