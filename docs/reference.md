@@ -98,7 +98,7 @@ L'analyse et la conversation sont deux briques **substituables**, jamais couplé
 - **Analyse** : Azure Speech Pronunciation Assessment, via **API REST** — pas le SDK, qui est un binaire propriétaire incompatible avec F-Droid. Retourne un score par phonème et, via `NBestPhonemes`, le phonème réellement produit face à l'attendu. Alphabet IPA. Le REST est limité à l'audio court, ce qui convient à des phrases de conversation.
 - **Conversation** : non tranché (cf. `TODO.md`, chantier 2).
 
-Restrictions connues du moteur d'analyse : la prosodie, le niveau syllabe et l'évaluation de contenu sont limités à `en-US`. Le niveau phonème est documenté pour toutes les locales supportées, mais **non vérifié** hors `en-US` — c'est le chantier 1.
+Restrictions connues du moteur d'analyse : la prosodie, le niveau syllabe et l'évaluation de contenu sont limités à `en-US`. Le niveau phonème l'est peut-être aussi — la doc du fournisseur se contredit sur ce point, une phrase l'annonçant sur toutes les locales supportées et une table de la même page ne listant l'alphabet phonétique que pour `en-US` et `zh-CN`, le phonème produit pour `en-US` seul. Les rapports terrain divergent entre eux. Mesuré au chantier 1 ; à défaut, la promesse « choix de l'accent » ne tient pas.
 
 ## Hors périmètre
 
