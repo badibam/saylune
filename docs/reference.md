@@ -22,11 +22,15 @@ Fluidité, grammaire, prononciation ne sont pas trois modes entre lesquels on ba
 
 Le seuil porte sur **l'écart entre le phonème attendu et le mieux classé de `NBestPhonemes`**, et non sur `AccuracyScore`. Mesuré sur trois prises de la même phrase : une tentative de `/s/` restée entre les deux sons a valu à `/θ/` un `AccuracyScore` de **100**, contre **77** pour un `/θ/` franc — le score absolu classe la prise ambiguë *au-dessus* de la prise propre. La marge, elle, ordonne correctement les trois (+10 / +72 / −46), et elle nomme le son produit, ce dont la parenthèse a besoin pour donner une consigne d'articulation.
 
-**Provisoire** : un seul contraste (`/s/`–`/θ/`), trois prises, un locuteur. La marge est retenue parce qu'elle est différentielle — ce qui affecte les deux candidats également s'annule — mais la règle de marquage est à réexaminer sur les cas suivants, et le seuil n'a aucune valeur chiffrée établie.
+**Quatorze prises plus tard, le seuil chiffré unique est écarté.** L'ordre que donne la marge est confirmé, avec cette fois un témoin propre : sur `/θ/`, la prise ambiguë vaut +10 quand le `/θ/` franc vaut +71 et le témoin +54 — `AccuracyScore` les classe 100 / 77 / 93, exactement à l'envers. Mais l'écart qui sépare la faute de son témoin dépend de la famille de son : 171 points sur l'occlusive (`/p/`→`/b/`, −81 contre +90), 28 sur la nasale, **8 sur la voyelle** (`/iː/`→`/ɪ/`, −2 contre +6). Aucune coupe globale ne survit à trois ordres de grandeur : sur les 192 phonèmes du jeu, `AccuracyScore < 70` attrape 5 fautes sur 10 pour 1 fausse marque, `marge < 0` en attrape 6 pour 6 fausses, et le ET des deux retombe à 3.
+
+**La notation hérite de la charité du modèle de langue.** Les trois fautes les plus intéressantes — le `/θ/` dit `/s/`, le `/iː/` dit `/ɪ/`, le `/ŋ/` dit `/n/` — portent toutes un `AccuracyScore` de **100** : dans les trois cas la reconnaissance avait rendu le mot juste, et l'alignement scripté épouse ce texte au point de noter la faute comme parfaite. C'est le piège du texte de référence un étage plus bas. Scorer contre le bon texte ne suffit donc pas ; il faut un signal que le bon texte ne peut pas absoudre, et la marge est le seul.
+
+**Le curseur n'est donc pas un nombre mais un écart** — à la ligne de base du même phonème chez le même locuteur. Le `/ŋ/` à +16 n'est une faute que parce que les `/ŋ/` propres de cette voix tiennent entre +44 et +76 ; lu dans l'absolu, +16 est indiscernable d'une dizaine de phonèmes corrects du jeu.
 
 Un curseur peut déclencher la parenthèse automatiquement au lieu de seulement marquer. C'est l'inversion assumée du principe ci-dessus, et elle reste un choix de l'utilisateur.
 
-Écarté pour l'instant, gardé en réserve : déclencher sur un **motif récurrent** dans la session (« /θ/ manqué six fois en dix minutes ») plutôt que sur un score isolé. Plus juste — un raté isolé est du bruit — mais ça ajoute une couche de jugement à l'échelle de la conversation entière.
+Le **motif récurrent** dans la session (« /θ/ manqué six fois en dix minutes ») était gardé en réserve comme un raffinement ; la mesure en fait un prérequis. La ligne de base par phonème s'accumule de toute façon au fil des tours, et c'est déjà la couche de jugement à l'échelle de la conversation — elle sert les deux usages d'un coup. Elle vit et meurt avec la session : rien ne se garde d'une session à l'autre, le suivi longitudinal reste hors périmètre.
 
 ## La parenthèse
 
