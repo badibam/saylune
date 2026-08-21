@@ -18,15 +18,13 @@ Fluidité, grammaire, prononciation ne sont pas trois modes entre lesquels on ba
 
 - **Pression conversationnelle** — de « l'IA te laisse mener » à « elle relance dès que tu t'arrêtes et refuse les réponses en trois mots ». La fluidité a un contenu propre : sans ce curseur, elle ne serait qu'un mot pour « on ne t'embête pas ».
 - **Sévérité grammaticale** — trois crans : ne rien marquer / marquer les fautes / marquer aussi les tournures correctes mais maladroites. Pas un pourcentage : une phrase est fautive ou ne l'est pas.
-- **Seuil de prononciation** — marge en deçà de laquelle un phonème est marqué. Facultatif : le poser bas, c'est déclarer qu'on travaille cet aspect-là aujourd'hui.
+- **Seuil de prononciation** — sensibilité du marquage. Facultatif : le poser bas, c'est déclarer qu'on travaille cet aspect-là aujourd'hui.
 
-Le seuil porte sur **l'écart entre le phonème attendu et le mieux classé de `NBestPhonemes`**, et non sur `AccuracyScore`. Mesuré sur trois prises de la même phrase : une tentative de `/s/` restée entre les deux sons a valu à `/θ/` un `AccuracyScore` de **100**, contre **77** pour un `/θ/` franc — le score absolu classe la prise ambiguë *au-dessus* de la prise propre. La marge, elle, ordonne correctement les trois (+10 / +72 / −46), et elle nomme le son produit, ce dont la parenthèse a besoin pour donner une consigne d'articulation.
+Ce curseur porte sur **deux échelles**, et c'est le seul endroit du projet où la prosodie a sa place : le **son** — substitutions, un phonème pris pour un autre — et la **syllabe** — rythme, accent, réduction. Deux signaux distincts et complémentaires, l'un aveugle là où l'autre voit. La prosodie n'est donc pas un quatrième axe : c'est l'étage supérieur de celui-ci, et il répond à l'échelle phrase de la parenthèse, qui existait déjà sans signal pour l'alimenter.
 
-**Quatorze prises plus tard, le seuil chiffré unique est écarté.** L'ordre que donne la marge est confirmé, avec cette fois un témoin propre : sur `/θ/`, la prise ambiguë vaut +10 quand le `/θ/` franc vaut +71 et le témoin +54 — `AccuracyScore` les classe 100 / 77 / 93, exactement à l'envers. Mais l'écart qui sépare la faute de son témoin dépend de la famille de son : 171 points sur l'occlusive (`/p/`→`/b/`, −81 contre +90), 28 sur la nasale, **8 sur la voyelle** (`/iː/`→`/ɪ/`, −2 contre +6). Aucune coupe globale ne survit à trois ordres de grandeur : sur les 192 phonèmes du jeu, `AccuracyScore < 70` attrape 5 fautes sur 10 pour 1 fausse marque, `marge < 0` en attrape 6 pour 6 fausses, et le ET des deux retombe à 3.
+**Un acquis vaut quel que soit le moteur : on marque sur ce que le moteur dit avoir entendu, jamais sur sa note de conformité au texte attendu.** Un moteur à qui l'on donne un texte et un audio vérifie une réponse qu'on vient de lui souffler ; il confirme le texte plus qu'il ne juge le son, et sur une faute proche du son visé il rend une note excellente. Ce qui est exploitable est l'**identification du son produit**, qui ne dépend pas du texte annoncé. Mesuré chez un seul fournisseur (cf. `design/azure-speech.md`) — à revérifier chez tout autre, mais le mécanisme n'a rien qui lui soit propre.
 
-**La notation hérite de la charité du modèle de langue.** Les trois fautes les plus intéressantes — le `/θ/` dit `/s/`, le `/iː/` dit `/ɪ/`, le `/ŋ/` dit `/n/` — portent toutes un `AccuracyScore` de **100** : dans les trois cas la reconnaissance avait rendu le mot juste, et l'alignement scripté épouse ce texte au point de noter la faute comme parfaite. C'est le piège du texte de référence un étage plus bas. Scorer contre le bon texte ne suffit donc pas ; il faut un signal que le bon texte ne peut pas absoudre, et la marge est le seul.
-
-**Le curseur n'est donc pas un nombre mais un écart** — à la ligne de base du même phonème chez le même locuteur. Le `/ŋ/` à +16 n'est une faute que parce que les `/ŋ/` propres de cette voix tiennent entre +44 et +76 ; lu dans l'absolu, +16 est indiscernable d'une dizaine de phonèmes corrects du jeu.
+**Le seuil est un écart, pas un nombre** — écart à la ligne de base du même son chez le même locuteur, accumulée pendant la session. Aucune valeur absolue ne survit au fait qu'un locuteur correct rend des mesures très différentes selon son degré d'attention du moment : la ligne de base ne sert pas seulement à s'adapter à une voix, mais à un état. Décision de conception, jamais éprouvée en usage.
 
 Un curseur peut déclencher la parenthèse automatiquement au lieu de seulement marquer. C'est l'inversion assumée du principe ci-dessus, et elle reste un choix de l'utilisateur.
 
@@ -98,11 +96,11 @@ Ce qui en découle et se décide au premier commit :
 - Stockage chiffré adossé au Keystore Android. Jamais en clair, jamais dans un log, jamais dans une sauvegarde système (`android:allowBackup="false"`).
 - Rien dans le build : pas de champ `BuildConfig` alimenté par un secret, pas de `local.properties` versionné, pas de secret en `gradle.properties`.
 - Anti-feature **`NonFreeNet`** à déclarer à la soumission.
-- Écran de configuration guidé, avec un bouton **« tester la clé »** qui valide immédiatement. C'est le vrai coût du BYOK : créer une ressource Azure est pénible, et sans validation immédiate toute panne ultérieure sera imputée à l'app.
+- Écran de configuration guidé, avec un bouton **« tester la clé »** qui valide immédiatement. C'est le vrai coût du BYOK : créer une ressource chez un fournisseur d'analyse est pénible, et sans validation immédiate toute panne ultérieure sera imputée à l'app.
 - L'utilisateur paie sa consommation : l'app doit pouvoir dire ce qu'elle consomme. La détection tournant à chaque tour quand le seuil est actif, elle multiplie les appels — c'est le poste le plus lourd, et le curseur qui l'active doit le dire.
-- Un tour détecté coûte **deux fois sa durée d'audio** chez Azure : reconnaissance puis évaluation scriptée, le texte de référence ne pouvant se construire qu'après la première. Le doublement est structurel, pas une maladresse d'implémentation. Mesuré sur le banc, 4,1 s de parole par tour en moyenne, donc ~8 s facturées, plus un appel LLM court dont le coût est négligeable devant.
+- Le coût d'un tour détecté se **mesure**, il ne s'estime pas : selon le fournisseur, la détection exige un ou plusieurs appels par tour, et l'audio peut être envoyé deux fois. Le chiffre vit dans la fiche du fournisseur retenu.
 
-Limite connue et acceptée : le BYOK est un mur d'adoption pour un public qui ne créera pas de compte Azure pour essayer l'app. C'est le point où un backend hébergé redeviendrait la question — pas avant.
+Limite connue et acceptée : le BYOK est un mur d'adoption pour un public qui ne créera pas de compte chez un fournisseur pour essayer l'app. C'est le point où un backend hébergé redeviendrait la question — pas avant.
 
 ## Fournisseurs
 
