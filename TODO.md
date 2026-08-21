@@ -12,10 +12,13 @@ Réponses obtenues :
 
 - **Signal de marquage : la marge, pas le score absolu**, et à titre provisoire (cf. `docs/reference.md`, « Les trois curseurs »).
 
+Le jeu d'essai est élargi à quinze cas en trois blocs (cf. `tmp/bench/phrases.md`) : A, une famille de son par cas — fricative, voyelle, occlusive, approximante, nasale, réduction ; B, la grammaire à prononciation propre ; C, un témoin sans faute dont les phrases reprennent les sons du bloc A. Trois prises seulement existent, toutes sur le contraste fricatif.
+
 Reste à obtenir :
-1. **La reconstruction sur les cas ambigus**, et le taux de fausses marques. Non mesurée : la reconnaissance a rendu `think` sur les deux prises, donc le piège du texte de référence ne s'est jamais déclenché. C'est déjà une information — le modèle de langue normalise vers le mot plausible — mais les cas 2, 3 et 5 de `phrases.md` (`He don't know`, `I have 25 years`, `The sink is broken`) attaquent d'autres angles et restent à enregistrer.
-2. **Affiner la règle de marquage** sur ces cas : la marge tient sur un seul contraste et trois prises. Reste à trouver un seuil chiffré, et à voir si la règle survit aux voyelles et aux consonnes non fricatives, dont les concurrents ne se répartissent pas de la même façon.
-3. **Le coût réel d'un tour détecté**, puisque c'est l'utilisateur qui paie.
+1. **Enregistrer le jeu élargi**, dans l'ordre par paires qu'indique `phrases.md` — chaque cas adversarial avec son témoin, même voix, même jour. C'est le seul geste que personne d'autre ne peut faire, et tout le reste est derrière.
+2. **La reconstruction sur les cas ambigus**, et le taux de fausses marques. Non mesurée : la reconnaissance a rendu `think` sur les deux prises, donc le piège du texte de référence ne s'est jamais déclenché. C'est déjà une information — le modèle de langue normalise vers le mot plausible — et les cas 6, 7 et 8 rejouent ce piège sur d'autres sons pour savoir si c'est une règle ou un accident.
+3. **Affiner la règle de marquage**, et lui donner un seuil chiffré. Le seuil se lit sur la distribution des marges du bloc C, pas sur les cas adversariaux ; la règle se juge à sa survie hors des fricatives, cas 9 et 10 compris, où l'erreur n'a aucun rival lexical.
+4. **Le coût réel d'un tour détecté**, puisque c'est l'utilisateur qui paie. Calculable sans nouvelle prise, sur les appels déjà faits.
 
 ## Chantier 2 — trancher le montage de la conversation
 
