@@ -1,14 +1,15 @@
 # TODO
 
-## Chantier 1 — banc de détection (répondu)
+## Chantier 1 — choisir le moteur d'analyse (en cours)
 
-Les trois questions du banc ont leur réponse ; elles vivent dans `docs/reference.md`. Les quinze cas sont enregistrés (sauf le 5) et passés en `en-US` ; `tmp/bench/` est jetable et peut partir dès que plus rien ne s'y relit.
+Azure a été instruit et mesuré ; tout ce qu'on en sait vit dans `docs/design/azure-speech.md`, incertitudes comprises. Il fonctionne, mais son verdict de conformité est inutilisable et rien n'oblige à le garder. Le contrat que l'app exige de n'importe quel moteur est dans `docs/reference.md`, « Fournisseurs ».
 
-Ce qui reste ouvert, et qui ne se tranche plus sur un banc hors ligne :
+1. **Instruire SpeechAce.** Une question d'abord, avant toute autre : rend-il un jugement sur le **son produit**, ou seulement une note de conformité au texte attendu ? Si c'est la seconde, le point 2 du contrat tombe et le reste ne vaut pas la lecture. Ensuite seulement : niveau syllabe, prosodie, alphabet, tarification à l'abonnement, et surtout **ce qu'il offre de plus** — c'est la raison de le regarder.
+2. **Rejouer le jeu d'essai** contre le candidat, avec les mêmes prises (`docs/design/pronunciation-test-set.md`). Enregistrer le cas 5 avant : il n'existe toujours pas, et c'est lui qui dit si le contexte de conversation sert vraiment.
+3. **Éprouver le contrat en le lisant contre un deuxième moteur.** Noter ce qui se déforme : c'est le seul moyen de savoir si c'est une abstraction ou un moulage d'Azure. Même chose pour la déclaration de capacités — elle ne vaut que si un fournisseur réel en active et en éteint.
+4. **La ligne de base par session** reste une décision de conception jamais éprouvée, quel que soit le moteur retenu : combien de tours faut-il avant qu'un écart veuille dire quelque chose, et que fait-on d'un son vu deux fois dans une conversation.
 
-1. **La ligne de base par phonème est une décision, pas encore une mesure.** Elle demande du volume de parole pour se remplir — donc elle se valide dans l'app, en usage, pas sur quinze prises. Question précise à garder en tête : au bout de combien de tours une ligne de base est-elle assez peuplée pour qu'un écart veuille dire quelque chose.
-2. **La voyelle est peut-être hors de portée.** Huit points séparent le `/iː/` fauté de son témoin, contre 171 sur l'occlusive. Si l'écart ne se creuse pas avec une ligne de base, il faut l'admettre : le marquage ne couvre pas les contrastes vocaliques, et le dire vaut mieux que marquer au hasard.
-3. **Cas 5** (`The sink is broken`, contexte `sink.txt`) jamais enregistré — le seul qui dise si le contexte sert vraiment, ou si la reconstruction corrige dès qu'un mot voisin existe. Court, et le banc tient encore debout pour le prendre.
+La piste **embarquée** (reconnaissance phonétique sur l'appareil) est la troisième voie et n'est pas pour maintenant. Elle retirerait le coût par tour, le BYOK et l'anti-feature `NonFreeNet` d'un seul geste — donc rien de ce qui s'écrit d'ici là ne doit lui fermer la porte.
 
 ## Chantier 2 — trancher le montage de la conversation
 
