@@ -18,7 +18,9 @@ Fluidité, grammaire, prononciation ne sont pas trois modes entre lesquels on ba
 
 - **Pression conversationnelle** — de « l'IA te laisse mener » à « elle relance dès que tu t'arrêtes et refuse les réponses en trois mots ». La fluidité a un contenu propre : sans ce curseur, elle ne serait qu'un mot pour « on ne t'embête pas ».
 - **Sévérité grammaticale** — trois crans : ne rien marquer / marquer les fautes / marquer aussi les tournures correctes mais maladroites. Pas un pourcentage : une phrase est fautive ou ne l'est pas.
-- **Seuil de prononciation** — score en deçà duquel un phonème est marqué. Facultatif : le poser à 70 %, c'est déclarer qu'on travaille cet aspect-là aujourd'hui.
+- **Seuil de prononciation** — marge en deçà de laquelle un phonème est marqué. Facultatif : le poser bas, c'est déclarer qu'on travaille cet aspect-là aujourd'hui.
+
+Le seuil porte sur **l'écart entre le phonème attendu et le mieux classé de `NBestPhonemes`**, et non sur `AccuracyScore`. Mesuré sur trois prises de la même phrase : une tentative de `/s/` restée entre les deux sons a valu à `/θ/` un `AccuracyScore` de **100**, contre **77** pour un `/θ/` franc — le score absolu classe la prise ambiguë *au-dessus* de la prise propre. La marge, elle, ordonne correctement les trois (+10 / +72 / −46). Un seuil posé sur `AccuracyScore` laisserait donc passer précisément les productions intermédiaires, qui sont l'essentiel de ce qu'un apprenant produit.
 
 Un curseur peut déclencher la parenthèse automatiquement au lieu de seulement marquer. C'est l'inversion assumée du principe ci-dessus, et elle reste un choix de l'utilisateur.
 
