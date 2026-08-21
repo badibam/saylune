@@ -67,6 +67,10 @@ La séparation détecter / travailler désamorce largement ce piège : le texte 
 
 Reste le cas ambigu : *« I sink »* est-il un `think` mal prononcé ou un mot faux ? L'IA tranche seule, sans demander. Elle peut se tromper, mais l'enjeu a rétréci — elle se trompe sur *quelle marque poser*, plus sur la note.
 
+**Le piège se déclenche moins souvent qu'on le craignait.** Sur *« I sink »* comme sur *« I am walkin »*, la reconnaissance a rendu `think` et `walking` d'elle-même : le modèle de langue normalise vers le mot plausible, et la reconstruction n'avait rien à corriger. Ce n'est pas une bonne nouvelle pour autant — le mot juste revenu, la notation absout la faute (cf. « Les trois curseurs »). Le piège change de main plus qu'il ne disparaît.
+
+**Et une reconstruction fausse coûte plus cher qu'annoncé.** Deux justes sur les trois cas où le piège s'est réellement déclenché (`ship` → `sheep`, `bear` → `pear`, cette dernière plaçant la marque exactement sur le `/p/`), une fausse : *« Turn light at the corner »* reconstruit en `left` au lieu de `right`, le contexte admettant les deux. Noté contre `left`, le mot rend quatre phonèmes aberrants d'un coup et entraîne `corner` avec lui. Une reconstruction fausse ne décale donc pas une marque, elle en produit une **rafale** — raison de plus pour ne marquer que ce qui dépasse aussi la ligne de base, jamais un phonème isolément bas.
+
 Cette décision rejoint la recommandation du fournisseur, qui conseille d'appeler d'abord la reconnaissance vocale pour obtenir le texte, puis de lancer l'évaluation en mode **scripté** — plus précis que le mode non scripté, et moins cher.
 
 ## L'affichage
