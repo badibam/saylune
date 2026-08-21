@@ -1,15 +1,18 @@
 # TODO
 
-## Chantier 1 — banc de détection (écrit, bloqué sur les clés)
+## Chantier 1 — banc de détection (en cours)
 
 Le banc est en place dans `tmp/bench/` (jetable, gitignoré) : `record.py`, `assess.py`, `reconstruct.py`, `detect.py`, le jeu d'essai adversarial dans `phrases.md` et ses contextes wizard-of-oz. Le contrat REST y est vérifié contre la doc du fournisseur, la logique de verdict testée hors ligne.
 
-Reste à le **faire tourner**, ce qui demande `AZURE_SPEECH_KEY` + `AZURE_SPEECH_REGION` et `ANTHROPIC_API_KEY`. Créer la ressource Azure est le vrai coût, et c'est le même mur que rencontrera l'utilisateur au BYOK : le traverser une fois informe l'écran de configuration guidé.
+La ressource Azure est créée (`francecentral`, palier gratuit F0) et le banc tourne. La reconstruction passe par DeepSeek, le fournisseur étant un paramètre.
 
-Trois réponses attendues, et c'est tout ce qu'on garde du banc :
-1. La reconstruction tient-elle sur les cas ambigus, et à quel taux de fausses marques.
-2. Dans lequel des quatre états les phonèmes remontent hors `en-US` (`phrases.md` détaille : absent / symboles vides / symboles sans `NBestPhonemes` / complet). Seul le dernier tient la promesse du choix de l'accent. Issue sinon : v1 américaine seulement, ou second moteur pour les autres accents.
-3. Le coût réel d'un tour détecté, puisque c'est l'utilisateur qui paie.
+Réponses obtenues :
+- **Locales : tranché.** Le phonème n'est nommé qu'en `en-US` ; `en-GB` note et classe sans nommer (cf. `docs/reference.md`, « Fournisseurs »).
+- **Forme de la réponse REST : les scores sont à plat sur l'entrée**, pas nichés sous `PronunciationAssessment` comme le montre l'exemple de la doc. À porter tel quel dans le code Android.
+
+Reste à obtenir :
+1. La reconstruction tient-elle sur les cas ambigus, et à quel taux de fausses marques. Les cas de `phrases.md` restent à enregistrer, en produisant vraiment la faute — au premier essai la prononciation était correcte, donc le piège ne s'est pas déclenché.
+2. Le coût réel d'un tour détecté, puisque c'est l'utilisateur qui paie.
 
 ## Chantier 2 — trancher le montage de la conversation
 

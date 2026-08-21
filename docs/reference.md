@@ -98,7 +98,11 @@ L'analyse et la conversation sont deux briques **substituables**, jamais couplé
 - **Analyse** : Azure Speech Pronunciation Assessment, via **API REST** — pas le SDK, qui est un binaire propriétaire incompatible avec F-Droid. Retourne un score par phonème et, via `NBestPhonemes`, le phonème réellement produit face à l'attendu. Alphabet IPA. Le REST est limité à l'audio court, ce qui convient à des phrases de conversation.
 - **Conversation** : non tranché (cf. `TODO.md`, chantier 2).
 
-Restrictions connues du moteur d'analyse : la prosodie, le niveau syllabe et l'évaluation de contenu sont limités à `en-US`. Le niveau phonème l'est peut-être aussi — la doc du fournisseur se contredit sur ce point, une phrase l'annonçant sur toutes les locales supportées et une table de la même page ne listant l'alphabet phonétique que pour `en-US` et `zh-CN`, le phonème produit pour `en-US` seul. Les rapports terrain divergent entre eux. Mesuré au chantier 1 ; à défaut, la promesse « choix de l'accent » ne tient pas.
+Restrictions connues du moteur d'analyse : la prosodie, le niveau syllabe et l'évaluation de contenu sont limités à `en-US`.
+
+**Le niveau phonème n'est nommé qu'en `en-US`** — mesuré, pas déduit. En `en-GB`, le moteur note chaque phonème et classe bien cinq candidats pour chacun, mais renvoie la **chaîne vide** comme symbole partout : il sait quel son a été produit et refuse de le nommer. La distinction n'est donc pas « ça marche / ça ne marche pas » : `en-GB` **détecte** (position et score suffisent à poser une marque) mais ne peut ni nommer le son attendu, ni dire lequel a été produit — donc pas de consigne d'articulation, qui est la matière même de la parenthèse.
+
+Conséquence sur le réglage d'accent : une v1 américaine tient entièrement ; les autres accents n'offriraient qu'une détection muette. Piste si l'accent devient prioritaire : les phonèmes non nommés arrivent **ordonnés et en nombre correct**, donc un lexique de phonémisation de la locale visée permettrait de recoller les étiquettes par alignement. Ça ajoute une ressource à embarquer, et ça n'est pas de la v1.
 
 ## Hors périmètre
 
