@@ -2,6 +2,8 @@
 
 App Android de pratique de l'anglais oral : conversation libre avec une IA, jamais interrompue, doublée d'un travail de la grammaire et de la prononciation à la demande. Ce document est le point d'entrée ; il porte les décisions **propres au projet**, celles qu'aucune facette de sagesse ne couvre. Le craft transverse vit dans les modules abonnés (cf. `manifest.md`).
 
+Docs complémentaires, à ouvrir au besoin : `design/azure-speech.md` (instruction d'un candidat moteur d'analyse, mesures et incertitudes) et `design/pronunciation-test-set.md` (le jeu d'essai qui sert à comparer les candidats).
+
 ## Le geste
 
 L'utilisateur parle anglais à voix haute. L'IA lui répond en voix, dans l'accent choisi. Rien ne l'interrompt.
