@@ -1,24 +1,14 @@
 # TODO
 
-## Chantier 1 — banc de détection (en cours)
+## Chantier 1 — banc de détection (répondu)
 
-Le banc est en place dans `tmp/bench/` (jetable, gitignoré) : `record.py`, `assess.py`, `reconstruct.py`, `detect.py`, le jeu d'essai adversarial dans `phrases.md` et ses contextes wizard-of-oz. Le contrat REST y est vérifié contre la doc du fournisseur, la logique de verdict testée hors ligne.
+Les trois questions du banc ont leur réponse ; elles vivent dans `docs/reference.md`. Les quinze cas sont enregistrés (sauf le 5) et passés en `en-US` ; `tmp/bench/` est jetable et peut partir dès que plus rien ne s'y relit.
 
-La ressource Azure est créée (`francecentral`, palier gratuit F0) et le banc tourne. La reconstruction passe par DeepSeek, le fournisseur étant un paramètre.
+Ce qui reste ouvert, et qui ne se tranche plus sur un banc hors ligne :
 
-Réponses obtenues :
-- **Locales : tranché.** Le phonème n'est nommé qu'en `en-US` ; `en-GB` note et classe sans nommer (cf. `docs/reference.md`, « Fournisseurs »).
-- **Forme de la réponse REST : les scores sont à plat sur l'entrée**, pas nichés sous `PronunciationAssessment` comme le montre l'exemple de la doc. À porter tel quel dans le code Android.
-
-- **Signal de marquage : la marge, pas le score absolu**, et à titre provisoire (cf. `docs/reference.md`, « Les trois curseurs »).
-
-Le jeu d'essai est élargi à quinze cas en trois blocs (cf. `tmp/bench/phrases.md`) : A, une famille de son par cas — fricative, voyelle, occlusive, approximante, nasale, réduction ; B, la grammaire à prononciation propre ; C, un témoin sans faute dont les phrases reprennent les sons du bloc A. Trois prises seulement existent, toutes sur le contraste fricatif.
-
-Reste à obtenir :
-1. **Enregistrer le jeu élargi**, dans l'ordre par paires qu'indique `phrases.md` — chaque cas adversarial avec son témoin, même voix, même jour. C'est le seul geste que personne d'autre ne peut faire, et tout le reste est derrière.
-2. **La reconstruction sur les cas ambigus**, et le taux de fausses marques. Non mesurée : la reconnaissance a rendu `think` sur les deux prises, donc le piège du texte de référence ne s'est jamais déclenché. C'est déjà une information — le modèle de langue normalise vers le mot plausible — et les cas 6, 7 et 8 rejouent ce piège sur d'autres sons pour savoir si c'est une règle ou un accident.
-3. **Affiner la règle de marquage**, et lui donner un seuil chiffré. Le seuil se lit sur la distribution des marges du bloc C, pas sur les cas adversariaux ; la règle se juge à sa survie hors des fricatives, cas 9 et 10 compris, où l'erreur n'a aucun rival lexical.
-4. **Le coût réel d'un tour détecté**, puisque c'est l'utilisateur qui paie. Calculable sans nouvelle prise, sur les appels déjà faits.
+1. **La ligne de base par phonème est une décision, pas encore une mesure.** Elle demande du volume de parole pour se remplir — donc elle se valide dans l'app, en usage, pas sur quinze prises. Question précise à garder en tête : au bout de combien de tours une ligne de base est-elle assez peuplée pour qu'un écart veuille dire quelque chose.
+2. **La voyelle est peut-être hors de portée.** Huit points séparent le `/iː/` fauté de son témoin, contre 171 sur l'occlusive. Si l'écart ne se creuse pas avec une ligne de base, il faut l'admettre : le marquage ne couvre pas les contrastes vocaliques, et le dire vaut mieux que marquer au hasard.
+3. **Cas 5** (`The sink is broken`, contexte `sink.txt`) jamais enregistré — le seul qui dise si le contexte sert vraiment, ou si la reconstruction corrige dès qu'un mot voisin existe. Court, et le banc tient encore debout pour le prendre.
 
 ## Chantier 2 — trancher le montage de la conversation
 
