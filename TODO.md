@@ -1,23 +1,15 @@
 # TODO
 
-## Chantier 1 — banc de détection (prochaine session, bloquant)
+## Chantier 1 — banc de détection (écrit, bloqué sur les clés)
 
-Banc jetable **côté portable**, Python, dans `tmp/bench/` — zéro Android, zéro Kotlin. Android est le substrat cher (Gradle, appareil, `adb`, permissions micro) : valider des contrats REST à travers cette couche, c'est payer plein tarif pour une réponse qu'un script rend en une soirée. Ce code est à jeter ; ce qu'on garde, ce sont les réponses.
+Le banc est en place dans `tmp/bench/` (jetable, gitignoré) : `record.py`, `assess.py`, `reconstruct.py`, `detect.py`, le jeu d'essai adversarial dans `phrases.md` et ses contextes wizard-of-oz. Le contrat REST y est vérifié contre la doc du fournisseur, la logique de verdict testée hors ligne.
 
-Portée volontairement étroite : **la détection seule** (cf. `docs/reference.md`, « Les deux tuyaux »). Je dis une phrase, le banc répond : faute de grammaire, phonème sous le seuil, les deux, ou rien. Rien d'autre — pas de drill, pas de conversation. Tout le reste en dépend, et c'est la seule couche qui tourne sans qu'on l'ait demandée : une fausse marque envoie travailler pour rien, une marque manquée laisse ignorant.
+Reste à le **faire tourner**, ce qui demande `AZURE_SPEECH_KEY` + `AZURE_SPEECH_REGION` et `ANTHROPIC_API_KEY`. Créer la ressource Azure est le vrai coût, et c'est le même mur que rencontrera l'utilisateur au BYOK : le traverser une fois informe l'écran de configuration guidé.
 
-- `record.py` — capture un wav 16 kHz mono (le format exact du tuyau A, pour que ce qui marche ici marche là-bas).
-- `assess.py` — wav → Azure STT, puis Pronunciation Assessment en mode scripté avec `NBestPhonemes`, locale en paramètre. Sortie : le JSON brut, puis un tableau phonème / score / produit.
-- Reconstruction du texte visé par le LLM : **historique de conversation plausible collé à la main** dans le prompt (wizard-of-oz). Hors contexte, le LLM devine dans le vide. Sortie attendue : `{heard, intended, repaired, severity}` — le texte réparé est un champ de plus, pas un appel de plus.
-
-**Le jeu d'essai est adversarial, pas propre.** Il vise là où faute phonétique et faute grammaticale se confondent, parce que c'est là que la reconstruction casse :
-- « I sink you are right » — `think` mal prononcé, pas un mot faux.
-- « He don't know » — faute de grammaire, prononciation parfaite.
-- « I have 25 years » — les deux textes divergent.
-
-**Question absorbée : les phonèmes IPA remontent-ils hors `en-US` ?** Mêmes phrases passées en `en-US` puis `en-GB`. Ce que la doc promet (niveau phonème sur toutes les locales supportées) est contredit par des rapports terrain de phonèmes manquants en `en-GB`, `fr-FR`, `de-DE`, `es-ES`, question restée sans réponse publique côté Microsoft. Tant que ce n'est pas mesuré, la promesse « choix de l'accent » n'est pas tenable. Issue si les phonèmes ne tombent qu'en `en-US` : soit v1 américaine seulement, soit second moteur pour les autres accents.
-
-Confirmé par ailleurs et non à revérifier : l'évaluation est accessible en **REST** (pas de SDK propriétaire à embarquer, donc F-Droid reste jouable) ; la réponse porte `NBestPhonemes`, qui donne le phonème **réellement produit** face à l'attendu, pas seulement un score.
+Trois réponses attendues, et c'est tout ce qu'on garde du banc :
+1. La reconstruction tient-elle sur les cas ambigus, et à quel taux de fausses marques.
+2. Dans lequel des quatre états les phonèmes remontent hors `en-US` (`phrases.md` détaille : absent / symboles vides / symboles sans `NBestPhonemes` / complet). Seul le dernier tient la promesse du choix de l'accent. Issue sinon : v1 américaine seulement, ou second moteur pour les autres accents.
+3. Le coût réel d'un tour détecté, puisque c'est l'utilisateur qui paie.
 
 ## Chantier 2 — trancher le montage de la conversation
 
