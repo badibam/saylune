@@ -36,7 +36,7 @@ Le **motif récurrent** dans la session (« /θ/ manqué six fois en dix minutes
 
 Une seule primitive, récursive : conversation → phrase → mot. Même geste à chaque étage, même bouton de sortie.
 
-- **Ouverture** par la marque ou par un seuil. Si les deux marques tombent sur le même tour, la grammaire passe d'abord : on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire.
+- **Ouverture** par la marque ou par un seuil. Si les deux marques tombent sur le même tour, la grammaire passe d'abord : on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire. Le genre de la marque tient à la **nature** de la faute, jamais à sa gravité — une faute de prononciation est sévère sans être grammaticale, et confondre les deux ouvre la mauvaise parenthèse.
 - **Drill** = explication, puis production. L'IA pose une question dont la réponse ne peut se formuler qu'avec la structure visée : les variations sont formulées par l'utilisateur, jamais récitées. Redire une fois la phrase qu'on vient de lui souffler n'apprend rien. Le drill est ainsi fait de la même matière que la conversation.
 - **Prononciation à l'échelle de la phrase.** Un mot peut être zoomé — parenthèse dans la parenthèse, le temps de l'améliorer, puis retour à la phrase — avec la consigne d'articulation qui va avec. Le zoom ne descend pas au phonème isolé : un son réussi seul se rate encore dans le mot, parce que ce qui coince est la transition.
 - **Sortie** disponible à tout moment en un appui. Quand l'IA juge la structure acquise, elle le dit et le bouton de sortie **change d'allure** : il devient le geste suggéré. Un seul contrôle, deux états — rien de neuf à l'écran, aucune interruption.
@@ -100,6 +100,7 @@ Ce qui en découle et se décide au premier commit :
 - Anti-feature **`NonFreeNet`** à déclarer à la soumission.
 - Écran de configuration guidé, avec un bouton **« tester la clé »** qui valide immédiatement. C'est le vrai coût du BYOK : créer une ressource Azure est pénible, et sans validation immédiate toute panne ultérieure sera imputée à l'app.
 - L'utilisateur paie sa consommation : l'app doit pouvoir dire ce qu'elle consomme. La détection tournant à chaque tour quand le seuil est actif, elle multiplie les appels — c'est le poste le plus lourd, et le curseur qui l'active doit le dire.
+- Un tour détecté coûte **deux fois sa durée d'audio** chez Azure : reconnaissance puis évaluation scriptée, le texte de référence ne pouvant se construire qu'après la première. Le doublement est structurel, pas une maladresse d'implémentation. Mesuré sur le banc, 4,1 s de parole par tour en moyenne, donc ~8 s facturées, plus un appel LLM court dont le coût est négligeable devant.
 
 Limite connue et acceptée : le BYOK est un mur d'adoption pour un public qui ne créera pas de compte Azure pour essayer l'app. C'est le point où un backend hébergé redeviendrait la question — pas avant.
 
