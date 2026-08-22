@@ -121,6 +121,39 @@ Le prix d'une reconstruction fausse est lourd : noté contre `left`, le mot rend
 
 À l'inverse, le piège se déclenche moins souvent qu'on le craignait : sur « I sink » comme sur « I am walkin », la reconnaissance a rendu `think` et `walking` d'elle-même. Le modèle de langue normalise vers le mot plausible, et la reconstruction n'a rien à corriger — mais le mot juste revenu, `AccuracyScore` absout la faute. Le piège change de main plus qu'il ne disparaît.
 
+## À armes égales : l'écart au modèle
+
+Azure avait été jugé sur ses notes brutes, SpeechAce sur l'écart à un modèle synthétique. La comparaison n'était donc pas équitable. Voici Azure passé à la même méthode : la même voix de synthèse dit la phrase, Azure la note, et on compare son par son.
+
+| prise | humain | modèle | écart | cas |
+|---|---|---|---|---|
+| 15 | 100,0 | 100,0 | **+0,0** | témoin |
+| 13 | 93,0 | 100,0 | **−7,0** | témoin |
+| 14 | 74,0 | 97,0 | **−23,0** | témoin |
+| 01 | 100,0 | 100,0 | 0,0 | th→s, demi-faute |
+| 06 | 100,0 | 100,0 | 0,0 | iy→ih, durée |
+| 09 | 100,0 | 100,0 | 0,0 | ng→n, demi-faute |
+| 18 | 100,0 | 100,0 | 0,0 | ng→n **franche** |
+| 17 | 80,0 | 100,0 | −20,0 | th→s **franche** |
+| 07 | 51,0 | 97,0 | −46,0 | p→b |
+| 08 | 48,0 | 100,0 | −52,0 | r→l |
+| 16 | 48,0 | 100,0 | −52,0 | iy→ih **franche** |
+
+**Les deux populations se chevauchent.** Le pire témoin tombe à −23, plus bas qu'une faute franche à −20 ; et quatre fautes, dont deux franches, rendent exactement 0,0. Aucun seuil ne les sépare : placé sous le pire témoin, il voit 3 fautes sur 8 ; relevé pour en voir une quatrième, il crie au loup sur une prise propre.
+
+Le témoin 14 dit pourquoi : un /p/ correctement prononcé y est noté **74**, quand le modèle est à 97. La fausse alerte naît de la notation elle-même, pas de la méthode.
+
+L'étalon est d'ailleurs moins net chez Azure : médiane 97,0 et 11 phonèmes sur 172 sous 90, là où le même audio passé à SpeechAce rend 100,0 de médiane et un seul sous 90.
+
+**Pour mémoire, la comparaison sur le même jeu et la même méthode :**
+
+| | fautes vues sans fausse alerte | dispersion des témoins |
+|---|---|---|
+| Azure | 3 / 8 | de 0 à −23 |
+| SpeechAce | 6 / 8 | ±1 |
+
+**Ce qui reste à l'avantage d'Azure**, et qu'il ne faut pas perdre en lisant ce tableau : `NBestPhonemes` identifie le son produit **indépendamment du texte annoncé**, ce que SpeechAce ne fait pas — son `sound_most_like` renvoie l'écho du texte fourni. Azure est donc le seul des deux à savoir dire ce qui a réellement été prononcé. Mais cette qualité porte sur un critère que le projet a rétrogradé : le remède d'une faute est désormais d'entendre un modèle, ce qui demande de savoir **où**, pas **quoi**.
+
 ## Ce qui reste incertain
 
 Rien de ce qui précède n'a la solidité d'un résultat établi. Les limites, dans l'ordre de gravité :
