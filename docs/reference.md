@@ -22,6 +22,8 @@ Ce n'est pas une simplification d'implémentation, c'est ce qui rend le marquage
 
 Ça vaut aussi comme borne : ni suivi longitudinal, ni tendance affichée, ni pilotage de la conversation par les faiblesses accumulées.
 
+La règle porte sur **la conversation et son marquage**. Une parenthèse est un épisode fermé, avec son propre déroulé — un drill dont la difficulté monte progresse à l'intérieur de la parenthèse et meurt avec elle, sans rien laisser derrière.
+
 ## Les trois curseurs
 
 Fluidité, grammaire, prononciation ne sont pas trois modes entre lesquels on bascule : ce sont trois axes réglables, et **les régler est la façon de déclarer l'intention d'une session** sans changer ni d'écran ni de mode. C'est le mécanisme qui tisse les trois dans une seule conversation.
@@ -46,7 +48,7 @@ Effet de bord précieux : la branche corrigée s'analyse contre un texte **certa
 
 ## Les trois échelles du son
 
-Sous « prononciation » il y a trois choses de portée différente, et les confondre embrouille l'interface autant que la mesure.
+Sous « prononciation » il y a trois choses de portée différente, à bien distinguer.
 
 | échelle | ce que ça décrit | comment ça se juge |
 |---|---|---|
@@ -80,23 +82,46 @@ Le remède d'une faute sonore est **d'entendre le modèle et de redire**, aux tr
 
 L'`extent` rendu par le moteur donne les deux gratuitement : la position du modèle à jouer, et celle de **l'enregistrement de l'apprenant** au même endroit, à faire entendre juste après.
 
+**Les audios de synthèse sont gardés en cache**, indexés par le texte, la voix et le dialecte. Une même synthèse sert alors trois fois : d'étalon pour la mesure, de modèle à écouter, et de modèle à réécouter autant de fois qu'on redit le mot ou la phrase.
+
 ## La parenthèse
 
 Une seule primitive, récursive : conversation → phrase → mot. Même geste à chaque étage, même bouton de sortie.
 
 - **Ouverture** par la marque ou par un seuil. Le genre de la marque tient à la **nature** de la faute, jamais à sa gravité — une faute de prononciation est sévère sans être grammaticale, et confondre les deux ouvre la mauvaise parenthèse.
-- **Drill** = explication, puis production. L'IA pose une question dont la réponse ne peut se formuler qu'avec la structure visée : les variations sont formulées par l'utilisateur, jamais récitées. Redire une fois la phrase qu'on vient de lui souffler n'apprend rien. Le drill est ainsi fait de la même matière que la conversation.
 - **Prononciation à l'échelle de la phrase.** Un mot peut être zoomé — parenthèse dans la parenthèse, le temps de l'améliorer, puis retour à la phrase.
-- **Sortie** disponible à tout moment en un appui. Quand l'IA juge la structure acquise, elle le dit et le bouton de sortie **change d'allure** : il devient le geste suggéré. Un seul contrôle, deux états — rien de neuf à l'écran, aucune interruption.
+- **Sortie** disponible à tout moment en un appui.
 - L'IA sait que ces tours sont une **parenthèse et non du contenu** : elle reprend le sujet d'avant, elle n'enchaîne pas sur la grammaire.
 
-Dans la parenthèse, tout ce qui est dit est **neuf** — la phrase réparée, les variations, le mot zoomé — et chaque énoncé est noté contre un texte de référence **connu d'avance**, puisque c'est l'IA qui l'a proposé.
+Tout ce qui s'y dit est **neuf** — la phrase réparée, les variations, le mot zoomé — et chaque énoncé est noté contre un texte de référence **connu d'avance**, puisque c'est l'IA qui l'a proposé.
+
+### Deux temps, qui s'enchaînent
+
+**Temps 1 — corriger.** L'IA introduit en **une phrase** la manière correcte de dire, puis rend la parole. L'utilisateur formule alors une phrase **libre**, et elle doit satisfaire deux conditions : respecter la structure corrigée, et rester **cohérente avec la conversation**. Si elle les satisfait, le temps 1 est clos ; sinon il se poursuit.
+
+*Libre* qualifie la formulation, pas le terrain. La phrase d'introduction de l'IA doit rendre la structure **inévitable** — sinon l'utilisateur, sans le vouloir, contourne l'endroit qui coince : corrigé sur `He don't know`, il répond *« I like pizza »*, la règle est respectée à vide et le temps 1 se clôt sans que rien n'ait été travaillé.
+
+**La phrase produite remplace la phrase initiale** dans le fil, à la fermeture de la parenthèse. C'est la raison de la condition de cohérence : elle doit pouvoir tenir la place de ce qui avait été dit. C'est aussi ce qui donne au temps 1 son enjeu — on ne récite pas une correction, on réécrit son propre tour.
+
+**Temps 2 — driller.** Proposé, jamais imposé : à la fin du temps 1, une indication visuelle offre de poursuivre la conversation, ce qui referme la parenthèse, ou de driller la structure travaillée, ce qui la laisse ouverte.
+
+Les drills sont introduits par des phrases qui **imposent d'employer la structure**, et leur difficulté croît. Les variations sont formulées par l'utilisateur, jamais récitées : redire une fois la phrase qu'on vient de lui souffler n'apprend rien. Le drill est ainsi fait de la même matière que la conversation.
+
+*Piste, non tranchée* : la difficulté monte d'elle-même à chaque réussite, et deux boutons permettent de la corriger. Le `-` est le vrai des deux — qui décroche ne saura pas nommer ce qui le dépasse, il voudra seulement que ça redescende.
+
+### Sortir sans avoir réussi
+
+Il n'y a **pas de sortie forcée**, seulement une sortie proposée. Un locuteur peut réparer la structure en cassant autre chose, indéfiniment, et rien n'oblige à en venir à bout.
+
+Sortir avant d'avoir produit une phrase correcte et cohérente est donc légitime, et sans conséquence : **la phrase initiale reste telle qu'elle a été dite**, et tout se passe comme si l'on avait ignoré la faute dès le départ. La parenthèse est une occasion de réécrire son tour ; l'abandonner laisse le fil intact.
 
 ## Les deux tuyaux
 
 Deux circuits distincts partagent une seule ressource : le fichier audio du tour de parole.
 
-**Tuyau A — la conversation.** Micro → tampon local (PCM 16 kHz mono, un fichier par tour, **conservé**) → fin de parole détectée → envoi au fournisseur de conversation → lecture de la réponse audio. Le fichier local est la condition d'existence du tuyau B : aucun service distant ne rend l'audio envoyé.
+**Tuyau A — la conversation.** Micro → tampon local (PCM 16 kHz mono, un fichier par tour, **conservé**) → fin de parole **déclarée par l'utilisateur** → envoi au fournisseur de conversation → lecture de la réponse audio. Le fichier local est la condition d'existence du tuyau B : aucun service distant ne rend l'audio envoyé.
+
+La fin de tour est **manuelle**, pas détectée. Une détection automatique coupe la parole de qui hésite, cherche un mot ou reprend sa phrase — c'est-à-dire précisément de qui apprend. Ça supprime au passage tout réglage de seuil de silence. Contrepartie à connaître : un tour peut devenir long, et l'analyse se facturant à la tranche de quinze secondes arrondie au-dessus, un tour de vingt secondes coûte le double d'un tour de huit.
 
 **Tuyau B — analyser.** Le tour est examiné pour savoir s'il y a un problème et où. Se fait sur l'enregistrement existant, sans jamais rien redemander.
 
@@ -114,7 +139,7 @@ Le piège se déclenche moins souvent qu'on le craignait : sur *« I sink »* co
 
 Mais **une reconstruction fausse coûte cher**. *« Turn light at the corner »* reconstruit en `left` au lieu de `right`, le contexte admettant les deux : noté contre `left`, le mot rend quatre sons aberrants d'un coup et entraîne le suivant avec lui. Une reconstruction fausse ne décale pas une marque, elle en produit une **rafale**.
 
-D'où un garde-fou, qui est une vérification **interne au tour** : un énoncé où beaucoup de sons s'effondrent en même temps signale plus probablement un mauvais texte qu'un mauvais locuteur, et on s'abstient de marquer plutôt que de marquer partout.
+D'où un garde-fou, qui est une vérification **interne au tour** : un énoncé où beaucoup de sons s'effondrent en même temps signale plus probablement un mauvais texte qu'un mauvais locuteur... à décider : comment on indique ça ?
 
 ## L'affichage
 
@@ -130,7 +155,11 @@ Réglage **global unique**, exposé à l'utilisateur. Il gouverne trois choses q
 
 Ce n'est pas une exigence de cohérence esthétique. Mesuré : une voix américaine notée au référentiel britannique tombe à 61 sur un son parfaitement prononcé, et les deux lexiques ne découpent pas la phrase en autant de sons — les marques ne tombent donc même pas sur les mêmes lettres. Comme le modèle sert d'étalon, un désaccord **inverse** la mesure : c'est le modèle qui se fait pénaliser, l'écart devient positif, et la faute de l'apprenant passe inaperçue.
 
-La voix elle-même n'est pas exposée : l'app en choisit une par défaut pour l'accent retenu, parmi celles qui ont passé l'étalonnage. Si la voix du modèle doit venir d'un autre moteur que celle de la conversation, c'est accepté — les briques *conversation*, *synthèse* et *analyse* sont indépendantes, unifiées par le seul paramètre d'accent.
+**La voix se choisit.** Deux sélecteurs — le fournisseur de synthèse, puis la voix chez ce fournisseur — et un **étalonnage à la demande** qui avertit si elle échoue. Rien n'est imposé et rien n'est deviné : une voix qui ne s'étalonne pas reste utilisable pour parler, mais elle est signalée comme impropre à servir de modèle.
+
+L'étalonnage fait alors double emploi, et c'est ce qui le rend intéressant : il **détecte aussi l'incohérence d'accent**. Une voix américaine soumise au référentiel britannique échoue le test, et le dit, au lieu de dégrader les mesures en silence pendant toute une session.
+
+Par défaut, **le modèle à imiter est la voix de la conversation** — c'est celle qu'on entend déjà, et rien ne justifie d'en présenter une autre. Les dissocier reste possible pour qui le veut, et le cas où le modèle vient d'un autre fournisseur que la conversation est accepté : les briques *conversation*, *synthèse* et *analyse* sont indépendantes, unifiées par le seul paramètre d'accent.
 
 ## Les clés d'API
 
@@ -159,7 +188,7 @@ Analyse, conversation et synthèse sont des briques **substituables**, jamais co
 - **SpeechAce** — instruit et mesuré (`design/speechace.md`). Détecte six fautes sur huit en nommant le son, sept sur huit par écart au modèle, sans fausse alerte sur les témoins. Deux manques déterministes.
 - **Reconnaissance phonétique embarquée** — un modèle sur l'appareil au lieu d'un service. Retirerait d'un coup le coût par tour, le BYOK et l'anti-feature `NonFreeNet`. Pas la v1, mais la porte reste ouverte et le reste de l'architecture ne doit pas la fermer.
 
-**Conversation** et **synthèse** — non tranchés (cf. `TODO.md`, chantier 2).
+**Conversation** et **synthèse** — non tranchés (cf. `TODO.md`, chantier 2). L'orientation est la chaîne **STT → LLM → TTS** plutôt qu'une API voix-à-voix, pour la modularité de chaque maillon, sous réserve que la latence cumulée reste acceptable — ce qui se mesure et ne se décide pas. Un argument s'y ajoute : dans cette chaîne, la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où une API voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir.
 
 ### Ce que l'app exige de n'importe quel moteur d'analyse
 

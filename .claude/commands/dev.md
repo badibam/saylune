@@ -2,3 +2,5 @@
 @TODO.md
 @NOTES.md
 @docs/reference.md
+
+documention de l'API SPeechAce au besoin : docs/speechace-docs

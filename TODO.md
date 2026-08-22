@@ -22,9 +22,12 @@ Deux irrégularités contraignent le dessin : une lettre peut porter deux sons, 
 
 ## Chantier 2 — trancher le montage de la conversation
 
-- **API voice-to-voice temps réel** (latence native, transcription de l'entrée fournie) *ou* **chaîne STT → LLM → TTS** (maillons substituables, latence cumulée). Arbitrage latence contre contrôle ; ne se tranche pas sans mesure. Ne se mesure utilement qu'**après** le chantier 1 : une latence de conversation dont on ignore si la détection tient est une optimisation avant l'existence.
-- Contrainte commune aux deux : l'audio de chaque tour est **conservé localement**, sinon la détection n'a rien à analyser.
-- Contrainte de fidélité : le TTS sert de **modèle à imiter**, donc qualité et surtout **stabilité** (le même mot sonne pareil d'une fois sur l'autre).
+L'orientation est la **chaîne STT → LLM → TTS**, pour la modularité de chaque maillon. Reste à vérifier que la latence cumulée est acceptable — ça se mesure, et une mesure de latence n'a d'intérêt qu'**après** le chantier 1 : optimiser le temps de réponse d'une conversation dont on ignore si la détection tient est une optimisation avant l'existence.
+
+- Deux arguments déjà acquis contre l'API voix-à-voix : la reconstruction du texte de référence voyage gratuitement dans l'appel LLM de la chaîne, alors qu'elle exigerait un appel dédié par tour en voix-à-voix ; et la fin de tour étant manuelle, la latence native du temps réel perd une partie de son intérêt.
+- Contrainte commune : l'audio de chaque tour est **conservé localement**, sinon l'analyse n'a rien à examiner.
+- Contrainte de fidélité : le TTS sert de **modèle à imiter** et d'**étalon de mesure**, donc qualité, **stabilité** (le même mot sonne pareil d'une fois sur l'autre) et réussite à l'étalonnage.
+- Le TTS doit exposer **le choix de la voix** et accepter un rendu en haute qualité — le débit d'échantillonnage étant indifférent au moteur d'analyse, un seul rendu sert à l'écoute et à la mesure.
 
 ## Chantier 3 — incarnation
 
