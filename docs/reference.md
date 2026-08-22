@@ -133,6 +133,15 @@ La fin de tour est **manuelle**, pas détectée. Une détection automatique coup
 
 L'audio d'un tour part donc **deux fois**, chez deux fournisseurs distincts.
 
+## La panne
+
+Chaque tour dépend de services distants, et chacun peut manquer — réseau coupé, quota épuisé, fournisseur en panne, clé expirée. La règle se décline par brique, pas globalement :
+
+- **La chaîne de conversation est bloquante, mais réparable par construction** : la fin de tour manuelle et le fichier conservé font qu'un envoi raté se **réessaie sans redire la phrase**. L'échec coûte un bouton, jamais une parole perdue. La parenthèse grammaticale, qui ne consomme que cette chaîne, hérite du même traitement.
+- **L'analyse ne bloque jamais la conversation.** Un tour dont l'analyse échoue est un tour sans marques, pas un tour en erreur — et il **porte sa raison** (« non analysé — quota »), comme une option éteinte porte la sienne : la panne au runtime est le même cas que la capacité absente.
+- **La parenthèse de prononciation se dégrade, elle ne se ferme pas.** Elle consomme deux choses : le modèle à écouter (souvent en cache) et le verdict sur la redite (le moteur). Si le moteur manque, écouter et redire restent possibles — le cœur pédagogique — sans confirmation que l'écart s'est refermé, et l'app le dit franchement. La sortie reste ce qu'elle est partout : proposée, jamais forcée.
+- **Ni file hors-ligne, ni réanalyse différée** : analyser un tour trois tours plus tard produirait des marques sur du passé, ce que l'indépendance des tours interdit. Ce qui n'a pas été analysé sur le moment ne le sera pas.
+
 ## Le texte de référence
 
 Le moteur d'analyse compare un audio à la prononciation attendue d'un **texte donné**. En conversation libre, ce texte n'est pas connu d'avance, et c'est la seule contrainte de la chaîne qu'on ne peut pas contourner : les mesures fines n'existent que sur les endpoints scriptés.
