@@ -1,6 +1,10 @@
 # Azure Speech Pronunciation Assessment — instruction
 
-Tout ce qui est propre à ce moteur, mesuré sur `pronunciation-test-set.md`. Azure est **l'un des trois candidats** au rôle de brique d'analyse (cf. `../reference.md`, « Fournisseurs ») ; rien ici n'est un engagement. Ce document existe pour que le choix se fasse sur des mesures et non sur une impression, et pour que la mesure survive au choix.
+**Candidat écarté.** SpeechAce a été retenu pour la v1 (cf. `../reference.md`, « Fournisseurs »), et Azure n'est pas gardé en alternative.
+
+Ce document reste pour deux raisons. Il porte la **méthode de comparaison** et le seul contre-exemple dont on dispose — à quoi ressemble un moteur qui échoue, chiffres à l'appui — ce qu'il faudra pour juger une future piste embarquée. Et c'est sa lecture qui a **déformé le contrat fournisseur** de la référence, en faisant apparaître trois exigences qu'un seul moteur ne laissait pas voir.
+
+Tout ce qui suit est mesuré sur `pronunciation-test-set.md`.
 
 ## Le contrat REST
 

@@ -2,7 +2,7 @@
 
 App Android de pratique de l'anglais oral : conversation libre avec une IA, jamais interrompue, doublée d'un travail de la grammaire et de la prononciation à la demande. Ce document est le point d'entrée ; il porte les décisions **propres au projet**, celles qu'aucune facette de sagesse ne couvre. Le craft transverse vit dans les modules abonnés (cf. `manifest.md`).
 
-Docs complémentaires, à ouvrir au besoin : `design/speechace.md` et `design/azure-speech.md` (instruction des candidats moteur d'analyse, mesures et incertitudes) et `design/pronunciation-test-set.md` (le jeu d'essai qui sert à les comparer).
+Docs complémentaires, à ouvrir au besoin : `design/speechace.md` (le moteur d'analyse retenu — ce qu'il rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure) et `design/azure-speech.md` (le candidat écarté, gardé comme base de comparaison).
 
 ## Le geste
 
@@ -180,13 +180,13 @@ Limite connue et acceptée : le BYOK est un mur d'adoption, d'autant qu'un fourn
 
 ## Fournisseurs
 
-Analyse, conversation et synthèse sont des briques **substituables**, jamais couplées. Aucune n'est tranchée.
+Analyse, conversation et synthèse sont des briques **substituables**, jamais couplées. Le contrat ci-dessous existe pour que ça reste vrai après le choix, pas seulement avant.
 
-**Analyse** — trois candidats (cf. `TODO.md`, chantier 1) :
+**Analyse — SpeechAce, retenu pour la v1** (`design/speechace.md`). Mesuré contre le jeu d'essai complet : six fautes de son sur huit sans fausse alerte sur les témoins, un accent lu par syllabe, une mélodie qui sépare de dix-sept demi-tons. Ses limites sont connues et écrites — deux manques déterministes au phonème, une fausse alerte d'accent sur un témoin correct, un plancher d'abonnement de 40 $/mois à la charge de l'utilisateur.
 
-- **Azure Speech Pronunciation Assessment** — instruit et mesuré (`design/azure-speech.md`). Son verdict de conformité est inutilisable pour la détection.
-- **SpeechAce** — instruit et mesuré (`design/speechace.md`). Détecte six fautes sur huit en nommant le son, sept sur huit par écart au modèle, sans fausse alerte sur les témoins. Deux manques déterministes.
-- **Reconnaissance phonétique embarquée** — un modèle sur l'appareil au lieu d'un service. Retirerait d'un coup le coût par tour, le BYOK et l'anti-feature `NonFreeNet`. Pas la v1, mais la porte reste ouverte et le reste de l'architecture ne doit pas la fermer.
+**Azure Speech est écarté**, et pas seulement classé second : sur les mêmes prises et la même méthode il voit trois fautes sur huit avec des témoins qui descendent plus bas que de vraies fautes, et son score de prosodie s'inverse sur la mélodie. Sa mesure reste dans `design/azure-speech.md` — c'est la seule référence dont on dispose pour juger un futur candidat, et elle a servi à déformer le contrat ci-dessous.
+
+**Reconnaissance phonétique embarquée** — la seule alternative encore ouverte, et pas pour la v1. Un modèle sur l'appareil retirerait d'un coup le coût par tour, le BYOK et l'anti-feature `NonFreeNet`, et ne recevant aucun texte de référence il ne peut pas commettre la faute des services : acquiescer au texte qu'on lui souffle. La porte reste ouverte et rien de ce qui s'écrit d'ici là ne doit la fermer.
 
 **Conversation** et **synthèse** — non tranchés (cf. `TODO.md`, chantier 2). L'orientation est la chaîne **STT → LLM → TTS** plutôt qu'une API voix-à-voix, pour la modularité de chaque maillon, sous réserve que la latence cumulée reste acceptable — ce qui se mesure et ne se décide pas. Un argument s'y ajoute : dans cette chaîne, la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où une API voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir.
 

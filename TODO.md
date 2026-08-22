@@ -1,23 +1,23 @@
 # TODO
 
-## Chantier 1 — choisir le moteur d'analyse (en cours)
+## Chantier 1 — le moteur d'analyse : tranché
 
-Azure et SpeechAce sont tous deux instruits et mesurés sur le même jeu de prises — `docs/design/azure-speech.md` et `docs/design/speechace.md`, incertitudes comprises. Le contrat qu'ils doivent honorer est dans `docs/reference.md`, « Fournisseurs » ; il a été déformé par la lecture du second, ce qui était son objet.
-
-**Le jeu d'essai est passé en entier sur les deux moteurs**, et SpeechAce l'emporte sur les trois échelles :
+**SpeechAce, pour la v1.** Le jeu d'essai complet est passé sur les deux candidats, à la même méthode, et l'écart n'est pas discutable :
 
 | | phonème, sans fausse alerte | accent | mélodie |
 |---|---|---|---|
-| SpeechAce | 6 / 8, témoins à ±1 | vu, mais le témoin se déclenche aussi | 17 demi-tons d'écart, localisé |
-| Azure | 3 / 8, témoins jusqu'à −23 | score de phrase, non localisable | **inversé** |
+| SpeechAce | 6 / 8, témoins à ±1 | vu et localisé | 17 demi-tons d'écart |
+| Azure | 3 / 8, témoins jusqu'à −23 | score de phrase | **inversé** |
 
-Il ne reste qu'à **trancher**, en pesant trois choses que les mesures ne disent pas :
+Azure est **écarté**, pas mis en réserve. Sa fiche reste comme base de comparaison (`docs/design/azure-speech.md`).
 
-1. **Le modèle économique.** Azure se facture à l'usage ; SpeechAce impose un plancher de 40 $/mois quel que soit l'usage. Pour un public BYOK c'est un mur d'entrée, et ça ne se lit dans aucun tableau de détection.
-2. **Ce qu'Azure garde pour lui.** Il est le seul des deux à identifier le son produit indépendamment du texte annoncé — sur un critère que le projet a rétrogradé en choisissant l'écoute d'un modèle plutôt que la consigne d'articulation. À vérifier qu'on ne le regrettera pas.
-3. **La fragilité de l'accent chez SpeechAce.** Son témoin correct déclenche une marque. Le discriminant retenu — la syllabe qui *gagne* l'accent plutôt que celle qui le perd — ne tient que sur un cas. Deux ou trois prises de plus le confirmeraient ou l'enterreraient.
+Ce qui reste ouvert de ce chantier, et qui n'attend pas :
 
-La piste **embarquée** (reconnaissance phonétique sur l'appareil) est la troisième voie et n'est pas pour maintenant. Elle retirerait le coût par tour, le BYOK et l'anti-feature `NonFreeNet` d'un seul geste — donc rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. Un argument neuf en sa faveur : ne recevant aucun texte de référence, elle ne peut pas commettre la faute des deux autres, qui est d'acquiescer au texte qu'on leur souffle.
+- **La fragilité de l'accent.** Le témoin correct de la prise 19 déclenche une marque, alors que la mesure sur les échantillons montre l'appui au bon endroit. Le discriminant retenu — la syllabe qui *gagne* l'accent plutôt que celle qui le perd — ne tient que sur un cas et ne s'était pas allumé en synthèse. Deux ou trois prises de plus le confirment ou l'enterrent. **À faire avant de coder le marquage de l'accent**, sinon on implémente une règle inventée.
+- **Reloger les sondes.** `tmp/bench/speechace.py`, `tmp/bench/tts.py` et `tmp/bench/audio_probe.py` portent des mécanismes de l'app — sonde de capacités, étalonnage d'une voix, contrôle indépendant d'une mesure. Le moteur étant choisi, la raison d'attendre a disparu.
+- **Le plancher à 40 $/mois** est le coût assumé du choix. Il ne se résout pas dans ce chantier : c'est la piste embarquée qui le supprimerait, ou rien.
+
+La piste **embarquée** (reconnaissance phonétique sur l'appareil, éventuellement libre) reste la seule alternative envisagée, et pas pour la v1. Elle retirerait d'un coup le coût par tour, le BYOK et l'anti-feature `NonFreeNet` — donc rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. Argument supplémentaire en sa faveur : ne recevant aucun texte de référence, elle ne peut pas commettre la faute des services, qui est d'acquiescer au texte qu'on leur souffle.
 
 ## Chantier 1 bis — le marquage d'un seul mouvement
 
@@ -27,7 +27,7 @@ Deux irrégularités contraignent le dessin : une lettre peut porter deux sons, 
 
 ## Chantier 2 — trancher le montage de la conversation
 
-L'orientation est la **chaîne STT → LLM → TTS**, pour la modularité de chaque maillon. Reste à vérifier que la latence cumulée est acceptable — ça se mesure, et une mesure de latence n'a d'intérêt qu'**après** le chantier 1 : optimiser le temps de réponse d'une conversation dont on ignore si la détection tient est une optimisation avant l'existence.
+L'orientation est la **chaîne STT → LLM → TTS**, pour la modularité de chaque maillon. Reste à vérifier que la latence cumulée est acceptable — ça se mesure. Le chantier 1 étant tranché, plus rien ne retient cette mesure.
 
 - Deux arguments déjà acquis contre l'API voix-à-voix : la reconstruction du texte de référence voyage gratuitement dans l'appel LLM de la chaîne, alors qu'elle exigerait un appel dédié par tour en voix-à-voix ; et la fin de tour étant manuelle, la latence native du temps réel perd une partie de son intérêt.
 - Contrainte commune : l'audio de chaque tour est **conservé localement**, sinon l'analyse n'a rien à examiner.
