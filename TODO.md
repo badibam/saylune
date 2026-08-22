@@ -29,6 +29,9 @@ Deux irrégularités contraignent le dessin : une lettre peut porter deux sons, 
 
 Le montage est tranché : **chaîne STT → LLM → TTS**, reconnaissance par fichier, synthèse non pipelinée, 2,6 s jusqu'au premier son (cf. `docs/design/conversation-chain.md`). Reste à choisir qui tient chaque maillon — Azure Speech et DeepSeek ont servi à mesurer, pas à décider.
 
+- **La méthode de choix est un banc, pas un tableau de prix** — un banc par maillon, jamais le couple en boîte noire :
+  - **Banc du juge (LLM, texte seul)** : énoncés étiquetés — fautifs / corrects-informels / corrects-maladroits — avec contexte collé, en transcriptions réalistes ; les cas des blocs A et B se réutilisent en version texte. Mesure : fausses alertes sur l'informel correct, tenue du troisième cran de sévérité, qualité d'`intended`.
+  - **Banc de l'oreille (STT, audio)** : fidélité **verbatim** sur parole grammaticalement fautive et disfluente — un STT qui répare « He don't know » en silence efface le signal d'apprentissage avant tout jugement, c'est disqualifiant ; formatage intelligent coupé quand c'est réglable. Observer sans trancher le côté où tombe l'ambiguïté acoustique (sink/think), les deux issues convergeant en aval. Vérifier la ponctuation des questions, dont dépendra le contour du modèle TTS.
 - Contrainte commune : l'audio de chaque tour est **conservé localement**, sinon l'analyse n'a rien à examiner.
 - Contrainte de fidélité : le TTS sert de **modèle à imiter** et d'**étalon de mesure**, donc qualité, **stabilité** (le même mot sonne pareil d'une fois sur l'autre) et réussite à l'étalonnage.
 - Le TTS doit exposer **le choix de la voix** et accepter un rendu en haute qualité — le débit d'échantillonnage étant indifférent au moteur d'analyse, un seul rendu sert à l'écoute et à la mesure.

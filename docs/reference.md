@@ -139,7 +139,7 @@ Le moteur d'analyse compare un audio à la prononciation attendue d'un **texte d
 
 La porte grammaticale en retire déjà la moitié du problème — sur un tour fautif, il n'y a pas d'appel, et la phrase corrigée est redite contre un texte certain. Reste le tour grammaticalement propre.
 
-**Décision** : le texte vient de la transcription, que le LLM peut corriger à partir du contexte de la conversation. Deux faits mesurés encadrent ce choix.
+**Décision** : le texte vient de la transcription, que le LLM peut corriger à partir du contexte de la conversation. La répartition des rôles est une règle : **le STT transcrit la bouche, le LLM décide l'intention.** La normalisation appartient au LLM, qui a le contexte et une instruction — jamais au STT, qui la ferait en silence et sans contexte ; un STT qui répare la grammaire d'office efface le signal d'apprentissage avant tout jugement, et sa fidélité verbatim est un critère de choix (cf. `TODO.md`, chantier 2). Deux faits mesurés encadrent ce choix.
 
 Le piège se déclenche moins souvent qu'on le craignait : sur *« I sink »* comme sur *« I am walkin »*, la reconnaissance a rendu `think` et `walking` d'elle-même — le modèle de langue normalise vers le mot plausible, et il n'y avait rien à corriger.
 
