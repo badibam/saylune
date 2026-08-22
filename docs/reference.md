@@ -2,7 +2,7 @@
 
 App Android de pratique de l'anglais oral : conversation libre avec une IA, jamais interrompue, doublée d'un travail de la grammaire et de la prononciation à la demande. Ce document est le point d'entrée ; il porte les décisions **propres au projet**, celles qu'aucune facette de sagesse ne couvre. Le craft transverse vit dans les modules abonnés (cf. `manifest.md`).
 
-Docs complémentaires, à ouvrir au besoin : `design/speechace.md` (le moteur d'analyse retenu — ce qu'il rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/azure-speech.md` (le candidat écarté, gardé comme base de comparaison), `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS), `design/engine-qualification.md` (le protocole par lequel tout moteur candidat qualifie, rejouable par un tiers) et `design/local-engine.md` (la démarche vers des briques d'analyse locales/libres).
+Docs complémentaires, à ouvrir au besoin : `design/speechace.md` (le moteur d'analyse retenu — ce qu'il rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/azure-speech.md` (le candidat écarté, gardé comme base de comparaison), `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS), `design/engine-qualification.md` (le protocole par lequel tout moteur candidat qualifie, rejouable par un tiers), `design/local-engine.md` (la démarche vers des briques d'analyse locales/libres) et `design/grammar-test-set.md` (le jeu d'essai des deux bancs du chantier 2 — juge grammatical et fidélité du STT).
 
 ## Le geste
 
