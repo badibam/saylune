@@ -64,7 +64,7 @@ Les deux manques sont réels et stables. La prise 17 est le cas instructif : le 
 
 ## Le modèle synthétique comme étalon
 
-Faire dire la phrase par un TTS, passer ce rendu dans le même moteur avec le même texte, et comparer phonème à phonème. Le modèle note **100,0 de médiane sur 71 phonèmes**, un seul sous 90 : c'est un étalon valide.
+Faire dire la phrase par un TTS — **Azure Speech**, SpeechAce n'offrant aucune synthèse —, passer ce rendu dans le même moteur avec le même texte, et comparer phonème à phonème. Le modèle note **100,0 de médiane sur 71 phonèmes**, un seul sous 90 : c'est un étalon valide.
 
 | prise | humain | modèle | écart | cas |
 |---|---|---|---|---|
@@ -94,7 +94,7 @@ La voix, elle, compte :
 
 | voix | médiane | min | écart moyen à l'étalon |
 |---|---|---|---|
-| Jenny (féminine) | 100,0 | 98,7 | étalon |
+| Jenny (`en-US-JennyNeural`, féminine) | 100,0 | 98,7 | étalon |
 | Guy (masculine) | 100,0 | 96,8 | −0,20 |
 | Ana (voix d'enfant) | 99,6 | **67,8** | −4,05, max **−32,2** |
 
