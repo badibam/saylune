@@ -19,7 +19,7 @@ Les concurrents d'une voyelle ne se répartissent pas comme ceux d'une occlusive
 | 7 | `I picked a bear from the tree` | `orchard.txt` | **occlusive** /p/→/b/, rival lexical réel | `intended = "... a pear ..."`. Voisement, pas lieu d'articulation — l'erreur la plus fréquente et la moins audible. |
 | 8 | `Turn light at the corner` | `directions.txt` | **approximante** /r/→/l/, rival lexical réel | `intended = "Turn right at the corner"`. |
 | 9 | `I am walkin to the office` | `office.txt` | **nasale** /ŋ/→/n/, **aucun rival lexical** | marque sur le phonème final. Rien vers quoi un modèle de langue puisse normaliser, donc la transcription ne peut pas masquer la faute. |
-| 10 | `The chair is very comfortable`, `comfortable` en quatre syllabes | `chair.txt` | **réduction / accent**, aucun rival | erreur interne au mot, pas un échange de phonème. Le cas qui dit où s'arrête le signal phonémique et où la prosodie doit prendre le relais. |
+| 10 | `The chair is very comfortable`, `comfortable` en quatre syllabes | `chair.txt` | **réduction**, aucun rival | erreur interne au mot, pas un échange de phonème. Le cas qui dit où s'arrête le signal phonémique. **Ce n'est pas un cas d'accent** : l'appui reste sur la première syllabe, seule la réduction manque. Un moteur qui rend « accent correct » a raison, et le bloc E est là pour éprouver l'accent. |
 
 ## Bloc B — grammaire, prononciation propre
 
@@ -34,9 +34,9 @@ Deux échecs symétriques à surveiller : une marque de prononciation qui tombe 
 
 ## Bloc C — témoin, aucune faute
 
-Une ligne de base ne se lit pas sur des cas adversariaux : elle se lit sur ce qui est **bien** prononcé. Ces trois phrases reprennent les sons des cas 1, 6, 7 et 8, dites correctement — les mesures se comparent donc par paires, pas dans l'absolu.
+Un moteur ne se juge pas sur les cas adversariaux seuls : ce qu'il fait de ce qui est **bien** prononcé compte autant, puisqu'une fausse alerte coûte la confiance. Ces trois phrases reprennent les sons des cas 1, 6, 7 et 8, dites correctement — les mesures se comparent donc par paires, jamais dans l'absolu.
 
-Chaque phonème correct de **toutes** les prises alimente aussi cette ligne de base. Le bloc C n'ajoute que la lecture propre, sans faute ailleurs dans la phrase pour déplacer le modèle de langue.
+C'est aussi le bloc qui vérifie la méthode de mesure elle-même : un témoin doit ressortir **à égalité** avec le modèle de référence, et tout écart qu'on lit sur lui est du bruit qu'on lira partout ailleurs.
 
 | # | À dire | Contexte | Couvre |
 |---|--------|----------|--------|
@@ -60,7 +60,30 @@ Ajouté après coup, et c'est le bloc le plus instructif du jeu.
 
 Corollaire pour toute campagne de mesure future : **une faute non détectée n'est pas un échec du moteur tant qu'on n'a pas vérifié qu'elle a été réellement produite.** Le contrôle se fait en refaisant la prise avec le geste articulatoire correct — pas en écoutant l'enregistrement, où l'on entend ce qu'on croit avoir dit.
 
-Autre effet, visible entre les prises : quand on articule avec soin, **tout le système vocalique se décale d'un coup**. La même voyelle correcte dans le même mot rend des mesures très différentes selon le degré d'attention du locuteur. Aucune ligne de base fixe ne survit à ça.
+Autre effet, visible entre les prises : quand on articule avec soin, **tout le système vocalique se décale d'un coup**. La même voyelle correcte dans le même mot rend des mesures très différentes selon le degré d'attention du locuteur. Aucun seuil fixe ne survit à ça — c'est ce qui a conduit à mesurer par écart à un modèle plutôt que par note absolue.
+
+## Bloc E — prosodie
+
+À enregistrer. Les blocs A à D n'éprouvent que le phonème : le seul cas qui semblait prosodique, le 10, est une faute de réduction et laisse l'accent intact.
+
+Deux échelles à séparer, parce qu'elles n'ont pas la même portée : l'**accent** est une propriété du mot, fixée par le dictionnaire ; la **mélodie** est une propriété de la phrase. Chacune avec son témoin, dans la même voix et le même jour.
+
+| # | À dire | Échelle | Attendu |
+|---|--------|---------|---------|
+| 19 | `The chair is very comfortable`, accent sur **com** | mot, témoin | accent attendu et produit concordants |
+| 20 | `The chair is very comfortable`, accent sur **for** | mot | l'accent attendu n'est pas réalisé sur la première syllabe |
+| 21 | `You are going to the office`, dit comme une **question** montante | phrase, témoin | contour qui monte en fin d'énoncé |
+| 22 | `You are going to the office`, dit **plat** — l'aplatissement français | phrase | contour final qui ne monte pas, à distinguer du 21 |
+
+Les mêmes manipulations ont déjà été faites **en synthèse** contre SpeechAce, avec un résultat net (cf. `speechace.md`) : accent déplacé détecté sur la bonne syllabe, contour fidèle à la manipulation. Ce bloc sert donc à une question précise et unique — le moteur sépare-t-il aussi bien une faute **humaine** qu'une faute fabriquée.
+
+## La qualité des prises est elle-même un objet de mesure
+
+Le suivi de hauteur de SpeechAce ne se trompe jamais sur de l'audio synthétique (0 valeur aberrante sur 84) et se trompe sur 19 % des valeurs de nos prises humaines — des sauts de deux octaves, 525 à 577 Hz sur une voix à 144 Hz.
+
+Le défaut est donc dans les enregistrements, pas dans l'outil : niveau trop bas, bruit, ou voix éraillée en fin de phrase. À diagnostiquer **avant** d'enregistrer le bloc E, sans quoi ce bloc mesurera la qualité du micro plutôt que celle du moteur.
+
+Autre artefact à connaître avant de lire un résultat : un segment dont la durée rendue vaut 10 ms ou moins est un décrochage d'alignement, et il contamine la lecture du mot entier. C'est ce qui a fait apparaître un faux défaut d'accent sur `corner` dans la prise 15.
 
 ## Ordre d'enregistrement
 
