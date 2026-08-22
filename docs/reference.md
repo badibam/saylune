@@ -2,7 +2,7 @@
 
 App Android de pratique de l'anglais oral : conversation libre avec une IA, jamais interrompue, doublée d'un travail de la grammaire et de la prononciation à la demande. Ce document est le point d'entrée ; il porte les décisions **propres au projet**, celles qu'aucune facette de sagesse ne couvre. Le craft transverse vit dans les modules abonnés (cf. `manifest.md`).
 
-Docs complémentaires, à ouvrir au besoin : `design/speechace.md` (le moteur d'analyse retenu — ce qu'il rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/azure-speech.md` (le candidat écarté, gardé comme base de comparaison), `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS), `design/engine-qualification.md` (le protocole par lequel tout moteur candidat qualifie, rejouable par un tiers), `design/local-engine.md` (la démarche vers des briques d'analyse locales/libres) et `design/grammar-test-set.md` (le jeu d'essai des deux bancs du chantier 2 — juge grammatical et fidélité du STT).
+Docs complémentaires, à ouvrir au besoin : `design/speechace.md` (le moteur d'analyse retenu — ce qu'il rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/azure-speech.md` (le candidat écarté, gardé comme base de comparaison), `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS), `design/engine-qualification.md` (le protocole par lequel tout moteur candidat qualifie, rejouable par un tiers), `design/local-engine.md` (la démarche vers des briques d'analyse locales/libres) `design/grammar-test-set.md` (le jeu d'essai des deux bancs du chantier 2 — juge grammatical et fidélité du STT) et `design/ui-flow.md` (le flux et l'écran, de bout en bout — posture, micro, marquage, chorégraphie du tour).
 
 ## Le geste
 
@@ -43,6 +43,8 @@ Un curseur peut déclencher la parenthèse automatiquement au lieu de seulement 
 - Une fois la grammaire corrigée et la phrase redite → l'analyse sonore apparaît, sur ce nouvel énoncé.
 
 La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire : elle va disparaître. La conséquence technique suit — **sur un tour grammaticalement fautif, on n'appelle pas le moteur d'analyse du tout.** L'analyse n'est pas cachée, elle n'est pas calculée.
+
+**La porte suit le marquage, pas la grammaire absolue** : un tour est « fautif » pour la porte si et seulement s'il est marqué au cran de sévérité courant. Au cran 3, une tournure maladroite ferme la porte comme une faute — elle va être réécrite. Au cran 2, elle passe, et la prononciation se travaille sur elle : régler la sévérité, c'est déclarer que l'idiomatique n'est pas le sujet du jour, et rien ne va réécrire cette phrase. Coût assumé : le modèle dira la tournure maladroite d'une voix native.
 
 Effet de bord précieux : la branche corrigée s'analyse contre un texte **certain**, celui que l'IA vient de proposer. Toute l'incertitude du texte de référence disparaît de cette branche.
 

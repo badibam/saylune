@@ -21,9 +21,9 @@ La piste **locale/libre** reste la seule alternative envisagée, et pas pour la 
 
 ## Chantier 1 bis — le marquage d'un seul mouvement
 
-Les trois échelles du son (le son, le mot, la phrase) s'ancrent aux mêmes caractères du texte affiché, et doivent se marquer **en un seul geste visuel** sans que l'écran devienne un sapin de Noël. La forme reste entièrement à trouver.
+La forme est trouvée : la **partition** — les trois échelles superposées en canaux typographiques distincts, silence sous le seuil, gradation au-delà (cf. `docs/design/ui-flow.md`, qui règle aussi le flux complet : posture mixte, micro, chorégraphie du tour).
 
-Deux irrégularités contraignent le dessin : une lettre peut porter deux sons, une lettre peut n'en porter aucun.
+Reste **le prototype qui décide** : rendre la partition sur de vrais tours multi-fautes, et basculer sur le repli (texte + marge) si la superposition s'avère illisible. À faire avant d'engager le reste de l'écran de conversation.
 
 ## Chantier 2 — choisir les fournisseurs de conversation et de synthèse
 
