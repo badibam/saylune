@@ -176,7 +176,21 @@ Ce qui en découle et se décide au premier commit :
 - **La sonde de capacités se fait là aussi**, une fois : un appel par fonction optionnelle, et l'app allume ou éteint les briques selon les réponses. Elle n'a pas à deviner d'après le plan souscrit, dont on a mesuré qu'il ne correspond pas à ce que le fournisseur annonce.
 - L'utilisateur paie sa consommation : l'app doit pouvoir dire ce qu'elle consomme. L'analyse tournant à chaque tour propre, et deux fois par tour puisqu'elle note aussi le modèle, c'est le poste le plus lourd.
 
-Limite connue et acceptée : le BYOK est un mur d'adoption, d'autant qu'un fournisseur peut imposer un abonnement plancher indépendant de l'usage. C'est le point où un backend hébergé redeviendrait la question — pas avant.
+Limite connue et acceptée : le BYOK est un mur d'adoption, d'autant que SpeechAce impose un abonnement plancher de 40 $/mois indépendant de l'usage.
+
+### Le relais : possible, pas construit
+
+L'écran de configuration expose donc **deux façons d'atteindre un moteur** : la clé du fournisseur, ou **une URL de relais et un jeton**, tous deux saisis par l'utilisateur.
+
+C'est un point de configuration, pas un service. L'app ne sait pas qui paie ni qui héberge : elle parle à une URL. Quelqu'un peut héberger son propre relais, et rien n'interdit qu'un relais payant existe un jour sans que l'app change.
+
+Trois raisons de l'écrire dès maintenant plutôt que de le rouvrir plus tard :
+
+- **Un relais est la seule forme possible.** L'authentification de SpeechAce est une clé statique en paramètre d'URL — pas de jeton éphémère, pas de credential délégué. On ne peut donc pas confier à l'app un accès restreint : l'audio doit transiter par un tiers de confiance ou par personne. C'est une contrainte du fournisseur, pas un choix.
+- **Ça ne heurte pas F-Droid.** La règle porte sur les secrets embarqués, et un relais y satisfait mieux que le BYOK puisque aucune clé n'est dans l'APK. `NonFreeNet` reste déclarée dans les deux cas. Un paiement, s'il existait, devrait être **externe à l'app** — les bibliothèques de facturation propriétaires sont incompatibles avec une compilation depuis les sources.
+- **L'abstraction existe déjà.** Clé directe et relais sont deux authentifications du même contrat ; la sonde de capacités fonctionne à l'identique.
+
+Ce qui n'est **pas** décidé, et ne l'est pas par défaut : héberger un tel relais. Faire transiter des enregistrements de voix fait de l'hébergeur un responsable de traitement, sur une donnée personnelle, produite par des apprenants dont certains seront mineurs. Ça change la nature du projet, pas seulement son infrastructure — et le public de F-Droid est précisément celui qui fuit ce transit.
 
 ## Fournisseurs
 
