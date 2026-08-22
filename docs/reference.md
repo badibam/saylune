@@ -2,7 +2,7 @@
 
 App Android de pratique de l'anglais oral : conversation libre avec une IA, jamais interrompue, doublée d'un travail de la grammaire et de la prononciation à la demande. Ce document est le point d'entrée ; il porte les décisions **propres au projet**, celles qu'aucune facette de sagesse ne couvre. Le craft transverse vit dans les modules abonnés (cf. `manifest.md`).
 
-Docs complémentaires, à ouvrir au besoin : `design/speechace.md` (le moteur d'analyse retenu — ce qu'il rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/azure-speech.md` (le candidat écarté, gardé comme base de comparaison) et `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS).
+Docs complémentaires, à ouvrir au besoin : `design/speechace.md` (le moteur d'analyse retenu — ce qu'il rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/azure-speech.md` (le candidat écarté, gardé comme base de comparaison), `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS), `design/engine-qualification.md` (le protocole par lequel tout moteur candidat qualifie, rejouable par un tiers) et `design/local-engine.md` (la démarche vers des briques d'analyse locales/libres).
 
 ## Le geste
 
@@ -182,7 +182,7 @@ Ce qui en découle et se décide au premier commit :
 - **La sonde de capacités se fait là aussi**, une fois : un appel par fonction optionnelle, et l'app allume ou éteint les briques selon les réponses. Elle n'a pas à deviner d'après le plan souscrit, dont on a mesuré qu'il ne correspond pas à ce que le fournisseur annonce.
 - L'utilisateur paie sa consommation : l'app doit pouvoir dire ce qu'elle consomme. L'analyse tournant à chaque tour propre, et deux fois par tour puisqu'elle note aussi le modèle, c'est le poste le plus lourd.
 
-Limite connue et acceptée : le BYOK est un mur d'adoption, d'autant que SpeechAce impose un abonnement plancher de 40 $/mois indépendant de l'usage.
+Limite connue et acceptée : le BYOK est un mur d'adoption, d'autant que SpeechAce impose un abonnement plancher de 40 $/mois indépendant de l'usage. Le mur est tenable parce que **l'app est d'abord pour son auteur** : la publication F-Droid est une générosité et une discipline, pas une stratégie d'adoption. Ce qui la rendrait adoptable sans mur est la piste locale (`design/local-engine.md`), ouverte à la contribution via le protocole de qualification (`design/engine-qualification.md`).
 
 ### Le relais : possible, pas construit
 
@@ -206,7 +206,7 @@ Analyse, conversation et synthèse sont des briques **substituables**, jamais co
 
 **Azure Speech est écarté**, et pas seulement classé second : sur les mêmes prises et la même méthode il voit trois fautes sur huit avec des témoins qui descendent plus bas que de vraies fautes, et son score de prosodie s'inverse sur la mélodie. Sa mesure reste dans `design/azure-speech.md` — c'est la seule référence dont on dispose pour juger un futur candidat, et elle a servi à déformer le contrat ci-dessous.
 
-**Reconnaissance phonétique embarquée** — la seule alternative encore ouverte, et pas pour la v1. Un modèle sur l'appareil retirerait d'un coup le coût par tour, le BYOK et l'anti-feature `NonFreeNet`, et ne recevant aucun texte de référence il ne peut pas commettre la faute des services : acquiescer au texte qu'on lui souffle. La porte reste ouverte et rien de ce qui s'écrit d'ici là ne doit la fermer.
+**Briques d'analyse locales/libres** — la seule alternative encore ouverte, et pas un engagement de la v1 ; la démarche est écrite (`design/local-engine.md`) et toute brique se juge au protocole de qualification (`design/engine-qualification.md`). Le gain visé est la disparition du poste à abonnement plancher — l'analyse — pendant que conversation et synthèse restent distantes en BYOK multi-fournisseurs et se paient aux centimes ; `NonFreeNet` reste déclarée tant qu'un maillon distant subsiste. Deux voies au phonème, aux défauts opposés : conditionnée par le texte (précise, mais elle hérite du piège d'acquiescer au texte fourni) ou reconnaissance libre (elle ne peut pas acquiescer, mais s'aligne plus bruyamment) — l'immunité au texte soufflé est une propriété de la seconde voie, pas du local en soi. La mélodie est la brique détachable la plus mûre : DSP pur, et le contrôle indépendant a montré qu'elle peut battre le tracker du service. La porte reste ouverte et rien de ce qui s'écrit d'ici là ne doit la fermer.
 
 **Le montage est la chaîne STT → LLM → TTS**, tranchée, plutôt qu'une API voix-à-voix. Trois raisons, dont la dernière est mesurée : chaque maillon reste substituable ; la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où le voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir ; et la latence est bonne — **2,6 s jusqu'au premier son** sur un tour court, de bout en bout (cf. `design/conversation-chain.md`).
 

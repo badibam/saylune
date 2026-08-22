@@ -14,10 +14,10 @@ Azure est **écarté**, pas mis en réserve. Sa fiche reste comme base de compar
 Ce qui reste ouvert de ce chantier, et qui n'attend pas :
 
 - **Le taux de fausse alerte de l'accent sur un tour spontané.** Réglé pour le régime d'imitation (bloc F : 2 fautes sur 2, aucune fausse alerte), il reste inconnu là où l'apprenant n'a pas entendu le modèle — et il ne se mesure pas, étiqueter une prise spontanée exigeant ce modèle. À défaut de chiffre, deux garde-fous à tenir en tête au moment de coder : l'emphase de sens divergera toujours d'un modèle neutre, et la parenthèse doit rendre une fausse alerte peu coûteuse.
-- **Reloger les sondes.** `tmp/bench/speechace.py`, `tmp/bench/tts.py` et `tmp/bench/audio_probe.py` portent des mécanismes de l'app — sonde de capacités, étalonnage d'une voix, contrôle indépendant d'une mesure. Le moteur étant choisi, la raison d'attendre a disparu.
+- **Reloger les sondes en banc de qualification.** `tmp/bench/speechace.py`, `tmp/bench/tts.py` et `tmp/bench/audio_probe.py` deviennent `bench/`, versionné, derrière une commande unique — c'est le banc décrit par `docs/design/engine-qualification.md`, et le matériel synthétique s'y régénère par script au lieu de vivre en fichiers.
 - **Le plancher à 40 $/mois** est le coût assumé du choix. Il ne se résout pas dans ce chantier : c'est la piste embarquée qui le supprimerait, ou rien.
 
-La piste **embarquée** (reconnaissance phonétique sur l'appareil, éventuellement libre) reste la seule alternative envisagée, et pas pour la v1. Elle retirerait d'un coup le coût par tour, le BYOK et l'anti-feature `NonFreeNet` — donc rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. Argument supplémentaire en sa faveur : ne recevant aucun texte de référence, elle ne peut pas commettre la faute des services, qui est d'acquiescer au texte qu'on leur souffle.
+La piste **locale/libre** reste la seule alternative envisagée, et pas pour la v1 — démarche écrite dans `docs/design/local-engine.md`, qualification par `docs/design/engine-qualification.md`. Elle retirerait le poste à abonnement plancher (l'analyse), pas le BYOK ni `NonFreeNet`, qui tiennent aux maillons restés distants. Rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. La mélodie en est la brique détachable la plus mûre, envisageable dès la v1 en complément du service.
 
 ## Chantier 1 bis — le marquage d'un seul mouvement
 
