@@ -2,14 +2,23 @@
 
 ## Chantier 1 — choisir le moteur d'analyse (en cours)
 
-Azure a été instruit et mesuré ; tout ce qu'on en sait vit dans `docs/design/azure-speech.md`, incertitudes comprises. Il fonctionne, mais son verdict de conformité est inutilisable et rien n'oblige à le garder. Le contrat que l'app exige de n'importe quel moteur est dans `docs/reference.md`, « Fournisseurs ».
+Azure et SpeechAce sont tous deux instruits et mesurés sur le même jeu de prises — `docs/design/azure-speech.md` et `docs/design/speechace.md`, incertitudes comprises. Le contrat qu'ils doivent honorer est dans `docs/reference.md`, « Fournisseurs » ; il a été déformé par la lecture du second, ce qui était son objet.
 
-1. **Instruire SpeechAce.** Une question d'abord, avant toute autre : rend-il un jugement sur le **son produit**, ou seulement une note de conformité au texte attendu ? Si c'est la seconde, le point 2 du contrat tombe et le reste ne vaut pas la lecture. Ensuite seulement : niveau syllabe, prosodie, alphabet, tarification à l'abonnement, et surtout **ce qu'il offre de plus** — c'est la raison de le regarder.
-2. **Rejouer le jeu d'essai** contre le candidat, avec les mêmes prises (`docs/design/pronunciation-test-set.md`). Enregistrer le cas 5 avant : il n'existe toujours pas, et c'est lui qui dit si le contexte de conversation sert vraiment.
-3. **Éprouver le contrat en le lisant contre un deuxième moteur.** Noter ce qui se déforme : c'est le seul moyen de savoir si c'est une abstraction ou un moulage d'Azure. Même chose pour la déclaration de capacités — elle ne vaut que si un fournisseur réel en active et en éteint.
-4. **La ligne de base par session** reste une décision de conception jamais éprouvée, quel que soit le moteur retenu : combien de tours faut-il avant qu'un écart veuille dire quelque chose, et que fait-on d'un son vu deux fois dans une conversation.
+Ce qui reste avant de trancher :
 
-La piste **embarquée** (reconnaissance phonétique sur l'appareil) est la troisième voie et n'est pas pour maintenant. Elle retirerait le coût par tour, le BYOK et l'anti-feature `NonFreeNet` d'un seul geste — donc rien de ce qui s'écrit d'ici là ne doit lui fermer la porte.
+1. **Diagnostiquer la qualité des prises.** Le suivi de hauteur est parfait sur l'audio synthétique et faux sur 19 % des valeurs de nos enregistrements. Tant que ce n'est pas expliqué, toute mesure prosodique mesure le micro. À faire **avant** le point 2.
+2. **Enregistrer le bloc E** (`pronunciation-test-set.md`) et le passer aux deux moteurs. La prosodie répond proprement en synthèse ; rien ne dit qu'elle sépare une faute humaine.
+3. **Enregistrer le cas 5**, toujours inexistant. C'est le seul qui dise si le contexte de conversation sert vraiment.
+4. **Rejouer le jeu d'essai contre Azure avec la méthode de l'écart au modèle.** Azure a été jugé au seuil absolu, SpeechAce à l'écart au modèle synthétique : la comparaison entre les deux n'est donc pas encore à armes égales.
+5. **Trancher**, en pesant ce qui ne se lit pas dans les mesures : Azure se facture à l'usage, SpeechAce impose un abonnement plancher de 40 $/mois quel que soit l'usage.
+
+La piste **embarquée** (reconnaissance phonétique sur l'appareil) est la troisième voie et n'est pas pour maintenant. Elle retirerait le coût par tour, le BYOK et l'anti-feature `NonFreeNet` d'un seul geste — donc rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. Un argument neuf en sa faveur : ne recevant aucun texte de référence, elle ne peut pas commettre la faute des deux autres, qui est d'acquiescer au texte qu'on leur souffle.
+
+## Chantier 1 bis — le marquage d'un seul mouvement
+
+Les trois échelles du son (le son, le mot, la phrase) s'ancrent aux mêmes caractères du texte affiché, et doivent se marquer **en un seul geste visuel** sans que l'écran devienne un sapin de Noël. La forme reste entièrement à trouver.
+
+Deux irrégularités contraignent le dessin : une lettre peut porter deux sons, une lettre peut n'en porter aucun.
 
 ## Chantier 2 — trancher le montage de la conversation
 
@@ -24,6 +33,7 @@ La piste **embarquée** (reconnaissance phonétique sur l'appareil) est la trois
 
 ## Reste
 
+- **Les sondes du bench ne sont plus jetables.** `tmp/bench/speechace.py` et `tmp/bench/tts.py` portent deux mécanismes de l'app, pas du bench : la sonde de capacités (un appel par fonction optionnelle, lecture du refus) et l'étalonnage d'une voix de synthèse. Ils vivent dans `tmp/`, gitignoré. À reloger quand le moteur sera tranché — pas avant, ce serait figer un choix.
 - **Icône de l'app** — aucune pour l'instant, l'app porte l'icône par défaut d'Android. `fdroid` exige par ailleurs un `icon.png` et un `featureGraphic.png` dans la fiche.
 - **Premier `./run build`** — le squelette Gradle est repris de `posebell` ; ses versions (AGP 9.3.1, `compileSdk` 37, BOM Compose) n'ont pas été vérifiées pour ce projet.
 - **Drift sagesse** — `android`, `cli-interactif`, `fdroid` à 1 commit de retard. `/update pull` avant le premier vrai code Android.
