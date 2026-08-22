@@ -25,14 +25,14 @@ Les trois échelles du son (le son, le mot, la phrase) s'ancrent aux mêmes cara
 
 Deux irrégularités contraignent le dessin : une lettre peut porter deux sons, une lettre peut n'en porter aucun.
 
-## Chantier 2 — trancher le montage de la conversation
+## Chantier 2 — choisir les fournisseurs de conversation et de synthèse
 
-L'orientation est la **chaîne STT → LLM → TTS**, pour la modularité de chaque maillon. Reste à vérifier que la latence cumulée est acceptable — ça se mesure. Le chantier 1 étant tranché, plus rien ne retient cette mesure.
+Le montage est tranché : **chaîne STT → LLM → TTS**, reconnaissance par fichier, synthèse non pipelinée, 2,6 s jusqu'au premier son (cf. `docs/design/conversation-chain.md`). Reste à choisir qui tient chaque maillon — Azure Speech et DeepSeek ont servi à mesurer, pas à décider.
 
-- Deux arguments déjà acquis contre l'API voix-à-voix : la reconstruction du texte de référence voyage gratuitement dans l'appel LLM de la chaîne, alors qu'elle exigerait un appel dédié par tour en voix-à-voix ; et la fin de tour étant manuelle, la latence native du temps réel perd une partie de son intérêt.
 - Contrainte commune : l'audio de chaque tour est **conservé localement**, sinon l'analyse n'a rien à examiner.
 - Contrainte de fidélité : le TTS sert de **modèle à imiter** et d'**étalon de mesure**, donc qualité, **stabilité** (le même mot sonne pareil d'une fois sur l'autre) et réussite à l'étalonnage.
 - Le TTS doit exposer **le choix de la voix** et accepter un rendu en haute qualité — le débit d'échantillonnage étant indifférent au moteur d'analyse, un seul rendu sert à l'écoute et à la mesure.
+- La reconnaissance par fichier coûte un sixième de la durée du tour. Assumé : le tour long est l'exception. À rouvrir seulement si l'usage montre que ça gêne.
 
 ## Chantier 3 — incarnation
 

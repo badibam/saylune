@@ -208,7 +208,11 @@ Analyse, conversation et synthèse sont des briques **substituables**, jamais co
 
 **Reconnaissance phonétique embarquée** — la seule alternative encore ouverte, et pas pour la v1. Un modèle sur l'appareil retirerait d'un coup le coût par tour, le BYOK et l'anti-feature `NonFreeNet`, et ne recevant aucun texte de référence il ne peut pas commettre la faute des services : acquiescer au texte qu'on lui souffle. La porte reste ouverte et rien de ce qui s'écrit d'ici là ne doit la fermer.
 
-**Conversation** et **synthèse** — non tranchés (cf. `TODO.md`, chantier 2). L'orientation est la chaîne **STT → LLM → TTS** plutôt qu'une API voix-à-voix, pour la modularité de chaque maillon, sous réserve que la latence cumulée reste acceptable — ce qui se mesure et ne se décide pas. Un argument s'y ajoute : dans cette chaîne, la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où une API voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir.
+**Le montage est la chaîne STT → LLM → TTS**, tranchée, plutôt qu'une API voix-à-voix. Trois raisons, dont la dernière est mesurée : chaque maillon reste substituable ; la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où le voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir ; et la latence est bonne — **2,6 s jusqu'au premier son** sur un tour court, de bout en bout (cf. `design/conversation-chain.md`).
+
+Deux points de montage réglés par la même mesure. La synthèse **n'est pas pipelinée** sur la première phrase du modèle : le gain est de 0,16 s, parce que le modèle achève son objet un septième de seconde après sa première phrase. Et la reconnaissance se fait **par fichier, pas en flux** : elle coûte un sixième de la durée de l'audio, ce qui pèse sur le tour long — qui est l'exception, pas le régime nominal. Rien ne se complique tant que l'usage n'a pas montré que ça gêne.
+
+**Les fournisseurs de conversation et de synthèse restent à choisir** (cf. `TODO.md`, chantier 2). Ceux du banc — Azure Speech, DeepSeek — ont servi à mesurer, pas à décider.
 
 ### Ce que l'app exige de n'importe quel moteur d'analyse
 

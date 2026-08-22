@@ -36,7 +36,7 @@ Le jeton d'authentification du TTS (0,39 s) est mesuré à part et exclu : il va
 
 ## La reconnaissance croît avec la durée du tour
 
-C'est le résultat qui compte. Reconnaissance seule, même méthode :
+Reconnaissance seule, même méthode :
 
 | audio | STT |
 |---|---|
@@ -48,11 +48,7 @@ C'est le résultat qui compte. Reconnaissance seule, même méthode :
 
 La relation est linéaire et sans surprise : **environ 0,40 s de constante plus un sixième de la durée de l'audio**. L'API REST ne transcrit pas pendant qu'on parle — elle reçoit un fichier fini et le traite.
 
-Croisé avec la fin de tour manuelle, c'est un défaut de conception, pas un détail de mesure : le tour long est précisément ce que l'app encourage, puisqu'elle refuse de couper la parole à qui hésite. Un tour de trente secondes coûte alors **six secondes de silence** avant que le modèle ait seulement commencé à lire.
-
-**Conséquence : la reconnaissance doit se faire en flux, pendant que l'apprenant parle.** Le coût retombe alors sur la seule queue de traitement, quelle que soit la longueur du tour, et le budget du premier son redevient constant. Ça ne touche pas au tuyau A — l'audio continue d'être écrit localement, c'est la condition d'existence de l'analyse ; c'est le même flux qui part en reconnaissance au lieu d'attendre.
-
-Ça déplace en revanche une exigence sur le maillon STT, qui n'en avait aucune : **savoir transcrire en flux** devient une condition, pas un confort.
+**Le régime par fichier est retenu quand même.** Le tour de trente secondes est l'exception, pas le régime nominal, et la reconnaissance en flux se paierait d'une exigence neuve sur le maillon STT et d'un montage plus lourd — pour un inconfort dont rien ne dit encore qu'il gêne à l'usage. La pente est connue et acceptée ; c'est l'usage réel qui rouvrira la question, s'il la rouvre.
 
 ## Portée de la mesure
 
