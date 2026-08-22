@@ -142,16 +142,28 @@ Détection nette, sur la bonne syllabe. Limite : le moteur voit que l'accent att
 
 Mais **il ne la juge pas** : aucun champ ne dit quel contour la phrase aurait dû avoir, et aucun dictionnaire ne pourrait le dire. La juger exige de fabriquer la référence, ce que le modèle synthétique permet — en comparant la **forme** des contours, jamais les hertz bruts, puisque les registres diffèrent.
 
-## Le suivi de hauteur déraille sur nos prises, pas sur l'API
+## Le suivi de hauteur s'accroche aux harmoniques
 
 | source | n | médiane | valeurs aberrantes |
 |---|---|---|---|
 | synthèse | 84 | 190 Hz | **0 / 84 (0 %)** |
 | voix humaine | 52 | 144 Hz | **10 / 52 (19 %)** |
 
-Les décrochages à deux octaves (525 à 577 Hz sur une voix à 144 Hz) n'apparaissent que sur les enregistrements humains. Le suiveur de f0 est sain ; ce sont nos prises qui le font dériver — niveau, bruit, ou voix éraillée en fin de phrase. À vérifier avant d'accuser l'outil, et probablement corrigeable.
+Les aberrations n'apparaissent que sur les voix humaines, et elles ne viennent pas des enregistrements : ceux-ci sont sains (crête à −2,8 dBFS, aucun échantillon saturé), et une estimation de f0 par autocorrélation faite sur les mêmes échantillons concorde avec le moteur sur toutes les syllabes de synthèse et sur 21 des 24 syllabes humaines.
 
-Conséquence tant que ça dure : une hauteur fausse produit une étiquette d'intonation fausse, et rien ne signale laquelle.
+Sur les 5 syllabes restantes, le moteur renvoie un **multiple** de la fondamentale réelle :
+
+| syllabe | f0 mesurée | f0 rendue | rapport |
+|---|---|---|---|
+| think | 180 | 538 | ×3,0 |
+| sheep | 186 | 551 | ×3,0 |
+| field | 143 | 551 | ×3,9 |
+| have | 172 | 554 | ×3,2 |
+| to | 136 | 542 | ×4,0 |
+
+Ce ne sont pas des doublements d'octave mais un accrochage à la **troisième ou quatrième harmonique**, et les segments concernés n'ont rien de dégradé — niveau normal, périodicité franche. Une voix de synthèse a une fondamentale stable et un spectre pauvre ; une voix réelle est plus riche, et le tracker y résiste moins bien.
+
+Conséquence, puisque `intonation` dérive de la hauteur : une valeur accrochée produit une étiquette de contour fausse, et rien ne signale laquelle. Le filtre est le même que pour les segments dégénérés — **une syllabe dont la hauteur sort d'un facteur deux autour de la médiane du tour est une erreur de suivi**, et son étiquette de mélodie est à jeter. Ça retire jusqu'à un cinquième du contour sur certains tours.
 
 ## Les capacités se demandent, elles ne se déduisent pas
 

@@ -77,13 +77,18 @@ Deux échelles à séparer, parce qu'elles n'ont pas la même portée : l'**acce
 
 Les mêmes manipulations ont déjà été faites **en synthèse** contre SpeechAce, avec un résultat net (cf. `speechace.md`) : accent déplacé détecté sur la bonne syllabe, contour fidèle à la manipulation. Ce bloc sert donc à une question précise et unique — le moteur sépare-t-il aussi bien une faute **humaine** qu'une faute fabriquée.
 
-## La qualité des prises est elle-même un objet de mesure
+## Les prises sont bonnes — vérifié
 
-Le suivi de hauteur de SpeechAce ne se trompe jamais sur de l'audio synthétique (0 valeur aberrante sur 84) et se trompe sur 19 % des valeurs de nos prises humaines — des sauts de deux octaves, 525 à 577 Hz sur une voix à 144 Hz.
+Question posée parce que le suivi de hauteur de SpeechAce ne se trompe jamais sur de l'audio synthétique et se trompe sur 19 % des valeurs de nos prises. Le soupçon portait sur le micro ; il était infondé.
 
-Le défaut est donc dans les enregistrements, pas dans l'outil : niveau trop bas, bruit, ou voix éraillée en fin de phrase. À diagnostiquer **avant** d'enregistrer le bloc E, sans quoi ce bloc mesurera la qualité du micro plutôt que celle du moteur.
+Crête à −2,8 dBFS, RMS autour de −11 dBFS, **aucun échantillon saturé**. Une estimation de f0 par autocorrélation, faite sur les mêmes échantillons, concorde avec le moteur sur la totalité des syllabes de synthèse et sur 21 des 24 syllabes humaines : l'instrument de contrôle est donc valide, et il innocente les prises.
 
-Autre artefact à connaître avant de lire un résultat : un segment dont la durée rendue vaut 10 ms ou moins est un décrochage d'alignement, et il contamine la lecture du mot entier. C'est ce qui a fait apparaître un faux défaut d'accent sur `corner` dans la prise 15.
+Le défaut est dans le moteur, qui s'accroche à la troisième ou quatrième harmonique sur certaines syllabes (cf. `speechace.md`). **Rien à réenregistrer** — le bloc E peut être pris tel quel, avec le même matériel.
+
+Deux artefacts à connaître avant de lire un résultat, l'un et l'autre silencieux :
+
+- un segment dont la durée rendue vaut 10 ms ou moins est un décrochage d'alignement, et il contamine la lecture du mot entier — c'est ce qui a fait apparaître un faux défaut d'accent sur `corner` dans la prise 15 ;
+- une syllabe dont la hauteur rendue sort d'un facteur deux autour de la médiane du tour est un accrochage harmonique, et son étiquette de mélodie est fausse.
 
 ## Ordre d'enregistrement
 
