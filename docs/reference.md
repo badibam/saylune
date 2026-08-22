@@ -155,6 +155,14 @@ Les tours de l'IA sont **floutables** — un réglage d'écoute, indépendant de
 
 Le flou ne gêne pas la correction : la marque est sur le tour de **l'utilisateur**, et la parenthèse s'ouvre dessus sans jamais avoir à déflouter la réponse de l'IA.
 
+## Ce qui survit à la session
+
+Trois matières, trois sorts — la ligne de partage est le coût de reconstruction, pas la nature du fichier :
+
+- **La voix de l'apprenant** (un fichier par tour, micro) est **purgée à la fermeture de la session**. Elle n'a aucun consommateur au-delà : l'analyse est interne au tour, la parenthèse rejoue l'extrait sur le moment, et l'indépendance des tours interdit tout usage ultérieur. Aucun stock de voix ne dort sur l'appareil.
+- **Le cache des synthèses** survit, sous **plafond de taille avec éviction du moins récent** : ce n'est qu'un cache, régénérable au prix d'un appel, et les phrases de modèle reviennent d'une session à l'autre.
+- **La trace écrite** — les tours, qui parle, le texte, les marques avec leurs ancres, les événements de parenthèse — est **archivée telle que l'écran l'affiche**, sans modélisation ajoutée : des faits bruts, dont les usages futurs (historique, révision, progression) se dériveront s'ils adviennent. En v1 l'archive est **en écriture seule** : rien ne la lit — l'indépendance des tours n'interdit pas de se souvenir, elle interdit que le souvenir pèse sur l'analyse et le marquage.
+
 ## L'accent
 
 Réglage **global unique**, exposé à l'utilisateur. Il gouverne trois choses qui doivent rester alignées : la voix qui parle, la voix du modèle à imiter, et le référentiel contre lequel la prononciation est notée.
