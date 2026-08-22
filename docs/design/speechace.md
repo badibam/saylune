@@ -140,7 +140,34 @@ Détection nette, sur la bonne syllabe. Limite : le moteur voit que l'accent att
 
 **La mélodie décrit la phrase** — le contour de hauteur qui court sur tout l'énoncé. Un `RISE` sur une syllabe isolée ne signifie rien hors de la suite. Le moteur la **mesure fidèlement** : la même phrase avec le dernier mot monté de 40 % passe de `of` 166 Hz / `FALL` à `of` 292 Hz / `RISE`.
 
-Mais **il ne la juge pas** : aucun champ ne dit quel contour la phrase aurait dû avoir, et aucun dictionnaire ne pourrait le dire. La juger exige de fabriquer la référence, ce que le modèle synthétique permet — en comparant la **forme** des contours, jamais les hertz bruts, puisque les registres diffèrent.
+Mais **il ne la juge pas** : aucun champ ne dit quel contour la phrase aurait dû avoir, et aucun dictionnaire ne pourrait le dire. La juger exige de fabriquer la référence, ce que le modèle synthétique permet.
+
+### Éprouvé sur voix humaine
+
+Bloc E du jeu d'essai, quatre prises, chaque faute avec son témoin.
+
+**L'accent.** Le moteur voit la faute **et sa destination**, ce que la synthèse n'avait pas montré :
+
+| prise | syllabe | attendu | produit | `stress_score` |
+|---|---|---|---|---|
+| 19 témoin, appui sur COM | com | 1 | **0** | **0** |
+| | fort | 0 | 0 | 100 |
+| 20 faute, appui sur FOR | com | 1 | **0** | **0** |
+| | fort | 0 | **1** | **0** |
+
+Mais **le témoin déclenche aussi** sur `com`, et ce n'est pas le locuteur qui a failli : mesuré sur les échantillons, l'appui est bien là où il devait être — 270 ms, rms 0,297, f0 178 sur `com` contre 210 ms, 0,166, 118 sur `fort`, et le rapport s'inverse proprement dans la prise 20.
+
+Le seul discriminant fiable est donc **la syllabe qui gagne l'accent** (`predicted = 1` là où `stress_level = 0`), pas celle qui le perd. La perte se déclenche aussi sur du correct. Réserve : ce discriminant ne tient que sur un cas, et il ne s'était pas allumé sur la faute synthétique.
+
+**La mélodie.** Séparation franche sur la syllabe finale :
+
+| | hauteur rendue | étiquette | pente |
+|---|---|---|---|
+| modèle question (TTS) | 168 → 277 Hz | `RISE` | +8,6 demi-tons |
+| humain question, témoin | 127 → 240 Hz | `RISE` | +11,0 — **écart +2,4** |
+| humain plat, faute | 131 → 94 Hz | `FALL` | −5,8 — **écart −14,5** |
+
+Exprimer la pente en **demi-tons** annule la différence de registre entre une voix de synthèse et celle de l'apprenant : c'est ce qui rend la comparaison au modèle utilisable malgré des hertz incomparables. Aucun accrochage harmonique sur ces deux prises.
 
 ## Le suivi de hauteur s'accroche aux harmoniques
 
@@ -200,7 +227,7 @@ Rétention négociable au contrat, y compris zéro, mais par courriel et non en 
 ## Ce qui reste incertain
 
 - **Les deux fautes manquées** (durée seule, et une prise dont l'alignement était cassé en amont) le sont de façon déterministe. Aucun réglage de seuil ne les rattrapera.
-- **La prosodie n'a été éprouvée qu'en synthèse.** L'accent et la mélodie répondent proprement à des manipulations contrôlées ; rien ne dit encore qu'ils séparent une faute humaine. Il manque les prises du bloc E de `pronunciation-test-set.md`.
+- **L'accent déclenche sur un témoin correct.** Le discriminant retenu — la syllabe qui *gagne* l'accent — repose sur un seul cas et ne s'était pas allumé sur la faute synthétique. C'est le point le plus fragile de tout ce document.
 - **Les 19 % d'aberrations de f0** sur nos enregistrements ne sont pas expliqués. Tant qu'ils le sont, la comparaison de contours est bancale.
 - **Le bloc B du jeu d'essai** (grammaire fautive, prononciation censée propre) produit des divergences qu'on ne peut pas classer : les prises sont dites par un locuteur non natif et rien ne garantit que leur prononciation soit réellement propre. Trancher demanderait des témoins natifs.
 - **Ce que rend `score/speech`** en parole spontanée n'a pas été observé : il est au plan Premium. La question ne se pose que si l'on renonce au montage scripté.

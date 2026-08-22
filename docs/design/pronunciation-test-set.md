@@ -1,6 +1,6 @@
 # Jeu d'essai de prononciation
 
-Dix-huit prises de la même voix, le même jour, dont quinze fautes délibérées et trois témoins. Il sert à **comparer des moteurs d'analyse entre eux** : les mêmes phrases, les mêmes enregistrements, un seul locuteur. Refaire les prises pour chaque fournisseur détruirait la comparabilité, donc les fichiers sont conservés (cf. « Où vivent les prises »).
+Vingt-trois prises d'une même voix : les blocs A à D en une session, le bloc E et le cas 5 dans une seconde. Chaque faute délibérée a son témoin, pris le même jour qu'elle. Le jeu sert à **comparer des moteurs d'analyse entre eux** : les mêmes phrases, les mêmes enregistrements, un seul locuteur. Refaire les prises pour chaque fournisseur détruirait la comparabilité, donc les fichiers sont conservés (cf. « Où vivent les prises »).
 
 Chaque phrase des blocs A et B vise l'endroit où faute phonétique et faute grammaticale se confondent, parce que c'est là que la reconstruction du texte de référence casse. Une phrase qui se lit sans ambiguïté ne mesure rien.
 
@@ -14,7 +14,7 @@ Les concurrents d'une voyelle ne se répartissent pas comme ceux d'une occlusive
 |---|--------|----------|--------|---------|
 | 1 | `I sink you are right` | `think.txt` | fricative, rival lexical réel | `intended = "I think you are right"`, donc /θ/ attendu et phonème marqué. Échec si `sink` est pris au mot : score parfait sur la faute exacte. |
 | 4 | `I sink you are right`, /θ/ **correct** | `think.txt` | idem, sans faute | rien. La transcription peut encore rendre `sink` ; le phonème est bon. |
-| 5 | `The sink is broken` | `sink.txt` | idem, décision inverse | rien — `sink` est le mot juste. Le cas qui dit si le contexte sert vraiment. **Jamais enregistré.** |
+| 5 | `The sink is broken` | `sink.txt` | idem, décision inverse | rien — `sink` est le mot juste. **Enregistré et passé** : la reconnaissance rend `The sink is broken` sans qu'on lui souffle rien. Le contexte n'a donc pas eu à servir, et le cas 1 s'était résolu tout seul dans l'autre sens. Le piège se déclenche moins souvent qu'aucune des deux hypothèses ne le prévoyait. |
 | 6 | `The ship is in the field` | `field.txt` | **voyelle** /iː/→/ɪ/, rival lexical réel | `intended = "The sheep is in the field"`. Cinq concurrents voisins : c'est là que le signal risque de s'écraser. |
 | 7 | `I picked a bear from the tree` | `orchard.txt` | **occlusive** /p/→/b/, rival lexical réel | `intended = "... a pear ..."`. Voisement, pas lieu d'articulation — l'erreur la plus fréquente et la moins audible. |
 | 8 | `Turn light at the corner` | `directions.txt` | **approximante** /r/→/l/, rival lexical réel | `intended = "Turn right at the corner"`. |
@@ -64,7 +64,7 @@ Autre effet, visible entre les prises : quand on articule avec soin, **tout le s
 
 ## Bloc E — prosodie
 
-À enregistrer. Les blocs A à D n'éprouvent que le phonème : le seul cas qui semblait prosodique, le 10, est une faute de réduction et laisse l'accent intact.
+Enregistré et passé aux deux moteurs. Les blocs A à D n'éprouvaient que le phonème : le seul cas qui semblait prosodique, le 10, est une faute de réduction et laisse l'accent intact.
 
 Deux échelles à séparer, parce qu'elles n'ont pas la même portée : l'**accent** est une propriété du mot, fixée par le dictionnaire ; la **mélodie** est une propriété de la phrase. Chacune avec son témoin, dans la même voix et le même jour.
 
@@ -75,7 +75,9 @@ Deux échelles à séparer, parce qu'elles n'ont pas la même portée : l'**acce
 | 21 | `You are going to the office`, dit comme une **question** montante | phrase, témoin | contour qui monte en fin d'énoncé |
 | 22 | `You are going to the office`, dit **plat** — l'aplatissement français | phrase | contour final qui ne monte pas, à distinguer du 21 |
 
-Les mêmes manipulations ont déjà été faites **en synthèse** contre SpeechAce, avec un résultat net (cf. `speechace.md`) : accent déplacé détecté sur la bonne syllabe, contour fidèle à la manipulation. Ce bloc sert donc à une question précise et unique — le moteur sépare-t-il aussi bien une faute **humaine** qu'une faute fabriquée.
+Résultat : la mélodie sépare franchement chez SpeechAce et s'inverse chez Azure ; l'accent est vu chez SpeechAce mais son témoin se déclenche aussi (cf. `speechace.md` et `azure-speech.md`).
+
+Ce bloc a établi au passage une chose que la synthèse ne pouvait pas donner : **un témoin de prosodie doit être vérifié sur les échantillons**, durée, énergie et hauteur, avant de conclure quoi que ce soit. Sans cette vérification, la fausse alerte du témoin 19 passait pour une faute du locuteur.
 
 ## Les prises sont bonnes — vérifié
 
@@ -98,4 +100,6 @@ Par paires, pour que chaque cas adversarial ait son témoin le même jour et dan
 
 Les `.wav` (16 kHz mono) et les contextes de conversation sont dans `tmp/bench/turns/` et `tmp/bench/contexts/`. Ce dossier est gitignoré et se voulait jetable ; **il cesse de l'être tant que le moteur d'analyse n'est pas choisi**, puisque comparer deux fournisseurs exige exactement ces enregistrements-là.
 
-Le cas 5 n'a jamais été enregistré. À prendre avant toute campagne comparative : c'est le seul qui dise si le contexte de conversation sert vraiment.
+Le lot est complet : les vingt-trois prises existent.
+
+Une contrainte de prise apprise à la seconde session : la parole ne doit pas commencer à l'instant zéro du fichier. `rec` laisse passer un transitoire d'ouverture qui sature la première demi-seconde, et couper ce transitoire emporte l'attaque du premier mot si l'on a parlé trop tôt — l'aligneur rend alors des segments de durée nulle sur tout le début. Enregistrer avec `trim 1 6` et attendre deux secondes avant de parler.

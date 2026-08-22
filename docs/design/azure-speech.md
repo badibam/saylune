@@ -154,6 +154,29 @@ L'étalon est d'ailleurs moins net chez Azure : médiane 97,0 et 11 phonèmes su
 
 **Ce qui reste à l'avantage d'Azure**, et qu'il ne faut pas perdre en lisant ce tableau : `NBestPhonemes` identifie le son produit **indépendamment du texte annoncé**, ce que SpeechAce ne fait pas — son `sound_most_like` renvoie l'écho du texte fourni. Azure est donc le seul des deux à savoir dire ce qui a réellement été prononcé. Mais cette qualité porte sur un critère que le projet a rétrogradé : le remède d'une faute est désormais d'entendre un modèle, ce qui demande de savoir **où**, pas **quoi**.
 
+## La prosodie : un drapeau, un score global, et une inversion
+
+La prosodie n'est pas dans la réponse par défaut. Elle s'obtient en ajoutant **`EnableProsodyAssessment: true`** au JSON de l'en-tête, ce qui fait apparaître un `ProsodyScore` à la racine et un objet `Feedback.Prosody` par mot. Sans ce drapeau, le moteur paraît n'avoir aucune prosodie ; c'est un piège de lecture.
+
+Éprouvé sur le bloc E, chaque faute avec son témoin :
+
+| prise | `ProsodyScore` | |
+|---|---|---|
+| 19 accent sur COM, témoin | 89,4 | |
+| 20 accent sur FOR, faute | 82,0 | écart −7,4, bon sens |
+| 21 question montante, témoin | 78,6 | |
+| 22 question plate, faute | **82,8** | écart **+4,2**, **sens inverse** |
+
+Sur l'accent le signal va dans le bon sens, mais il ne vaut que 7 points et c'est **un score de phrase** : rien ne dit quelle syllabe a bougé, donc rien ne se marque.
+
+Sur la mélodie il est **inversé** — la question aplatie note mieux que la question correcte.
+
+Le détail par mot n'aide pas. `Feedback.Prosody.Intonation` rend exactement la **même valeur sur les six mots** de la phrase, ce qui trahit un calcul d'énoncé recopié sur chaque mot, et il étiquette `Monotone` les **deux** prises, y compris celle qui monte franchement. Le seul chiffre qui distingue est `SyllablePitchDeltaConfidence`, 0,468 contre 0,352 — bon sens, mais global lui aussi.
+
+`Syllables` ne porte par ailleurs **ni accent attendu ni hauteur** : seulement symbole, offset, durée et note.
+
+Bilan sur le même jeu et les mêmes prises : Azure donne un score de prosodie non localisable, juste sur l'accent et faux sur la mélodie, là où SpeechAce rend l'accent attendu et produit par syllabe et un contour dont la pente sépare de 17 demi-tons.
+
 ## Ce qui reste incertain
 
 Rien de ce qui précède n'a la solidité d'un résultat établi. Les limites, dans l'ordre de gravité :

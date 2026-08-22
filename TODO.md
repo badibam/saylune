@@ -4,11 +4,18 @@
 
 Azure et SpeechAce sont tous deux instruits et mesurés sur le même jeu de prises — `docs/design/azure-speech.md` et `docs/design/speechace.md`, incertitudes comprises. Le contrat qu'ils doivent honorer est dans `docs/reference.md`, « Fournisseurs » ; il a été déformé par la lecture du second, ce qui était son objet.
 
-Ce qui reste avant de trancher :
+**Le jeu d'essai est passé en entier sur les deux moteurs**, et SpeechAce l'emporte sur les trois échelles :
 
-1. **Enregistrer le bloc E** (`pronunciation-test-set.md`) et le passer aux deux moteurs. La prosodie répond proprement en synthèse ; rien ne dit qu'elle sépare une faute humaine. Le matériel actuel convient — la qualité des prises a été mise en cause puis innocentée.
-2. **Enregistrer le cas 5**, toujours inexistant. C'est le seul qui dise si le contexte de conversation sert vraiment.
-3. **Trancher.** La détection est mesurée à armes égales et SpeechAce l'emporte nettement — 6 fautes sur 8 avec des témoins à ±1, contre 3 sur 8 chez Azure dont les témoins s'étalent jusqu'à −23 (cf. `azure-speech.md`). Restent trois choses que les mesures ne disent pas : Azure se facture à l'usage quand SpeechAce impose un plancher de 40 $/mois ; Azure est le seul à identifier le son produit indépendamment du texte annoncé, sur un critère que le projet a rétrogradé ; et le bloc E n'est pas passé.
+| | phonème, sans fausse alerte | accent | mélodie |
+|---|---|---|---|
+| SpeechAce | 6 / 8, témoins à ±1 | vu, mais le témoin se déclenche aussi | 17 demi-tons d'écart, localisé |
+| Azure | 3 / 8, témoins jusqu'à −23 | score de phrase, non localisable | **inversé** |
+
+Il ne reste qu'à **trancher**, en pesant trois choses que les mesures ne disent pas :
+
+1. **Le modèle économique.** Azure se facture à l'usage ; SpeechAce impose un plancher de 40 $/mois quel que soit l'usage. Pour un public BYOK c'est un mur d'entrée, et ça ne se lit dans aucun tableau de détection.
+2. **Ce qu'Azure garde pour lui.** Il est le seul des deux à identifier le son produit indépendamment du texte annoncé — sur un critère que le projet a rétrogradé en choisissant l'écoute d'un modèle plutôt que la consigne d'articulation. À vérifier qu'on ne le regrettera pas.
+3. **La fragilité de l'accent chez SpeechAce.** Son témoin correct déclenche une marque. Le discriminant retenu — la syllabe qui *gagne* l'accent plutôt que celle qui le perd — ne tient que sur un cas. Deux ou trois prises de plus le confirmeraient ou l'enterreraient.
 
 La piste **embarquée** (reconnaissance phonétique sur l'appareil) est la troisième voie et n'est pas pour maintenant. Elle retirerait le coût par tour, le BYOK et l'anti-feature `NonFreeNet` d'un seul geste — donc rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. Un argument neuf en sa faveur : ne recevant aucun texte de référence, elle ne peut pas commettre la faute des deux autres, qui est d'acquiescer au texte qu'on leur souffle.
 

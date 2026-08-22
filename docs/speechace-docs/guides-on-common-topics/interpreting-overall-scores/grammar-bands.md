@@ -1,0 +1,61 @@
+> For the complete documentation index, see [llms.txt](https://api-docs.speechace.com/llms.txt). Markdown versions of documentation pages are available by appending `.md` to page URLs; this page is available as [Markdown](grammar-bands.md).
+
+# Grammar Bands
+
+**9**
+
+Uses a full range of structures naturally and appropriately. Produces consistently accurate structures apart from ‘slips’ characteristic of native speaker speech.
+
+***
+
+**8**
+
+Uses a wide range of structures flexibly. Produces a majority of error-free sentences with only very occasional inappropriacies or basic/non-systematic errors.
+
+***
+
+**7**
+
+Uses a range of complex structures with some flexibility. Frequently produces error-free sentences, though some grammatical mistakes persist.
+
+***
+
+**6**
+
+Uses a mix of simple and complex structures, but with limited flexibility. May make frequent mistakes with complex structures though these rarely cause comprehension problems.
+
+***
+
+**5**
+
+Produces basic sentence forms with reasonable accuracy. Uses a limited range of more complex structures, but these usually contain errors and may cause some comprehension problems.
+
+***
+
+**4**
+
+Produces basic sentence forms and some correct simple sentences but subordinate structures are rare. Errors are frequent and may lead to misunderstanding.
+
+***
+
+**3**
+
+Attempts basic sentence forms but with limited success, or relies on apparently memorised utterances. Makes numerous errors except in memorised expressions.
+
+***
+
+**2**
+
+Cannot produce basic sentence forms.
+
+***
+
+**1**
+
+Cannot produce basic sentence forms.
+
+***
+
+**0**
+
+User did not attempt any questions.
