@@ -41,7 +41,6 @@ L'orientation est la **chaîne STT → LLM → TTS**, pour la modularité de cha
 
 ## Reste
 
-- **Les sondes du bench ne sont plus jetables.** `tmp/bench/speechace.py` et `tmp/bench/tts.py` portent deux mécanismes de l'app, pas du bench : la sonde de capacités (un appel par fonction optionnelle, lecture du refus) et l'étalonnage d'une voix de synthèse. Ils vivent dans `tmp/`, gitignoré. À reloger quand le moteur sera tranché — pas avant, ce serait figer un choix.
 - **Icône de l'app** — aucune pour l'instant, l'app porte l'icône par défaut d'Android. `fdroid` exige par ailleurs un `icon.png` et un `featureGraphic.png` dans la fiche.
 - **Premier `./run build`** — le squelette Gradle est repris de `posebell` ; ses versions (AGP 9.3.1, `compileSdk` 37, BOM Compose) n'ont pas été vérifiées pour ce projet.
 - **Drift sagesse** — `android`, `cli-interactif`, `fdroid` à 1 commit de retard. `/update pull` avant le premier vrai code Android.
