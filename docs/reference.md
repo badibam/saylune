@@ -53,10 +53,12 @@ Sous « prononciation » il y a trois choses de portée différente, à bien dis
 | échelle | ce que ça décrit | comment ça se juge |
 |---|---|---|
 | **le son** | un phonème dans un mot | note du moteur |
-| **le mot** | l'accent lexical — quelle syllabe est la forte | comparaison au dictionnaire |
+| **le mot** | l'accent lexical — quelle syllabe est la forte | comparaison au modèle |
 | **la phrase** | la mélodie — le contour de hauteur sur l'énoncé | comparaison à un modèle |
 
 La syllabe **porte** l'accent et la hauteur, mais elle n'est la portée d'aucun des deux : l'accent est une propriété du mot, fixée par le dictionnaire indépendamment de la phrase ; la mélodie n'existe qu'à l'échelle de l'énoncé, une montée sur une syllabe isolée ne signifiant rien.
+
+**Les trois se jugent par comparaison au modèle, jamais dans l'absolu** — y compris l'accent, dont le moteur annonce pourtant un attendu tiré de son dictionnaire. Cet attendu est inutilisable : sur de l'audio synthétique parfait, le moteur contredit son propre lexique sur 41 % des mots polysyllabiques, et sa lecture d'un mot change selon ce qui se passe ailleurs dans la phrase (cf. `design/speechace.md`). Ce qu'on compare est donc **sa lecture de l'apprenant à sa lecture du modèle** : le biais est le même des deux côtés et s'annule.
 
 **Les trois s'ancrent aux mêmes caractères du texte affiché** — le moteur donne pour chaque son les indices de lettres qu'il couvre, pour chaque syllabe sa sous-chaîne, et la mélodie se pose sur ces mêmes groupes. Ce sont trois propriétés d'une seule chaîne, pas trois analyses à superposer. C'est ce qui rend possible de les marquer **d'un seul mouvement**, et la forme de ce marquage reste à trouver.
 
@@ -71,6 +73,10 @@ Une note de prononciation ne veut rien dire seule : chaque son a sa note « norm
 Mesuré (cf. `design/speechace.md`) : les prises témoins tombent à moins d'un point du modèle, les fautes détectées à quinze points ou plus en dessous, et rien entre les deux. L'étalon annule le bruit propre du moteur, ce qui supprime tout besoin de calibrer son par son.
 
 Deux propriétés qui comptent autant que la précision : la comparaison est **interne au tour**, elle n'accumule rien ; et le modèle est de toute façon nécessaire, puisque c'est lui qu'on fait entendre.
+
+**Une marque est une proposition d'aller voir, pas un verdict.** L'écart au modèle est validé là où l'apprenant a **entendu** ce modèle avant de parler : deux fautes d'accent sur deux vues, aucune fausse alerte sur les calques (cf. `design/pronunciation-test-set.md`, bloc F). Sur un tour de conversation il n'a rien entendu, et une divergence peut alors être une vraie faute ou une réalisation légitime que la synthèse ne reproduit pas — l'emphase de sens en est le cas type : « I said it **IS** important » divergera toujours d'un modèle neutre.
+
+Ce risque n'est pas chiffré et ne peut pas l'être, puisque étiqueter une prise spontanée exigerait le modèle qu'elle n'a justement pas entendu. Ce qui le rend tenable est la forme de la parenthèse : une marque infondée mène à écouter le modèle et à redire, le calque concorde, et la parenthèse se referme sur une réussite. Une fausse alerte coûte un détour court, jamais une leçon fausse.
 
 **Un modèle n'est un étalon que s'il s'étalonne.** Une voix de synthèse qui note mal sur ce moteur accuserait l'apprenant d'une faute commise par la machine. Toute voix promue modèle passe donc un test — quelques phrases, une médiane haute, aucun son décroché — et une voix qui échoue est écartée quelle que soit sa beauté.
 

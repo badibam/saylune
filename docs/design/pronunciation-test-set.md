@@ -1,6 +1,6 @@
 # Jeu d'essai de prononciation
 
-Vingt-trois prises d'une même voix : les blocs A à D en une session, le bloc E et le cas 5 dans une seconde. Chaque faute délibérée a son témoin, pris le même jour qu'elle. Le jeu sert à **comparer des moteurs d'analyse entre eux** : les mêmes phrases, les mêmes enregistrements, un seul locuteur. Refaire les prises pour chaque fournisseur détruirait la comparabilité, donc les fichiers sont conservés (cf. « Où vivent les prises »).
+Vingt-sept prises d'une même voix : les blocs A à D en une session, le cas 5 et les blocs E et F dans une seconde. Chaque faute délibérée a son témoin, pris le même jour qu'elle. Le jeu sert à **comparer des moteurs d'analyse entre eux** : les mêmes phrases, les mêmes enregistrements, un seul locuteur. Refaire les prises pour chaque fournisseur détruirait la comparabilité, donc les fichiers sont conservés (cf. « Où vivent les prises »).
 
 Chaque phrase des blocs A et B vise l'endroit où faute phonétique et faute grammaticale se confondent, parce que c'est là que la reconstruction du texte de référence casse. Une phrase qui se lit sans ambiguïté ne mesure rien.
 
@@ -75,9 +75,35 @@ Deux échelles à séparer, parce qu'elles n'ont pas la même portée : l'**acce
 | 21 | `You are going to the office`, dit comme une **question** montante | phrase, témoin | contour qui monte en fin d'énoncé |
 | 22 | `You are going to the office`, dit **plat** — l'aplatissement français | phrase | contour final qui ne monte pas, à distinguer du 21 |
 
-Résultat : la mélodie sépare franchement chez SpeechAce et s'inverse chez Azure ; l'accent est vu chez SpeechAce mais son témoin se déclenche aussi (cf. `speechace.md` et `azure-speech.md`).
+Résultat : la mélodie sépare franchement chez SpeechAce et s'inverse chez Azure (cf. `speechace.md` et `azure-speech.md`). L'accent, lui, est resté indécis — le bloc F reprend la question avec un protocole qui définit ce qu'est un témoin.
 
 Ce bloc a établi au passage une chose que la synthèse ne pouvait pas donner : **un témoin de prosodie doit être vérifié sur les échantillons**, durée, énergie et hauteur, avant de conclure quoi que ce soit. Sans cette vérification, la fausse alerte du témoin 19 passait pour une faute du locuteur.
+
+## Bloc F — l'accent, par imitation d'un modèle
+
+Le bloc E laissait l'accent indécis : la faute était vue, mais le témoin se déclenchait aussi. La cause était le protocole, pas le moteur — on avait demandé au locuteur de prononcer *correctement*, ce qui n'est pas une consigne mesurable. Le moteur ne compare pas à une norme, il compare à une réalisation.
+
+**Un témoin d'accent est donc un calque d'un modèle entendu, jamais une prononciation « correcte ».**
+
+Protocole, qui s'auto-étiquette et se répète sur n'importe quel mot :
+
+1. synthétiser la phrase, et **vérifier d'abord que le moteur lit correctement le modèle** — sinon la comparaison part faussée ;
+2. enregistrer une prise **spontanée**, avant toute écoute (une fois le modèle entendu, on ne peut plus le désentendre) ;
+3. écouter le modèle ;
+4. enregistrer le **calque**.
+
+| # | À dire | Rôle |
+|---|--------|------|
+| 23 | `It is important for me`, spontanément | faute naturelle attendue — le français tire l'accent vers la fin |
+| 24 | idem, en calquant le modèle | témoin |
+| 25 | `This lesson is interesting for me`, spontanément | idem |
+| 26 | idem, en calquant le modèle | témoin |
+
+Mots choisis pour deux raisons : leur accent tombe sur des syllabes différentes (2 pour `important`, 1 pour `interesting`), et ce sont des quasi-cognats du français, donc l'interférence est maximale.
+
+Résultat : deux fautes sur deux vues, aucune fausse alerte sur les calques (cf. `speechace.md`).
+
+**Ce que ce bloc ne mesure pas**, et ne peut pas mesurer : le taux de fausse alerte sur un tour spontané. Étiqueter une prise spontanée exigerait le modèle qu'elle n'a précisément pas entendu. C'est une limite de méthode, pas d'échantillon — aucune quantité de prises supplémentaires ne la lèvera.
 
 ## Les prises sont bonnes — vérifié
 
@@ -100,6 +126,6 @@ Par paires, pour que chaque cas adversarial ait son témoin le même jour et dan
 
 Les `.wav` (16 kHz mono) et les contextes de conversation sont dans `tmp/bench/turns/` et `tmp/bench/contexts/`. Ce dossier est gitignoré et se voulait jetable ; **il cesse de l'être tant que le moteur d'analyse n'est pas choisi**, puisque comparer deux fournisseurs exige exactement ces enregistrements-là.
 
-Le lot est complet : les vingt-trois prises existent.
+Le lot est complet : les vingt-sept prises existent.
 
 Une contrainte de prise apprise à la seconde session : la parole ne doit pas commencer à l'instant zéro du fichier. `rec` laisse passer un transitoire d'ouverture qui sature la première demi-seconde, et couper ce transitoire emporte l'attaque du premier mot si l'on a parlé trop tôt — l'aligneur rend alors des segments de durée nulle sur tout le début. Enregistrer avec `trim 1 6` et attendre deux secondes avant de parler.

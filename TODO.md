@@ -6,14 +6,14 @@
 
 | | phonème, sans fausse alerte | accent | mélodie |
 |---|---|---|---|
-| SpeechAce | 6 / 8, témoins à ±1 | vu et localisé | 17 demi-tons d'écart |
+| SpeechAce | 6 / 8, témoins à ±1 | 2 / 2 par comparaison au modèle | 17 demi-tons d'écart |
 | Azure | 3 / 8, témoins jusqu'à −23 | score de phrase | **inversé** |
 
 Azure est **écarté**, pas mis en réserve. Sa fiche reste comme base de comparaison (`docs/design/azure-speech.md`).
 
 Ce qui reste ouvert de ce chantier, et qui n'attend pas :
 
-- **La fragilité de l'accent.** Le témoin correct de la prise 19 déclenche une marque, alors que la mesure sur les échantillons montre l'appui au bon endroit. Le discriminant retenu — la syllabe qui *gagne* l'accent plutôt que celle qui le perd — ne tient que sur un cas et ne s'était pas allumé en synthèse. Deux ou trois prises de plus le confirment ou l'enterrent. **À faire avant de coder le marquage de l'accent**, sinon on implémente une règle inventée.
+- **Le taux de fausse alerte de l'accent sur un tour spontané.** Réglé pour le régime d'imitation (bloc F : 2 fautes sur 2, aucune fausse alerte), il reste inconnu là où l'apprenant n'a pas entendu le modèle — et il ne se mesure pas, étiqueter une prise spontanée exigeant ce modèle. À défaut de chiffre, deux garde-fous à tenir en tête au moment de coder : l'emphase de sens divergera toujours d'un modèle neutre, et la parenthèse doit rendre une fausse alerte peu coûteuse.
 - **Reloger les sondes.** `tmp/bench/speechace.py`, `tmp/bench/tts.py` et `tmp/bench/audio_probe.py` portent des mécanismes de l'app — sonde de capacités, étalonnage d'une voix, contrôle indépendant d'une mesure. Le moteur étant choisi, la raison d'attendre a disparu.
 - **Le plancher à 40 $/mois** est le coût assumé du choix. Il ne se résout pas dans ce chantier : c'est la piste embarquée qui le supprimerait, ou rien.
 

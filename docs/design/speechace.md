@@ -146,18 +146,30 @@ Mais **il ne la juge pas** : aucun champ ne dit quel contour la phrase aurait d�
 
 Bloc E du jeu d'essai, quatre prises, chaque faute avec son témoin.
 
-**L'accent.** Le moteur voit la faute **et sa destination**, ce que la synthèse n'avait pas montré :
+**L'accent — le verdict du moteur est inutilisable, sa lecture ne l'est pas.**
 
-| prise | syllabe | attendu | produit | `stress_score` |
-|---|---|---|---|---|
-| 19 témoin, appui sur COM | com | 1 | **0** | **0** |
-| | fort | 0 | 0 | 100 |
-| 20 faute, appui sur FOR | com | 1 | **0** | **0** |
-| | fort | 0 | **1** | **0** |
+Le champ `predicted_stress_level` est annoncé comme comparable à `stress_level`, l'attendu du lexique. Il ne l'est pas. Sur **22 mots polysyllabiques dits par un TTS parfait** :
 
-Mais **le témoin déclenche aussi** sur `com`, et ce n'est pas le locuteur qui a failli : mesuré sur les échantillons, l'appui est bien là où il devait être — 270 ms, rms 0,297, f0 178 sur `com` contre 210 ms, 0,166, 118 sur `fort`, et le rapport s'inverse proprement dans la prise 20.
+| | | |
+|---|---|---|
+| accord exact avec le lexique | 10 | 45 % |
+| désaccord dur (0 contre 1) | 9 | **41 %** — chacun produirait une marque |
+| désaccord doux (1 contre 2) | 3 | 14 % |
 
-Le seul discriminant fiable est donc **la syllabe qui gagne l'accent** (`predicted = 1` là où `stress_level = 0`), pas celle qui le perd. La perte se déclenche aussi sur du correct. Réserve : ce discriminant ne tient que sur un cas, et il ne s'était pas allumé sur la faute synthétique.
+`corner` et `very` **gagnent** un accent qu'ils n'ont pas ; `office`, `comfortable` et `necessary` **perdent** le leur. Et la lecture n'est pas stable : `office` se lit `(0,0)` ou `(1,0)` selon le rendu, et bascule quand on manipule la hauteur du **même** mot dans la **même** phrase. La lecture d'un mot dépend de ce qui se passe ailleurs dans l'énoncé.
+
+Aucun raffinement ne sauve ce verdict — un discriminant restreint à « la syllabe qui gagne l'accent » se déclenche sur `corner` et `very`, prononcés parfaitement.
+
+**Mais comparer sa lecture de l'apprenant à sa lecture du modèle fonctionne**, parce que le biais est le même des deux côtés. Éprouvé sur un lot construit pour ça — pour chaque mot, une prise spontanée puis un calque du modèle écouté :
+
+| mot | modèle | spontané | calque |
+|---|---|---|---|
+| `important` | `[0,1,0]` | `[0,1,`**`1`**`]` — accent tiré vers la fin | `[0,1,0]` |
+| `interesting` | `[1,0,0,0]` | `[`**`0`**`,`**`1`**`,0,`**`1`**`]` | `[1,0,0,0]` |
+
+Deux fautes sur deux vues, aucune fausse alerte sur les calques, et `stress_score` tombe à 0 exactement aux syllabes divergentes.
+
+**La portée de ce résultat est bornée au régime d'imitation.** Le témoin n'est valide que parce qu'il **copie** le modèle : « correct dans l'absolu » n'est pas mesurable ici, le moteur ne comparant pas à une norme mais à une réalisation. Sur une prise spontanée, aucune étiquette n'est disponible — et la prise 19, où l'appui était acoustiquement au bon endroit et où le moteur a lu `[0,0,0,0]` contre `[1,0,0,0]` au modèle, reste le seul indice de ce régime.
 
 **La mélodie.** Séparation franche sur la syllabe finale :
 
