@@ -23,10 +23,7 @@ La piste **locale/libre** reste la seule alternative envisagée, et pas pour la 
 
 Le prototype a décidé : **le fil derrière le texte** — phonème en couleur de lettre, accent en graisse du modèle plus réglettes sur la faute, mélodie en contours superposés passant sous des glyphes détourés (cf. `docs/design/ui-flow.md`, qui règle aussi le flux complet : posture mixte, micro, chorégraphie du tour). Le rendu Compose existe et se lance par `./run install`.
 
-Ce qui reste attaché à ce chantier :
-
-- **Le repli sur plusieurs lignes** n'a été vu que sur une ligne unique. Le fil se rompt au retour à la ligne, ce qui est correct, mais un tour long n'a pas encore été regardé.
-- **Le seuil en demi-tons de la mélodie** ne sert plus l'affichage ; il reste à fixer pour l'ouverture automatique de la parenthèse.
+Reste attaché à ce chantier : **le seuil en demi-tons de la mélodie**, qui ne sert plus l'affichage mais qu'il faut fixer pour l'ouverture automatique de la parenthèse.
 
 ## Chantier 2 — choisir les fournisseurs de conversation et de synthèse
 
