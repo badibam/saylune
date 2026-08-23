@@ -19,12 +19,6 @@ Ce qui reste ouvert de ce chantier, et qui n'attend pas :
 
 La piste **locale/libre** reste la seule alternative envisagée, et pas pour la v1 — démarche écrite dans `docs/design/local-engine.md`, qualification par `docs/design/engine-qualification.md`. Elle retirerait le poste à abonnement plancher (l'analyse), pas le BYOK ni `NonFreeNet`, qui tiennent aux maillons restés distants. Rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. La mélodie en est la brique détachable la plus mûre, envisageable dès la v1 en complément du service.
 
-## Chantier 1 bis — le marquage d'un seul mouvement : tranché
-
-Le prototype a décidé : **le fil derrière le texte** — phonème en couleur de lettre, accent en graisse du modèle plus réglettes sur la faute, mélodie en contours superposés passant sous des glyphes détourés (cf. `docs/design/ui-flow.md`, qui règle aussi le flux complet : posture mixte, micro, chorégraphie du tour). Le rendu Compose existe et se lance par `./run install`.
-
-Reste attaché à ce chantier : **le seuil en demi-tons de la mélodie**, qui ne sert plus l'affichage mais qu'il faut fixer pour l'ouverture automatique de la parenthèse.
-
 ## Chantier 2 — choisir les fournisseurs de conversation et de synthèse
 
 Le montage est tranché : **chaîne STT → LLM → TTS**, reconnaissance par fichier, synthèse non pipelinée, 2,6 s jusqu'au premier son (cf. `docs/design/conversation-chain.md`). Reste à choisir qui tient chaque maillon — Azure Speech et DeepSeek ont servi à mesurer, pas à décider.

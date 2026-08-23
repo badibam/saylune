@@ -48,6 +48,21 @@ Trois propriétés ont décidé la forme :
 
 **Le curseur de seuil ne pilote plus l'affichage de la mélodie** : il gouverne la rampe phonémique et l'ouverture automatique de la parenthèse, qui a bien besoin d'un seuil en demi-tons pour savoir quand se déclencher. À l'écran, l'écart mélodique se lit tel qu'il est.
 
+### Le seuil de la mélodie — un choix, pas une mesure
+
+Le fil n'a pas de seuil : les deux contours sont toujours tracés et l'apprenant juge la distance. Un seul cas en réclame un — le curseur en **mode auto-déclencheur**, où l'app décide seule d'ouvrir la parenthèse avant de jouer la réponse.
+
+La grandeur mesurée est l'écart en demi-tons par syllabe, dont on retire d'abord **la médiane du tour** : une transposition d'ensemble n'est pas une faute, la mélodie étant une forme et non une hauteur. La médiane plutôt que la moyenne, parce que la moyenne se laisse définir par les fautes qu'on cherche — sur le tour multi-fautes du prototype les deux diffèrent de 0,9 demi-ton, et centrer sur la moyenne rétrécirait la faute tout en accusant d'un demi-ton les dix syllabes correctes. Rien n'est divisé ensuite : diviser par la dispersion effacerait l'amplitude, or une phrase juste de forme mais dite plate est précisément une faute de mélodie.
+
+Ce qui reste se résume en **racine des carrés moyens** sur les syllabes valides, celles que le filtre d'accrochage n'a pas jetées. Le carré pèse ce qui décroche franchement, là où une moyenne noierait une montée finale ratée dans dix syllabes correctes. Aucun résidu ne compte pour plus de 8 demi-tons — sans ce plafond, un artefact de suivi survivant au filtre porterait la décision à lui seul, puisque le carré l'amplifie.
+
+Deux conditions, la racine des carrés étant aveugle à la position : elle donne le même chiffre à un écart au milieu de la phrase et au même écart sur la dernière syllabe, alors que seul le second transforme une affirmation en question.
+
+- la parenthèse s'ouvre si la racine des carrés du tour dépasse **2,5 demi-tons** ;
+- ou si l'écart sur les **deux dernières syllabes** dépasse **4 demi-tons**.
+
+**Ces deux valeurs sont choisies, pas mesurées.** Les calibrer exigerait des tours spontanés étiquetés corrects, ce que l'architecture rend impossible : étiqueter une prise spontanée demanderait le modèle qu'elle n'a justement pas entendu. Elles sont posées haut délibérément — en auto-déclencheur, une fausse alerte n'est pas une marque qu'on ignore, c'est une interruption avant la réponse. Deux repères les encadrent : 8,6 demi-tons séparent une déclarative de la même phrase en question sur la syllabe finale, et le tour multi-fautes du prototype rend 3,2. L'usage les corrigera ; rien ne les rendra exactes.
+
 ## Les signaux sonores
 
 Deux natures de faute, deux natures de son : la marque de formulation s'annonce par un **earcon discret** ; pour la prononciation, **le modèle qui se joue est le signal** — précédé d'un préambule d'**un mot** nommant l'échelle à écouter (celle qui dépasse le plus son propre seuil, en relatif). Pas d'earcon par-dessus un modèle.
