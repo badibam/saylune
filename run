@@ -102,6 +102,13 @@ def task_clean():
     gradle("clean")
 
 
+def task_bench():
+    """Qualify the candidate voices, which needs no device and no Gradle."""
+    subprocess.run(
+        [sys.executable, "calibrate.py"], cwd=ROOT / "bench", check=False
+    )
+
+
 def task_devices():
     if shutil.which("adb") is None:
         print("adb not found in PATH.", file=sys.stderr)
@@ -129,6 +136,7 @@ ACTIONS = {
     "build": task_build,
     "install": task_install,
     "logs": task_logs,
+    "bench": task_bench,
     "devices": task_devices,
     "release": task_release,
     "clean": task_clean,
@@ -139,6 +147,7 @@ LABELS = {
     "install": "install    assemble and install on the connected device",
     "logs": "logs       follow logcat, filtered on the app",
     "devices": "devices    list attached devices and their state",
+    "bench": "bench      calibrate the candidate model voices",
     "release": "release    assemble the release APK",
     "clean": "clean      drop build outputs",
 }
@@ -168,6 +177,7 @@ def menu():
     choices = [Separator("Build")]
     choices += [Choice(LABELS[k], k) for k in ("build", "install", "logs", "devices")]
     choices += [Separator("Release"), Choice(LABELS["release"], "release")]
+    choices += [Separator("Bench"), Choice(LABELS["bench"], "bench")]
     choices += [Separator(""), Choice(LABELS["clean"], "clean")]
     choices += [Choice("quit", _QUIT)]
 

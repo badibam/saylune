@@ -23,3 +23,8 @@ captures/
 
 # OS
 .DS_Store
+
+# Bench renders (regenerable by script)
+bench/out/
+__pycache__/
+*.pyc
