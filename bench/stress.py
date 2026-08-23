@@ -19,7 +19,7 @@ from pathlib import Path
 
 import engine
 import synth
-from phrases import ACCENT_TRIAL
+import phrases
 
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes"
@@ -58,18 +58,18 @@ def polysyllabic(model):
             if len([s for s in model.syllables if s.word.lower() == w]) > 1]
 
 
-def run(candidate, dialect, labels, show):
+def run(candidate, dialect, labels, show, chosen, takes, which):
     print(f"\n  modèle {candidate.name}, dictionnaire {dialect}")
     for label in labels:
         agree = disagree = ambiguous = 0
         detail = []
-        for slug, text in ACCENT_TRIAL:
-            take = reading(TAKES / label / f"{slug}.wav", text, dialect,
-                           f"take-{label}", slug)
+        for slug, text in chosen:
+            take = reading(takes / label / f"{slug}.wav", text, dialect,
+                           f"take-{which}-{label}", slug)
             if take is None:
                 continue
-            model = reading(RENDERS / candidate.name / f"{slug}.wav", text,
-                            dialect, f"model-{candidate.name}", slug)
+            model = reading(RENDERS / candidate.name / which / f"{slug}.wav", text,
+                            dialect, f"model-{which}-{candidate.name}", slug)
             for word in polysyllabic(model):
                 left, right = stressed(model.syllables, word), stressed(take.syllables, word)
                 if left is None or right is None:
@@ -97,8 +97,12 @@ def main(argv=None):
     parser.add_argument("--gb", default="eleven-gb-daniel")
     parser.add_argument("--us", default="eleven-us-eric")
     parser.add_argument("-d", "--dialect", action="append", default=None)
+    parser.add_argument("-s", "--set", dest="which", default="words",
+                        choices=sorted(phrases.SETS))
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
+    chosen = phrases.SETS[args.which]
+    takes = TAKES / args.which
 
     for accent, name in (("gb", args.gb), ("us", args.us)):
         if name not in synth.BY_NAME:
@@ -107,7 +111,7 @@ def main(argv=None):
         print(f"\n=== modèle {accent.upper()} : {candidate.name}")
         for dialect in args.dialect or ["en-gb", "en-us"]:
             run(candidate, dialect, ["spontaneous", f"copy-{accent}"],
-                args.verbose)
+                args.verbose, chosen, takes, args.which)
     return 0
 
 

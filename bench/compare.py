@@ -22,7 +22,7 @@ from pathlib import Path
 
 import engine
 import synth
-from phrases import ACCENT_TRIAL
+import phrases
 
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes"
@@ -79,7 +79,7 @@ def gaps(model, take):
     return paired
 
 
-def run(candidate, dialect, labels, show):
+def run(candidate, dialect, labels, show, chosen, takes, which):
     print(f"\n  modèle {candidate.name}, dictionnaire {dialect}")
     print(f"    {'prise':<14}{'écart moyen':>12}{'pire':>8}"
           f"{f'  sons < {FAULT_GAP:.0f}':>14}{'  sons lus':>10}")
@@ -88,14 +88,14 @@ def run(candidate, dialect, labels, show):
         every = []
         worst_of = []
         skipped = []
-        for slug, text in ACCENT_TRIAL:
-            take = reading(TAKES / label / f"{slug}.wav", text,
-                           dialect, f"take-{label}", slug)
+        for slug, text in chosen:
+            take = reading(takes / label / f"{slug}.wav", text,
+                           dialect, f"take-{which}-{label}", slug)
             if take is None:
                 skipped.append(slug)
                 continue
-            model = reading(RENDERS / candidate.name / f"{slug}.wav", text,
-                            dialect, f"model-{candidate.name}", slug)
+            model = reading(RENDERS / candidate.name / which / f"{slug}.wav", text,
+                            dialect, f"model-{which}-{candidate.name}", slug)
             paired = gaps(model, take)
             every.extend(value for _, _, value in paired)
             worst_of.extend((value, reference.phone, reference.word, slug)
@@ -120,8 +120,12 @@ def main(argv=None):
     parser.add_argument("--us", default="eleven-us-eric")
     parser.add_argument("-d", "--dialect", action="append", default=None,
                         help="repeatable; default compares en-gb and en-us")
+    parser.add_argument("-s", "--set", dest="which", default="words",
+                        choices=sorted(phrases.SETS))
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
+    chosen = phrases.SETS[args.which]
+    takes = TAKES / args.which
 
     # Each copy is read against the model it was copied from; the cold take is
     # read against both, since it is the same audio either way.
@@ -131,9 +135,9 @@ def main(argv=None):
         candidate = synth.BY_NAME[name]
         labels = ["spontaneous", f"copy-{accent}"]
         print(f"\n=== modèle {accent.upper()} : {candidate.name}   "
-              f"{len(ACCENT_TRIAL)} phrases")
+              f"{len(chosen)} phrases")
         for dialect in args.dialect or ["en-gb", "en-us"]:
-            run(candidate, dialect, labels, args.verbose)
+            run(candidate, dialect, labels, args.verbose, chosen, takes, args.which)
     return 0
 
 

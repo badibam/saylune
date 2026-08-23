@@ -36,7 +36,7 @@ def calibrate(candidate, dialect, force=False, verbose=False):
     """Render and score every phrase; return the phones that came back."""
     phones = []
     for slug, text in CALIBRATION:
-        wav = RENDERS / candidate.name / f"{slug}.wav"
+        wav = RENDERS / candidate.name / "sentences" / f"{slug}.wav"
         synth.render(text, candidate, wav, force=force)
         cache = READINGS / f"{candidate.name}@{dialect}" / f"{slug}.json"
         if force and cache.is_file():

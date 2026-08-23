@@ -42,3 +42,17 @@ ACCENT_TRIAL = (
     ("walking-office", "I am walking to the office"),
     ("important", "It is important for me"),
 )
+
+# One word at a time, where a whole sentence asks too much: nobody can hold a
+# deliberate phoneme in mind across seven words, and a take that drifts measures
+# the drift. Each word carries one decisive GB/US contrast, so a gap that lands
+# on it has only one thing it can mean.
+WORD_TRIAL = (
+    ("corner", "corner"),          # post-vocalic /r/ -- the one that inverted
+    ("market", "market"),          # same, word-internal
+    ("water", "water"),            # US flapped /t/ vs GB glottal, plus final /r/
+    ("dance", "dance"),            # the TRAP-BATH split: GB /ɑː/ vs US /æ/
+    ("important", "important"),    # already measured, to hang the rest on
+)
+
+SETS = {"sentences": ACCENT_TRIAL, "words": WORD_TRIAL}

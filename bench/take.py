@@ -28,7 +28,7 @@ import wave
 from pathlib import Path
 
 import synth
-from phrases import ACCENT_TRIAL
+import phrases
 
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes"
@@ -110,9 +110,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--gb", default="eleven-gb-daniel")
     parser.add_argument("--us", default="eleven-us-eric")
+    parser.add_argument("-s", "--set", dest="which", default="words",
+                        choices=sorted(phrases.SETS),
+                        help="ce qu'on fait dire : des mots ou des phrases")
     parser.add_argument("-f", "--force", action="store_true",
                         help="reprendre les prises déjà faites")
     args = parser.parse_args(argv)
+    chosen = phrases.SETS[args.which]
+    takes = TAKES / args.which
 
     models = {}
     for accent, name in (("gb", args.gb), ("us", args.us)):
@@ -121,16 +126,16 @@ def main(argv=None):
                              "Connues : " + ", ".join(synth.BY_NAME))
         models[accent] = synth.BY_NAME[name]
 
-    print(f"\n{len(ACCENT_TRIAL)} phrases, trois prises chacune : "
+    print(f"\n{len(chosen)} {args.which}, trois prises chacune : "
           f"naturel, calque {models['gb'].name}, calque {models['us'].name}.")
     print("Attends une seconde après [Entrée] avant de parler — la première "
           "seconde est coupée.\n")
 
     try:
-        for index, (slug, text) in enumerate(ACCENT_TRIAL, start=1):
-            print(f"\n[{index}/{len(ACCENT_TRIAL)}]  « {text} »")
+        for index, (slug, text) in enumerate(chosen, start=1):
+            print(f"\n[{index}/{len(chosen)}]  « {text} »")
             for label, accent in PASSES:
-                path = TAKES / label / f"{slug}.wav"
+                path = takes / label / f"{slug}.wav"
                 if path.is_file() and not args.force:
                     print(f"     {label} — déjà pris")
                     continue
@@ -139,7 +144,7 @@ def main(argv=None):
                     one_take(path, None, None)
                 else:
                     candidate = models[accent]
-                    model = RENDERS / candidate.name / f"{slug}.wav"
+                    model = RENDERS / candidate.name / args.which / f"{slug}.wav"
                     synth.render(text, candidate, model)
                     print(f"     calque {accent.upper()} ({candidate.name})")
                     one_take(path, model, f"le modèle {accent.upper()}")
@@ -147,7 +152,7 @@ def main(argv=None):
         print("\n\nInterrompu — les prises gardées restent en place.")
         return 1
 
-    print(f"\nTerminé. Prises dans {TAKES.relative_to(HERE.parent)}/")
+    print(f"\nTerminé. Prises dans {takes.relative_to(HERE.parent)}/")
     return 0
 
 
