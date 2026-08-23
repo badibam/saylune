@@ -94,8 +94,12 @@ def run(candidate, dialect, labels, show, chosen, takes, which):
             if take is None:
                 skipped.append(slug)
                 continue
-            model = reading(RENDERS / candidate.name / which / f"{slug}.wav", text,
-                            dialect, f"model-{which}-{candidate.name}", slug)
+            # The model is cache, not a recording: render it if this voice has
+            # not served yet, rather than refusing to compare against it.
+            render = RENDERS / candidate.name / which / f"{slug}.wav"
+            synth.render(text, candidate, render)
+            model = reading(render, text, dialect,
+                            f"model-{which}-{candidate.name}", slug)
             paired = gaps(model, take)
             every.extend(value for _, _, value in paired)
             worst_of.extend((value, reference.phone, reference.word, slug)

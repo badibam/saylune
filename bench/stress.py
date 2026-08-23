@@ -68,8 +68,12 @@ def run(candidate, dialect, labels, show, chosen, takes, which):
                            f"take-{which}-{label}", slug)
             if take is None:
                 continue
-            model = reading(RENDERS / candidate.name / which / f"{slug}.wav", text,
-                            dialect, f"model-{which}-{candidate.name}", slug)
+            # The model is cache, not a recording: render it if this voice has
+            # not served yet, rather than refusing to compare against it.
+            render = RENDERS / candidate.name / which / f"{slug}.wav"
+            synth.render(text, candidate, render)
+            model = reading(render, text, dialect,
+                            f"model-{which}-{candidate.name}", slug)
             for word in polysyllabic(model):
                 left, right = stressed(model.syllables, word), stressed(take.syllables, word)
                 if left is None or right is None:
