@@ -14,21 +14,23 @@ Le modèle à imiter est une voix de synthèse, et elle varie — par fournisseu
 
 ## Le banc
 
-Les sondes de `tmp/bench/` (`speechace.py`, `tts.py`, `audio_probe.py`) sont l'embryon du banc ; elles se relogent en `bench/`, versionnées, derrière une commande unique. Le banc prend un adaptateur de moteur (un appel : audio + texte + dialecte → phonèmes localisés et notés, syllabes, hauteur) et déroule la procédure ci-dessous. Le contrôle indépendant de f0 par autocorrélation (`audio_probe.py`) en fait partie : il juge le tracker du moteur, pas l'inverse.
+Le banc vit dans `bench/`, versionné : `synth.py` rend une phrase par n'importe quelle voix candidate, `engine.py` porte l'adaptateur de moteur, `calibrate.py` déroule l'étape 1, `take.py` guide une session d'enregistrement et `compare.py` lit une prise par son écart au modèle. Rendus et lectures sont mis en cache sous `bench/out/`, gitignoré : l'audio se paie en caractères, les lectures en appels, et les deux se régénèrent par script. Le banc prend un adaptateur de moteur (un appel : audio + texte + dialecte → phonèmes localisés et notés, syllabes, hauteur) et déroule la procédure ci-dessous. Le contrôle indépendant de f0 par autocorrélation (`audio_probe.py`) en fait partie : il juge le tracker du moteur, pas l'inverse.
 
 ## La procédure
 
-1. **Étalonner la voix modèle.** Synthétiser les phrases du jeu, les passer au moteur avec leur propre texte. La voix qualifie si la médiane est haute et qu'aucun phonème ne décroche (chez SpeechAce : médiane ≥ 97, aucun son < 90 — à transposer à l'échelle du candidat). Une voix qui échoue est écartée, quelle que soit sa beauté.
+1. **Étalonner la voix modèle.** Synthétiser les phrases du jeu, les passer au moteur avec leur propre texte. La voix qualifie si la médiane est haute et qu'aucun phonème ne décroche (chez SpeechAce : médiane ≥ 97, aucun son < 90 — à transposer à l'échelle du candidat). Une voix qui échoue est écartée, quelle que soit sa beauté. **Ce que cette étape empêche est l'inversion** (cf. `speechace.md`) : chaque son où le modèle n'atteint pas le plafond est un endroit où l'apprenant peut passer au-dessus de lui, et un écart positif ne rate pas la marque — il certifie la faute comme bonne. D'où un critère sur le pire son et non sur la moyenne.
 2. **Vérifier le déterminisme.** Le même fichier envoyé deux fois rend les mêmes notes et les mêmes bornes. Un moteur non déterministe est disqualifié d'office : la mesure par écart lui est impossible.
 3. **Vérifier l'accord de dialecte.** Une voix US notée au référentiel GB doit échouer l'étape 1 — c'est le comportement attendu, qui prouve que l'étalonnage détecte l'incohérence au lieu de la laisser inverser la mesure.
 4. **Enregistrer le jeu humain** en suivant les blocs A à F de `pronunciation-test-set.md`, dans l'ordre par paires, et **vérifier les fautes franches** à la méthode du bloc D : une faute non détectée n'accuse le moteur qu'une fois établi qu'elle a été produite.
 5. **Noter tout le jeu par écart au modèle**, en appliquant les deux filtres d'artefacts silencieux : segment ≤ 10 ms = décrochage d'alignement, hauteur hors d'un facteur deux de la médiane du tour = accrochage harmonique.
 6. **Lire les séparations.**
+7. **Compter les écarts positifs.** L'étape 1 est un pronostic à bon marché, disponible avant toute prise humaine ; ceci est la mesure directe de ce qu'elle prédit. Un écart positif sur une prise fautive disqualifie le couple voix/référentiel, quel que soit son étalonnage.
 
 ## Les critères
 
 Un candidat qualifie s'il tient les propriétés suivantes — formulées sans seuil absolu, parce que l'échelle de notes est propre à chaque moteur :
 
+0. **Aucune inversion.** Sur l'ensemble des prises, aucun son ne rend un écart positif franc. C'est le critère dont dépendent tous les autres : une marque qui se retourne n'est pas une marque en moins, c'est une faute certifiée bonne.
 1. **Phonème** : les fautes franches (blocs A et D vérifiées) se séparent des témoins (bloc C) par une **bande vide** — les écarts des témoins se groupent près de zéro, ceux des fautes nettement en dessous, rien entre les deux. Zéro fausse alerte sur les témoins.
 2. **Accent** : au protocole du calque (bloc F), toute faute spontanée vue, aucune alerte sur les calques.
 3. **Mélodie** : la question et le plat (bloc E) se séparent du modèle avec le bon signe, en demi-tons.
