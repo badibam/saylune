@@ -24,6 +24,7 @@ Les clés, en variables d'environnement — absentes, les scripts échouent fran
 | `compare.py` | lit une prise par son écart au modèle, dictionnaire par dictionnaire |
 | `matrix.py` | la piste embarquée : un audio → sa répartition sur les sons toutes les 20 ms, sa grille, l'alignement d'une seconde prise dessus |
 | `overlap.py` | le recouvrement de deux répartitions, son par son — de combien deux voix s'écartent |
+| `faults.py` | le jeu d'essai étiqueté relu sans aucun service : l'écart tombe-t-il sur le son fautif |
 
 Chaque brique s'utilise seule.
 
@@ -43,7 +44,10 @@ python3 -c "from transformers import AutoFeatureExtractor, AutoModelForCTC; m='f
 
 ```
 python3 overlap.py -s sentences -v
+python3 faults.py -v
 ```
+
+Les vingt-sept prises étiquetées des blocs A à F vivent dans `out/takes/set/`. Elles ne se régénèrent pas : **si elles comptent, elles se sauvegardent hors du dépôt.**
 
 ## Étalonner
 
