@@ -19,6 +19,7 @@ No API call: every render and every take this reads already exists on disk.
 import argparse
 import statistics
 import sys
+from collections import namedtuple
 from pathlib import Path
 
 import numpy as np
@@ -32,6 +33,12 @@ HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes"
 RENDERS = HERE / "out" / "renders"
 MATRICES = HERE / "out" / "matrices"
+
+SECONDS_PER_FRAME = 0.02
+
+# Where the model puts a sound, and how far the other recording sits from it.
+Gap = namedtuple("Gap", "value symbol seconds")
+
 
 # An empty capture is skipped by name rather than sent to the network: there is
 # no speech in it to spread over anything.
@@ -89,7 +96,8 @@ def sounds(model_wav, other_wav, model_tag, other_tag, slug):
             continue
         if empty_here > EMPTY_MASS or empty_there > EMPTY_MASS:
             continue
-        read.append((divergence(here, there), matrix.symbols()[index]))
+        read.append(Gap(divergence(here, there), matrix.symbols()[index],
+                        start * SECONDS_PER_FRAME))
     return read
 
 
@@ -120,10 +128,10 @@ def run(model_name, others, labels, chosen, which, show):
         if not read:
             print(f"    {name:<22}  rien à lire")
             continue
-        print(f"    {name:<22}{column([value for value, _ in read])}")
+        print(f"    {name:<22}{column([gap.value for gap in read])}")
         if show:
-            for value, symbol in sorted(read, reverse=True)[:5]:
-                print(f"        {value:>7.3f}  /{symbol}/")
+            for gap in sorted(read, reverse=True)[:5]:
+                print(f"        {gap.value:>7.3f}  /{gap.symbol}/")
 
 
 def main(argv=None):
