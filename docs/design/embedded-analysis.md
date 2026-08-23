@@ -50,6 +50,8 @@ Tout ce qui suit — briques 3, 5, 6, 9 — est une **lecture de ce tableau**. I
 
 Propriétés qui comptent : déterministe en CPU (même fichier, même matrice), résolution 20 ms (un phonème dure 50 à 150 ms, c'est confortable), aucun mot ni grammaire — le réseau ne connaît que des sons.
 
+Les poids mesurés sont `facebook/wav2vec2-lv-60-espeak-cv-ft`, Apache-2.0, 1,2 Go en flottant, 20,1 ms par trame vérifiées. Une réserve : son inventaire n'est pas de 45 sons mais de **392, multilingue**. Sans conséquence sur la comparaison, qui porte sur les lignes entières et voit la même masse hors-anglais des deux côtés — mais c'est lui qui produit le décrochage sur le mot isolé, plus bas.
+
 ### 3. La grille — décodage libre du modèle
 
 Le plus fort de chaque ligne, les `∅` jetés, les répétitions fusionnées.
@@ -199,11 +201,11 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | # | brique | ce qu'elle rend | état |
 |---|---|---|---|
 | 1 | Le modèle (ElevenLabs) | audio + lettres → temps | existe, REST nu |
-| 2 | La matrice | répartition sur les sons, toutes les 20 ms | une passe par audio |
-| 3 | La grille | sons réellement produits par le modèle → temps | lecture de la 2 |
+| 2 | La matrice | répartition sur les sons, toutes les 20 ms | codée (`bench/matrix.py`) |
+| 3 | La grille | sons réellement produits par le modèle → temps | codée |
 | 4 | La jointure lettres ↔ sons | quelle lettre porte quel son | à écrire |
-| 5 | L'apprenant sur la grille | mêmes sons → temps chez lui | lecture de la 2 |
-| 6 | Le son | recouvrement des deux formes, et le son produit | lecture de la 2 |
+| 5 | L'apprenant sur la grille | mêmes sons → temps chez lui | codée |
+| 6 | Le son | recouvrement des deux formes, et le son produit | recouvrement codé (`bench/overlap.py`) ; le son produit à écrire |
 | 7 | Le mot | quelle syllabe est la forte | à écrire |
 | 8 | La syllabification | l'étendue en lettres de chaque syllabe | à écrire |
 | 9 | Le découpage en mots | quelles voyelles appartiennent au même mot | tombe de la 1 |
@@ -249,7 +251,7 @@ Ce qui produirait un comportement inattendu, et où ça se traite.
 
 ### La comparaison elle-même
 
-- **Deux voix très différentes** : les répartitions pourraient différer par le timbre plutôt que par la prononciation. C'est l'inconnu majeur, et le premier test.
+- **Deux voix très différentes** : c'était l'inconnu majeur. Mesuré, et le timbre ne passe pas dans la répartition — cf. « Le locuteur ne laisse pas de trace ».
 - **Un son aligné sur des trames majoritairement `∅`** : la comparaison porterait sur du vide. Filtre à prévoir.
 - **Tour très long** : le coût de calcul reste linéaire, mais une erreur d'alignement au milieu se propage vers la fin. À surveiller.
 
@@ -257,12 +259,42 @@ Ce qui produirait un comportement inattendu, et où ça se traite.
 
 La normalisation des chiffres avant synthèse, le contrôle de netteté de la grille, et le seuil d'accent net sous lequel on ne marque pas.
 
+## Le locuteur ne laisse pas de trace
+
+Première mesure faite (`bench/overlap.py`), sur les six phrases du banc. Écart de Jensen-Shannon par son entre la répartition du modèle et celle qui lui fait face, 0 pour deux formes identiques, 1 pour deux formes disjointes :
+
+| comparé au modèle | médian | moyen | pire |
+|---|---|---|---|
+| une autre voix de synthèse | 0,002 | 0,008 à 0,021 | 0,12 à 0,55 |
+| l'apprenant qui calque le modèle entendu | 0,009 | 0,062 à 0,136 | 0,65 à 0,99 |
+| l'apprenant à froid, avant d'avoir rien entendu | 0,006 à 0,008 | 0,064 à 0,079 | 0,85 |
+
+**C'est la réponse que le montage attendait.** Deux voix de synthèse différentes, disant correctement la même phrase, se recouvrent au point que la médiane est à deux millièmes : le timbre ne survit pas dans la forme de la répartition. Le principe qui fait comparer deux formes plutôt que deux notes tient donc son pari, et la difficulté propre d'un son se paie effectivement des deux côtés à la fois.
+
+Ce que la mesure ne dit **pas** encore, et qu'il faut lire honnêtement : les médianes de l'humain sont du même ordre que celles d'une voix (0,009 contre 0,002), et tout l'écart vit dans la queue — quelques sons montent à 0,99 là où deux synthèses ne dépassent jamais 0,55. C'est cohérent avec ce qu'on cherche, une faute étant rare et franche, mais **ça reste à départager faute par faute** : c'est la troisième mesure, pas celle-ci. Deux artefacts à ne pas prendre pour du signal : les prises à froid sont lues sur 83 sons contre 101 (une capture vide dans le jeu), et la moyenne du calque US dépasse celle de la prise à froid, ce qui n'a pas de sens tant que les fautes ne sont pas étiquetées une à une.
+
+### Le mot isolé décroche
+
+Sur les cinq mots dits seuls, le socle s'effondre : deux voix de synthèse s'écartent de 0,039 en médiane contre 0,002 sur la phrase. La grille de la voix britannique d'ElevenLabs en donne la raison :
+
+```
+water  -> w uo5 ts.h ɚ
+dance  -> tɕ a n s
+market -> n ɑː k ɪ t
+```
+
+`uo5` est une voyelle à ton mandarin, `tɕ` et `ts.h` des affriquées absentes de l'anglais. L'inventaire multilingue gagne l'argmax sur des sons qui ne sont pas de la langue, et sur un mot isolé rien dans le contexte ne l'en empêche. Sur les mêmes mots, la voix Azure reste propre (`w oː t ɚ`, `d ɑː n s`).
+
+Restreindre l'inventaire aux symboles vus en anglais connecté **n'est pas le remède** : essayé, ça déplace la masse vers d'autres mauvaises colonnes (`water` devient `w w t ɚ`) et ça casse des mots qui passaient. La piste sérieuse est un modèle acoustique anglais seul, à mesurer contre celui-ci.
+
+À relativiser cependant : dans l'app, le mot n'est **pas** un audio isolé côté modèle — c'est une sous-étendue d'une phrase déjà synthétisée. Seule la reprise du mot seul par l'apprenant, dans la parenthèse, tombe vraiment dans ce cas.
+
 ## Ce qui reste à mesurer, dans l'ordre
 
-Chaque étape se juge au protocole de `engine-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire pour les deux premières.
+Chaque étape se juge au protocole de `engine-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
-1. **Deux voix différentes produisent-elles des répartitions comparables ?** Si le réseau garde une trace du locuteur dans la forme de sa distribution, deux prises irréprochables se recouvriront mal et on marquera du vent. Tout le montage en dépend, et rien d'autre ne mérite d'être écrit avant. Se mesure sur les prises calque du banc contre leur modèle.
-2. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
-3. **L'écart retrouve-t-il les fautes** des prises déjà enregistrées, sans marquer les témoins ? C'est le même jeu d'essai que celui qui a départagé les services distants, donc le résultat est directement comparable.
+1. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
+2. **L'écart retrouve-t-il les fautes** des prises déjà enregistrées, sans marquer les témoins ? C'est le même jeu d'essai que celui qui a départagé les services distants, donc le résultat est directement comparable. C'est là que la queue de la première mesure prend ou perd son sens.
+3. **Un modèle acoustique anglais seul fait-il mieux sur le mot isolé ?** Se compare au même banc, mêmes fichiers.
 
-L'installation est la première dépense et la seule avant de pouvoir mesurer : le runtime d'inférence et les poids. La brique 10, elle, ne dépend de rien et pourrait exister avant tout le reste.
+La brique 10 ne dépend de rien et pourrait exister avant tout le reste.
