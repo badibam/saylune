@@ -25,7 +25,15 @@ TIMEOUT_SECONDS = 60
 DEGENERATE_MS = 10
 
 Phone = namedtuple("Phone", "word phone heard quality extent")
-Syllable = namedtuple("Syllable", "word letters quality extent")
+Syllable = namedtuple("Syllable",
+                      "word letters quality extent stress predicted "
+                      "stress_score intonation pitch_range")
+
+# Stress and melody are only reported when asked for, and the lexicon's own
+# expectation is not usable in their place: on flawless synthetic audio the
+# engine contradicts its own lexicon on 41% of polysyllabic words. What is
+# compared is its reading of the learner against its reading of the model.
+INTONATION = {"include_intonation": "1"}
 Reading = namedtuple("Reading", "phones syllables raw")
 
 
@@ -99,6 +107,11 @@ def read(payload):
                 letters=syllable.get("letters"),
                 quality=syllable.get("quality_score"),
                 extent=tuple(syllable.get("extent", (0, 0))),
+                stress=syllable.get("stress_level"),
+                predicted=syllable.get("predicted_stress_level"),
+                stress_score=syllable.get("stress_score"),
+                intonation=syllable.get("intonation"),
+                pitch_range=syllable.get("pitch_range"),
             ))
     return Reading(phones=phones, syllables=syllables, raw=payload)
 

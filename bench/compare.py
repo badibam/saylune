@@ -15,6 +15,7 @@ answer instead of an argument.
 """
 
 import argparse
+import difflib
 import statistics
 import sys
 from pathlib import Path
@@ -31,29 +32,50 @@ READINGS = HERE / "out" / "readings"
 FAULT_GAP = -15.0
 
 
+MIN_TAKE_SECONDS = 0.5
+
+
 def reading(wav, text, dialect, tag, slug):
-    if not wav.is_file():
-        raise SystemExit(f"Missing take: {wav}")
+    """Score the take, or return None when there is no take to score.
+
+    An empty capture is skipped by name rather than sent to the engine: a wav
+    with no speech in it comes back as a refusal or, worse, as a row of zeros
+    that would read as a catastrophic gap.
+    """
+    if not wav.is_file() or engine.duration_seconds(wav) < MIN_TAKE_SECONDS:
+        return None
     return engine.score(wav, text, dialect=dialect,
                         cache=READINGS / f"{tag}@{dialect}" / f"{slug}.json")
 
 
 def gaps(model, take):
-    """Pair phones by position and keep the pairs both sides could read.
+    """Align the two phone sequences, then read the gap where they correspond.
 
-    Same text and same lexicon give the same expected sequence, so position is
-    the pairing. A dropout on either side is dropped rather than read as a gap:
-    it would charge the speaker for the aligner losing the thread.
+    Position is not the pairing: the engine returns the sequence it aligned, not
+    the lexicon's expansion of the text, so a take can carry an insertion or a
+    deletion the model does not. Pairing by index survives until the first such
+    divergence and silently discards the rest of the sentence -- which is how a
+    broken comparison can still look like a full one.
+
+    Sounds the two sides do not share are not a gap to be measured. They are a
+    different fault, of a kind this reading has nothing to say about.
     """
+    reference_phones = [p.phone for p in model.phones]
+    attempt_phones = [p.phone for p in take.phones]
+    matcher = difflib.SequenceMatcher(a=reference_phones, b=attempt_phones,
+                                      autojunk=False)
+
     paired = []
-    for reference, attempt in zip(model.phones, take.phones):
-        if reference.phone != attempt.phone:
-            continue
-        if engine.degenerate(reference) or engine.degenerate(attempt):
-            continue
-        if reference.quality is None or attempt.quality is None:
-            continue
-        paired.append((reference, attempt, attempt.quality - reference.quality))
+    for start_a, start_b, size in matcher.get_matching_blocks():
+        for offset in range(size):
+            reference = model.phones[start_a + offset]
+            attempt = take.phones[start_b + offset]
+            if engine.degenerate(reference) or engine.degenerate(attempt):
+                continue
+            if reference.quality is None or attempt.quality is None:
+                continue
+            paired.append((reference, attempt,
+                           attempt.quality - reference.quality))
     return paired
 
 
@@ -65,11 +87,15 @@ def run(candidate, dialect, labels, show):
     for label in labels:
         every = []
         worst_of = []
+        skipped = []
         for slug, text in ACCENT_TRIAL:
-            model = reading(RENDERS / candidate.name / f"{slug}.wav", text,
-                            dialect, f"model-{candidate.name}", slug)
             take = reading(TAKES / label / f"{slug}.wav", text,
                            dialect, f"take-{label}", slug)
+            if take is None:
+                skipped.append(slug)
+                continue
+            model = reading(RENDERS / candidate.name / f"{slug}.wav", text,
+                            dialect, f"model-{candidate.name}", slug)
             paired = gaps(model, take)
             every.extend(value for _, _, value in paired)
             worst_of.extend((value, reference.phone, reference.word, slug)
@@ -79,8 +105,9 @@ def run(candidate, dialect, labels, show):
             print(f"    {label:<14}  aucune paire lisible")
             continue
         failed = [value for value in every if value <= FAULT_GAP]
+        note = f"   (sans {', '.join(skipped)})" if skipped else ""
         print(f"    {label:<14}{statistics.mean(every):>12.1f}"
-              f"{min(every):>8.1f}{len(failed):>14}{len(every):>10}")
+              f"{min(every):>8.1f}{len(failed):>14}{len(every):>10}{note}")
         if show:
             worst_of.sort()
             for value, phone, word, slug in worst_of[:6]:
