@@ -29,3 +29,16 @@ CALIBRATION = (
     ("important", "It is important for me"),
     ("interesting", "This lesson is interesting for me"),
 )
+
+# The accent trial: does the gap between a learner and the model still separate
+# a good take from a bad one when the scoring lexicon does not match the voice?
+# Chosen where GB and US actually diverge -- post-vocalic /r/, the vowels of
+# `office` and `chair` -- and where the contested voice scored badly in en-gb.
+ACCENT_TRIAL = (
+    ("turn-right", "Turn right at the corner"),
+    ("market", "Yesterday I went to the market"),
+    ("comfortable", "The chair is very comfortable"),
+    ("pear-tree", "I picked a pear from the tree"),
+    ("walking-office", "I am walking to the office"),
+    ("important", "It is important for me"),
+)
