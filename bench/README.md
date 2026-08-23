@@ -22,8 +22,28 @@ Les clés, en variables d'environnement — absentes, les scripts échouent fran
 | `calibrate.py` | étape zéro — cette voix est-elle un étalon valide ? |
 | `take.py` | une session d'enregistrement guidée : naturel, calque GB, calque US |
 | `compare.py` | lit une prise par son écart au modèle, dictionnaire par dictionnaire |
+| `matrix.py` | la piste embarquée : un audio → sa répartition sur les sons toutes les 20 ms, sa grille, l'alignement d'une seconde prise dessus |
+| `overlap.py` | le recouvrement de deux répartitions, son par son — de combien deux voix s'écartent |
 
 Chaque brique s'utilise seule.
+
+## La piste embarquée
+
+`matrix.py` et `overlap.py` ne parlent à aucun service : ils font tourner un modèle acoustique en local. Deux choses à poser d'abord, hors du dépôt puisque l'une pèse 1,2 Go :
+
+```
+python3 -m venv --system-site-packages tmp/venv && source tmp/venv/bin/activate
+pip install --index-url https://download.pytorch.org/whl/cpu torch
+pip install transformers soundfile
+export HF_HOME="$PWD/tmp/hf"          # jamais le défaut : /home est un tmpfs ici
+python3 -c "from transformers import AutoFeatureExtractor, AutoModelForCTC; m='facebook/wav2vec2-lv-60-espeak-cv-ft'; AutoFeatureExtractor.from_pretrained(m); AutoModelForCTC.from_pretrained(m)"
+```
+
+`HF_HOME` est lu par `matrix.py`, qui échoue franchement s'il est absent. Le tokenizer du modèle n'est jamais chargé — il ne sert qu'à transformer du texte en phonèmes, seul sens que ce pipeline refuse de prendre, et l'appeler réclamerait `phonemizer` et `espeak-ng` pour rien.
+
+```
+python3 overlap.py -s sentences -v
+```
 
 ## Étalonner
 
