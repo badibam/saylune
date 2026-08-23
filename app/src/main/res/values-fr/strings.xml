@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Speakup</string>
-    <string name="placeholder_headline">Rien à dire pour l\'instant.</string>
+    <string name="sample_multi_fault_turn">Tour multi-fautes</string>
+    <string name="sample_clean_turn">Tour propre</string>
 </resources>
