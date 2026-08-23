@@ -111,6 +111,58 @@ Le dialecte de notation et celui de la voix doivent être **le même** :
 
 Un désaccord ne dégrade pas la mesure, il l'**inverse** : c'est le modèle qui se fait pénaliser, l'écart devient positif, et la faute de l'apprenant passe inaperçue. Les deux lexiques ne découpent pas non plus la phrase en autant de phonèmes (17 contre 18), donc les marques ne tombent pas sur les mêmes lettres.
 
+## Étalonner, c'est empêcher l'inversion
+
+L'étalonnage n'est pas un contrôle de qualité de la voix : c'est le seul test qui empêche la mesure de se retourner. Mesuré au banc (`bench/`), cinq mots portant chacun un contraste GB/US décisif, quatre voix, les deux référentiels. À gauche le **plafond** — les notes du modèle sur son propre texte. À droite les **écarts positifs**, où l'apprenant est noté meilleur que le modèle.
+
+| modèle | référentiel | sons du modèle sous 90 | écarts positifs |
+|---|---|---|---|
+| Sonia (Azure GB) | `en-gb` | 0 / 24 | **0** |
+| Sonia (Azure GB) | `en-us` | 0 / 28 | **0** |
+| Jenny (Azure US) | `en-us` | 0 / 28 | **0** |
+| Jenny (Azure US) | `en-gb` | 7 / 26 | 3 |
+| Daniel (ElevenLabs « GB ») | `en-gb` | 6 / 25 | 1 |
+| Eric (ElevenLabs US) | `en-gb` | 6 / 25 | 3 |
+
+**La correspondance est exacte : zéro trou, zéro inversion ; des trous, des inversions.** Le mécanisme est arithmétique — la marque naît de `apprenant − modèle`, donc partout où le modèle n'atteint pas le plafond, l'apprenant a de la place au-dessus de lui. Sur `/ao/` de *water*, un modèle à 12 contre une prise française à 35 rend **+23**.
+
+Et une inversion n'est pas une marque manquée : puisque la marque *naît* de l'écart, un écart positif **certifie** le son comme bon. L'app dirait à un francophone que sa voyelle est meilleure que celle du modèle.
+
+C'est pourquoi le critère porte sur le **pire son** et non sur la moyenne : chaque son sous le plafond est un endroit où une faute peut être blanchie. Une médiane superbe ne rachète pas un trou.
+
+Corollaire pratique : l'accord voix/référentiel n'est pas une exigence esthétique, c'est ce qui garde le plafond plein. Sonia le tient sous les deux référentiels, Jenny seulement sous le sien.
+
+## Le référentiel britannique rend moins que l'américain
+
+Six voix, seize phrases, ~260 sons chacune, filtre de décrochage appliqué. Le nombre est **combien de sons tombent sous 90** :
+
+| voix | accent annoncé | `en-us` | `en-gb` |
+|---|---|---|---|
+| Sonia (Azure) | GB | 3 | **2** |
+| Jenny (Azure) | US | **4** | 40 |
+| Sarah (ElevenLabs) | US | **6** | 30 |
+| Eric (ElevenLabs) | US | **7** | 41 |
+| Daniel (ElevenLabs) | GB | 8 | 28 |
+| Alice (ElevenLabs) | GB | 13 | 29 |
+
+`en-gb` marche — Sonia y est la plus propre de tout le tableau. Mais **il ne tolère qu'une voix sur six**, là où `en-us` en accepte quatre. Les voix « britanniques » d'ElevenLabs n'en sont pas au sens du moteur : leur plafond s'effondre en `en-gb` et redevient propre en `en-us`.
+
+Le référentiel rend aussi **moins de champs**. Même mot, même fichier :
+
+| | `en-us` | `en-gb` |
+|---|---|---|
+| phonèmes de `important` | `ih m p ao r t ah n t` | `ih m p ao t n` |
+| syllabes | `im` / `por` / `tant` | `im` / `portant` |
+| `predicted_stress_level` | présent | **absent** |
+| `stress_score` | présent | **absent** |
+| `extent`, `intonation`, `pitch_range` | présents | présents |
+
+La séquence de phonèmes est **juste** — non-rhotique, `n` syllabique, finale réduite : c'est du RP correct. C'est le **groupement en syllabes** qui est faux, `/pɔː/` et `/n̩/` étant deux noyaux rangés dans une seule syllabe.
+
+**Conséquence : l'échelle du mot, telle qu'elle est conçue, n'existe pas en `en-gb`.** La méthode retenue compare `predicted_stress_level` du modèle à celui de l'apprenant, et le champ est absent. L'échelle de la phrase survit — `pitch_range` est rendu des deux côtés.
+
+Une issue reste ouverte et **non mesurée** : l'`extent` des syllabes donne la durée, `pitch_range` donne la hauteur, et l'accent anglais se réalise par durée, hauteur et intensité. De quoi reconstruire la comparaison sans le verdict du moteur — au prix du groupement fautif, qui fusionne précisément les deux syllabes où se loge la faute française.
+
 ## Le filtre des segments dégénérés
 
 Sur 262 phonèmes mesurés, durée médiane 120 ms, l'aligneur décroche sur certains segments et leur colle une étiquette au hasard.
