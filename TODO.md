@@ -19,11 +19,14 @@ Ce qui reste ouvert de ce chantier, et qui n'attend pas :
 
 La piste **locale/libre** reste la seule alternative envisagée, et pas pour la v1 — démarche écrite dans `docs/design/local-engine.md`, qualification par `docs/design/engine-qualification.md`. Elle retirerait le poste à abonnement plancher (l'analyse), pas le BYOK ni `NonFreeNet`, qui tiennent aux maillons restés distants. Rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. La mélodie en est la brique détachable la plus mûre, envisageable dès la v1 en complément du service.
 
-## Chantier 1 bis — le marquage d'un seul mouvement
+## Chantier 1 bis — le marquage d'un seul mouvement : tranché
 
-La forme est trouvée : la **partition** — les trois échelles superposées en canaux typographiques distincts, silence sous le seuil, gradation au-delà (cf. `docs/design/ui-flow.md`, qui règle aussi le flux complet : posture mixte, micro, chorégraphie du tour).
+Le prototype a décidé : **le fil derrière le texte** — phonème en couleur de lettre, accent en graisse du modèle plus réglettes sur la faute, mélodie en contours superposés passant sous des glyphes détourés (cf. `docs/design/ui-flow.md`, qui règle aussi le flux complet : posture mixte, micro, chorégraphie du tour). Le rendu Compose existe et se lance par `./run install`.
 
-Reste **le prototype qui décide** : rendre la partition sur de vrais tours multi-fautes, et basculer sur le repli (texte + marge) si la superposition s'avère illisible. À faire avant d'engager le reste de l'écran de conversation.
+Ce qui reste attaché à ce chantier :
+
+- **Le repli sur plusieurs lignes** n'a été vu que sur une ligne unique. Le fil se rompt au retour à la ligne, ce qui est correct, mais un tour long n'a pas encore été regardé.
+- **Le seuil en demi-tons de la mélodie** ne sert plus l'affichage ; il reste à fixer pour l'ouverture automatique de la parenthèse.
 
 ## Chantier 2 — choisir les fournisseurs de conversation et de synthèse
 
@@ -43,5 +46,4 @@ Le montage est tranché : **chaîne STT → LLM → TTS**, reconnaissance par fi
 ## Reste
 
 - **Icône de l'app** — aucune pour l'instant, l'app porte l'icône par défaut d'Android. `fdroid` exige par ailleurs un `icon.png` et un `featureGraphic.png` dans la fiche.
-- **Premier `./run build`** — le squelette Gradle est repris de `posebell` ; ses versions (AGP 9.3.1, `compileSdk` 37, BOM Compose) n'ont pas été vérifiées pour ce projet.
 - **Drift sagesse** — `android`, `cli-interactif`, `fdroid` à 1 commit de retard. `/update pull` avant le premier vrai code Android.

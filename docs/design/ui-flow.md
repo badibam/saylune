@@ -28,19 +28,25 @@ L'appui ne peut donc pas ouvrir la mauvaise parenthèse : le genre est une propr
 
 ## Le marquage — silence sous le seuil, gradation au-delà
 
-Rien n'est teinté dans la zone de bruit (±5 d'écart au modèle) : un tour réussi est visuellement calme, et une nuance affichée là serait un mensonge de précision. Au-delà du seuil, **la marque porte son intensité** — écart faible en teinte douce, écart profond en teinte franche. Par échelle : **phonème** gradation pleine (points d'écart), **mélodie** gradation (demi-tons), **accent** binaire par nature (la syllabe forte est au bon endroit ou pas).
+Rien n'est teinté dans la zone de bruit (±5 d'écart au modèle) : un tour réussi est visuellement calme, et une nuance affichée là serait un mensonge de précision. Au-delà du seuil, **la marque porte son intensité** — écart faible en teinte douce, écart profond en teinte franche. Par échelle : **phonème** gradation pleine (points d'écart), **accent** binaire par nature (la syllabe forte est au bon endroit ou pas), **mélodie** sans seuil ni teinte, son silence étant géométrique — cf. ci-dessous.
 
-### La forme retenue : la partition (variante A)
+### La forme retenue : le fil derrière le texte
 
-Les trois échelles cohabitent sur la même chaîne, chacune dans son canal graphique, simultanément :
+Tranchée sur prototype — maquette HTML sur de vrais tours multi-fautes, puis rendu Compose. Les trois échelles cohabitent sur la même chaîne, chacune dans son canal graphique :
 
-- le **phonème** colore ses lettres — une lettre à deux sons prend la couleur du pire, une lettre muette reste neutre ;
-- l'**accent** joue sur la graisse : la syllabe attendue forte et celle réalisée forte, deux états nets ;
-- la **mélodie** est un fil fin au-dessus de la ligne — le contour du modèle en trait discret, celui de l'utilisateur par-dessus, la zone de divergence teintée.
+- le **phonème** colore ses lettres, en rampe de teinte à clarté fixe (ambre → rouge selon les points d'écart) — une lettre à deux sons prend la couleur du pire, une lettre muette reste neutre. La rampe a sa clarté propre, distincte de celle de l'encre neutre : posée à la clarté du texte, une teinte s'éteint et la faute se peint invisible.
+- l'**accent** met en graisse la syllabe que **le modèle** accentue, et n'ajoute rien tant que l'apprenant tombe juste ; sur une faute, deux réglettes sous la ligne — rouge sous la syllabe où l'accent est parti, verte sous celle où il devait tomber. Le vert ne valide donc jamais rien, il désigne une destination.
+- la **mélodie** est un fil qui passe **derrière le texte**, dans la bande de la ligne : contour du modèle en trait désaturé, contour de l'apprenant en trait vif, même épaisseur, teinte froide propre au canal et hors de la rampe phonémique. Les lettres sont détourées de la couleur du fond, si bien que le fil passe dessous au lieu de les barrer.
 
-**Repli si la superposition s'avère illisible** (variante C) : le texte ne garde que la couleur phonémique ; l'accent devient un point au-dessus de la syllabe, la mélodie une vignette de fin de phrase (mini-courbe des deux contours). À l'intérieur de l'une ou l'autre, un mécanisme d'**isolation de calque** (afficher une seule échelle temporairement) sert de secours sur les tours chargés — pour isoler, jamais pour découvrir.
+Trois propriétés ont décidé la forme :
 
-**La bascule A/C se joue sur un prototype** : le rendu partition sur de vrais tours multi-fautes, avant d'engager le reste de l'écran.
+- **la continuité traverse les espaces.** La mélodie court sur l'énoncé entier ; le fil ne s'interrompt qu'au retour à la ligne, et là où le filtre d'accrochage a jeté la hauteur d'une syllabe — un trou plutôt qu'un raccord inventé.
+- **le juste est silencieux par géométrie.** Quand l'apprenant colle au modèle, les deux traits se superposent en un seul. Aucun seuil n'est nécessaire pour qu'un tour propre soit calme, et deux traits neutres n'affirment rien : la règle du silence protège d'une teinte qui accuse, pas d'une référence qui montre.
+- **aucun coût de hauteur.** Passer derrière le texte plutôt qu'au-dessus laisse la conversation compacte, ce qui compte sur la vue au présent.
+
+**La graisse décrit le modèle, jamais la production.** Elle n'accuse personne, ne change pas de place d'un tour à l'autre pour le même énoncé, et se lit sans légende. Elle suit néanmoins le sort des autres marques : elle naît de l'analyse, donc un tour non analysé — quota, panne, porte grammaticale fermée — n'a pas de gras non plus.
+
+**Le curseur de seuil ne pilote plus l'affichage de la mélodie** : il gouverne la rampe phonémique et l'ouverture automatique de la parenthèse, qui a bien besoin d'un seuil en demi-tons pour savoir quand se déclencher. À l'écran, l'écart mélodique se lit tel qu'il est.
 
 ## Les signaux sonores
 
