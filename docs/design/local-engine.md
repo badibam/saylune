@@ -30,6 +30,20 @@ La bonne cible n'est pas l'une ou l'autre : la première **note**, la seconde **
 - **Ancrage aux lettres** : alignement graphème-phonème (l'appariement CMUdict ↔ orthographe est le morceau ingrat ; les aligneurs standards type m2m/Phonetisaurus le font). C'est ce que SpeechAce donne gratuitement et qu'il faut reconstruire.
 - **Filtres** : les mêmes qu'au protocole — durée absurde = alignement décroché, à écarter.
 
+## Une quatrième voie : comparer les deux audios, sans phonèmes
+
+Les trois briques ci-dessus reconstruisent ce que le service rend. Celle-ci contourne la question.
+
+Le point de départ est que **la marque ne naît jamais d'une note, seulement d'un écart au modèle**, et qu'on synthétise ce modèle de toute façon. On a donc deux enregistrements du **même texte**. Un alignement temporel élastique entre les deux, puis une distance spectrale le long de cet alignement, dirait **où** l'apprenant s'écarte — sans nommer un seul phonème, sans G2P, sans modèle acoustique, sans poids à distribuer.
+
+Ça colle à la doctrine du projet : « jouer un modèle n'a besoin que de savoir **où** ça cloche », pas quoi. Et ça supprimerait le poste à abonnement plancher d'un coup, au lieu de le grignoter brique par brique.
+
+L'**ancrage au texte** viendrait alors du synthétiseur et non de l'analyseur : ElevenLabs rend en REST nu l'horodatage caractère par caractère de ce qu'il synthétise (cf. `../reference.md`, « Fournisseurs »). On sait donc où tombe chaque lettre dans le modèle, et l'alignement reporte cette position sur l'audio de l'apprenant. C'est exactement l'exigence d'ancrage du contrat, obtenue par l'autre bout de la chaîne.
+
+**Ce qui la tuerait, et qui n'est pas mesuré** : la distance entre deux voix différentes est peut-être dominée par le timbre — l'âge, le sexe, le registre du locuteur — plutôt que par la faute de prononciation. Si c'est le cas, tout est bruit et la voie est close. C'est le premier essai à faire, et il ne coûte rien : les prises calque/naturel du banc suffisent, la question étant si le calque s'écarte moins du modèle que la prise à froid.
+
+Note qu'un échec ici n'entame pas les briques 1 à 3, qui ne dépendent pas d'elle.
+
 ## Empaquetage Android
 
 - **ONNX Runtime** (MIT) en inférence CPU — le CPU est déterministe, le GPU ne l'est pas toujours : le déterminisme étant un critère de qualification, l'inférence reste CPU.
