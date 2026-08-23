@@ -210,7 +210,7 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 8 | La syllabification | l'étendue en lettres de chaque syllabe | à écrire |
 | 9 | Le découpage en mots | quelles voyelles appartiennent au même mot | tombe de la 1 |
 | 10 | La phrase | la pente de fin d'énoncé | codée |
-| 11 | Le contrôle | texte de référence faux | lecture de la 2 |
+| 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
 | 12 | Le runtime Android | tout ça sur le téléphone | à câbler |
 
 **Un seul fichier extérieur dans tout le pipeline : les poids du modèle acoustique**, une centaine de Mo une fois quantifiés en entiers 8 bits, contre environ 350 en flottant. Aucune donnée linguistique, aucun dictionnaire, aucun lexique de dialecte, aucune table graphème-phonème.
@@ -289,12 +289,52 @@ Restreindre l'inventaire aux symboles vus en anglais connecté **n'est pas le re
 
 À relativiser cependant : dans l'app, le mot n'est **pas** un audio isolé côté modèle — c'est une sous-étendue d'une phrase déjà synthétisée. Seule la reprise du mot seul par l'apprenant, dans la parenthèse, tombe vraiment dans ce cas.
 
+## L'écart tombe sur le son fautif
+
+Troisième mesure faite (`bench/faults.py`), sur les blocs A, C et D du jeu d'essai — les mêmes prises qui ont départagé les services distants, lues cette fois par deux matrices et aucun service. La lecture est **ancrée** : chaque cas nomme le son de la grille du modèle où la faute a été faite, et le témoin du même son est lu contre le même modèle.
+
+| prise | rôle | son | écart |
+|---|---|---|---|
+| `07-bear-pear` | faute | /p/ | 0,965 |
+| `08-light-right` | faute | /ɹ/ | 0,945 |
+| `16-ship-lax` | franche | /iː/ | 0,903 |
+| `06-ship-sheep` | faute | /iː/ | 0,813 |
+| `01-sink` | faute | /θ/ | 0,422 |
+| `04-th-franc` | témoin | /θ/ | 0,055 |
+| `13-field-clean` | témoin | /θ/ | 0,044 |
+| `13-field-clean` | témoin | /iː/ | 0,009 |
+| `14-pear-clean` | témoin | /p/ | 0,007 |
+| `15-right-clean` | témoin | /ɹ/ | 0,001 |
+
+**Cinq fautes sur sept vues, aucune fausse alerte, et une bande vide de 0,37** entre le pire témoin et la plus faible faute vue. C'est la forme exacte de ce que rendait SpeechAce (six sur huit, témoins à ±1, fautes à −15 ou moins), obtenue sans dictionnaire, sans lexique de dialecte et sans appel. Les deux accents de modèle donnent le même résultat au millième près, ce qui était attendu puisque le modèle est le seul référentiel.
+
+Les deux fautes manquées ne se ressemblent pas :
+
+- `09-walkin` (/ŋ/ dit /n/) est une **demi-faute**, et le jeu d'essai le dit de lui-même : le bloc D existe parce que les cas 1, 6 et 9 étaient restés à mi-chemin. À faute franche, signal franc — c'est ce que fait `16-ship-lax`.
+- `17-sink-full` est étiqueté « /s/ franc » et le réseau y entend `aɪ θ ɪ ŋ k`, alors qu'il entend `aɪ s ɪ ŋ k` dans `01-sink`. **L'étiquette et l'audio se contredisent**, et rien dans ce qu'on a ne tranche lequel a tort. À rejouer si le jeu d'essai est réenregistré.
+
+### Le pire son d'un énoncé n'est pas une politique de marquage
+
+Le résultat compte autant que sa mise en garde. Le maximum de la phrase et l'écart sur le son étiqueté ne disent pas la même chose, et l'écart entre les deux vient de divergences **légitimes** :
+
+- le modèle dit *you are*, le locuteur dit *you're* : 0,95 sur la prise fautive **et** 0,97 sur le témoin ;
+- le modèle dit `p ɛɹ`, le locuteur dit `p eɪ ɚ` (*payer*) : 0,56 sur un témoin dont le /p/ est à 0,007 ;
+- le modèle réduit *to* en `t ə`, le locuteur dit `t ʊ` : 0,70 sur un témoin.
+
+Aucune n'est une faute de prononciation, toutes crèvent le plafond. Marquer le son le plus divergent d'un tour produirait donc trois fausses alertes sur cinq témoins. Ce que la mesure valide est **l'écart sur un son donné**, pas la sélection du son à marquer — et celle-ci demande d'abord la brique 11, pas un seuil.
+
+### La brique 11 se déclenche toute seule
+
+`18-walkin-full` se décode `a j a ŋ u k i n ɐ t ɔ̃ z o o f i s` — `ɔ̃` est une voyelle nasale française. Le réseau a lu l'énoncé hors de l'anglais, l'alignement forcé a plaqué la grille dessus quand même, et **tous** les sons décrochent d'un coup : médiane à 0,711 là où toute prise qui s'aligne reste sous 0,022. C'est exactement le motif que la brique 11 doit attraper, et un seuil de médiane le sépare sans ambiguïté. La prise sort de la comparaison au lieu de compter comme une faute vue.
+
+Deuxième apparition du même défaut de fond : l'inventaire multilingue part hors de l'anglais dès que le signal est un peu moins net. Ça renforce la piste d'un modèle acoustique anglais seul.
+
 ## Ce qui reste à mesurer, dans l'ordre
 
 Chaque étape se juge au protocole de `engine-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
-1. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
-2. **L'écart retrouve-t-il les fautes** des prises déjà enregistrées, sans marquer les témoins ? C'est le même jeu d'essai que celui qui a départagé les services distants, donc le résultat est directement comparable. C'est là que la queue de la première mesure prend ou perd son sens.
-3. **Un modèle acoustique anglais seul fait-il mieux sur le mot isolé ?** Se compare au même banc, mêmes fichiers.
+1. **Un modèle acoustique anglais seul fait-il mieux ?** Deux décrochages sur trois lui sont imputables — le mot isolé, et l'énoncé décodé hors de l'anglais. Se compare au même banc, mêmes fichiers.
+2. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
+3. **Quel son marquer ?** La mesure valide l'écart sur un son donné ; elle ne dit pas lequel mérite une marque, et le pire de l'énoncé n'est pas la réponse. C'est la brique 11 d'abord, un seuil ensuite.
 
 La brique 10 ne dépend de rien et pourrait exister avant tout le reste.
