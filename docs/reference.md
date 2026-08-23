@@ -66,6 +66,8 @@ La syllabe **porte** l'accent et la hauteur, mais elle n'est la portée d'aucun 
 
 Deux irrégularités à prévoir : une lettre peut porter deux sons, et une lettre peut n'en porter aucun.
 
+**Les trois échelles ne sont pas disponibles partout.** En `en-gb`, SpeechAce ne rend aucune donnée d'accent réalisé, et le mot cesse d'être une échelle mesurable — le son et la phrase, eux, survivent (cf. `design/speechace.md`). Le jeu de fonctionnalités dépend donc aussi de **l'accent choisi**, pas seulement du fournisseur, et l'échelle éteinte doit porter sa raison comme toute option absente.
+
 ## Marquer par écart au modèle, pas par note absolue
 
 Une note de prononciation ne veut rien dire seule : chaque son a sa note « normale » propre au moteur, et une note basse peut être une particularité de l'outil plutôt qu'une faute.
@@ -182,6 +184,8 @@ Ce n'est pas une exigence de cohérence esthétique. Mesuré : une voix américa
 
 **La voix se choisit.** Deux sélecteurs — le fournisseur de synthèse, puis la voix chez ce fournisseur — et un **étalonnage à la demande** qui avertit si elle échoue. Rien n'est imposé et rien n'est deviné : une voix qui ne s'étalonne pas reste utilisable pour parler, mais elle est signalée comme impropre à servir de modèle.
 
+Mesuré (cf. `design/speechace.md`) : **Jenny en `en-us` et Sonia en `en-gb`, toutes deux chez Azure, s'étalonnent sans un seul trou et n'inversent jamais.** Aucune voix ElevenLabs ne tient l'accent britannique — leur plafond s'effondre en `en-gb` et redevient propre en `en-us` — alors que leurs voix américaines sont recevables. L'accent GB repose donc sur **une seule voix chez un seul fournisseur**, et c'est une fragilité à porter, pas un détail.
+
 L'étalonnage fait alors double emploi, et c'est ce qui le rend intéressant : il **détecte aussi l'incohérence d'accent**. Une voix américaine soumise au référentiel britannique échoue le test, et le dit, au lieu de dégrader les mesures en silence pendant toute une session.
 
 Par défaut, **le modèle à imiter est la voix de la conversation** — c'est celle qu'on entend déjà, et rien ne justifie d'en présenter une autre. Les dissocier reste possible pour qui le veut, et le cas où le modèle vient d'un autre fournisseur que la conversation est accepté : les briques *conversation*, *synthèse* et *analyse* sont indépendantes, unifiées par le seul paramètre d'accent.
@@ -225,11 +229,15 @@ Analyse, conversation et synthèse sont des briques **substituables**, jamais co
 
 **Azure Speech est écarté**, et pas seulement classé second : sur les mêmes prises et la même méthode il voit trois fautes sur huit avec des témoins qui descendent plus bas que de vraies fautes, et son score de prosodie s'inverse sur la mélodie. Sa mesure reste dans `design/azure-speech.md` — c'est la seule référence dont on dispose pour juger un futur candidat, et elle a servi à déformer le contrat ci-dessous.
 
+**Le champ des candidats distants n'a jamais été élargi.** Deux services ont été mesurés, SpeechAce et Azure ; aucun troisième n'a été regardé. Ce n'est pas une conclusion, c'est un manque — et il pèse d'autant plus que ce que l'app prend réellement à SpeechAce s'est réduit à l'usage : la mélodie se mesure mieux en local, le verdict d'accent est faux dans un dialecte et absent dans l'autre, et `sound_most_like` renvoie l'écho du texte fourni. Restent la **note au phonème** et l'**ancrage aux lettres**, qui sont réels et coûteux à remplacer. Le banc de `bench/` rend désormais l'essai d'un candidat bon marché : une fonction dans `engine.py`.
+
 **Briques d'analyse locales/libres** — la seule alternative encore ouverte, et pas un engagement de la v1 ; la démarche est écrite (`design/local-engine.md`) et toute brique se juge au protocole de qualification (`design/engine-qualification.md`). Le gain visé est la disparition du poste à abonnement plancher — l'analyse — pendant que conversation et synthèse restent distantes en BYOK multi-fournisseurs et se paient aux centimes ; `NonFreeNet` reste déclarée tant qu'un maillon distant subsiste. Deux voies au phonème, aux défauts opposés : conditionnée par le texte (précise, mais elle hérite du piège d'acquiescer au texte fourni) ou reconnaissance libre (elle ne peut pas acquiescer, mais s'aligne plus bruyamment) — l'immunité au texte soufflé est une propriété de la seconde voie, pas du local en soi. La mélodie est la brique détachable la plus mûre : DSP pur, et le contrôle indépendant a montré qu'elle peut battre le tracker du service. La porte reste ouverte et rien de ce qui s'écrit d'ici là ne doit la fermer.
 
 **Le montage est la chaîne STT → LLM → TTS**, tranchée, plutôt qu'une API voix-à-voix. Trois raisons, dont la dernière est mesurée : chaque maillon reste substituable ; la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où le voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir ; et la latence est bonne — **2,6 s jusqu'au premier son** sur un tour court, de bout en bout (cf. `design/conversation-chain.md`).
 
 Deux points de montage réglés par la même mesure. La synthèse **n'est pas pipelinée** sur la première phrase du modèle : le gain est de 0,16 s, parce que le modèle achève son objet un septième de seconde après sa première phrase. Et la reconnaissance se fait **par fichier, pas en flux** : elle coûte un sixième de la durée de l'audio, ce qui pèse sur le tour long — qui est l'exception, pas le régime nominal. Rien ne se complique tant que l'usage n'a pas montré que ça gêne.
+
+**La synthèse a une contrainte que le chantier 1 ne voyait pas : l'ancrage horodaté.** ElevenLabs rend, en REST nu, l'horodatage **caractère par caractère** de ce qu'il synthétise. Azure rend l'équivalent — frontières de mots, visèmes — **uniquement par son SDK**, l'endpoint REST ne renvoyant que l'audio : or ce SDK est propriétaire, ce qui heurte de front la publication F-Droid. Aucun des deux n'a donc à la fois l'étalon des deux accents et l'ancrage en REST. Cet ancrage ne sert encore rien de décidé ; il devient déterminant si la comparaison directe des deux audios aboutit (cf. `design/local-engine.md`).
 
 **Les fournisseurs de conversation et de synthèse restent à choisir** (cf. `TODO.md`, chantier 2). Ceux du banc — Azure Speech, DeepSeek — ont servi à mesurer, pas à décider.
 
