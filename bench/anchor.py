@@ -86,6 +86,12 @@ def main(argv=None):
                          "la mesure n'a rien contre quoi se tenir")
 
     inside, instants, starts, ends, skipped = [], [], [], [], []
+    # The first character of an utterance and the last are the two places where
+    # the two sides are not describing the same thing: the provider stretches
+    # them over the leading and trailing silence of the file, the trellis puts
+    # the letter where the voice actually starts and stops. Held apart rather
+    # than averaged in, since no mark is ever drawn on silence.
+    edging = []
     for slug, text in phrases.CALIBRATION:
         wav = RENDERS / candidate.name / "sentences" / f"{slug}.wav"
         synth.render(text, candidate, wav)
@@ -101,17 +107,20 @@ def main(argv=None):
                 continue
             inside.append(start <= found[0] <= stop)
             instants.append(abs(found[0] - start))
-        for span in words(text):
+        spans = words(text)
+        for position, span in enumerate(spans):
             ours_edges = edges(ours, span)
             theirs_edges = edges(theirs, span)
             if ours_edges is None or theirs_edges is None:
                 continue
-            starts.append(abs(ours_edges[0] - theirs_edges[0]))
-            ends.append(abs(ours_edges[1] - theirs_edges[1]))
+            opening = ours_edges[0] - theirs_edges[0]
+            closing = ours_edges[1] - theirs_edges[1]
+            (edging if position == 0 else starts).append(abs(opening))
+            (edging if position == len(spans) - 1
+             else ends).append(abs(closing))
             if args.verbose:
                 print(f"  {text[span[0]:span[1]]:<14}"
-                      f"{(ours_edges[0] - theirs_edges[0]) * 1000:>8.0f}"
-                      f"{(ours_edges[1] - theirs_edges[1]) * 1000:>8.0f}  ms")
+                      f"{opening * 1000:>8.0f}{closing * 1000:>8.0f}  ms")
 
     if not starts:
         raise SystemExit("aucun énoncé mesurable")
@@ -121,7 +130,8 @@ def main(argv=None):
     print(f"    instant dans la plage du fournisseur : "
           f"{100 * sum(inside) / len(inside):.0f} %")
     for name, values in (("écart d'instant", instants),
-                         ("début de mot", starts), ("fin de mot", ends)):
+                         ("début de mot", starts), ("fin de mot", ends),
+                         ("bords de l'énoncé", edging)):
         print(f"    {name:<22}médian {1000 * statistics.median(values):6.0f} ms"
               f"   pire {1000 * max(values):6.0f} ms")
     if skipped:
