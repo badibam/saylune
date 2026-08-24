@@ -70,11 +70,12 @@ class ProbeActivity : Activity() {
             try {
                 val reading = engine.read(wav)
                 write(File(dumps, wav.name.removeSuffix(".wav") + ".mat"), reading)
-                peak = maxOf(peak, residentKilobytes())
-                say("%-34s %5.2f s  %5d ms  x%.2f  %d x %d".format(
+                val held = residentKilobytes()
+                peak = maxOf(peak, held)
+                say("%-30s %5.2f s  %6d ms  x%.2f  %4d trames  %5d Mo".format(
                     wav.name, reading.seconds, reading.millis,
                     reading.millis / 1000f / reading.seconds,
-                    reading.frames, reading.symbols))
+                    reading.frames, held / 1024))
                 if (wav === takes.first()) {
                     // Twice on the same file, because determinism is a
                     // qualification criterion and not an assumption: comparing

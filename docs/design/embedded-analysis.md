@@ -197,11 +197,52 @@ Poids sous licence libre uniquement — un poids non libre serait un `NonFreeAss
 | passe sur 6 s d'audio | 4,2 s | **2,4 s** |
 | coût rapporté à la durée du tour | ×0,70 | **×0,39** |
 
-Le 8 bits est donc à la fois plus léger et **plus rapide** — l'arrondi n'achète pas du temps contre de la place, il achète les deux. Une passe coûte quatre dixièmes de la durée du tour, sur un appareil de six ans, et la mémoire tient sans effort. Deux prises du même fichier rendent les mêmes octets : le déterminisme, qui est un critère de qualification, est vérifié et non supposé.
+Le 8 bits est donc à la fois plus léger et **plus rapide** — l'arrondi n'achète pas du temps contre de la place, il achète les deux. La mémoire tient sans effort, et deux prises du même fichier rendent les mêmes octets : le déterminisme, qui est un critère de qualification, est vérifié et non supposé.
+
+**Ce que coûte un tour, et non une passe.** Le montage en demande deux — l'apprenant et le modèle — mais celle du modèle est mise en cache avec la synthèse, donc elle ne se paie qu'à la première rencontre d'une phrase. Pour un tour de six secondes : environ **2,4 s** sur une phrase déjà entendue, **3 s** sur une phrase neuve, plus 0,85 s de chargement une fois par session. À mettre en face des 2,6 s de la chaîne de conversation jusqu'au premier son (`conversation-chain.md`) : l'analyse ne bloquant jamais la conversation, elle tourne pendant que l'IA répond et disparaît en pratique.
+
+**Ce que coûte un tour long est mesuré, et ce qui croît est la mémoire plus que le temps.** Sur des prises du banc mises bout à bout :
+
+| durée du tour | passe | rapport | empreinte |
+|---|---|---|---|
+| 3 s | 0,96 s | ×0,32 | 864 Mo |
+| 6 s | 2,26 s | ×0,38 | 926 Mo |
+| 12 s | 5,17 s | ×0,43 | 1057 Mo |
+| 20 s | 9,9 s | ×0,50 | 1269 Mo |
+| 30 s | 17,4 s | ×0,58 | 1704 Mo |
+| 45 s | 31,3 s | ×0,69 | 2422 Mo |
+| 60 s | 51,5 s | ×0,86 | **4316 Mo** |
+
+Le temps croît comme la longueur puissance 1,3 environ. Mais au-dessus des 805 Mo qu'occupent les poids, le surcoût passe de 60 Mo à 3,5 Go, soit à peu près le **carré** de la longueur : c'est l'attention. Un tour d'une minute réclame 4,3 Go sur un appareil qui en a huit, et plante sur un appareil qui en a quatre.
+
+Ce que le chiffre engage n'est pas tranché ici (cf. `../../TODO.md`, chantier 1) : découper la passe en fenêtres, borner franchement la durée analysable en le disant, ou tenir que le tour d'une minute n'est pas un cas à servir sont trois issues, et rien dans la mesure ne les départage.
+
+**Ce qui se raccourcit sans rien risquer, en revanche, c'est l'audio lui-même.** Retirer les plages vides — de bord comme intérieures — abrège la passe et réduit son empreinte plus que proportionnellement, et le gain est net : un tour de 30 s dont 12 s de pauses tombe à 18 s, soit environ 1200 Mo au lieu de 1704.
+
+**La sûreté de la coupe tient au seuil de durée, pas à la marge.** Une occlusive *est* du silence — une fermeture muette suivie d'une explosion — et le jeu d'essai contient précisément cette faute (`07-bear-pear`, /p/ voisé en /b/, dont l'indice est le voisement pendant la fermeture). Mais une fermeture dure 50 à 120 ms : ne retirer que les plages franchement plus longues, de l'ordre de la demi-seconde, place la coupe hors du domaine où vivent les phonèmes. Une marge de part et d'autre s'ajoute par prudence ; elle ne fonde rien.
+
+Les deux briques que la coupe pourrait toucher ne le sont pas. La mélodie (brique 10) ne lit que la région voisée **finale**, qu'aucune coupe interne n'atteint. L'alignement (brique 5) y gagne : moins de trames vides à traverser, moins d'occasions pour la grille de dériver. Reste le rejeu de l'extrait, dont le temps ne retombe plus sur celui de l'enregistrement — une correspondance par morceaux, et peut-être même pas nécessaire, puisque faire réentendre un mot sans les hésitations qui l'entouraient n'est pas une perte.
+
+**Le point ouvert est le seuil de niveau**, pas le principe. Une plage vide dans un vrai enregistrement n'est pas du silence numérique : il y a du souffle et du bruit de pièce, et sur un locuteur qui parle bas un seuil mal posé mange de la parole. Ça ne se calibre pas sur le matériel du banc, qui est propre et sans hésitation — il y faut des tours spontanés enregistrés pour ça.
+
+Un angle mort demeure : l'arithmétique au-dessus de la matrice — grille, alignement, recouvrement — n'est pas mesurée sur l'appareil, faute d'y être écrite ; au poste elle est négligeable devant la passe réseau.
 
 **L'appareil ne rend pas les mêmes chiffres que le poste, et on sait exactement pourquoi.** En flottant, les deux sont la même lecture — pire cellule 5,6 pour cent mille, grille identique 32 fois sur 32 — ce qui disculpe d'un seul coup la préparation du signal réécrite en Kotlin, la lecture du wav, et l'arithmétique flottante d'ARM. Il ne reste que les **noyaux 8 bits**, qui ne sont pas le même code sur ARM et sur x86 : 0,74 % des trames y changent de son gagnant, toujours par bascule entre deux quasi-ex æquo, et un quart des trames s'écartent au-delà du millième.
 
 **Rien de cela n'atteint le verdict.** Le jeu d'essai étiqueté rejoué sur les matrices de l'appareil donne pire témoin 0,004 contre 0,003, les mêmes fautes vues, la même manquée. C'est la mesure qui compte, et elle est passée.
+
+**Mais l'accord n'est pas uniforme, et c'est là que ça engage la suite.** Il est excellent aux extrêmes — témoins à 0,001 près, fautes franches à 0,03 près — et il lâche exactement dans la zone grise :
+
+| prise | poste | appareil |
+|---|---|---|
+| témoins (cinq) | 0,000 à 0,003 | 0,000 à 0,004 |
+| fautes franches (cinq) | 0,93 à 0,98 | 0,93 à 0,98 |
+| `01-sink`, /θ/ à mi-chemin | 0,129 | **0,235** |
+| `18-walkin-full` | 0,214 | **0,254** |
+
+L'appareil lit les demi-fautes **plus fort**, donc dans le sens favorable — mais l'écart atteint 0,1 en absolu, sur les seules valeurs qui décident quoi que ce soit. La règle du seuil s'en trouve durcie d'un cran : il ne suffit pas de le calibrer sur **les poids** qui tournent, il faut le calibrer sur **la lecture de l'appareil**. Un seuil posé à 0,15 ne classe pas `01-sink` du même côté selon la machine qui a produit le chiffre.
+
+Portée de tout ceci, à ne pas surestimer : une architecture, un appareil, huit fautes étiquetées et cinq témoins. De quoi dire que le PoC passe, pas que l'accord est acquis sur le parc Android.
 
 Le graphe exporté porte **son softmax à l'intérieur** : le fichier rend la matrice de la brique 2, pas des logits, et il ne reste au côté Android qu'une chose à réimplémenter — la préparation du signal, moyenne nulle et variance unité, que `bench/matrix.py` écrit en clair pour cette raison.
 
