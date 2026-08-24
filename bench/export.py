@@ -12,7 +12,8 @@ matrix out: the softmax is inside, so the file answers "the spread over every
 sound, every 20 ms" rather than "logits", and the Android side has nothing to
 reimplement but the preparation.
 
-    python3 export.py            # the chosen candidate, float then 8-bit
+    python3 export.py                # the chosen candidate, float then 8-bit
+    python3 export.py -n letters     # the letter network, same treatment
 """
 
 import argparse
@@ -22,7 +23,13 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
+import letters
 import matrix
+
+# Two networks travel to the phone, and they travel the same way: waveform in,
+# matrix out, softmax inside the graph. The one that spreads over sounds, and
+# the one that spreads over letters and says where each is spoken.
+NETWORKS = {"sounds": matrix, "letters": letters}
 
 HERE = Path(__file__).resolve().parent
 
@@ -82,10 +89,15 @@ def wrapped(net, torch):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.parse_args(argv)
+    parser.add_argument("-n", "--network", default="sounds",
+                        choices=sorted(NETWORKS))
+    options = parser.parse_args(argv)
+    network = NETWORKS[options.network]
 
     try:
+        import onnx
         from onnxruntime.quantization import QuantType, quantize_dynamic
+        from onnxruntime.transformers.float16 import convert_float_to_float16
     except ImportError:
         raise SystemExit(
             "la chaîne d'export est absente :\n"
@@ -94,7 +106,7 @@ def main(argv=None):
     if not TRACED.is_file():
         raise SystemExit(f"{TRACED} manque — rends d'abord le matériel du banc")
 
-    extractor, net, _, torch = matrix.loaded()
+    extractor, net, _, torch = network.loaded()
     audio, rate = sf.read(TRACED)
 
     # The preparation is the one piece the phone reimplements, so it is checked
@@ -108,15 +120,15 @@ def main(argv=None):
     if drift > SAME_READING:
         raise SystemExit("la préparation diverge — le reste ne veut rien dire")
 
-    matrix.ONNX_WEIGHTS.parent.mkdir(parents=True, exist_ok=True)
-    plain = matrix.ONNX_WEIGHTS.parent / f"{matrix.CHOSEN}.onnx"
+    network.ONNX_WEIGHTS.parent.mkdir(parents=True, exist_ok=True)
+    plain = network.ONNX_WEIGHTS.parent / f"{network.CHOSEN}.onnx"
     values = torch.from_numpy(prepared)
     # Measured before anything is touched: this is the reading every number
     # written down so far was made against, so it is what the exported graph --
     # weight norm folded and all -- has to reproduce.
     expected = wrapped(net, torch)(values).numpy()[0]
 
-    print(f"\nexport de {matrix.MODEL}")
+    print(f"\nexport de {network.MODEL}")
     # Traced through the dynamo exporter rather than the TorchScript one, which
     # is deprecated: the graph a phone will carry is not built on a path due to
     # be removed. The sample axis is the only free one -- a turn of speech has
@@ -133,21 +145,35 @@ def main(argv=None):
         opset_version=18)
     print(f"  {plain.name}  {weight(plain) / 1e6:.0f} Mo")
 
-    # Rounded on the same perimeter PyTorch rounds on, and no wider. Left to
-    # itself the tool also rounds the convolutions -- the feature extractor,
-    # which is where the signal is still a signal -- and measured that way a
-    # clean control climbs to 0.851, which is fault territory: the reading stops
-    # being the reading the bench qualified. Per-channel because one scale for a
-    # whole weight matrix is decided by its largest column, and every other
-    # column pays for it.
-    quantised = plain.parent / f"{matrix.CHOSEN}-int8.onnx"
-    quantize_dynamic(str(plain), str(quantised), weight_type=QuantType.QInt8,
-                     op_types_to_quantize=["MatMul"], per_channel=True)
-    print(f"  {quantised.name}  {weight(quantised) / 1e6:.0f} Mo")
+    # Each network is rounded the way its own reading survives, and the bench
+    # decided which by measuring, not by taste.
+    rounded = plain.parent / f"{network.CHOSEN}-{network.ROUNDED}.onnx"
+    if network.ROUNDED == "int8":
+        # Rounded on the same perimeter PyTorch rounds on, and no wider. Left to
+        # itself the tool also rounds the convolutions -- the feature extractor,
+        # which is where the signal is still a signal -- and measured that way a
+        # clean control climbs to 0.851, which is fault territory: the reading
+        # stops being the reading the bench qualified. Per-channel because one
+        # scale for a whole weight matrix is decided by its largest column, and
+        # every other column pays for it.
+        quantize_dynamic(str(plain), str(rounded), weight_type=QuantType.QInt8,
+                         op_types_to_quantize=["MatMul"], per_channel=True)
+    else:
+        # Sixteen-bit floats, because eight-bit integers cost this network its
+        # anchoring outright: a word opened 144 ms from where the provider opens
+        # it instead of 8, and the softness was in every word, not in one. The
+        # input and the output stay in 32 bits -- the phone hands over a waveform
+        # and reads a spread, neither side knowing how the weights are stored.
+        half = convert_float_to_float16(onnx.load(str(plain)),
+                                        keep_io_types=True)
+        onnx.save(half, str(rounded), save_as_external_data=True,
+                  all_tensors_to_one_file=True,
+                  location=f"{rounded.name}.data")
+    print(f"  {rounded.name}  {weight(rounded) / 1e6:.0f} Mo")
 
     print("\nécart à la lecture PyTorch en flottant, sur le fichier tracé :")
     import onnxruntime
-    for path in (plain, quantised):
+    for path in (plain, rounded):
         session = onnxruntime.InferenceSession(
             str(path), providers=["CPUExecutionProvider"])
         got = session.run(None, {"input_values": prepared})[0][0]
@@ -157,15 +183,19 @@ def main(argv=None):
         gap = float(np.abs(got - expected).max())
         print(f"  {path.name:<28}{gap:.2e}")
 
-        # Only the float graph is held to the reference here. The 8-bit one is
-        # meant to differ -- rounding is the whole point of it -- and how much
-        # of that difference survives to the gap the app marks on is not a
-        # question a single file answers.
+        # Only the 32-bit graph is held to the reference here. The rounded one
+        # is meant to differ -- rounding is the whole point of it -- and how
+        # much of that difference survives to the verdict is not a question a
+        # single file answers.
         if path is plain and gap > SAME_READING:
             raise SystemExit("  l'export n'est pas fidèle — rien au-dessus "
                              "ne veut dire quoi que ce soit")
+    verdict = ("QUANTISED=1 RUNTIME=onnx python3 faults.py"
+               if network is matrix else
+               "LETTERS_QUANTISED=1 LETTERS_RUNTIME=onnx python3 anchor.py")
+
     print("\n  l'arrondi déplace la matrice ; ce qu'il déplace du verdict :"
-          "\n  QUANTISED=1 RUNTIME=onnx python3 faults.py")
+          f"\n  {verdict}")
     return 0
 
 

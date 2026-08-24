@@ -54,6 +54,11 @@ MODEL = CANDIDATE.model
 # rounding takes -- so the bench has to be able to run both and compare.
 QUANTISED = os.environ.get("QUANTISED") == "1"
 
+# How this network is rounded for the phone. Named per network rather than
+# assumed, because the two do not survive the same rounding: what the spread
+# around the peak can lose is not what the position of the peak can.
+ROUNDED = "int8"
+
 # Which machine reads the network. PyTorch is the desktop reference and no
 # phone runs it; ONNX Runtime is what will, so the bench has to be able to read
 # the same files through it and be held to the same numbers. The two readings

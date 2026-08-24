@@ -16,6 +16,13 @@ into the cache under their own reading, so that the last word belongs to
     python3 concord.py -r timit-ipa-onnx-int8 -a phone-int8
     READING=phone-int8 python3 faults.py          # le verdict, sur l'appareil
 
+The letter network travels the same road, with its own audio and its own
+verdict -- what a phone is asked about it is not whether the sounds separate but
+whether the characters land where they land here:
+
+    python3 phone.py -n letters
+    LETTERS_READING=phone-letters python3 anchor.py
+
 The audio is the bench's own, and it comes back filed exactly as the bench files
 its own matrices: what the device produces is a reading like any other, so every
 brick can be run on it without knowing where it was computed. A phone that
@@ -121,6 +128,23 @@ def material(models):
     return {key: wav for key, wav in sorted(wanted.items()) if wav.is_file()}
 
 
+def lettered(models):
+    """What the letter network is asked to read: the model renders, and only them.
+
+    The learner's takes have no business here. Anchoring is computed on the
+    audio the app synthesised, whose text is known exactly, and never on a
+    turn of speech.
+    """
+    import anchor
+    import phrases
+
+    wanted = {}
+    for model in models:
+        for slug, _ in phrases.CALIBRATION:
+            wanted[(model, slug)] = anchor.RENDERS / model / "sentences" / f"{slug}.wav"
+    return {key: wav for key, wav in sorted(wanted.items()) if wav.is_file()}
+
+
 def gathered(destination):
     """Bring the matrices back and file them where the bench keeps its own."""
     pulled = HERE / "out" / "phone"
@@ -144,23 +168,33 @@ def gathered(destination):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("-n", "--network", default="sounds",
+                        choices=("sounds", "letters"))
     parser.add_argument("-m", "--model", action="append", default=None,
                         help="répétable ; par défaut les deux accents")
     parser.add_argument("--threads", type=int, default=4,
                         help="fils d'inférence sur l'appareil")
-    parser.add_argument("--slug", default="phone-int8",
+    parser.add_argument("--slug", default=None,
                         help="sous quel nom ranger la lecture de l'appareil")
     parser.add_argument("--float", dest="plain", action="store_true",
                         help="les poids en flottant — sépare ce que les noyaux "
                              "8 bits déplacent de ce que l'appareil déplace")
     options = parser.parse_args(argv)
 
+    import letters
     import matrix
-    precision = "" if options.plain else "-int8"
-    weights = matrix.ONNX_WEIGHTS.parent / f"{matrix.CHOSEN}{precision}.onnx"
+    letterly = options.network == "letters"
+    network = letters if letterly else matrix
+    precision = "" if options.plain else f"-{network.ROUNDED}"
+    slug = options.slug or (f"phone-letters{precision}" if letterly
+                            else f"phone{precision}")
+    weights = network.ONNX_WEIGHTS.parent / f"{network.CHOSEN}{precision}.onnx"
     if not weights.is_file():
-        raise SystemExit(f"{weights} manque — python3 export.py")
-    wanted = material(options.model or ["eleven-gb-daniel", "eleven-us-eric"])
+        raise SystemExit(f"{weights} manque — python3 export.py "
+                         f"-n {options.network}")
+    models = options.model or (["eleven-us-eric"] if letterly
+                               else ["eleven-gb-daniel", "eleven-us-eric"])
+    wanted = (lettered if letterly else material)(models)
     if not wanted:
         raise SystemExit("le banc n'a rien rendu ni enregistré à lire")
 
@@ -180,8 +214,8 @@ def main(argv=None):
     if beside.is_file():
         fresh |= pushed(beside, f"{REMOTE}/{beside.name}")
     print("        poussés" if fresh else "        déjà sur l'appareil")
-    for (tag, slug), wav in wanted.items():
-        pushed(wav, f"{REMOTE}/audio/{tag}{JOIN}{slug}.wav")
+    for (tag, name), wav in wanted.items():
+        pushed(wav, f"{REMOTE}/audio/{tag}{JOIN}{name}.wav")
     print(f"audio   {len(wanted)} fichiers")
     # What the shell pushes is the shell's; the app opens it by name and has to
     # be allowed to. The dump directory is the one place it writes.
@@ -197,17 +231,23 @@ def main(argv=None):
     # The device's reading goes into the cache under its own name, and the
     # desktop's counterpart under the same tag, so that the two face each other
     # file by file rather than by hand.
-    written = gathered(HERE / "out" / "matrices" / options.slug)
+    written = gathered(HERE / "out" / "matrices" / slug)
     print(f"\n{written} matrices rapatriées")
 
     # The desktop reads the same files under its own reading, so the two face
     # each other file by file rather than by hand.
-    reference = HERE / "out" / "matrices" / f"{matrix.CHOSEN}-onnx{precision}"
-    for (tag, slug), wav in wanted.items():
-        matrix.probabilities(wav, cache=reference / tag / f"{slug}.npz")
+    reference = HERE / "out" / "matrices" / f"{network.CHOSEN}-onnx{precision}"
+    for (tag, name), wav in wanted.items():
+        network.probabilities(wav, cache=reference / tag / f"{name}.npz")
     print(f"le poste a lu les mêmes fichiers sous {reference.name}\n")
-    print(f"    python3 concord.py -r {reference.name} -a {options.slug}")
-    print(f"    READING={options.slug} python3 faults.py")
+    if letterly:
+        # No `concord.py` here: it reads a grid off the sound network's symbol
+        # table, and asking it about letters would compare two readings through
+        # the wrong alphabet. What the device is asked is the verdict itself.
+        print(f"    LETTERS_READING={slug} python3 anchor.py")
+    else:
+        print(f"    python3 concord.py -r {reference.name} -a {slug}")
+        print(f"    READING={slug} python3 faults.py")
     return 0
 
 

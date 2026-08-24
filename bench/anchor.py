@@ -93,6 +93,13 @@ def main(argv=None):
     # than averaged in, since no mark is ever drawn on silence.
     edging = []
     for slug, text in phrases.CALIBRATION:
+        # A text the network cannot spell is out of the measurement, not
+        # averaged into it: what it would report is the cost of a text that
+        # should have been normalised before it was ever synthesised.
+        cannot = letters.unspellable(text)
+        if cannot:
+            skipped.append(f"{slug} ({''.join(cannot)})")
+            continue
         wav = RENDERS / candidate.name / "sentences" / f"{slug}.wav"
         synth.render(text, candidate, wav)
         theirs = provided(synth.alignment_path(wav), text)
@@ -135,10 +142,8 @@ def main(argv=None):
         print(f"    {name:<22}médian {1000 * statistics.median(values):6.0f} ms"
               f"   pire {1000 * max(values):6.0f} ms")
     if skipped:
-        # A text the provider did not return character for character. Named
-        # rather than counted: what it costs is a phrase out of the field.
-        print(f"\n    hors mesure, texte non rendu tel quel : "
-              + ", ".join(skipped))
+        # Named rather than counted: what it costs is a phrase out of the field.
+        print("\n    hors mesure : " + ", ".join(skipped))
     return 0
 
 

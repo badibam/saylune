@@ -19,6 +19,7 @@ question asked of the network is only *when*, never *what*.
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -34,10 +35,34 @@ HERE = Path(__file__).resolve().parent
 # carried in a release without an `NonFreeAssets` anti-feature.
 MODEL = "facebook/wav2vec2-base-960h"
 
+# The same two switches the sound network answers to, and for the same reason:
+# what runs on a phone is the rounded weights read by ONNX Runtime, so the bench
+# has to be able to read them here and be held to the same numbers.
+QUANTISED = os.environ.get("LETTERS_QUANTISED") == "1"
+ONNX = os.environ.get("LETTERS_RUNTIME") == "onnx"
+
+# Rounded to 16-bit floats, not to 8-bit integers, and the bench says why: in
+# integers a word opens 144 ms from where the provider opens it instead of 8,
+# the whole alignment going soft rather than one word slipping. The trellis
+# reads the position of a peak, and eight bits do not hold a peak in place.
+# Halves the file all the same, 379 Mo to 191.
+ROUNDED = "fp16"
+
+# A reading does not have to have been computed here: the phone files its
+# matrices into the cache like any other reading, and naming it is what lets
+# `anchor.py` ask the device for the verdict rather than for numbers.
+BORROWED = os.environ.get("LETTERS_READING")
+
+# The name `export.py` files the graph under, mirroring the sound network's.
+CHOSEN = "letters"
+
 # Its own reading, never mixed with the phoneme matrices: same audio, different
 # network, and a cache that confused the two would align letters on sounds.
-SLUG = "letters"
+SLUG = BORROWED or (CHOSEN + ("-onnx" if ONNX else "")
+                    + (f"-{ROUNDED}" if QUANTISED else ""))
 MATRICES = HERE / "out" / "matrices" / SLUG
+ONNX_WEIGHTS = (HERE / "out" / "onnx"
+                / f"{CHOSEN}{f'-{ROUNDED}' if QUANTISED else ''}.onnx")
 
 # What this vocabulary calls the empty column and the space between words. The
 # separator is aligned like any other symbol -- it is where the network says the
@@ -48,6 +73,7 @@ SEPARATOR = "|"
 _loaded = None
 _symbols = None
 _config = None
+_session = None
 
 
 def configured():
@@ -76,15 +102,35 @@ def seconds_per_frame():
 
 
 def loaded():
+    """Extractor, network and symbols, in the shape `matrix.loaded` returns.
+
+    Deliberately the same shape: `export.py` traces either network, and a second
+    calling convention would be a second thing to keep true.
+    """
     global _loaded
     if _loaded is None:
         matrix.cached()
         import torch
-        from transformers import AutoModelForCTC
+        from transformers import AutoFeatureExtractor, AutoModelForCTC
 
         torch.set_grad_enabled(False)
-        _loaded = (AutoModelForCTC.from_pretrained(MODEL).eval(), torch)
+        _loaded = (AutoFeatureExtractor.from_pretrained(MODEL),
+                   AutoModelForCTC.from_pretrained(MODEL).eval(),
+                   symbols(), torch)
     return _loaded
+
+
+def session():
+    """The exported graph, loaded once. No PyTorch anywhere in this reading."""
+    global _session
+    if _session is None:
+        import onnxruntime
+        if not ONNX_WEIGHTS.is_file():
+            raise SystemExit(f"{ONNX_WEIGHTS} manque — "
+                             "python3 export.py -n letters")
+        _session = onnxruntime.InferenceSession(
+            str(ONNX_WEIGHTS), providers=["CPUExecutionProvider"])
+    return _session
 
 
 def probabilities(wav, cache=None):
@@ -92,14 +138,24 @@ def probabilities(wav, cache=None):
     wav = Path(wav)
     if cache is not None and Path(cache).is_file():
         return np.load(cache)["probabilities"]
+    if BORROWED:
+        # Computing here would quietly fill someone else's reading with ours,
+        # and the comparison would then be with itself.
+        raise SystemExit(f"{cache} manque dans la lecture {BORROWED} — "
+                         "elle ne se calcule pas ici")
 
     audio, rate = sf.read(wav)
     if rate != matrix.SAMPLE_RATE:
         raise SystemExit(f"{wav} is at {rate} Hz, "
                          f"expected {matrix.SAMPLE_RATE}")
-    net, torch = loaded()
-    logits = net(torch.from_numpy(matrix.prepared(audio))).logits[0]
-    spread = torch.softmax(logits, dim=-1).numpy().astype(np.float32)
+    values = matrix.prepared(audio)
+    if ONNX:
+        spread = session().run(
+            None, {"input_values": values})[0][0].astype(np.float32)
+    else:
+        _, net, _, torch = loaded()
+        logits = net(torch.from_numpy(values)).logits[0]
+        spread = torch.softmax(logits, dim=-1).numpy().astype(np.float32)
 
     if cache is not None:
         Path(cache).parent.mkdir(parents=True, exist_ok=True)
@@ -135,6 +191,18 @@ def spelled(text):
     if not ids:
         raise SystemExit(f"nothing spellable in {text!r}")
     return ids, positions
+
+
+def unspellable(text):
+    """The characters that are spoken and that this vocabulary cannot write.
+
+    Punctuation is not among them: a comma is silent, and a silent character
+    asks nothing of the trellis. A digit does -- `25` is two characters and four
+    syllables -- and so is any letter outside the alphabet the network learned.
+    """
+    table = symbols()
+    return sorted({character for character in text
+                   if character.isalnum() and character.upper() not in table})
 
 
 def anchors(wav, text, cache=None):
