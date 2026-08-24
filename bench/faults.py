@@ -39,6 +39,11 @@ HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes" / "set"
 RENDERS = HERE / "out" / "renders"
 
+# One sound, spelled differently from one inventory to the next. A case names
+# the sound it turns on; the bench resolves it against the model in hand.
+ALIASES = {"iː": ("iː", "i", "IY", "iy"), "ɹ": ("ɹ", "r", "R"),
+           "θ": ("θ", "TH", "th"), "p": ("p", "P"), "ŋ": ("ŋ", "NG", "ng")}
+
 # take, the correct text it attempts, role, the model sound it turns on
 # (symbol and which occurrence of it), and what was done to that sound.
 # A control is a take of the same block, same voice, same day, read against the
@@ -65,7 +70,8 @@ CASES = (
 def anchored(read, anchor):
     """The gap on the named occurrence of a sound in the model's grid."""
     symbol, occurrence = anchor
-    found = [gap for gap in read if gap.symbol == symbol]
+    spellings = ALIASES.get(symbol, (symbol,))
+    found = [gap for gap in read if gap.symbol in spellings]
     return found[occurrence] if occurrence < len(found) else None
 
 
