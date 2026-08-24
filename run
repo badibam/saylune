@@ -103,9 +103,9 @@ def task_clean():
 
 
 def task_bench():
-    """Qualify the candidate voices, which needs no device and no Gradle."""
+    """Read the labelled set, which needs no device and no Gradle."""
     subprocess.run(
-        [sys.executable, "calibrate.py"], cwd=ROOT / "bench", check=False
+        [sys.executable, "faults.py"], cwd=ROOT / "bench", check=False
     )
 
 
@@ -147,7 +147,7 @@ LABELS = {
     "install": "install    assemble and install on the connected device",
     "logs": "logs       follow logcat, filtered on the app",
     "devices": "devices    list attached devices and their state",
-    "bench": "bench      calibrate the candidate model voices",
+    "bench": "bench      read the labelled set, fault by fault",
     "release": "release    assemble the release APK",
     "clean": "clean      drop build outputs",
 }

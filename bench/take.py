@@ -2,13 +2,12 @@
 """Guide one recording session: say it, hear a model, copy it, hear the other, copy that.
 
 A control take is a *copy of a model that was heard*, never a take someone was
-asked to say "correctly" -- the engine compares realisations, not norms, and
+asked to say "correctly" -- the analysis compares realisations, not norms, and
 "correctly" is not an instruction anyone can follow measurably. So each phrase
 is spoken cold first: once a model has been heard it cannot be unheard.
 
 Two models per phrase, one per accent, from the same provider and register so
-that what differs between them is the accent and not the voice. That is what
-lets the reading afterwards separate a lexicon question from a voice question.
+that what differs between them is the accent and not the voice.
 
 Recording runs from one keypress to the next rather than for a fixed span --
 nobody knows in advance how long they will take over a sentence, and a take cut

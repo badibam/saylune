@@ -75,19 +75,19 @@ Deux échelles à séparer, parce qu'elles n'ont pas la même portée : l'**acce
 | 21 | `You are going to the office`, dit comme une **question** montante | phrase, témoin | contour qui monte en fin d'énoncé |
 | 22 | `You are going to the office`, dit **plat** — l'aplatissement français | phrase | contour final qui ne monte pas, à distinguer du 21 |
 
-Résultat : la mélodie sépare franchement chez SpeechAce et s'inverse chez Azure (cf. `speechace.md` et `azure-speech.md`). L'accent, lui, est resté indécis — le bloc F reprend la question avec un protocole qui définit ce qu'est un témoin.
+Résultat : la mélodie sépare franchement — dix-sept demi-tons entre la question et le plat. L'accent, lui, est resté indécis — le bloc F reprend la question avec un protocole qui définit ce qu'est un témoin.
 
 Ce bloc a établi au passage une chose que la synthèse ne pouvait pas donner : **un témoin de prosodie doit être vérifié sur les échantillons**, durée, énergie et hauteur, avant de conclure quoi que ce soit. Sans cette vérification, la fausse alerte du témoin 19 passait pour une faute du locuteur.
 
 ## Bloc F — l'accent, par imitation d'un modèle
 
-Le bloc E laissait l'accent indécis : la faute était vue, mais le témoin se déclenchait aussi. La cause était le protocole, pas le moteur — on avait demandé au locuteur de prononcer *correctement*, ce qui n'est pas une consigne mesurable. Le moteur ne compare pas à une norme, il compare à une réalisation.
+Le bloc E laissait l'accent indécis : la faute était vue, mais le témoin se déclenchait aussi. La cause était le protocole, pas la mesure — on avait demandé au locuteur de prononcer *correctement*, ce qui n'est pas une consigne mesurable. L'analyse ne compare pas à une norme, elle compare à une réalisation.
 
 **Un témoin d'accent est donc un calque d'un modèle entendu, jamais une prononciation « correcte ».**
 
 Protocole, qui s'auto-étiquette et se répète sur n'importe quel mot :
 
-1. synthétiser la phrase, et **vérifier d'abord que le moteur lit correctement le modèle** — sinon la comparaison part faussée ;
+1. synthétiser la phrase, et **vérifier d'abord que le modèle se lit proprement** — sinon la comparaison part faussée ;
 2. enregistrer une prise **spontanée**, avant toute écoute (une fois le modèle entendu, on ne peut plus le désentendre) ;
 3. écouter le modèle ;
 4. enregistrer le **calque**.
@@ -101,22 +101,20 @@ Protocole, qui s'auto-étiquette et se répète sur n'importe quel mot :
 
 Mots choisis pour deux raisons : leur accent tombe sur des syllabes différentes (2 pour `important`, 1 pour `interesting`), et ce sont des quasi-cognats du français, donc l'interférence est maximale.
 
-Résultat : deux fautes sur deux vues, aucune fausse alerte sur les calques (cf. `speechace.md`).
+Résultat : deux fautes sur deux vues, aucune fausse alerte sur les calques.
 
 **Ce que ce bloc ne mesure pas**, et ne peut pas mesurer : le taux de fausse alerte sur un tour spontané. Étiqueter une prise spontanée exigerait le modèle qu'elle n'a précisément pas entendu. C'est une limite de méthode, pas d'échantillon — aucune quantité de prises supplémentaires ne la lèvera.
 
 ## Les prises sont bonnes — vérifié
 
-Question posée parce que le suivi de hauteur de SpeechAce ne se trompe jamais sur de l'audio synthétique et se trompe sur 19 % des valeurs de nos prises. Le soupçon portait sur le micro ; il était infondé.
+Question posée parce qu'un suivi de hauteur qui ne se trompe jamais sur de l'audio synthétique se trompait sur 19 % des valeurs de nos prises. Le soupçon portait sur le micro ; il était infondé.
 
-Crête à −2,8 dBFS, RMS autour de −11 dBFS, **aucun échantillon saturé**. Une estimation de f0 par autocorrélation, faite sur les mêmes échantillons, concorde avec le moteur sur la totalité des syllabes de synthèse et sur 21 des 24 syllabes humaines : l'instrument de contrôle est donc valide, et il innocente les prises.
-
-Le défaut est dans le moteur, qui s'accroche à la troisième ou quatrième harmonique sur certaines syllabes (cf. `speechace.md`). **Rien à réenregistrer** — le bloc E peut être pris tel quel, avec le même matériel.
+Crête à −2,8 dBFS, RMS autour de −11 dBFS, **aucun échantillon saturé**. Une estimation de f0 par autocorrélation, faite sur les mêmes échantillons, concorde sur la totalité des syllabes de synthèse et sur 21 des 24 syllabes humaines : l'instrument de contrôle est valide, et il innocente les prises. **Rien à réenregistrer** — le bloc E se prend tel quel, avec le même matériel.
 
 Deux artefacts à connaître avant de lire un résultat, l'un et l'autre silencieux :
 
-- un segment dont la durée rendue vaut 10 ms ou moins est un décrochage d'alignement, et il contamine la lecture du mot entier — c'est ce qui a fait apparaître un faux défaut d'accent sur `corner` dans la prise 15 ;
-- une syllabe dont la hauteur rendue sort d'un facteur deux autour de la médiane du tour est un accrochage harmonique, et son étiquette de mélodie est fausse.
+- un segment dont la durée rendue est absurdement courte est un décrochage d'alignement, et il contamine la lecture du mot entier — c'est ce qui a fait apparaître un faux défaut d'accent sur `corner` dans la prise 15 ;
+- une syllabe dont la hauteur rendue sort d'un facteur deux autour de la médiane du tour est un accrochage harmonique, et son étiquette de mélodie est fausse. C'est la raison d'être du contrôle de f0 indépendant du banc.
 
 ## Ordre d'enregistrement
 
@@ -124,7 +122,7 @@ Par paires, pour que chaque cas adversarial ait son témoin le même jour et dan
 
 ## Où vivent les prises
 
-Les `.wav` (16 kHz mono) et les contextes de conversation sont dans `tmp/bench/turns/` et `tmp/bench/contexts/`. Ce dossier est gitignoré et se voulait jetable ; **il cesse de l'être tant que le moteur d'analyse n'est pas choisi**, puisque comparer deux fournisseurs exige exactement ces enregistrements-là.
+Les `.wav` (16 kHz mono) et les contextes de conversation sont dans `tmp/bench/turns/` et `tmp/bench/contexts/`. Ce dossier est gitignoré et se voulait jetable ; **il cesse de l'être**, puisque toute qualification rejouée exige exactement ces enregistrements-là.
 
 Le lot est complet : les vingt-sept prises existent.
 

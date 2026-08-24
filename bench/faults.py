@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Does the gap find the faults of the test set without marking the controls?
 
-The measure that decides the embedded track (`docs/design/embedded-analysis.md`,
-third question). The same takes that separated the remote services are read
-again, this time by two matrices and no service at all, so the result compares
-directly to `speechace.md`.
+The measure that qualifies the analysis (`docs/design/embedded-analysis.md`).
+Two matrices and nothing else: no dictionary, no lexicon, no call. What decides
+is whether the gap lands on the sound that was labelled faulty and stays off the
+one that was labelled clean.
 
 A fault is one sound, so the reading is anchored: each case names the sound of
 the model's grid where the fault was made, and the control of that same sound is

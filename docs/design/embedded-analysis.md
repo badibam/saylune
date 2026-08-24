@@ -1,8 +1,8 @@
 # L'analyse embarquée
 
-Exploration d'un moteur d'analyse qui tourne **sur l'appareil**, sans service d'analyse distant. Ce n'est pas une décision : c'est une piste instruite jusqu'au point où elle devient mesurable, écrite pour qu'un banc puisse la juger et pas seulement l'imaginer.
+L'analyse tourne **sur l'appareil**, et c'est la colonne vertébrale de l'app. Ce document la décrit brique par brique : ce qu'elle lit, ce qu'elle rend, ce qui est mesuré et ce qui reste à écrire.
 
-Ce qu'elle retirerait : le poste à abonnement plancher. Ce qu'elle ne retire pas : la conversation et la synthèse, qui restent distantes en BYOK et se paient aux centimes. `NonFreeNet` reste déclarée tant qu'un maillon distant subsiste.
+Ce qu'elle ne retire pas : la conversation et la synthèse, qui restent distantes en BYOK et se paient aux centimes. `NonFreeNet` reste déclarée à ce titre.
 
 ## Les deux principes
 
@@ -355,7 +355,7 @@ La seconde est que le banc fait passer ici une épreuve **plus dure que ce que l
 
 ## L'écart tombe sur le son fautif
 
-Troisième mesure faite (`bench/faults.py`), sur les blocs A, C et D du jeu d'essai — les mêmes prises qui ont départagé les services distants, lues cette fois par deux matrices et aucun service. La lecture est **ancrée** : chaque cas nomme le son de la grille du modèle où la faute a été faite, et le témoin du même son est lu contre le même modèle.
+Troisième mesure faite (`bench/faults.py`), sur les blocs A, C et D du jeu d'essai, lues par deux matrices et rien d'autre. La lecture est **ancrée** : chaque cas nomme le son de la grille du modèle où la faute a été faite, et le témoin du même son est lu contre le même modèle.
 
 | prise | rôle | son | écart |
 |---|---|---|---|
@@ -372,7 +372,7 @@ Troisième mesure faite (`bench/faults.py`), sur les blocs A, C et D du jeu d'es
 | `13-field-clean` | témoin | /iː/ | 0,000 |
 | `15-right-clean` | témoin | /ɹ/ | 0,000 |
 
-**Sept fautes sur huit vues, aucune fausse alerte, et les témoins à zéro.** SpeechAce en voyait six sur huit avec des témoins à ±1 : la forme est la même et la séparation est plus nette, obtenue sans dictionnaire, sans lexique de dialecte et sans appel. Sur le modèle de voix américain, les six fautes lisibles sont vues et les témoins ne dépassent pas 0,002 — le modèle étant le seul référentiel, l'accent ne change rien, ce qui est le comportement attendu.
+**Sept fautes sur huit vues, aucune fausse alerte, et les témoins à zéro.** Obtenu sans dictionnaire, sans lexique de dialecte et sans appel. Sur le modèle de voix américain, les six fautes lisibles sont vues et les témoins ne dépassent pas 0,002 — le modèle étant le seul référentiel, l'accent ne change rien, ce qui est le comportement attendu.
 
 La seule manquée est `09-walkin` (/ŋ/ dit /n/), et le jeu d'essai le dit de lui-même : c'est une **demi-faute**, le bloc D existant précisément parce que les cas 1, 6 et 9 étaient restés à mi-chemin. À faute franche, signal franc — la reprise franche du même cas, `18-walkin-full`, est vue.
 
@@ -457,7 +457,7 @@ Ce que ça dit au-delà du chiffre : **une mesure d'arrondi ne vaut que pour l'a
 
 ## Ce qui reste à mesurer, dans l'ordre
 
-Chaque étape se juge au protocole de `engine-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
+Chaque étape se juge au protocole de `analysis-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
 Une conséquence de méthode, tirée de l'étape 1 : **une lecture n'a pas à avoir été calculée ici.** Le téléphone range ses matrices dans le cache comme n'importe quelle autre lecture (`READING=<nom>`), et toutes les briques du banc tournent dessus sans le savoir. C'est ce qui permet de poser à l'appareil la question du verdict, et pas seulement celle des chiffres.
 

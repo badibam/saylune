@@ -1,9 +1,0 @@
-> For the complete documentation index, see [llms.txt](https://api-docs.speechace.com/llms.txt). Markdown versions of documentation pages are available by appending `.md` to page URLs; this page is available as [Markdown](error-handling.md).
-
-# Error Handling
-
-Speechace uses conventional HTTP response codes to indicate the success or failure of an API request. In general: Codes in the `2xx` range indicate success. Codes in the `4xx` range indicate an error that failed given the information provided (e.g., a required parameter was omitted, a charge failed, etc.). Codes in the `5xx` range indicate an error with Speechace's servers (these are rare).
-
-#### **HTTP Status Code Summary**
-
-<table><thead><tr><th width="139.33333333333331">Code</th><th width="179">Code Meaning</th><th>Description</th></tr></thead><tbody><tr><td>200</td><td>OK</td><td>Everything worked as expected.</td></tr><tr><td>400</td><td>Bad Request</td><td>The request was unacceptable, often due to missing a required parameter.</td></tr><tr><td>401</td><td>Unauthorized</td><td>No valid API key provided.</td></tr><tr><td>402</td><td>Request Failed</td><td>The parameters were valid but the request failed.</td></tr><tr><td>403</td><td>Forbidden</td><td>The API key doesn’t have permissions to perform the request.</td></tr><tr><td>404</td><td>Not Found</td><td>The requested resource doesn’t exist.</td></tr><tr><td>409</td><td>Conflict</td><td>The request conflicts with another request (perhaps due to using the same idempotent key).</td></tr><tr><td>429</td><td>Too Many Requests</td><td>Too many requests hit the API too quickly. We recommend an exponential backoff of your requests.</td></tr><tr><td>500, 502, 503, 504</td><td>Server Errors</td><td>Something went wrong on the Server's end. (These are rare.)</td></tr></tbody></table>

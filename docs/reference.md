@@ -2,7 +2,7 @@
 
 App Android de pratique de l'anglais oral : conversation libre avec une IA, jamais interrompue, doublée d'un travail de la grammaire et de la prononciation à la demande. Ce document est le point d'entrée ; il porte les décisions **propres au projet**, celles qu'aucune facette de sagesse ne couvre. Le craft transverse vit dans les modules abonnés (cf. `manifest.md`).
 
-Docs complémentaires, à ouvrir au besoin : `design/speechace.md` (le moteur d'analyse retenu — ce qu'il rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/azure-speech.md` (le candidat écarté, gardé comme base de comparaison), `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS), `design/engine-qualification.md` (le protocole par lequel tout moteur candidat qualifie, rejouable par un tiers), `design/embedded-analysis.md` (le montage d'une analyse qui tourne sur l'appareil, sans service d'analyse distant), `design/grammar-test-set.md` (le jeu d'essai des deux bancs du chantier 2 — juge grammatical et fidélité du STT) et `design/ui-flow.md` (le flux et l'écran, de bout en bout — posture, micro, marquage, chorégraphie du tour).
+Docs complémentaires, à ouvrir au besoin : `design/embedded-analysis.md` (l'analyse, brique par brique — ce qu'elle lit, ce qu'elle rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS), `design/analysis-qualification.md` (le protocole par lequel l'analyse qualifie, rejouable par un tiers), `design/grammar-test-set.md` (le jeu d'essai des deux bancs du chantier 2 — juge grammatical et fidélité du STT) et `design/ui-flow.md` (le flux et l'écran, de bout en bout — posture, micro, marquage, chorégraphie du tour).
 
 ## Le geste
 
@@ -42,7 +42,7 @@ Un curseur peut déclencher la parenthèse automatiquement au lieu de seulement 
 - Grammaire fautive → la marque grammaticale seule, **aucune analyse sonore**.
 - Une fois la grammaire corrigée et la phrase redite → l'analyse sonore apparaît, sur ce nouvel énoncé.
 
-La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire : elle va disparaître. La conséquence technique suit — **sur un tour grammaticalement fautif, on n'appelle pas le moteur d'analyse du tout.** L'analyse n'est pas cachée, elle n'est pas calculée.
+La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire : elle va disparaître. La conséquence technique suit — **sur un tour grammaticalement fautif, l'analyse sonore ne tourne pas du tout.** Elle n'est pas cachée, elle n'est pas calculée.
 
 **La porte suit le marquage, pas la grammaire absolue** : un tour est « fautif » pour la porte si et seulement s'il est marqué au cran de sévérité courant. Au cran 3, une tournure maladroite ferme la porte comme une faute — elle va être réécrite. Au cran 2, elle passe, et la prononciation se travaille sur elle : régler la sévérité, c'est déclarer que l'idiomatique n'est pas le sujet du jour, et rien ne va réécrire cette phrase. Coût assumé : le modèle dira la tournure maladroite d'une voix native.
 
@@ -54,27 +54,29 @@ Sous « prononciation » il y a trois choses de portée différente, à bien dis
 
 | échelle | ce que ça décrit | comment ça se juge |
 |---|---|---|
-| **le son** | un phonème dans un mot | note du moteur |
+| **le son** | un phonème dans un mot | recouvrement de deux répartitions |
 | **le mot** | l'accent lexical — quelle syllabe est la forte | comparaison au modèle |
 | **la phrase** | la mélodie — le contour de hauteur sur l'énoncé | comparaison à un modèle |
 
-La syllabe **porte** l'accent et la hauteur, mais elle n'est la portée d'aucun des deux : l'accent est une propriété du mot, fixée par le dictionnaire indépendamment de la phrase ; la mélodie n'existe qu'à l'échelle de l'énoncé, une montée sur une syllabe isolée ne signifiant rien.
+La syllabe **porte** l'accent et la hauteur, mais elle n'est la portée d'aucun des deux : l'accent est une propriété du mot, fixée par la langue indépendamment de la phrase ; la mélodie n'existe qu'à l'échelle de l'énoncé, une montée sur une syllabe isolée ne signifiant rien.
 
-**Les trois se jugent par comparaison au modèle, jamais dans l'absolu** — y compris l'accent, dont le moteur annonce pourtant un attendu tiré de son dictionnaire. Cet attendu est inutilisable : sur de l'audio synthétique parfait, le moteur contredit son propre lexique sur 41 % des mots polysyllabiques, et sa lecture d'un mot change selon ce qui se passe ailleurs dans la phrase (cf. `design/speechace.md`). Ce qu'on compare est donc **sa lecture de l'apprenant à sa lecture du modèle** : le biais est le même des deux côtés et s'annule.
+**Les trois se jugent par comparaison au modèle, jamais dans l'absolu.** Ce n'est pas une précaution, c'est la forme même de l'analyse : rien d'extérieur aux deux enregistrements n'est jamais consulté — ni dictionnaire de prononciation, ni lexique de dialecte, ni référentiel de justesse. La seule question posée est *en quoi cette prise s'écarte-t-elle de celle-là*, et ce qu'on compare est la lecture de l'apprenant à la lecture du modèle, par la même machine, dont le biais est donc le même des deux côtés et s'annule.
 
-**Les trois s'ancrent aux mêmes caractères du texte affiché** — le moteur donne pour chaque son les indices de lettres qu'il couvre, pour chaque syllabe sa sous-chaîne, et la mélodie se pose sur ces mêmes groupes. Ce sont trois propriétés d'une seule chaîne, pas trois analyses à superposer. C'est ce qui rend possible de les marquer **d'un seul mouvement**, et la forme de ce marquage reste à trouver.
+**Les trois s'ancrent aux mêmes caractères du texte affiché** — chaque son connaît les lettres qu'il couvre, chaque syllabe sa sous-chaîne, et la mélodie se pose sur ces mêmes groupes. Ce sont trois propriétés d'une seule chaîne, pas trois analyses à superposer. C'est ce qui rend possible de les marquer **d'un seul mouvement**, et la forme de ce marquage reste à trouver.
 
 Deux irrégularités à prévoir : une lettre peut porter deux sons, et une lettre peut n'en porter aucun.
 
-**Les trois échelles ne sont pas disponibles partout.** En `en-gb`, SpeechAce ne rend aucune donnée d'accent réalisé, et le mot cesse d'être une échelle mesurable — le son et la phrase, eux, survivent (cf. `design/speechace.md`). Le jeu de fonctionnalités dépend donc aussi de **l'accent choisi**, pas seulement du fournisseur, et l'échelle éteinte doit porter sa raison comme toute option absente.
+**Les trois échelles sont disponibles partout où le modèle l'est** : elles se lisent toutes de la même matrice, et aucune ne dépend d'un lexique qui existerait dans un dialecte et pas dans l'autre. L'accent choisi change la voix du modèle, jamais ce qui est mesurable.
 
 ## Marquer par écart au modèle, pas par note absolue
 
-Une note de prononciation ne veut rien dire seule : chaque son a sa note « normale » propre au moteur, et une note basse peut être une particularité de l'outil plutôt qu'une faute.
+Une note de prononciation ne veut rien dire seule : chaque son a sa note « normale » propre à la machine qui écoute, et une note basse peut être une particularité de l'outil plutôt qu'une faute.
 
-**Décision** : le modèle à imiter est synthétisé pour la phrase que l'apprenant vient de dire, passé dans le même moteur avec le même texte, et on compare son par son. La marque naît de l'**écart entre l'humain et le modèle**, jamais d'un seuil sur la note brute.
+**Décision** : le modèle à imiter est synthétisé pour la phrase que l'apprenant vient de dire, passé dans la même analyse, et on compare son par son. La marque naît de l'**écart entre l'humain et le modèle**, jamais d'un seuil sur une note absolue.
 
-Mesuré (cf. `design/speechace.md`) : les prises témoins tombent à moins d'un point du modèle, les fautes détectées à quinze points ou plus en dessous, et rien entre les deux. L'étalon annule le bruit propre du moteur, ce qui supprime tout besoin de calibrer son par son.
+Et ce qu'on compare n'est jamais deux notes, mais **deux formes** : à chaque instant, la répartition de la ressemblance sur tous les sons de l'anglais. `R 0,90 / W 0,10` et `R 0,90 / ER 0,10` ont le même pic et ne disent pas la même chose ; comparer les répartitions entières plutôt que leur maximum est ce qui rend la mesure honnête.
+
+Mesuré (cf. `design/embedded-analysis.md`) : sur le jeu d'essai étiqueté, les prises témoins restent à 0,003 d'écart du modèle et les fautes franches montent au-dessus de 0,93. L'étalon annule le bruit propre de la machine, ce qui supprime tout besoin de calibrer son par son.
 
 Deux propriétés qui comptent autant que la précision : la comparaison est **interne au tour**, elle n'accumule rien ; et le modèle est de toute façon nécessaire, puisque c'est lui qu'on fait entendre.
 
@@ -82,15 +84,15 @@ Deux propriétés qui comptent autant que la précision : la comparaison est **i
 
 Ce risque n'est pas chiffré et ne peut pas l'être, puisque étiqueter une prise spontanée exigerait le modèle qu'elle n'a justement pas entendu. Ce qui le rend tenable est la forme de la parenthèse : une marque infondée mène à écouter le modèle et à redire, le calque concorde, et la parenthèse se referme sur une réussite. Une fausse alerte coûte un détour court, jamais une leçon fausse.
 
-**Un modèle n'est un étalon que s'il s'étalonne.** Une voix de synthèse qui note mal sur ce moteur accuserait l'apprenant d'une faute commise par la machine. Toute voix promue modèle passe donc un test — quelques phrases, une médiane haute, aucun son décroché — et une voix qui échoue est écartée quelle que soit sa beauté.
+**Un modèle n'est un étalon que s'il s'étalonne.** Une voix de synthèse que l'analyse lit mal accuserait l'apprenant d'une faute commise par la machine — le principe se paie ici précisément parce que le modèle est cru aveuglément : rien d'extérieur ne viendra dire qu'il était bâclé. Toute voix promue modèle passe donc un test, et une voix qui échoue est écartée quelle que soit sa beauté. **La forme de ce test est à refaire** : celle qui existait jugeait une voix aux notes d'un service, et le montage n'en rend plus. Ce qui la remplacera se lit de la matrice — une grille nette, pas de son écrasé, pas de zone où la répartition s'effondre.
 
 ## Écouter plutôt que se faire expliquer
 
 Le remède d'une faute sonore est **d'entendre le modèle et de redire**, aux trois échelles : le mot, la syllabe, la phrase. Pas une consigne d'articulation écrite.
 
-Ça a une conséquence sur ce qu'on exige du moteur. Une consigne (« la langue passe entre les dents ») a besoin de savoir **quel** son a été produit ; jouer un modèle n'a besoin que de savoir **où** ça cloche. Identifier le son produit devient donc un enrichissement, pas une condition — ce qui est heureux, puisque aucun moteur mesuré ne le fait de façon fiable.
+Ça a une conséquence sur ce qu'on exige de l'analyse. Une consigne (« la langue passe entre les dents ») a besoin de savoir **quel** son a été produit ; jouer un modèle n'a besoin que de savoir **où** ça cloche. Identifier le son produit devient donc un enrichissement, pas une condition — ce qui est heureux, puisque c'est la partie la moins fiable de ce qu'une machine acoustique rend.
 
-L'`extent` rendu par le moteur donne les deux gratuitement : la position du modèle à jouer, et celle de **l'enregistrement de l'apprenant** au même endroit, à faire entendre juste après.
+La position se lit des deux côtés gratuitement : la grille dit où le modèle prononce chaque son, l'alignement dit où l'apprenant le prononce. Le modèle à jouer et **l'enregistrement de l'apprenant au même endroit**, à faire entendre juste après, tombent du même calcul.
 
 **Les audios de synthèse sont gardés en cache**, indexés par le texte, la voix et le dialecte. Une même synthèse sert alors trois fois : d'étalon pour la mesure, de modèle à écouter, et de modèle à réécouter autant de fois qu'on redit le mot ou la phrase.
 
@@ -145,26 +147,24 @@ Deux circuits distincts partagent une seule ressource : le fichier audio du tour
 
 Un critère pèse sur ce choix et ne relève pas de l'ergonomie : sur l'analyse embarquée, la mémoire d'une passe croît comme le **carré** de la durée du tour (`design/embedded-analysis.md`). Un mode qui borne naturellement la durée vaut donc mieux qu'un mode qui la laisse filer — ça ne désigne pas de gagnant, ça interdit de choisir sur le seul confort.
 
-Contrepartie commune à connaître tant qu'un service d'analyse distant reste en jeu : un tour long coûte cher, l'analyse se facturant à la tranche de quinze secondes arrondie au-dessus.
+**Tuyau B — analyser.** Le tour est examiné, **sur l'appareil**, pour savoir s'il y a un problème et où. Se fait sur l'enregistrement existant, sans jamais rien redemander.
 
-**Tuyau B — analyser.** Le tour est examiné pour savoir s'il y a un problème et où. Se fait sur l'enregistrement existant, sans jamais rien redemander.
-
-L'audio d'un tour part donc **deux fois**, chez deux fournisseurs distincts.
+L'audio d'un tour ne quitte donc l'appareil **qu'une fois**, pour la conversation. L'analyse ne l'envoie nulle part.
 
 ## La panne
 
-Chaque tour dépend de services distants, et chacun peut manquer — réseau coupé, quota épuisé, fournisseur en panne, clé expirée. La règle se décline par brique, pas globalement :
+La conversation dépend de services distants, et chacun peut manquer — réseau coupé, quota épuisé, fournisseur en panne, clé expirée. L'analyse, elle, ne dépend que de l'appareil. La règle se décline par brique, pas globalement :
 
 - **La chaîne de conversation est bloquante, mais réparable par construction** : le fichier conservé fait qu'un envoi raté se **réessaie sans redire la phrase**. L'échec coûte un bouton, jamais une parole perdue. La parenthèse grammaticale, qui ne consomme que cette chaîne, hérite du même traitement.
-- **L'analyse ne bloque jamais la conversation.** Un tour dont l'analyse échoue est un tour sans marques, pas un tour en erreur — et il **porte sa raison** (« non analysé — quota »), comme une option éteinte porte la sienne : la panne au runtime est le même cas que la capacité absente.
-- **La parenthèse de prononciation sans moteur n'a plus d'objet.** Redire sans verdict n'est pas un exercice dégradé, c'est de l'auto-évaluation à l'oreille — ce que l'architecture refuse partout ailleurs. Si le moteur manque en cours de parenthèse, l'app le dit franchement et propose la sortie ; la phrase initiale reste telle qu'elle a été dite, comme pour toute sortie sans réussite. Ce cas est rare par construction : la marque ne naît pas sur un tour non analysé, donc cette parenthèse ne peut manquer de moteur qu'en le perdant en cours de route.
+- **L'analyse ne dépend d'aucun réseau**, ce qui retire d'un coup le quota, la clé expirée et le fournisseur en panne. Ce qui reste est d'un autre genre et se règle **une fois pour la session, pas à chaque tour** : les poids ne sont pas encore téléchargés, ou l'appareil ne parvient pas à les charger. Dans ce cas les marques sonores sont éteintes de bout en bout, et l'option éteinte **porte sa raison** comme toute autre. Un tour reste analysable tant que la session a démarré avec son modèle chargé.
+- **La parenthèse de prononciation a besoin de la synthèse, pas du réseau d'analyse.** Redire sans modèle à entendre n'est pas un exercice dégradé, c'est de l'auto-évaluation à l'oreille — ce que l'architecture refuse partout ailleurs. Si la synthèse manque en cours de parenthèse et que le cache ne porte pas la phrase, l'app le dit franchement et propose la sortie ; la phrase initiale reste telle qu'elle a été dite, comme pour toute sortie sans réussite.
 - **Ni file hors-ligne, ni réanalyse différée** : analyser un tour trois tours plus tard produirait des marques sur du passé, ce que l'indépendance des tours interdit. Ce qui n'a pas été analysé sur le moment ne le sera pas.
 
 ## Le texte de référence
 
-Le moteur d'analyse compare un audio à la prononciation attendue d'un **texte donné**. En conversation libre, ce texte n'est pas connu d'avance, et c'est la seule contrainte de la chaîne qu'on ne peut pas contourner : les mesures fines n'existent que sur les endpoints scriptés.
+L'analyse compare l'audio de l'apprenant au modèle synthétisé pour un **texte donné**. En conversation libre, ce texte n'est pas connu d'avance, et c'est la seule contrainte de la chaîne qu'on ne peut pas contourner : les mesures fines n'existent que sur les endpoints scriptés.
 
-La porte grammaticale en retire déjà la moitié du problème — sur un tour fautif, il n'y a pas d'appel, et la phrase corrigée est redite contre un texte certain. Reste le tour grammaticalement propre.
+La porte grammaticale en retire déjà la moitié du problème — sur un tour fautif, il n'y a pas d'analyse, et la phrase corrigée est redite contre un texte certain. Reste le tour grammaticalement propre.
 
 **Décision** : le texte vient de la transcription, que le LLM peut corriger à partir du contexte de la conversation. La répartition des rôles est une règle : **le STT transcrit la bouche, le LLM décide l'intention.** La normalisation appartient au LLM, qui a le contexte et une instruction — jamais au STT, qui la ferait en silence et sans contexte ; un STT qui répare la grammaire d'office efface le signal d'apprentissage avant tout jugement, et sa fidélité verbatim est un critère de choix (cf. `TODO.md`, chantier 2). La ponctuation d'`intended` fait partie de cette tâche : le LLM ponctue selon l'intention à laquelle il répond — s'il répond à une question, il a lu une question — et le contour du modèle TTS en dépend. Deux faits mesurés encadrent ce choix.
 
@@ -192,21 +192,17 @@ Trois matières, trois sorts — la ligne de partage est le coût de reconstruct
 
 ## L'accent
 
-Réglage **global unique**, exposé à l'utilisateur. Il gouverne trois choses qui doivent rester alignées : la voix qui parle, la voix du modèle à imiter, et le référentiel contre lequel la prononciation est notée.
+Réglage **global unique**, exposé à l'utilisateur. Il gouverne deux choses, qui sont en réalité la même : la voix qui parle, et la voix du modèle à imiter.
 
-Ce n'est pas une exigence de cohérence esthétique. Mesuré : une voix américaine notée au référentiel britannique tombe à 61 sur un son parfaitement prononcé, et les deux lexiques ne découpent pas la phrase en autant de sons — les marques ne tombent donc même pas sur les mêmes lettres. Comme le modèle sert d'étalon, un désaccord **inverse** la mesure : c'est le modèle qui se fait pénaliser, l'écart devient positif, et la faute de l'apprenant passe inaperçue.
+**Il n'y a pas de troisième chose à aligner.** L'analyse ne consulte aucun référentiel de dialecte : elle compare l'apprenant au modèle, et le modèle est la seule norme. Si le modèle est britannique, tout ce qui en dérive l'est — mécaniquement, sans lexique à choisir ni accord à vérifier. L'accent cesse donc d'être un paramètre de mesure pour n'être plus qu'un choix de voix, et le désaccord d'accent, qui inversait la mesure quand un référentiel extérieur existait, n'a plus de lieu où se produire.
 
-**La voix se choisit.** Deux sélecteurs — le fournisseur de synthèse, puis la voix chez ce fournisseur — et un **étalonnage à la demande** qui avertit si elle échoue. Rien n'est imposé et rien n'est deviné : une voix qui ne s'étalonne pas reste utilisable pour parler, mais elle est signalée comme impropre à servir de modèle.
+**La voix se choisit.** Deux sélecteurs — le fournisseur de synthèse, puis la voix chez ce fournisseur — et un **étalonnage à la demande** qui avertit si elle échoue. Rien n'est imposé et rien n'est deviné : une voix qui ne s'étalonne pas reste utilisable pour parler, mais elle est signalée comme impropre à servir de modèle. Ce que l'étalonnage vérifie est à redéfinir contre la matrice (cf. « Marquer par écart au modèle »), et **aucune voix n'est aujourd'hui qualifiée** : les verdicts qu'on avait étaient ceux d'un service dont l'app ne dépend plus.
 
-Mesuré (cf. `design/speechace.md`) : **Jenny en `en-us` et Sonia en `en-gb`, toutes deux chez Azure, s'étalonnent sans un seul trou et n'inversent jamais.** Aucune voix ElevenLabs ne tient l'accent britannique — leur plafond s'effondre en `en-gb` et redevient propre en `en-us` — alors que leurs voix américaines sont recevables. L'accent GB repose donc sur **une seule voix chez un seul fournisseur**, et c'est une fragilité à porter, pas un détail. Cette fragilité est cependant un verdict du moteur retenu, pas une propriété des voix : elle se remesure entièrement si l'analyse change de moteur.
-
-L'étalonnage fait alors double emploi, et c'est ce qui le rend intéressant : il **détecte aussi l'incohérence d'accent**. Une voix américaine soumise au référentiel britannique échoue le test, et le dit, au lieu de dégrader les mesures en silence pendant toute une session.
-
-Par défaut, **le modèle à imiter est la voix de la conversation** — c'est celle qu'on entend déjà, et rien ne justifie d'en présenter une autre. Les dissocier reste possible pour qui le veut, et le cas où le modèle vient d'un autre fournisseur que la conversation est accepté : les briques *conversation*, *synthèse* et *analyse* sont indépendantes, unifiées par le seul paramètre d'accent.
+Par défaut, **le modèle à imiter est la voix de la conversation** — c'est celle qu'on entend déjà, et rien ne justifie d'en présenter une autre. Les dissocier reste possible pour qui le veut : les briques *conversation* et *synthèse* sont indépendantes, unifiées par le seul paramètre d'accent.
 
 ## Les clés d'API
 
-L'app est un **client vide** : l'utilisateur apporte ses propres clés (BYOK), qui ne partent qu'aux fournisseurs concernés. Aucun serveur, aucun compte, aucune consommation à la charge du projet.
+L'app est un **client vide** : l'utilisateur apporte ses propres clés (BYOK) pour la conversation et la synthèse, qui ne partent qu'aux fournisseurs concernés. Aucun serveur, aucun compte, aucune consommation à la charge du projet. **L'analyse n'a pas de clé** : elle tourne sur l'appareil.
 
 Ce choix n'est pas qu'économique : il est la seule issue compatible avec la publication sur F-Droid, qui interdit toute clé embarquée dans une release — une clé dans le binaire est une clé publiée avec les sources.
 
@@ -217,62 +213,44 @@ Ce qui en découle et se décide au premier commit :
 - Anti-feature **`NonFreeNet`** à déclarer à la soumission.
 - Écran de configuration guidé, avec un bouton **« tester la clé »** qui valide immédiatement. C'est le vrai coût du BYOK : créer une ressource chez un fournisseur est pénible, et sans validation immédiate toute panne ultérieure sera imputée à l'app.
 - **La sonde de capacités se fait là aussi**, une fois : un appel par fonction optionnelle, et l'app allume ou éteint les briques selon les réponses. Elle n'a pas à deviner d'après le plan souscrit, dont on a mesuré qu'il ne correspond pas à ce que le fournisseur annonce.
-- L'utilisateur paie sa consommation : l'app doit pouvoir dire ce qu'elle consomme. L'analyse tournant à chaque tour propre, et deux fois par tour puisqu'elle note aussi le modèle, c'est le poste le plus lourd.
+- L'utilisateur paie sa consommation : l'app doit pouvoir dire ce qu'elle consomme. Restent au compteur la reconnaissance, le modèle de langue et la synthèse, qui se paient aux centimes.
 
-Limite connue et acceptée : le BYOK est un mur d'adoption, d'autant que SpeechAce impose un abonnement plancher de 40 $/mois indépendant de l'usage. Le mur est tenable parce que **l'app est d'abord pour son auteur** : la publication F-Droid est une générosité et une discipline, pas une stratégie d'adoption. Ce qui la rendrait adoptable sans mur est l'analyse embarquée (`design/embedded-analysis.md`), ouverte à la contribution via le protocole de qualification (`design/engine-qualification.md`).
+Limite connue et acceptée : le BYOK reste un mur d'adoption — créer une ressource chez trois fournisseurs demande de la patience. Le mur est tenable parce que **l'app est d'abord pour son auteur** : la publication F-Droid est une générosité et une discipline, pas une stratégie d'adoption.
 
-### Le relais : possible, pas construit
+**L'analyse, elle, se paie autrement** : un téléchargement unique de 359 Mo de poids acoustiques, en **opt-in explicite** au premier usage — jamais au premier lancement, jamais en silence. C'est un mur d'un autre genre, franchi une fois et non tous les mois, et les poids sont sous licence libre (Apache-2.0), sans quoi ils seraient un `NonFreeAssets`.
 
-L'écran de configuration expose donc **deux façons d'atteindre un moteur** : la clé du fournisseur, ou **une URL de relais et un jeton**, tous deux saisis par l'utilisateur.
+## L'analyse est à l'app, les autres briques sont à des fournisseurs
 
-C'est un point de configuration, pas un service. L'app ne sait pas qui paie ni qui héberge : elle parle à une URL. Quelqu'un peut héberger son propre relais, et rien n'interdit qu'un relais payant existe un jour sans que l'app change.
+**L'analyse tourne sur l'appareil, et c'est la colonne vertébrale de l'app** (`design/embedded-analysis.md`). Elle ne consulte aucune norme : ni dictionnaire de prononciation, ni lexique de dialecte, ni table graphème-phonème. Un seul fichier extérieur dans tout le pipeline, les poids d'un modèle acoustique libre.
 
-Trois raisons de l'écrire dès maintenant plutôt que de le rouvrir plus tard :
+Ce montage ne ressemble pas à l'approche habituelle, et pour une raison de situation plus que d'astuce. Qui n'a que l'audio d'un apprenant et un texte a besoin d'un dictionnaire pour se donner une norme. L'app, elle, possède **deux enregistrements du même énoncé** — elle synthétise le modèle de toute façon, puisque c'est lui qu'elle fait entendre. Le modèle est donc la source de vérité, cru aveuglément, et rien d'extérieur aux deux enregistrements ne juge quoi que ce soit.
 
-- **Un relais est la seule forme possible.** L'authentification de SpeechAce est une clé statique en paramètre d'URL — pas de jeton éphémère, pas de credential délégué. On ne peut donc pas confier à l'app un accès restreint : l'audio doit transiter par un tiers de confiance ou par personne. C'est une contrainte du fournisseur, pas un choix.
-- **Ça ne heurte pas F-Droid.** La règle porte sur les secrets embarqués, et un relais y satisfait mieux que le BYOK puisque aucune clé n'est dans l'APK. `NonFreeNet` reste déclarée dans les deux cas. Un paiement, s'il existait, devrait être **externe à l'app** — les bibliothèques de facturation propriétaires sont incompatibles avec une compilation depuis les sources.
-- **L'abstraction existe déjà.** Clé directe et relais sont deux authentifications du même contrat ; la sonde de capacités fonctionne à l'identique.
+Mesuré : sur le jeu d'essai étiqueté, les fautes se trouvent sans qu'aucun témoin ne se déclenche, et le pipeline **tourne sur un téléphone de 2019** — les poids chargent en 0,8 s, l'empreinte plafonne à 930 Mo, et une passe coûte quatre dixièmes de la durée du tour.
 
-Ce qui n'est **pas** décidé, et ne l'est pas par défaut : héberger un tel relais. Faire transiter des enregistrements de voix fait de l'hébergeur un responsable de traitement, sur une donnée personnelle, produite par des apprenants dont certains seront mineurs. Ça change la nature du projet, pas seulement son infrastructure — et le public de F-Droid est précisément celui qui fuit ce transit.
+Ce que l'analyse doit rendre, et qui se vérifie brique par brique (`design/analysis-qualification.md`) :
 
-## Fournisseurs
+1. **Localiser** chaque son dans l'audio — position et durée — et permettre de repérer quand elle n'y parvient pas. Les alignements dégénérés existent et se trahissent par des durées absurdes ; une aberration qu'on ne voit pas passe pour une faute de l'apprenant.
+2. **Ancrer ses mesures au texte** : quelles lettres porte ce son, quelles lettres forme cette syllabe. Sans cet ancrage il n'y a pas de marque, seulement des chiffres.
+3. Rendre son jugement aux **trois échelles** — le son, le mot, la phrase.
+4. Être **déterministe** : sans ça, comparer un humain à un modèle mesure le bruit de la machine autant que l'écart réel. Vérifié sur l'appareil, deux lectures du même fichier rendant les mêmes octets.
 
-Analyse, conversation et synthèse sont des briques **substituables**, jamais couplées. Le contrat ci-dessous existe pour que ça reste vrai après le choix, pas seulement avant.
+**Dire quel son a été produit** est un enrichissement, non une exigence : il corrobore une détection et ouvrirait la porte à une consigne d'articulation. C'est la partie la moins fiable de ce qu'une machine acoustique rend, et l'app n'en dépend pas.
 
-**Analyse — SpeechAce, retenu pour la v1** (`design/speechace.md`). Mesuré contre le jeu d'essai complet : six fautes de son sur huit sans fausse alerte sur les témoins, un accent lu par syllabe, une mélodie qui sépare de dix-sept demi-tons. Ses limites sont connues et écrites — deux manques déterministes au phonème, une fausse alerte d'accent sur un témoin correct, un plancher d'abonnement de 40 $/mois à la charge de l'utilisateur.
-
-**Azure Speech est écarté**, et pas seulement classé second : sur les mêmes prises et la même méthode il voit trois fautes sur huit avec des témoins qui descendent plus bas que de vraies fautes, et son score de prosodie s'inverse sur la mélodie. Sa mesure reste dans `design/azure-speech.md` — c'est la seule référence dont on dispose pour juger un futur candidat, et elle a servi à déformer le contrat ci-dessous.
-
-**Le champ des candidats distants n'a jamais été élargi.** Deux services ont été mesurés, SpeechAce et Azure ; aucun troisième n'a été regardé. Ce n'est pas une conclusion, c'est un manque — et il pèse d'autant plus que ce que l'app prend réellement à SpeechAce s'est réduit à l'usage : la mélodie se mesure mieux en local, le verdict d'accent est faux dans un dialecte et absent dans l'autre, et `sound_most_like` renvoie l'écho du texte fourni. Restent la **note au phonème** et l'**ancrage aux lettres**, qui sont réels et coûteux à remplacer. Le banc de `bench/` rend désormais l'essai d'un candidat bon marché : une fonction dans `engine.py`.
-
-**L'analyse embarquée** — la seule alternative encore ouverte, et pas un engagement de la v1 ; le montage est instruit (`design/embedded-analysis.md`) et toute brique se juge au protocole de qualification (`design/engine-qualification.md`). Le gain visé est la disparition du poste à abonnement plancher — l'analyse — pendant que conversation et synthèse restent distantes en BYOK multi-fournisseurs et se paient aux centimes ; `NonFreeNet` reste déclarée tant qu'un maillon distant subsiste. Le montage ne ressemble pas à ce que vend le domaine, et pour une raison de situation plus que d'astuce : un service d'évaluation n'a que l'audio du candidat et un texte, donc il lui faut un dictionnaire pour avoir une norme, alors que l'app possède **deux enregistrements du même énoncé** — elle synthétise le modèle de toute façon. Elle n'a donc besoin d'aucune norme et n'en consulte aucune : le modèle est la source de vérité, on lui fait confiance aveuglément, et rien d'extérieur aux deux enregistrements ne juge quoi que ce soit. Un seul fichier extérieur dans tout le pipeline, les poids d'un modèle acoustique libre ; ni dictionnaire, ni lexique de dialecte, ni table graphème-phonème. La mélodie en reste la brique détachable la plus mûre : DSP pur, autonome, et le contrôle indépendant a montré qu'elle peut battre le tracker du service. La porte reste ouverte et rien de ce qui s'écrit d'ici là ne doit la fermer.
+**Conversation et synthèse restent distantes, et substituables** — `NonFreeNet` reste déclarée à ce titre.
 
 **Le montage est la chaîne STT → LLM → TTS**, tranchée, plutôt qu'une API voix-à-voix. Trois raisons, dont la dernière est mesurée : chaque maillon reste substituable ; la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où le voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir ; et la latence est bonne — **2,6 s jusqu'au premier son** sur un tour court, de bout en bout (cf. `design/conversation-chain.md`).
 
 Deux points de montage réglés par la même mesure. La synthèse **n'est pas pipelinée** sur la première phrase du modèle : le gain est de 0,16 s, parce que le modèle achève son objet un septième de seconde après sa première phrase. Et la reconnaissance se fait **par fichier, pas en flux** : elle coûte un sixième de la durée de l'audio, ce qui pèse sur le tour long — qui est l'exception, pas le régime nominal. Rien ne se complique tant que l'usage n'a pas montré que ça gêne.
 
-**La synthèse a une contrainte que le chantier 1 ne voyait pas : l'ancrage horodaté.** ElevenLabs rend, en REST nu, l'horodatage **caractère par caractère** de ce qu'il synthétise. Azure rend l'équivalent — frontières de mots, visèmes — **uniquement par son SDK**, l'endpoint REST ne renvoyant que l'audio : or ce SDK est propriétaire, ce qui heurte de front la publication F-Droid. Aucun des deux n'a donc à la fois l'étalon des deux accents et l'ancrage en REST. Cet ancrage ne sert encore rien de décidé ; il devient structurel si l'analyse embarquée aboutit, puisque c'est de lui seul que vient l'ancrage aux lettres (cf. `design/embedded-analysis.md`). À savoir dans ce cas : le verdict qui écarte les voix britanniques d'ElevenLabs est celui du lexique `en-gb` de SpeechAce, pas une propriété des voix — il tombe avec lui, et se remesure contre le pipeline embarqué.
+**La synthèse porte une contrainte structurelle : l'ancrage horodaté.** C'est de lui seul que vient l'ancrage aux lettres, donc l'exigence 2 ci-dessus en dépend entièrement. ElevenLabs le rend **caractère par caractère en REST nu** ; Azure rend l'équivalent — frontières de mots, visèmes — uniquement par un SDK propriétaire, ce qui heurte de front la publication F-Droid. **Un seul fournisseur convient donc aujourd'hui**, et c'est l'attache la plus étroite de tout le montage : l'analyse est à nous, mais l'endroit où poser ses marques ne l'est pas.
 
 **Les fournisseurs de conversation et de synthèse restent à choisir** (cf. `TODO.md`, chantier 2). Ceux du banc — Azure Speech, DeepSeek — ont servi à mesurer, pas à décider.
 
-### Ce que l'app exige de n'importe quel moteur d'analyse
-
-1. **Localiser** chaque son dans l'audio — position et durée — et permettre de repérer quand il n'y parvient pas. Les alignements dégénérés existent et se trahissent par des durées absurdes ; un moteur qui n'en laisse rien voir est inutilisable, parce que ses aberrations passeraient pour des fautes de l'apprenant.
-2. **Ancrer ses mesures au texte** : quelles lettres porte ce son, quelles lettres forme cette syllabe. Sans cet ancrage il n'y a pas de marque, seulement des chiffres.
-3. Rendre son jugement aux **trois échelles** — le son, le mot, la phrase.
-4. **Noter un fichier audio quelconque**, pas seulement une prise de micro. C'est ce qui permet de lui soumettre le modèle et de mesurer par écart plutôt que par seuil absolu.
-5. Être **déterministe** : sans ça, comparer un humain à un modèle mesure le bruit du moteur autant que l'écart réel.
-6. **Déclarer ses capacités**, de préférence en refusant explicitement ce qu'il ne sait pas faire.
-
-**Dire quel son a été produit** est un enrichissement, non une exigence : il corrobore une détection et ouvrirait la porte à une consigne d'articulation. Les deux moteurs mesurés le font mal, et l'app n'en dépend pas.
-
-**Ce contrat a été dérivé d'un moteur puis déformé par un second.** Ce qui a bougé à la lecture du second : l'identification du son produit est descendue d'exigence à confort, et trois points sont apparus — l'ancrage au texte, l'acceptation d'un audio arbitraire, le déterminisme — dont aucun ne se voyait tant qu'on n'avait qu'un fournisseur.
-
 ### Capacités déclarées, pas plus petit dénominateur commun
 
-Il y a deux manières d'être agnostique et elles sont opposées. La première n'expose que ce que *tous* les moteurs savent faire : on n'exploite alors jamais ce que le meilleur a de mieux, et le progrès d'un fournisseur ne profite à personne. La seconde, retenue : **chaque moteur déclare ce qu'il sait faire, et l'app allume ou éteint les briques en conséquence.**
+Il y a deux manières d'être agnostique et elles sont opposées. La première n'expose que ce que *tous* les fournisseurs savent faire : on n'exploite alors jamais ce que le meilleur a de mieux, et le progrès de l'un ne profite à personne. La seconde, retenue : **chaque fournisseur déclare ce qu'il sait faire, et l'app allume ou éteint les briques en conséquence.**
 
-Contrepartie assumée : le jeu de fonctionnalités **dépend du fournisseur choisi**. Un utilisateur verra des options éteintes qu'un autre a. Une option indisponible doit donc **porter sa raison** dans l'interface — sinon elle passe pour un bug, et c'est l'app qu'on accusera, pas le service.
+Contrepartie assumée : le jeu de fonctionnalités **dépend du fournisseur choisi**. Un utilisateur verra des options éteintes qu'un autre a — l'ancrage horodaté de la synthèse en est le cas net, et il éteint le marquage lui-même. Une option indisponible doit donc **porter sa raison** dans l'interface — sinon elle passe pour un bug, et c'est l'app qu'on accusera, pas le service.
 
 ## Hors périmètre
 
