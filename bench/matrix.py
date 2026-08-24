@@ -47,7 +47,13 @@ if CHOSEN not in CANDIDATES:
                      + ", ".join(CANDIDATES))
 CANDIDATE = CANDIDATES[CHOSEN]
 MODEL = CANDIDATE.model
-SLUG = CHOSEN
+
+# Weights stored as 8-bit integers instead of 32-bit floats: a quarter of the
+# size, and what will actually run on a phone. This reading is the one most
+# exposed to it -- it lives on what surrounds the peak, which is the first thing
+# rounding takes -- so the bench has to be able to run both and compare.
+QUANTISED = os.environ.get("QUANTISED") == "1"
+SLUG = CHOSEN + ("-int8" if QUANTISED else "")
 SAMPLE_RATE = 16000
 
 # What each model calls "nothing is being pronounced here". A frame classifier
@@ -91,6 +97,9 @@ def loaded():
                 feature_size=1, sampling_rate=SAMPLE_RATE, padding_value=0.0,
                 do_normalize=True, return_attention_mask=False)
         net = AutoModelForCTC.from_pretrained(MODEL).eval()
+        if QUANTISED:
+            net = torch.ao.quantization.quantize_dynamic(
+                net, {torch.nn.Linear}, dtype=torch.qint8)
         vocab = json.load(open(
             hf_hub_download(CANDIDATE.vocabulary or MODEL, "vocab.json"),
             encoding="utf-8"))
