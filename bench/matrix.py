@@ -260,15 +260,20 @@ def grid(probabilities):
     return segments
 
 
-def align(probabilities, ids):
+def align(probabilities, ids, empty=None):
     """Forced alignment: where the learner says each sound of the model's grid.
 
     The correspondence between the two recordings passes through a shared
     symbolic landmark, never through the resemblance of the two signals -- which
     is what keeps the difference of voice out of it.
+
+    `empty` names the blank column, and is asked for rather than looked up when
+    the matrix comes from another network than the chosen one: the trellis is
+    the same whatever the symbols stand for, sounds or letters.
     """
     log = np.log(np.maximum(probabilities, 1e-12))
-    empty = blank()
+    if empty is None:
+        empty = blank()
     extended = [empty]
     for index in ids:
         extended += [index, empty]

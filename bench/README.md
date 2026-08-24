@@ -24,6 +24,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `matrix.py` | un audio → sa répartition sur les sons toutes les 20 ms, sa grille, l'alignement d'une seconde prise dessus |
 | `overlap.py` | le recouvrement de deux répartitions, son par son — de combien deux voix s'écartent |
 | `faults.py` | le jeu d'essai étiqueté : l'écart tombe-t-il sur le son fautif, et reste-t-il à zéro sur le témoin |
+| `letters.py` | où chaque lettre d'un texte connu est prononcée — l'ancrage calculé chez nous, sans passer par le fournisseur |
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tourne sur le téléphone |
 | `concord.py` | deux machines lisant les mêmes poids disent-elles la même chose |
 | `phone.py` | pousse, mesure et rapatrie : l'appareil devient une lecture comme une autre |
