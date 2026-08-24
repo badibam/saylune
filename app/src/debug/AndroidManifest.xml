@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+
+        <!-- Exported so the bench can start it: the probe is driven by
+             bench/phone.py, not by tapping. Debug only, so it exists in no
+             release. -->
+        <activity
+            android:name=".embedded.ProbeActivity"
+            android:exported="true"
+            android:label="probe" />
+
+    </application>
+
+</manifest>

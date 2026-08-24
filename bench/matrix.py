@@ -59,7 +59,14 @@ QUANTISED = os.environ.get("QUANTISED") == "1"
 # the same files through it and be held to the same numbers. The two readings
 # never share a cache: telling them apart is the whole point.
 ONNX = os.environ.get("RUNTIME") == "onnx"
-SLUG = CHOSEN + ("-onnx" if ONNX else "") + ("-int8" if QUANTISED else "")
+
+# A reading does not have to have been computed here. A phone writes its
+# matrices into the cache like any other, and naming that reading is what lets
+# every brick of the bench run on it unchanged -- the question "does the verdict
+# hold on the device" is then asked by the same script that asks it here.
+BORROWED = os.environ.get("READING")
+SLUG = BORROWED or (CHOSEN + ("-onnx" if ONNX else "")
+                    + ("-int8" if QUANTISED else ""))
 SAMPLE_RATE = 16000
 
 HERE = Path(__file__).resolve().parent
@@ -199,6 +206,11 @@ def probabilities(wav, cache=None):
     wav = Path(wav)
     if cache is not None and Path(cache).is_file():
         return np.load(cache)["probabilities"]
+    if BORROWED:
+        # Computing here would quietly fill someone else's reading with ours,
+        # and the comparison would then be with itself.
+        raise SystemExit(f"{cache} manque dans la lecture {BORROWED} — "
+                         "elle ne se calcule pas ici")
 
     audio, rate = sf.read(wav)
     if rate != SAMPLE_RATE:

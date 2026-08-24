@@ -57,4 +57,10 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // The embedded analysis is still a proof of concept, and which engine the
+    // app ships with is not decided. Held to the debug build so that no release
+    // carries a native dependency on a bet -- and so that F-Droid is not owed an
+    // answer about a prebuilt AAR before the measure that would justify it.
+    debugImplementation("com.microsoft.onnxruntime:onnxruntime-android:1.20.0")
 }
