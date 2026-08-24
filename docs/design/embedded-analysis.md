@@ -50,7 +50,7 @@ Tout ce qui suit — briques 3, 5, 6, 9 — est une **lecture de ce tableau**. I
 
 Propriétés qui comptent : déterministe en CPU (même fichier, même matrice), résolution 20 ms (un phonème dure 50 à 150 ms, c'est confortable), aucun mot ni grammaire — le réseau ne connaît que des sons.
 
-Les poids mesurés sont `facebook/wav2vec2-lv-60-espeak-cv-ft`, Apache-2.0, 1,2 Go en flottant, 20,1 ms par trame vérifiées. Une réserve : son inventaire n'est pas de 45 sons mais de **392, multilingue**. Sans conséquence sur la comparaison, qui porte sur les lignes entières et voit la même masse hors-anglais des deux côtés — mais c'est lui qui produit le décrochage sur le mot isolé, plus bas.
+Les poids retenus sont `vitouphy/wav2vec2-xls-r-300m-timit-phoneme`, Apache-2.0, 1,26 Go en flottant, 315 M de paramètres, 20 ms par trame vérifiées, 39 sons anglais en notation IPA — les diphtongues et les affriquées y sont des unités, pas des morceaux. Cinq candidats ont été mesurés sur le même jeu avant celui-là (cf. « Ce qui départage un modèle acoustique »).
 
 ### 3. La grille — décodage libre du modèle
 
@@ -263,31 +263,34 @@ La normalisation des chiffres avant synthèse, le contrôle de netteté de la gr
 
 Première mesure faite (`bench/overlap.py`), sur les six phrases du banc. Écart de Jensen-Shannon par son entre la répartition du modèle et celle qui lui fait face, 0 pour deux formes identiques, 1 pour deux formes disjointes :
 
-| comparé au modèle | médian | moyen | pire |
+| comparé au modèle | médian | pire |
+|---|---|---|
+| une autre voix de synthèse | 0,000 à 0,001 | 0,89 à 0,93 |
+| l'apprenant qui calque le modèle entendu | 0,002 à 0,004 | 0,91 à 0,99 |
+| l'apprenant à froid, avant d'avoir rien entendu | 0,002 à 0,003 | 0,97 |
+
+**C'est la réponse que le montage attendait.** Deux voix de synthèse différentes, disant correctement la même phrase, se recouvrent au point que la médiane est nulle : le timbre ne survit pas dans la forme de la répartition. Le principe qui fait comparer deux formes plutôt que deux notes tient donc son pari, et la difficulté propre d'un son se paie effectivement des deux côtés à la fois.
+
+La moyenne n'est pas dans le tableau et c'est délibéré : la répartition est presque toujours nulle et parfois saturée, donc une moyenne ne décrit aucun cas réel. **Tout ce qui compte vit dans la queue** — quelques sons montent à 0,9 là où l'immense majorité est à zéro. C'est cohérent avec ce qu'on cherche, une faute étant rare et franche, mais ça ne se départage **pas** ici : il faut savoir quel son porte une faute étiquetée, ce que fait la mesure suivante. Un artefact à ne pas prendre pour du signal : les prises à froid sont lues sur 78 sons contre 96, une capture du jeu étant vide.
+
+### Le mot isolé, et ce qu'il disait vraiment
+
+Le mot dit seul est le cas où deux voix s'accordent le moins : 0,005 de médiane contre 0,000 sur la phrase. Sur le premier modèle mesuré, l'écart était huit fois pire encore (0,039), et sa grille semblait donner la raison — `water` décodé `w uo5 ts.h ɚ`, où `uo5` est une voyelle à ton mandarin. On a d'abord conclu que l'inventaire multilingue partait hors de la langue.
+
+**C'était un mauvais diagnostic**, et le démonter valait le détour, parce que ce qu'il cachait est une propriété du problème et pas d'un modèle. En regardant non plus le symbole gagnant mais toute la répartition, quatre sons de deux mots isolés se répartissent ainsi :
+
+| son | ce que dit Daniel | ce que dit Sonia | écart |
 |---|---|---|---|
-| une autre voix de synthèse | 0,002 | 0,008 à 0,021 | 0,12 à 0,55 |
-| l'apprenant qui calque le modèle entendu | 0,009 | 0,062 à 0,136 | 0,65 à 0,99 |
-| l'apprenant à froid, avant d'avoir rien entendu | 0,006 à 0,008 | 0,064 à 0,079 | 0,85 |
+| voyelle de *water* | `uo5` 0,20 · `uoɜ` 0,11 · `ou5` 0,11 | `oː` 0,19 · `oʊ` 0,11 · `uː` 0,05 | 0,43 |
+| /t/ de *water* | `ts.h` 0,35 · `ts.` 0,14 · `th` 0,11 | `t` 0,93 | 0,75 |
+| attaque de *dance* | `tɕ` 0,41 · `dʒ` 0,24 | `d` 0,97 | 0,89 |
+| finale de *corner* | `ə` 0,89 | `a` 0,65 · `ɑː` 0,11 | 0,69 |
 
-**C'est la réponse que le montage attendait.** Deux voix de synthèse différentes, disant correctement la même phrase, se recouvrent au point que la médiane est à deux millièmes : le timbre ne survit pas dans la forme de la répartition. Le principe qui fait comparer deux formes plutôt que deux notes tient donc son pari, et la difficulté propre d'un son se paie effectivement des deux côtés à la fois.
+Un seul de ces quatre est un problème de notation : la voyelle de *water*, où les deux voix disent la même chose arrondie postérieure et où le réseau l'écrit dans deux systèmes qui ne se rejoignent pas. **Les trois autres sont de vraies différences de prononciation** — Daniel affrique ses occlusives, Sonia non ; leurs voyelles finales diffèrent. Le réseau les rapporte fidèlement. Et là où les deux voix prononcent pareil, il s'accorde à trois millièmes : `w` à 0,005, `n` à 0,001, `k` à 0,008.
 
-Ce que la mesure ne dit **pas** encore, et qu'il faut lire honnêtement : les médianes de l'humain sont du même ordre que celles d'une voix (0,009 contre 0,002), et tout l'écart vit dans la queue — quelques sons montent à 0,99 là où deux synthèses ne dépassent jamais 0,55. C'est cohérent avec ce qu'on cherche, une faute étant rare et franche, mais **ça reste à départager faute par faute** : c'est la troisième mesure, pas celle-ci. Deux artefacts à ne pas prendre pour du signal : les prises à froid sont lues sur 83 sons contre 101 (une capture vide dans le jeu), et la moyenne du calque US dépasse celle de la prise à froid, ce qui n'a pas de sens tant que les fautes ne sont pas étiquetées une à une.
+Deux conséquences. La première est que **fusionner les familles de symboles ne réglerait qu'un cas sur quatre**, et demanderait la table phonétique que le montage refuse — enlever les marques de ton ne rapproche pas `uo` de `ou`, et encore moins de `oː`. Écarté.
 
-### Le mot isolé décroche
-
-Sur les cinq mots dits seuls, le socle s'effondre : deux voix de synthèse s'écartent de 0,039 en médiane contre 0,002 sur la phrase. La grille de la voix britannique d'ElevenLabs en donne la raison :
-
-```
-water  -> w uo5 ts.h ɚ
-dance  -> tɕ a n s
-market -> n ɑː k ɪ t
-```
-
-`uo5` est une voyelle à ton mandarin, `tɕ` et `ts.h` des affriquées absentes de l'anglais. L'inventaire multilingue gagne l'argmax sur des sons qui ne sont pas de la langue, et sur un mot isolé rien dans le contexte ne l'en empêche. Sur les mêmes mots, la voix Azure reste propre (`w oː t ɚ`, `d ɑː n s`).
-
-Restreindre l'inventaire aux symboles vus en anglais connecté **n'est pas le remède** : essayé, ça déplace la masse vers d'autres mauvaises colonnes (`water` devient `w w t ɚ`) et ça casse des mots qui passaient. La piste sérieuse est un modèle acoustique anglais seul, à mesurer contre celui-ci.
-
-À relativiser cependant : dans l'app, le mot n'est **pas** un audio isolé côté modèle — c'est une sous-étendue d'une phrase déjà synthétisée. Seule la reprise du mot seul par l'apprenant, dans la parenthèse, tombe vraiment dans ce cas.
+La seconde est que le banc fait passer ici une épreuve **plus dure que ce que l'app fera jamais** : deux voix étrangères l'une à l'autre, sur un mot sans phrase pour le porter. Dans l'app, le modèle est la voix qu'on vient d'entendre, et le mot est une sous-étendue d'une phrase déjà synthétisée. Le seul cas réel est la reprise du mot seul par l'apprenant, dans la parenthèse.
 
 ## L'écart tombe sur le son fautif
 
@@ -295,46 +298,72 @@ Troisième mesure faite (`bench/faults.py`), sur les blocs A, C et D du jeu d'es
 
 | prise | rôle | son | écart |
 |---|---|---|---|
-| `07-bear-pear` | faute | /p/ | 0,965 |
-| `08-light-right` | faute | /ɹ/ | 0,945 |
-| `16-ship-lax` | franche | /iː/ | 0,903 |
-| `06-ship-sheep` | faute | /iː/ | 0,813 |
-| `01-sink` | faute | /θ/ | 0,422 |
-| `04-th-franc` | témoin | /θ/ | 0,055 |
-| `13-field-clean` | témoin | /θ/ | 0,044 |
-| `13-field-clean` | témoin | /iː/ | 0,009 |
-| `14-pear-clean` | témoin | /p/ | 0,007 |
-| `15-right-clean` | témoin | /ɹ/ | 0,001 |
+| `16-ship-lax` | franche | /iː/ | 0,983 |
+| `07-bear-pear` | faute | /p/ | 0,967 |
+| `17-sink-full` | franche | /θ/ | 0,966 |
+| `06-ship-sheep` | faute | /iː/ | 0,962 |
+| `08-light-right` | faute | /ɹ/ | 0,956 |
+| `01-sink` | faute | /θ/ | 0,246 |
+| `18-walkin-full` | franche | /ŋ/ | 0,236 |
+| `14-pear-clean` | témoin | /p/ | 0,002 |
+| `04-th-franc` | témoin | /θ/ | 0,001 |
+| `13-field-clean` | témoin | /θ/ | 0,000 |
+| `13-field-clean` | témoin | /iː/ | 0,000 |
+| `15-right-clean` | témoin | /ɹ/ | 0,000 |
 
-**Cinq fautes sur sept vues, aucune fausse alerte, et une bande vide de 0,37** entre le pire témoin et la plus faible faute vue. C'est la forme exacte de ce que rendait SpeechAce (six sur huit, témoins à ±1, fautes à −15 ou moins), obtenue sans dictionnaire, sans lexique de dialecte et sans appel. Les deux accents de modèle donnent le même résultat au millième près, ce qui était attendu puisque le modèle est le seul référentiel.
+**Sept fautes sur huit vues, aucune fausse alerte, et les témoins à zéro.** SpeechAce en voyait six sur huit avec des témoins à ±1 : la forme est la même et la séparation est plus nette, obtenue sans dictionnaire, sans lexique de dialecte et sans appel. Sur le modèle de voix américain, les six fautes lisibles sont vues et les témoins ne dépassent pas 0,002 — le modèle étant le seul référentiel, l'accent ne change rien, ce qui est le comportement attendu.
 
-Les deux fautes manquées ne se ressemblent pas :
+La seule manquée est `09-walkin` (/ŋ/ dit /n/), et le jeu d'essai le dit de lui-même : c'est une **demi-faute**, le bloc D existant précisément parce que les cas 1, 6 et 9 étaient restés à mi-chemin. À faute franche, signal franc — la reprise franche du même cas, `18-walkin-full`, est vue.
 
-- `09-walkin` (/ŋ/ dit /n/) est une **demi-faute**, et le jeu d'essai le dit de lui-même : le bloc D existe parce que les cas 1, 6 et 9 étaient restés à mi-chemin. À faute franche, signal franc — c'est ce que fait `16-ship-lax`.
-- `17-sink-full` est étiqueté « /s/ franc » et le réseau y entend `aɪ θ ɪ ŋ k`, alors qu'il entend `aɪ s ɪ ŋ k` dans `01-sink`. **L'étiquette et l'audio se contredisent**, et rien dans ce qu'on a ne tranche lequel a tort. À rejouer si le jeu d'essai est réenregistré.
+Deux séparations valent d'être lues séparément. Les fautes franches montent toutes au-dessus de 0,95, et les demi-fautes se rangent en dessous de 0,25 : **l'écart ne rend pas un verdict binaire, il rend un degré**, et c'est un degré qui correspond à ce qui a été produit. C'est de là que sortira un seuil de marquage, pas d'une constante posée d'avance.
 
-### Le pire son d'un énoncé n'est pas une politique de marquage
+### Ce que le pire son d'un énoncé révèle
 
-Le résultat compte autant que sa mise en garde. Le maximum de la phrase et l'écart sur le son étiqueté ne disent pas la même chose, et l'écart entre les deux vient de divergences **légitimes** :
+Le maximum de l'énoncé et l'écart sur le son étiqueté ne désignent pas le même endroit, et la différence est instructive. Le pire son d'une prise « correcte » est régulièrement ailleurs que sur le son testé :
 
-- le modèle dit *you are*, le locuteur dit *you're* : 0,95 sur la prise fautive **et** 0,97 sur le témoin ;
-- le modèle dit `p ɛɹ`, le locuteur dit `p eɪ ɚ` (*payer*) : 0,56 sur un témoin dont le /p/ est à 0,007 ;
-- le modèle réduit *to* en `t ə`, le locuteur dit `t ʊ` : 0,70 sur un témoin.
+- le modèle dit *you are*, le locuteur dit *you're* ;
+- le modèle dit `p ɛɹ`, le locuteur dit `p eɪ ɚ` (*payer*) ;
+- le modèle réduit *to* en `t ə`, le locuteur dit `t ʊ`.
 
-Aucune n'est une faute de prononciation, toutes crèvent le plafond. Marquer le son le plus divergent d'un tour produirait donc trois fausses alertes sur cinq témoins. Ce que la mesure valide est **l'écart sur un son donné**, pas la sélection du son à marquer — et celle-ci demande d'abord la brique 11, pas un seuil.
+Ces prises étaient étiquetées « correctes » sur **un** son précis, celui qu'on testait ; rien n'avait jamais été vérifié du reste. Ce ne sont donc pas des fausses alertes du calcul, ce sont des fautes que le jeu d'essai n'avait pas notées — **si le texte dit *you are*, dire *you're* est une faute**, sans quoi il n'y a plus de référence du tout.
 
-### La brique 11 se déclenche toute seule
+En conversation libre le cas ne se pose presque pas, le texte venant de la transcription de ce qui a été dit : qui dit *you're* aura un modèle qui dit *you're*. Il se pose dans la parenthèse, où la phrase à dire est imposée par l'IA — et c'est justement là que la règle est la bonne.
 
-`18-walkin-full` se décode `a j a ŋ u k i n ɐ t ɔ̃ z o o f i s` — `ɔ̃` est une voyelle nasale française. Le réseau a lu l'énoncé hors de l'anglais, l'alignement forcé a plaqué la grille dessus quand même, et **tous** les sons décrochent d'un coup : médiane à 0,711 là où toute prise qui s'aligne reste sous 0,022. C'est exactement le motif que la brique 11 doit attraper, et un seuil de médiane le sépare sans ambiguïté. La prise sort de la comparaison au lieu de compter comme une faute vue.
+Ce que la mesure valide reste **l'écart sur un son donné**. La sélection du son à marquer est un autre problème, et le pire de l'énoncé n'en est pas une mauvaise réponse — il pointe des divergences réelles.
 
-Deuxième apparition du même défaut de fond : l'inventaire multilingue part hors de l'anglais dès que le signal est un peu moins net. Ça renforce la piste d'un modèle acoustique anglais seul.
+### Le motif de la brique 11, et pourquoi son seuil ne peut pas être une constante
+
+Sur le premier modèle mesuré, `18-walkin-full` se décodait `a j a ŋ u k i n ɐ t ɔ̃ z o o f i s` — `ɔ̃` étant une voyelle nasale française. L'énoncé était lu hors de l'anglais, l'alignement forcé plaquait la grille dessus quand même, et **tous** les sons décrochaient d'un coup : médiane à 0,711 là où toute prise qui s'aligne restait sous 0,022. C'est exactement le motif que la brique 11 doit attraper — un texte de référence qui ne correspond pas à ce qui a été dit produit une avalanche, pas une marque.
+
+Le motif est bon ; le seuil qu'on en avait tiré ne l'est pas. Posé à 0,2 sur l'échelle de ce modèle-là, il se déclenche à tort sur le modèle retenu, où il a exclu une détection parfaitement saine. **Le seuil doit être relatif au modèle**, ou mieux, à la prise elle-même : ce qui signale l'avalanche n'est pas une valeur absolue mais le fait que la médiane cesse d'être négligeable devant le maximum.
+
+## Ce qui départage un modèle acoustique
+
+Cinq candidats mesurés sur les mêmes prises et le même modèle de voix. Le classement importe moins que ce qui l'explique : deux critères sont sortis des échecs, et ils se vérifient tous les deux **avant** de lancer quoi que ce soit.
+
+| modèle | inventaire | certitude | témoins | fautes vues |
+|---|---|---|---|---|
+| `vitouphy/…-timit-phoneme` | 39 sons anglais IPA | 0,926 | ≤ 0,002 | 7 / 8 |
+| `facebook/…-espeak-cv-ft` | 392 symboles multilingues | 0,870 | ≤ 0,055 | 5 / 7 |
+| `excalibur12/…timit-4k_simplified` | 51 unités TIMIT | 0,929 | ≤ 0,371 | 4 / 8 |
+| `charsiu/en_w2v2_fc_10ms` | 39 sons ARPAbet | 0,907 | ≤ 0,796 | 4 / 8 |
+| `bookbot/wav2vec2-ljspeech-gruut` | 43 sons anglais IPA | 0,976 | ≤ 0,960 | 3 / 7 |
+
+**Un modèle trop sûr de lui est disqualifié d'office.** La comparaison lit des formes, et la tolérance vit dans ce qui entoure le pic : si le modèle met 97,6 % de sa masse sur un seul son, il ne reste rien à comparer et la lecture redevient un test d'étiquettes — exactement ce que le principe 2 refuse. Ça se mesure en trois secondes sur n'importe quel fichier du banc, et `bench/pull.py` l'imprime avant tout le reste. Au-delà de 0,95, inutile d'aller plus loin. La cause est identifiable : ce modèle-là a été affiné sur **une seule voix** lisant proprement, donc il n'a jamais eu de raison d'hésiter.
+
+**Un modèle entraîné sur des alignements de dictionnaire apprend à pardonner.** On lui a montré des enregistrements où quelqu'un dit *think*, en lui disant « ici c'est un /θ/ », que la personne l'ait prononcé ainsi ou non. Il a donc appris à ramener une réalisation approximative vers le son canonique — et devient aveugle à la substitution qu'on lui demande justement de rapporter. C'est la signature de `charsiu`, à 0,015 sur un /s/ mis pour un /θ/. Le remède est un corpus **transcrit phonétiquement à la main**, où l'annotation dit ce qui a été prononcé : c'est ce qu'est TIMIT, et c'est ce qui fait gagner le modèle retenu.
+
+Deux critères de forme, moins profonds mais éliminatoires. L'inventaire doit être fait de **sons entiers** et non de caractères : `mrrubino` et `speech31`, écartés sur pièces, coupent `aɪ` en deux, ce qui prive la syllabification de toute unité à quoi se raccrocher. Et les poids doivent porter une **licence libre vérifiable** : `charsiu` est publié nu, sans fiche ni licence, le dépôt de code MIT ne couvrant pas un artefact hébergé ailleurs.
+
+Ce que le classement ne dit pas : `excalibur12` part du **même encodeur pré-entraîné** que le multilingue et se fait battre par lui. La différence tient entièrement à l'affinage, pas à l'architecture.
 
 ## Ce qui reste à mesurer, dans l'ordre
 
 Chaque étape se juge au protocole de `engine-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
-1. **Un modèle acoustique anglais seul fait-il mieux ?** Deux décrochages sur trois lui sont imputables — le mot isolé, et l'énoncé décodé hors de l'anglais. Se compare au même banc, mêmes fichiers.
-2. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
-3. **Quel son marquer ?** La mesure valide l'écart sur un son donné ; elle ne dit pas lequel mérite une marque, et le pire de l'énoncé n'est pas la réponse. C'est la brique 11 d'abord, un seuil ensuite.
+1. **La quantification abîme-t-elle ce qu'on lit ?** C'est la mesure la plus exposée du lot, et pour une raison propre à ce montage : on ne lit pas le son gagnant, on lit ce qui reste autour de lui, c'est-à-dire l'information qui vit dans les décimales — la première que l'arrondi emporte. Un système qui ne regarde que le maximum survit à la quantification ; celui-ci est le cas le plus fragile qui soit. Joue en notre faveur le fait que les deux enregistrements passent par le **même** modèle, donc qu'un biais systématique s'annule des deux côtés. Se vérifie en rejouant `faults.py` sur les poids quantifiés : les témoins doivent rester à zéro et les fautes franches au-dessus de 0,9.
+2. **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
+3. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
+4. **Quel son marquer ?** La mesure valide l'écart sur un son donné ; elle ne dit pas lequel mérite une marque. Les fautes franches au-dessus de 0,95 et les demi-fautes sous 0,25 donnent la matière d'un seuil, à condition de le tirer des prises et non de le poser.
 
 La brique 10 ne dépend de rien et pourrait exister avant tout le reste.
