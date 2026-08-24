@@ -26,6 +26,7 @@ Les clés, en variables d'environnement — absentes, les scripts échouent fran
 | `overlap.py` | le recouvrement de deux répartitions, son par son — de combien deux voix s'écartent |
 | `faults.py` | le jeu d'essai étiqueté relu sans aucun service : l'écart tombe-t-il sur le son fautif |
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tournera sur le téléphone |
+| `concord.py` | deux machines lisant les mêmes poids disent-elles la même chose |
 
 Chaque brique s'utilise seule.
 
@@ -50,12 +51,15 @@ Trois variables d'environnement pilotent la lecture, et chaque combinaison a son
 - `RUNTIME=onnx` — la lecture par ONNX Runtime au lieu de PyTorch, c'est-à-dire la machine qui tournera sur le téléphone. Elle ne charge pas PyTorch du tout et demande le fichier exporté :
 
 ```
-pip install onnx onnxruntime
+pip install onnx onnxruntime onnxscript
 python3 export.py                       # le graphe, en flottant puis en 8 bits
+python3 concord.py                      # les deux machines disent-elles pareil
 RUNTIME=onnx python3 faults.py -v       # le même jeu, lu par l'autre machine
 ```
 
 `export.py` met le softmax **dans** le graphe : le fichier rend la matrice elle-même, pas des logits, et le côté Android n'a plus à réimplémenter que la préparation du signal — moyenne nulle, variance unité, tenue à celle de l'extracteur par `export.py`.
+
+`concord.py` confronte **deux machines lisant les mêmes poids**, jamais deux arrondis : tenir le 8 bits d'ONNX contre celui de PyTorch mesurerait quel quantificateur a arrondi où, ce qu'aucun téléphone ne présentera jamais. Ce que l'arrondi coûte se lit là où il tombe, sur le verdict, donc par `faults.py`.
 
 ```
 python3 overlap.py -s sentences -v      # deux voix se recouvrent-elles

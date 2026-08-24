@@ -37,6 +37,35 @@ TRACED = HERE / "out" / "renders" / "azure-gb-sonia" / "sentences" / "think.wav"
 SAME_READING = 1e-3
 
 
+def weight(path):
+    """What the file really costs: the graph plus whatever it keeps beside it.
+
+    Past a size, the exporter puts the tensors in a sidecar rather than in the
+    graph, and reading only the graph would report four megabytes for a model
+    of one and a quarter gigabytes.
+    """
+    sidecar = path.parent / f"{path.name}.data"
+    return path.stat().st_size + (sidecar.stat().st_size
+                                  if sidecar.is_file() else 0)
+
+
+def folded(net, torch):
+    """Compute the weight-normalised weights once, and keep them.
+
+    The positional convolution carries its weight as a norm and a direction,
+    multiplied at every forward pass. Exported as such, the convolution has no
+    constant weight to quantise -- it has an expression -- and rounding to 8
+    bits has nothing to take hold of. Folding is exact: the same product, done
+    once instead of at every call.
+    """
+    for module in net.modules():
+        if torch.nn.utils.parametrize.is_parametrized(module):
+            for name in list(module.parametrizations):
+                torch.nn.utils.parametrize.remove_parametrizations(
+                    module, name, leave_parametrized=True)
+    return net
+
+
 def wrapped(net, torch):
     """The network plus its softmax, so the file's output is the matrix itself."""
 
@@ -59,8 +88,8 @@ def main(argv=None):
         from onnxruntime.quantization import QuantType, quantize_dynamic
     except ImportError:
         raise SystemExit(
-            "onnx et onnxruntime sont absents :\n"
-            "  pip install onnx onnxruntime")
+            "la chaîne d'export est absente :\n"
+            "  pip install onnx onnxruntime onnxscript")
 
     if not TRACED.is_file():
         raise SystemExit(f"{TRACED} manque — rends d'abord le matériel du banc")
@@ -82,24 +111,43 @@ def main(argv=None):
     matrix.ONNX_WEIGHTS.parent.mkdir(parents=True, exist_ok=True)
     plain = matrix.ONNX_WEIGHTS.parent / f"{matrix.CHOSEN}.onnx"
     values = torch.from_numpy(prepared)
+    # Measured before anything is touched: this is the reading every number
+    # written down so far was made against, so it is what the exported graph --
+    # weight norm folded and all -- has to reproduce.
     expected = wrapped(net, torch)(values).numpy()[0]
 
     print(f"\nexport de {matrix.MODEL}")
+    # Traced through the dynamo exporter rather than the TorchScript one, which
+    # is deprecated: the graph a phone will carry is not built on a path due to
+    # be removed. The sample axis is the only free one -- a turn of speech has
+    # no fixed length -- and the opset is pinned so the file does not depend on
+    # which version of the exporter happened to run. Pinned to what the exporter
+    # actually implements: asking for less makes it emit 18 and then convert
+    # down, which is a translation nobody needs standing between the weights and
+    # the phone.
     torch.onnx.export(
-        wrapped(net, torch), (values,), str(plain),
+        wrapped(folded(net, torch), torch), (values,), str(plain), dynamo=True,
         input_names=["input_values"], output_names=["probabilities"],
-        dynamic_axes={"input_values": {1: "samples"},
-                      "probabilities": {1: "frames"}},
-        opset_version=17)
-    print(f"  {plain.name}  {plain.stat().st_size / 1e6:.0f} Mo")
+        dynamic_shapes={"input_values": {1: torch.export.Dim("samples",
+                                                             min=4000)}},
+        opset_version=18)
+    print(f"  {plain.name}  {weight(plain) / 1e6:.0f} Mo")
 
+    # Rounded on the same perimeter PyTorch rounds on, and no wider. Left to
+    # itself the tool also rounds the convolutions -- the feature extractor,
+    # which is where the signal is still a signal -- and measured that way a
+    # clean control climbs to 0.851, which is fault territory: the reading stops
+    # being the reading the bench qualified. Per-channel because one scale for a
+    # whole weight matrix is decided by its largest column, and every other
+    # column pays for it.
     quantised = plain.parent / f"{matrix.CHOSEN}-int8.onnx"
-    quantize_dynamic(str(plain), str(quantised), weight_type=QuantType.QInt8)
-    print(f"  {quantised.name}  {quantised.stat().st_size / 1e6:.0f} Mo")
+    quantize_dynamic(str(plain), str(quantised), weight_type=QuantType.QInt8,
+                     op_types_to_quantize=["MatMul"], per_channel=True)
+    print(f"  {quantised.name}  {weight(quantised) / 1e6:.0f} Mo")
 
-    print("\nécart à la lecture PyTorch, sur le fichier tracé :")
+    print("\nécart à la lecture PyTorch en flottant, sur le fichier tracé :")
+    import onnxruntime
     for path in (plain, quantised):
-        import onnxruntime
         session = onnxruntime.InferenceSession(
             str(path), providers=["CPUExecutionProvider"])
         got = session.run(None, {"input_values": prepared})[0][0]
@@ -107,8 +155,17 @@ def main(argv=None):
             raise SystemExit(f"{path.name} rend {got.shape}, "
                              f"attendu {expected.shape}")
         gap = float(np.abs(got - expected).max())
-        verdict = "même lecture" if gap <= SAME_READING else "DIVERGE"
-        print(f"  {path.name:<28}{gap:.2e}  {verdict}")
+        print(f"  {path.name:<28}{gap:.2e}")
+
+        # Only the float graph is held to the reference here. The 8-bit one is
+        # meant to differ -- rounding is the whole point of it -- and how much
+        # of that difference survives to the gap the app marks on is not a
+        # question a single file answers.
+        if path is plain and gap > SAME_READING:
+            raise SystemExit("  l'export n'est pas fidèle — rien au-dessus "
+                             "ne veut dire quoi que ce soit")
+    print("\n  l'arrondi déplace la matrice ; ce qu'il déplace du verdict :"
+          "\n  QUANTISED=1 RUNTIME=onnx python3 faults.py")
     return 0
 
 
