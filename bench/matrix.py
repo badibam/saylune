@@ -53,8 +53,18 @@ MODEL = CANDIDATE.model
 # exposed to it -- it lives on what surrounds the peak, which is the first thing
 # rounding takes -- so the bench has to be able to run both and compare.
 QUANTISED = os.environ.get("QUANTISED") == "1"
-SLUG = CHOSEN + ("-int8" if QUANTISED else "")
+
+# Which machine reads the network. PyTorch is the desktop reference and no
+# phone runs it; ONNX Runtime is what will, so the bench has to be able to read
+# the same files through it and be held to the same numbers. The two readings
+# never share a cache: telling them apart is the whole point.
+ONNX = os.environ.get("RUNTIME") == "onnx"
+SLUG = CHOSEN + ("-onnx" if ONNX else "") + ("-int8" if QUANTISED else "")
 SAMPLE_RATE = 16000
+
+HERE = Path(__file__).resolve().parent
+ONNX_WEIGHTS = (HERE / "out" / "onnx"
+                / f"{CHOSEN}{'-int8' if QUANTISED else ''}.onnx")
 
 # What each model calls "nothing is being pronounced here". A frame classifier
 # names silence outright and keeps a padding token beside it that means nothing
@@ -70,6 +80,18 @@ PAD = ("[SIL]", "<pad>", "[PAD]")
 NOT_A_SOUND = ("|", "h#", "pau", "epi", " ")
 
 _loaded = None
+_configured = None
+_symbols = None
+_session = None
+
+
+def cached():
+    """The weights cache, never the default one: /home is a tmpfs here."""
+    if not os.environ.get("HF_HOME"):
+        raise SystemExit(
+            "Missing environment variable: HF_HOME (the weights cache)")
+    from huggingface_hub import hf_hub_download
+    return hf_hub_download
 
 
 def loaded():
@@ -81,11 +103,8 @@ def loaded():
     """
     global _loaded
     if _loaded is None:
-        if not os.environ.get("HF_HOME"):
-            raise SystemExit(
-                "Missing environment variable: HF_HOME (the weights cache)")
+        cached()
         import torch
-        from huggingface_hub import hf_hub_download
         from transformers import AutoFeatureExtractor, AutoModelForCTC
 
         torch.set_grad_enabled(False)
@@ -97,32 +116,75 @@ def loaded():
                 feature_size=1, sampling_rate=SAMPLE_RATE, padding_value=0.0,
                 do_normalize=True, return_attention_mask=False)
         net = AutoModelForCTC.from_pretrained(MODEL).eval()
-        if QUANTISED:
+        if QUANTISED and not ONNX:
             net = torch.ao.quantization.quantize_dynamic(
                 net, {torch.nn.Linear}, dtype=torch.qint8)
-        vocab = json.load(open(
-            hf_hub_download(CANDIDATE.vocabulary or MODEL, "vocab.json"),
-            encoding="utf-8"))
-        symbols = [None] * len(vocab)
-        for token, index in vocab.items():
-            symbols[index] = token
-        _loaded = (extractor, net, symbols, torch)
+        _loaded = (extractor, net, symbols(), torch)
     return _loaded
+
+
+def configured():
+    """The checkpoint's own description, weights untouched.
+
+    Read from the config file rather than from a loaded network, because what
+    is asked of it -- the frame rate -- is needed by every reading, including
+    the ones that never load PyTorch at all.
+    """
+    global _configured
+    if _configured is None:
+        _configured = json.load(open(
+            cached()(MODEL, "config.json"), encoding="utf-8"))
+    return _configured
+
+
+def prepared(audio):
+    """The waveform as the network expects it: zero mean, unit variance.
+
+    Written out rather than delegated to the feature extractor because this is
+    the one step of the pipeline the phone has to reimplement, and a bench that
+    hid it behind a library would never have said what to reimplement. All the
+    candidates normalise; `export.py` holds the numpy form to the extractor's.
+    """
+    audio = np.asarray(audio, dtype=np.float32)
+    return ((audio - audio.mean())
+            / np.sqrt(audio.var() + 1e-7)).astype(np.float32)[None, :]
 
 
 def seconds_per_frame():
     """Read off the convolutions rather than declared: the stack decimates the
     waveform by the product of its strides, and a candidate that halves the last
     one doubles the resolution."""
-    strides = loaded()[1].config.conv_stride
+    strides = configured()["conv_stride"]
     product = 1
     for stride in strides:
         product *= stride
     return product / SAMPLE_RATE
 
 
+def session():
+    """The exported graph, loaded once. No PyTorch anywhere in this reading."""
+    global _session
+    if _session is None:
+        import onnxruntime
+        if not ONNX_WEIGHTS.is_file():
+            raise SystemExit(f"{ONNX_WEIGHTS} manque — python3 export.py")
+        _session = onnxruntime.InferenceSession(
+            str(ONNX_WEIGHTS), providers=["CPUExecutionProvider"])
+    return _session
+
+
 def symbols():
-    return loaded()[2]
+    """The symbol table, from the vocabulary file rather than from a network."""
+    global _symbols
+    if _symbols is None:
+        vocab = json.load(open(
+            cached()(CANDIDATE.vocabulary or MODEL, "vocab.json"),
+            encoding="utf-8"))
+        table = [None] * len(vocab)
+        for token, index in vocab.items():
+            table[index] = token
+        _symbols = table
+    return _symbols
 
 
 def blank():
@@ -141,11 +203,16 @@ def probabilities(wav, cache=None):
     audio, rate = sf.read(wav)
     if rate != SAMPLE_RATE:
         raise SystemExit(f"{wav} is at {rate} Hz, expected {SAMPLE_RATE}")
-    extractor, net, _, torch = loaded()
-    values = extractor(audio, sampling_rate=rate,
-                       return_tensors="pt").input_values
-    logits = net(values).logits[0]
-    probabilities = torch.softmax(logits, dim=-1).numpy().astype(np.float32)
+    values = prepared(audio)
+    if ONNX:
+        # The softmax lives inside the exported graph, so what comes out is the
+        # matrix itself -- the same contract the phone will be held to.
+        probabilities = session().run(
+            None, {"input_values": values})[0][0].astype(np.float32)
+    else:
+        _, net, _, torch = loaded()
+        logits = net(torch.from_numpy(values)).logits[0]
+        probabilities = torch.softmax(logits, dim=-1).numpy().astype(np.float32)
 
     if cache is not None:
         Path(cache).parent.mkdir(parents=True, exist_ok=True)
