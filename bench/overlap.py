@@ -32,9 +32,9 @@ import synth
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes"
 RENDERS = HERE / "out" / "renders"
-MATRICES = HERE / "out" / "matrices"
-
-SECONDS_PER_FRAME = 0.02
+# Keyed by the acoustic model: two models read the same file differently, and
+# a cache that forgot which one produced a matrix would compare across them.
+MATRICES = HERE / "out" / "matrices" / matrix.SLUG
 
 # Where the model puts a sound, and how far the other recording sits from it.
 Gap = namedtuple("Gap", "value symbol seconds")
@@ -54,7 +54,7 @@ def spread(probabilities, span):
     rows = probabilities[span[0]:span[1]]
     mean = rows.mean(axis=0)
     empty = mean[matrix.blank()]
-    speech = np.delete(mean, matrix.blank())
+    speech = mean[matrix.spoken()]
     total = speech.sum()
     if total <= 0:
         return None, empty
@@ -97,7 +97,7 @@ def sounds(model_wav, other_wav, model_tag, other_tag, slug):
         if empty_here > EMPTY_MASS or empty_there > EMPTY_MASS:
             continue
         read.append(Gap(divergence(here, there), matrix.symbols()[index],
-                        start * SECONDS_PER_FRAME))
+                        start * matrix.seconds_per_frame()))
     return read
 
 

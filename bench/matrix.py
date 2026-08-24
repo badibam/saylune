@@ -13,14 +13,55 @@ like, never what a word should sound like.
 
 import json
 import os
+from collections import namedtuple
 from pathlib import Path
 
 import numpy as np
 import soundfile as sf
 
-MODEL = "facebook/wav2vec2-lv-60-espeak-cv-ft"
+# The acoustic model is a parameter, because which one to run is exactly what
+# the bench is measuring. Anything with frame-level logits over a phone
+# inventory fits: what is read is the spread, never the label.
+#
+# What differs between candidates is where the inventory lives and how the
+# waveform is prepared, and a checkpoint that omits those files still has to be
+# describable. `vocabulary` names the repo holding vocab.json when it is not the
+# model's own; `extractor` says whether the repo carries its own preparation or
+# the standard one applies.
+Candidate = namedtuple("Candidate", "model vocabulary extractor")
+
+CANDIDATES = {
+    "espeak": Candidate("facebook/wav2vec2-lv-60-espeak-cv-ft", None, "repo"),
+    "gruut": Candidate("bookbot/wav2vec2-ljspeech-gruut", None, "repo"),
+    "charsiu": Candidate("charsiu/en_w2v2_fc_10ms",
+                         "charsiu/tokenizer_en_cmu", "standard"),
+    "timit-ipa": Candidate("vitouphy/wav2vec2-xls-r-300m-timit-phoneme",
+                           None, "repo"),
+    "timit": Candidate("excalibur12/wav2vec2-large-lv60_phoneme-timit"
+                       "_english_timit-4k_simplified", None, "repo"),
+}
+
+CHOSEN = os.environ.get("ACOUSTIC_MODEL", "espeak")
+if CHOSEN not in CANDIDATES:
+    raise SystemExit(f"Unknown model {CHOSEN!r}. Known: "
+                     + ", ".join(CANDIDATES))
+CANDIDATE = CANDIDATES[CHOSEN]
+MODEL = CANDIDATE.model
+SLUG = CHOSEN
 SAMPLE_RATE = 16000
-PAD = "<pad>"
+
+# What each model calls "nothing is being pronounced here". A frame classifier
+# names silence outright and keeps a padding token beside it that means nothing
+# acoustic, so the explicit silence is tried first. This symbol is the one the
+# readings must recognise: the grid drops it, the alignment threads through it.
+PAD = ("[SIL]", "<pad>", "[PAD]")
+
+# Not sounds. A word separator, and the several names annotators give to
+# silence -- a pause between words, the closure before a plosive, the boundary
+# of an utterance. Letting any of them into the grid would set the comparison
+# to work on emptiness, and make the alignment thread through a boundary as if
+# it had been spoken.
+NOT_A_SOUND = ("|", "h#", "pau", "epi", " ")
 
 _loaded = None
 
@@ -42,10 +83,17 @@ def loaded():
         from transformers import AutoFeatureExtractor, AutoModelForCTC
 
         torch.set_grad_enabled(False)
-        extractor = AutoFeatureExtractor.from_pretrained(MODEL)
+        if CANDIDATE.extractor == "repo":
+            extractor = AutoFeatureExtractor.from_pretrained(MODEL)
+        else:
+            from transformers import Wav2Vec2FeatureExtractor
+            extractor = Wav2Vec2FeatureExtractor(
+                feature_size=1, sampling_rate=SAMPLE_RATE, padding_value=0.0,
+                do_normalize=True, return_attention_mask=False)
         net = AutoModelForCTC.from_pretrained(MODEL).eval()
-        vocab = json.load(
-            open(hf_hub_download(MODEL, "vocab.json"), encoding="utf-8"))
+        vocab = json.load(open(
+            hf_hub_download(CANDIDATE.vocabulary or MODEL, "vocab.json"),
+            encoding="utf-8"))
         symbols = [None] * len(vocab)
         for token, index in vocab.items():
             symbols[index] = token
@@ -53,12 +101,26 @@ def loaded():
     return _loaded
 
 
+def seconds_per_frame():
+    """Read off the convolutions rather than declared: the stack decimates the
+    waveform by the product of its strides, and a candidate that halves the last
+    one doubles the resolution."""
+    strides = loaded()[1].config.conv_stride
+    product = 1
+    for stride in strides:
+        product *= stride
+    return product / SAMPLE_RATE
+
+
 def symbols():
     return loaded()[2]
 
 
 def blank():
-    return symbols().index(PAD)
+    for name in PAD:
+        if name in symbols():
+            return symbols().index(name)
+    raise SystemExit(f"No blank symbol among {PAD} in {MODEL}")
 
 
 def probabilities(wav, cache=None):
@@ -82,6 +144,13 @@ def probabilities(wav, cache=None):
     return probabilities
 
 
+def spoken():
+    """The columns that stand for a sound: silence and notation excluded."""
+    empty = blank()
+    return [index for index, name in enumerate(symbols())
+            if index != empty and name not in NOT_A_SOUND]
+
+
 def grid(probabilities):
     """Free decoding: the sounds this voice actually produced, as frame spans.
 
@@ -90,12 +159,14 @@ def grid(probabilities):
     spans matter, because they are what tells two matrices which rows face which.
     """
     best = probabilities.argmax(axis=-1)
-    empty = blank()
+    ignored = {blank()}
+    ignored.update(symbols().index(name) for name in NOT_A_SOUND
+                   if name in symbols())
     segments = []
     start = 0
     for frame in range(1, len(best) + 1):
         if frame == len(best) or best[frame] != best[start]:
-            if best[start] != empty:
+            if best[start] not in ignored:
                 segments.append((int(best[start]), start, frame))
             start = frame
     return segments
