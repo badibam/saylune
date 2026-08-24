@@ -74,8 +74,8 @@ L'annotation des sons attendus est la mienne, et la table d'équivalences de `ex
 
 ## Ce qui reste ouvert
 
-- **Le critère de finesse** : chercher un modèle à 10 ms qui passe les autres critères, ou mesurer ce que les 12 % de sons perdus coûtent réellement au marquage.
-- **Ce que la jointure doit rendre** pour qu'une marque soit juste. Tant que ce n'est pas énoncé, 57 % ne se juge pas.
+Le versant grille — pourquoi elle perd des sons, et la voie de sortie — a été diagnostiqué et planifié depuis : cf. `dense-grid.md`, qui porte aussi la géométrie de jointure rodée et la tolérance de la marque. Reste ouvert ici, côté lettres :
+
 - **Corriger l'annotation** de `expected.py` là où elle est discutable, et recompter.
 - **Les deux réseaux chargés ensemble**, ou la discipline charge-passe-décharge.
 - **Le garde-fou des textes non épelables**, côté app.
