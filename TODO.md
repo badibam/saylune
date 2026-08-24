@@ -1,8 +1,10 @@
 # TODO
 
-## Chantier 1 — le moteur d'analyse : tranché
+## Chantier 1 — le moteur d'analyse : en bifurcation
 
-**SpeechAce, pour la v1.** Le jeu d'essai complet est passé sur les deux candidats, à la même méthode, et l'écart n'est pas discutable :
+**La décision est rouverte, et elle penche.** SpeechAce tient la v1 par défaut, faute d'avoir été remplacé ; l'analyse embarquée a passé depuis tout ce qu'un poste peut mesurer, et fait mieux que lui sur le jeu d'essai. Un seul verrou reste avant de trancher : est-ce que ça tourne sur un téléphone. **Si le PoC embarqué répond oui, c'est lui le moteur de la v1**, et probablement le seul — pas une alternative gardée en réserve. Ce qui suit décrit l'état des deux branches, en commençant par la mesure qui a fondé le choix initial.
+
+**SpeechAce, mesuré pour la v1.** Le jeu d'essai complet est passé sur les deux candidats, à la même méthode, et l'écart n'est pas discutable :
 
 | | phonème, sans fausse alerte | accent | mélodie |
 |---|---|---|---|
@@ -18,11 +20,21 @@ Ce qui reste ouvert de ce chantier, et qui n'attend pas :
 - **Le choix de SpeechAce se rouvre partiellement.** Rien ne le disqualifie en `en-us`. Mais ce que l'app lui prend s'est réduit — la mélodie se mesure mieux en local, le verdict d'accent est faux en US et absent en GB, `sound_most_like` est inutilisable — et il ne reste que la note au phonème et l'ancrage aux lettres, pour 40 $/mois de plancher. Deux pistes :
   - **L'analyse embarquée**, dont le montage est instruit de bout en bout (`docs/design/embedded-analysis.md`) et dont la mesure fondatrice est **passée** : deux voix de synthèse différentes se recouvrent à deux millièmes de médiane, donc le locuteur ne survit pas dans la répartition et la comparaison de formes tient. **La mesure qui décide est passée aussi**, et le moteur est nommé : `vitouphy/wav2vec2-xls-r-300m-timit-phoneme`, Apache-2.0, préféré à quatre autres candidats mesurés au même jeu. Sept fautes sur huit vues sur le son étiqueté, témoins à zéro — mieux que SpeechAce, sans dictionnaire ni appel. La quantification en entiers 8 bits est mesurée et passe : les fautes franches ne bougent pas, seule la zone grise s'écrase de moitié — le seuil de marquage se calibrera donc sur les poids qui tournent. Reste, dans l'ordre : **un proof of concept sur l'appareil** (cf. ci-dessous) ; le seuil de la brique 11, à exprimer relativement à la prise ; la stabilité de la grille ; et le seuil de marquage, à tirer des prises.
 
-  **Le prochain pas est un PoC embarqué**, et il porte trois inconnues qu'aucune mesure de poste ne lèvera : la mémoire nécessaire pour charger 315 Mo de poids, le temps d'une passe sur un tour réel, et l'écart introduit par ONNX Runtime. Le contrôle décisif est numérique — les mêmes fichiers du banc, la même matrice qu'au poste. Si les deux concordent, la grille, l'alignement et l'écart sont de l'arithmétique pure et se portent sans surprise. Un point à instruire avant de s'engager : `onnxruntime-android` est distribué en AAR pré-compilé, ce qui se heurte à l'exigence F-Droid de bâtir depuis les sources.
+  **Le prochain pas est un PoC embarqué**, et c'est lui qui tranche le chantier. Il porte trois inconnues qu'aucune mesure de poste ne lèvera : la mémoire nécessaire pour charger 315 Mo de poids, le temps d'une passe sur un tour réel, et l'écart introduit par ONNX Runtime. Le contrôle décisif est numérique — les mêmes fichiers du banc, la même matrice qu'au poste. Si les deux concordent, la grille, l'alignement et l'écart sont de l'arithmétique pure et se portent sans surprise.
+
+  **Le runtime natif est le seul point non instruit, et il devient une question de v1.** `onnxruntime-android` est distribué en AAR pré-compilé, ce que F-Droid n'accepte pas : leur exigence est de bâtir depuis les sources. Rien n'est fermé — ONNX Runtime est en MIT et son build Android est documenté (`./build.sh --android --build_java` produit l'AAR) — mais aucun précédent d'application F-Droid qui le compile dans sa recette n'a été trouvé, donc la voie n'est pas balisée. Trois issues, à instruire avant de s'engager sur du code :
+
+  - **Compiler ORT dans la recette F-Droid.** Propre, mais gros build, et la reproductibilité impose d'épingler la version exacte du NDK — le point délicat avec du natif.
+  - **Le faire entrer comme bibliothèque partagée**, compilée une fois chez eux : le mécanisme existe, il se négocie.
+  - **Un build minimal d'ORT**, réduit aux seuls opérateurs de notre modèle. C'est l'issue la plus prometteuse pour notre cas précis, puisqu'on ne fait tourner qu'un seul modèle : la taille et le temps de compilation tombent tous les deux.
+
+  Pour le PoC lui-même, la question ne se pose pas : on prend l'AAR pré-compilé, on mesure, on décide ensuite.
   - **Élargir le champ des services distants**, jamais fait : deux mesurés, aucun troisième regardé. Pistes non vérifiées — Language Confidence, SpeechSuper, ELSA. Un candidat se branche par une fonction dans `bench/engine.py`.
 - **L'accent GB est diminué et fragile.** Pas d'échelle du mot (`predicted_stress_level` absent), et une seule voix mesurée qui s'étalonne, chez un seul fournisseur. Issue non mesurée : reconstruire l'accent depuis la durée et la hauteur par syllabe, que `en-gb` rend. À noter que la fragilité est un verdict du lexique `en-gb` de SpeechAce et non une propriété des voix : elle disparaît si l'analyse embarquée aboutit, le dialecte n'y étant plus un référentiel à choisir mais une conséquence du modèle.
 
-L'**analyse embarquée** reste la seule alternative envisagée, et pas pour la v1 — montage écrit dans `docs/design/embedded-analysis.md`, qualification par `docs/design/engine-qualification.md`. Elle retirerait le poste à abonnement plancher (l'analyse), pas le BYOK ni `NonFreeNet`, qui tiennent aux maillons restés distants. Rien de ce qui s'écrit d'ici là ne doit lui fermer la porte. La mélodie en est la brique détachable la plus mûre, autonome au point d'être envisageable dès la v1 en complément du service.
+L'**analyse embarquée** n'est plus une alternative en réserve : c'est la branche qui mène, et le PoC dira si elle devient le moteur de la v1. Montage écrit dans `docs/design/embedded-analysis.md`, qualification par `docs/design/engine-qualification.md`. Elle retirerait le poste à abonnement plancher, pas le BYOK ni `NonFreeNet`, qui tiennent à la conversation et à la synthèse restées distantes — et elle ajouterait en échange une dépendance native à faire accepter par F-Droid. Rien de ce qui s'écrit d'ici là ne doit lui fermer la porte, ni présumer qu'elle est acquise.
+
+`docs/reference.md` porte encore la formulation d'avant la bifurcation — SpeechAce retenu, embarqué « pas un engagement de la v1 ». À reprendre quand le PoC aura répondu, pas avant : c'est le doc des décisions, pas des paris.
 
 ## Chantier 2 — choisir les fournisseurs de conversation et de synthèse
 
