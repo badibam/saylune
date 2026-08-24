@@ -11,7 +11,11 @@ Ce que la conception d'interface a tranché, de bout en bout. Les principes qu'e
 
 ## Le micro
 
-**Armement automatique** : le micro s'ouvre dès que l'IA finit de parler, un seul tap clôt le tour — le rythme d'une conversation, un geste par tour, faisable à l'aveugle (grande cible en bas d'écran). Les silences de tête et de queue sont **rognés localement** avant envoi (trim à l'énergie, jamais de VAD en cours de parole) : l'analyse se facture à la durée, les silences de réflexion ne se paient pas. L'état « micro ouvert » est non ambigu, visuellement et sonorement. **L'armement manuel reste une option d'app** pour qui refuse tout enregistrement non voulu.
+**Armement automatique** : le micro s'ouvre dès que l'IA finit de parler, un seul tap clôt le tour — le rythme d'une conversation, un geste par tour, faisable à l'aveugle (grande cible en bas d'écran). L'état « micro ouvert » est non ambigu, visuellement et sonorement. **L'armement manuel reste une option d'app** pour qui refuse tout enregistrement non voulu.
+
+**Ce mode est une piste parmi quatre**, pas un tranché (cf. `../reference.md`, « Les deux tuyaux ») : ce qui est décidé est l'invariant — rien ne coupe qui parle encore, l'audio du tour est conservé — pas le geste qui l'applique.
+
+**Les plages vides sont rognées localement avant envoi**, de tête, de queue et d'intérieur — rien ne distingue le milieu du bord une fois posé un **seuil de durée**, qui est ce qui rend la coupe sûre : une occlusive est du silence, mais elle dure 50 à 120 ms, et ne retirer que les plages de l'ordre de la demi-seconde place la coupe hors du domaine des phonèmes. Le gain n'est pas que financier : sur l'analyse embarquée, la mémoire d'une passe croît comme le carré de la durée (`embedded-analysis.md`). Le **seuil de niveau** reste à poser, et il demande des tours spontanés hésitants que le banc n'a pas.
 
 ## L'écran de conversation
 

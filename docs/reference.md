@@ -129,9 +129,23 @@ Sortir avant d'avoir produit une phrase correcte et cohérente est donc légitim
 
 Deux circuits distincts partagent une seule ressource : le fichier audio du tour de parole.
 
-**Tuyau A — la conversation.** Micro → tampon local (PCM 16 kHz mono, un fichier par tour, **conservé**) → fin de parole **déclarée par l'utilisateur** → envoi au fournisseur de conversation → lecture de la réponse audio. Le fichier local est la condition d'existence du tuyau B : aucun service distant ne rend l'audio envoyé.
+**Tuyau A — la conversation.** Micro → tampon local (PCM 16 kHz mono, un fichier par tour, **conservé**) → fin de parole → envoi au fournisseur de conversation → lecture de la réponse audio. Le fichier local est la condition d'existence du tuyau B : aucun service distant ne rend l'audio envoyé.
 
-La fin de tour est **manuelle**, pas détectée. Une détection automatique coupe la parole de qui hésite, cherche un mot ou reprend sa phrase — c'est-à-dire précisément de qui apprend. Ça supprime au passage tout réglage de seuil de silence. Contrepartie à connaître : un tour peut devenir long, et l'analyse se facturant à la tranche de quinze secondes arrondie au-dessus, un tour de vingt secondes coûte le double d'un tour de huit.
+**Ce qui est décidé de la capture est un invariant, pas un mode.** Deux règles, et elles ne bougent pas :
+
+- **Rien ne coupe la parole de quelqu'un qui parle encore.** Couper qui hésite, cherche un mot ou reprend sa phrase, c'est couper précisément qui apprend.
+- **L'audio du tour est conservé localement**, sinon le tuyau B n'a rien à examiner.
+
+**Le mode de capture, lui, est ouvert** : l'invariant ne le désigne pas, plusieurs gestes l'honorent. Quatre pistes, aucune écartée :
+
+- **Armement automatique, un tap pour clore.** Ce que `design/ui-flow.md` a retenu : le micro s'ouvre dès que l'IA a fini, un geste par tour, faisable à l'aveugle. De l'air mort à la fin si l'on tarde à clore.
+- **Appui / appui.** Deux gestes, mais aucun enregistrement non voulu.
+- **Appui maintenu, relâchement = fin, puis validation.** Un seul geste, pas d'air mort, un réessai offert sans appel — mais tenir un bouton pendant qu'on cherche ses mots est une charge de plus, et le tour long y devient pénible.
+- **Déclenchement au seuil, arrêt après un silence long.** Le mode que l'invariant menace le plus, et pas nécessairement au point de l'écarter : avec un seuil de fin généreux, ce qui se ferait couper n'est plus l'hésitation mais la pause de réflexion vraiment longue. À mesurer plutôt qu'à trancher.
+
+Un critère pèse sur ce choix et ne relève pas de l'ergonomie : sur l'analyse embarquée, la mémoire d'une passe croît comme le **carré** de la durée du tour (`design/embedded-analysis.md`). Un mode qui borne naturellement la durée vaut donc mieux qu'un mode qui la laisse filer — ça ne désigne pas de gagnant, ça interdit de choisir sur le seul confort.
+
+Contrepartie commune à connaître tant qu'un service d'analyse distant reste en jeu : un tour long coûte cher, l'analyse se facturant à la tranche de quinze secondes arrondie au-dessus.
 
 **Tuyau B — analyser.** Le tour est examiné pour savoir s'il y a un problème et où. Se fait sur l'enregistrement existant, sans jamais rien redemander.
 
@@ -141,7 +155,7 @@ L'audio d'un tour part donc **deux fois**, chez deux fournisseurs distincts.
 
 Chaque tour dépend de services distants, et chacun peut manquer — réseau coupé, quota épuisé, fournisseur en panne, clé expirée. La règle se décline par brique, pas globalement :
 
-- **La chaîne de conversation est bloquante, mais réparable par construction** : la fin de tour manuelle et le fichier conservé font qu'un envoi raté se **réessaie sans redire la phrase**. L'échec coûte un bouton, jamais une parole perdue. La parenthèse grammaticale, qui ne consomme que cette chaîne, hérite du même traitement.
+- **La chaîne de conversation est bloquante, mais réparable par construction** : le fichier conservé fait qu'un envoi raté se **réessaie sans redire la phrase**. L'échec coûte un bouton, jamais une parole perdue. La parenthèse grammaticale, qui ne consomme que cette chaîne, hérite du même traitement.
 - **L'analyse ne bloque jamais la conversation.** Un tour dont l'analyse échoue est un tour sans marques, pas un tour en erreur — et il **porte sa raison** (« non analysé — quota »), comme une option éteinte porte la sienne : la panne au runtime est le même cas que la capacité absente.
 - **La parenthèse de prononciation sans moteur n'a plus d'objet.** Redire sans verdict n'est pas un exercice dégradé, c'est de l'auto-évaluation à l'oreille — ce que l'architecture refuse partout ailleurs. Si le moteur manque en cours de parenthèse, l'app le dit franchement et propose la sortie ; la phrase initiale reste telle qu'elle a été dite, comme pour toute sortie sans réussite. Ce cas est rare par construction : la marque ne naît pas sur un tour non analysé, donc cette parenthèse ne peut manquer de moteur qu'en le perdant en cours de route.
 - **Ni file hors-ligne, ni réanalyse différée** : analyser un tour trois tours plus tard produirait des marques sur du passé, ce que l'indépendance des tours interdit. Ce qui n'a pas été analysé sur le moment ne le sera pas.
