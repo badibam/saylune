@@ -1,6 +1,6 @@
 # Le banc
 
-Ce qui qualifie l'analyse et les voix modèles, exécutable. La procédure et les critères vivent dans `docs/design/analysis-qualification.md` ; ici il n'y a que de quoi les dérouler.
+Ce qui qualifie l'analyse et les voix modèles, exécutable. La procédure et les critères vivent dans `../docs/qualification.md` ; ici il n'y a que de quoi les dérouler.
 
 Rien de ce dossier ne part dans l'app : c'est l'instrument, pas le produit.
 
@@ -48,7 +48,7 @@ cd bench && python3 pull.py           # tire les poids et dit ce qu'ils valent
 
 Une **lecture** est une manière de calculer la matrice, et chacune a son propre cache — deux lectures qu'on veut comparer ne doivent jamais se recouvrir. Quatre variables d'environnement la nomment :
 
-- `ACOUSTIC_MODEL` — le modèle, par son nom court dans la table de `matrix.py` (`timit-ipa` retenu, `espeak`, `charsiu`, `gruut`, `timit`). Les cinq ont été mesurés ; ce qui les départage est dans `../docs/design/embedded-analysis.md`.
+- `ACOUSTIC_MODEL` — le modèle, par son nom court dans la table de `matrix.py` (`timit-ipa` retenu, `espeak`, `charsiu`, `gruut`, `timit`). Les cinq ont été mesurés ; ce qui les départage est dans `../docs/analysis.md`.
 - `QUANTISED=1` — les mêmes poids arrondis en entiers 8 bits, c'est-à-dire ce qui tourne sur un téléphone.
 - `RUNTIME=onnx` — la lecture par ONNX Runtime au lieu de PyTorch, c'est-à-dire la machine qui tourne sur le téléphone. Elle ne charge pas PyTorch du tout et demande le fichier exporté.
 - `READING=<nom>` — une lecture calculée **ailleurs**, déjà rangée dans le cache. C'est ainsi que l'appareil se relit : `READING=phone-int8 python3 faults.py` fait tourner le jeu d'essai sur ce que le téléphone a produit, sans que rien du banc ait à savoir d'où viennent les chiffres. Une lecture empruntée ne se calcule jamais ici — un cache manquant échoue franchement plutôt que de se remplir tout seul.

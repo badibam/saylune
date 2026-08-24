@@ -2,7 +2,7 @@
 """Do two different voices produce comparable spreads?
 
 The first thing the embedded pipeline has to answer, and the one everything else
-waits on (`docs/design/embedded-analysis.md`). If the network keeps a trace of
+waits on (`docs/analysis.md`). If the network keeps a trace of
 who is speaking in the shape of its distributions, two flawless takes will
 overlap badly and the app will mark thin air.
 

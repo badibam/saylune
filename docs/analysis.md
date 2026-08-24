@@ -1,4 +1,4 @@
-# L'analyse embarquée
+# L'analyse
 
 L'analyse tourne **sur l'appareil**, et c'est la colonne vertébrale de l'app. Ce document la décrit brique par brique : ce qu'elle lit, ce qu'elle rend, ce qui est mesuré et ce qui reste à écrire.
 
@@ -107,7 +107,7 @@ Trois propriétés tombent gratuitement de cette forme de comparaison :
 
 - **La difficulté propre d'un son ne se paie pas.** Un son que le réseau distingue mal donne une forme large des deux côtés, et deux formes larges se recouvrent bien. Aucun calibrage par phonème n'est nécessaire.
 - **Le flou du modèle devient de la tolérance, sans seuil.** Si le modèle hésite lui-même (`AO 0.44 / AH 0.38`, parce qu'il a réduit la syllabe), un apprenant qui atterrit sur l'un ou l'autre reste proche de sa forme et n'est pas marqué. Là où le modèle est net, la même divergence marque. Le « on ne sait rien ici » se règle mécaniquement.
-- **Le son produit est nommé.** Là où la masse de l'apprenant s'est déplacée, c'est ce qu'il a dit. C'est l'enrichissement que le contrat de `../reference.md` classe en confort et qu'aucun service mesuré ne rendait correctement.
+- **Le son produit est nommé.** Là où la masse de l'apprenant s'est déplacée, c'est ce qu'il a dit. C'est l'enrichissement que le contrat de `reference.md` classe en confort et qu'aucun service mesuré ne rendait correctement.
 
 ### 7. Le mot — l'accent
 
@@ -121,7 +121,7 @@ Trois traits, et ils n'ont pas le même poids :
 
 Comme tout se compare au modèle et non à une norme, un mot sans relief des deux côtés reste comparable : les deux manquent de pic ensemble.
 
-**Ce qui s'affiche : la syllabe.** `ui-flow.md` a tranché la forme — graisse sur la syllabe que le modèle accentue, et sur une faute deux réglettes sous la ligne, rouge où l'accent est parti, verte où il devait tomber. Deux réglettes se comparent, deux points non ; et les trois canaux graphiques sont des étendues. Il faut donc une étendue syllabique exacte, pas approchée.
+**Ce qui s'affiche : la syllabe.** `design/ui-flow.md` a tranché la forme — graisse sur la syllabe que le modèle accentue, et sur une faute deux réglettes sous la ligne, rouge où l'accent est parti, verte où il devait tomber. Deux réglettes se comparent, deux points non ; et les trois canaux graphiques sont des étendues. Il faut donc une étendue syllabique exacte, pas approchée.
 
 ### 8. La syllabification — sur la grille, pas sur le texte
 
@@ -215,7 +215,7 @@ Le 8 bits est donc à la fois plus léger et **plus rapide** — l'arrondi n'ach
 
 Le temps croît comme la longueur puissance 1,3 environ. Mais au-dessus des 805 Mo qu'occupent les poids, le surcoût passe de 60 Mo à 3,5 Go, soit à peu près le **carré** de la longueur : c'est l'attention. Un tour d'une minute réclame 4,3 Go sur un appareil qui en a huit, et plante sur un appareil qui en a quatre.
 
-Ce que le chiffre engage n'est pas tranché ici (cf. `../../TODO.md`, chantier 1) : découper la passe en fenêtres, borner franchement la durée analysable en le disant, ou tenir que le tour d'une minute n'est pas un cas à servir sont trois issues, et rien dans la mesure ne les départage.
+Ce que le chiffre engage n'est pas tranché ici (cf. `../TODO.md`, chantier 1) : découper la passe en fenêtres, borner franchement la durée analysable en le disant, ou tenir que le tour d'une minute n'est pas un cas à servir sont trois issues, et rien dans la mesure ne les départage.
 
 **Ce qui se raccourcit sans rien risquer, en revanche, c'est l'audio lui-même.** Retirer les plages vides — de bord comme intérieures — abrège la passe et réduit son empreinte plus que proportionnellement, et le gain est net : un tour de 30 s dont 12 s de pauses tombe à 18 s, soit environ 1200 Mo au lieu de 1704.
 
@@ -308,7 +308,7 @@ Ce qui produirait un comportement inattendu, et où ça se traite.
 - **Mot d'une syllabe** : rien à comparer, ne jamais marquer. Règle explicite.
 - **Mot fonctionnel non mis en relief** (`the`, `of`) : les traits sont plats des deux côtés. Correct, mais demande un seuil « le modèle a-t-il un accent net » sous lequel on ne marque pas, sinon on marque du bruit.
 - **Consonne syllabique** (`bottle`, `button`) : le noyau n'est pas une voyelle, le mot est compté à une syllabe, aucune marque d'accent n'y apparaît jamais. Silencieux, pas faux — et sans conséquence, ces noyaux n'apparaissant en anglais que dans des syllabes non accentuées.
-- **Emphase de sens** (« I said it **IS** important ») : l'apprenant met le relief là où le modèle neutre ne l'a pas, et la divergence légitime est marquée comme faute. Connu et accepté (cf. `../reference.md`) — la forme de la parenthèse rend la fausse alerte peu coûteuse.
+- **Emphase de sens** (« I said it **IS** important ») : l'apprenant met le relief là où le modèle neutre ne l'a pas, et la divergence légitime est marquée comme faute. Connu et accepté (cf. `reference.md`) — la forme de la parenthèse rend la fausse alerte peu coûteuse.
 
 ### La comparaison elle-même
 
@@ -457,7 +457,7 @@ Ce que ça dit au-delà du chiffre : **une mesure d'arrondi ne vaut que pour l'a
 
 ## Ce qui reste à mesurer, dans l'ordre
 
-Chaque étape se juge au protocole de `analysis-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
+Chaque étape se juge au protocole de `qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
 Une conséquence de méthode, tirée de l'étape 1 : **une lecture n'a pas à avoir été calculée ici.** Le téléphone range ses matrices dans le cache comme n'importe quelle autre lecture (`READING=<nom>`), et toutes les briques du banc tournent dessus sans le savoir. C'est ce qui permet de poser à l'appareil la question du verdict, et pas seulement celle des chiffres.
 

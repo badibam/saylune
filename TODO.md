@@ -1,16 +1,8 @@
 # TODO
 
-## Chantier 1 — l'analyse embarquée : acquise, et ce qu'il reste à écrire
+## Chantier 1 — l'analyse : ce qu'il reste à écrire
 
-**L'analyse tourne sur l'appareil, et c'est la colonne vertébrale de l'app.** Le montage est écrit brique par brique dans `docs/design/embedded-analysis.md`, la qualification dans `docs/design/analysis-qualification.md`. Ce qui est mesuré et tenu :
-
-- deux voix de synthèse différentes se recouvrent à deux millièmes de médiane, donc le locuteur ne survit pas dans la répartition et la comparaison de formes tient ;
-- le modèle acoustique est nommé — `vitouphy/wav2vec2-xls-r-300m-timit-phoneme`, Apache-2.0, préféré à quatre autres candidats mesurés au même jeu — et il trouve les fautes du jeu d'essai étiqueté sans marquer les témoins, sans dictionnaire ni appel ;
-- la quantification en entiers 8 bits passe, sur l'arrondisseur qui tourne vraiment ;
-- **le tout tourne sur un Galaxy S10+ de 2019** : poids chargés en 0,8 s, empreinte à 930 Mo, une passe à quatre dixièmes de la durée du tour, deux lectures du même fichier rendant les mêmes octets ;
-- l'appareil ne rend pas les mêmes octets que le poste — les noyaux 8 bits diffèrent entre ARM et x86, 0,74 % des trames changent de son gagnant par bascule entre quasi-ex æquo — mais **le verdict tient** : pire témoin 0,004 contre 0,003, mêmes fautes vues, même manquée.
-
-Ce qui reste, dans l'ordre où ça mord :
+L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont dans `docs/analysis.md`, la façon de le vérifier dans `docs/qualification.md`. Ce qui suit est ce qui manque.
 
 - **Trois briques ne sont pas écrites**, et ce sont celles qui transforment des chiffres en marques : la **jointure lettres ↔ sons** (brique 4), l'**accent lexical** (7) et la **syllabification** (8). Sans la 4 il n'y a pas de marque, seulement des chiffres ; sans les 7 et 8, l'échelle du mot n'existe pas.
 - **La jointure attache l'app à un seul fournisseur de synthèse.** L'ancrage aux lettres vient des horodatages au caractère du TTS, et ElevenLabs est aujourd'hui le seul à les rendre en REST nu — Azure ne les donne que par un SDK propriétaire, incompatible F-Droid. C'est l'attache la plus étroite du montage, et elle contredit le principe de ne pas dépendre d'une instance de service.
@@ -19,7 +11,7 @@ Ce qui reste, dans l'ordre où ça mord :
 - **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
 - **La stabilité de la grille** : deux rendus du même texte par la même voix doivent donner la même suite de sons, sinon la mesure n'est pas reproductible. Le cache de synthèse neutralise en partie la question, jamais entièrement.
 - **Le taux de fausse alerte de l'accent sur un tour spontané.** Réglé pour le régime d'imitation (bloc F : 2 fautes sur 2, aucune fausse alerte), il reste inconnu là où l'apprenant n'a pas entendu le modèle — et il ne se mesure pas, étiqueter une prise spontanée exigeant ce modèle. Deux garde-fous à tenir en tête au moment de coder : l'emphase de sens divergera toujours d'un modèle neutre, et la parenthèse doit rendre une fausse alerte peu coûteuse.
-- **L'arithmétique au-dessus de la matrice n'est pas écrite en Kotlin**, donc pas mesurée sur l'appareil ; au poste elle est négligeable devant la passe réseau.
+- **L'arithmétique au-dessus de la matrice n'est pas écrite en Kotlin**, donc pas mesurée sur l'appareil ; au poste elle est négligeable devant la passe du réseau.
 - **Finir de reloger les sondes.** Restent dans `tmp/bench/`, non relogés : le contrôle de f0 par autocorrélation (`audio_probe.py`, que le protocole nomme), la latence (`latency.py`) et la reconstruction (`reconstruct.py`, qui sert au chantier 2).
 
 **Le coût du tour long est mesuré, et c'est la mémoire qui monte : 4316 Mo sur une minute d'audio.** Le temps croît comme la longueur puissance 1,3 (×0,32 sur 3 s, ×0,86 sur 60 s), la mémoire comme son carré — c'est l'attention. Un tour d'une minute plante un appareil à 4 Go. Trois issues, non départagées par la mesure et à trancher :
@@ -38,11 +30,11 @@ Indépendamment de l'issue, **les plages vides se retirent de l'audio** — de b
 
 En attendant, la sonde est tenue au build `debug` et l'AAR pré-compilé n'entre dans aucune release.
 
-**Un appareil, une architecture.** Tout ce qui précède est mesuré sur arm64 avec instructions de produit scalaire, et sur un seul téléphone. Rien ne dit ce que fait un appareil à 4 Go, ni un jeu d'instructions plus pauvre.
+**Mesurer sur un second appareil.** Tout est mesuré sur un seul téléphone, arm64 avec instructions de produit scalaire. Rien ne dit ce que fait un appareil à 4 Go, ni un jeu d'instructions plus pauvre — et le seuil de marquage dépendant de la lecture de l'appareil, c'est une question de conception autant que de compatibilité.
 
 ## Chantier 2 — choisir les fournisseurs de conversation et de synthèse
 
-Le montage est tranché : **chaîne STT → LLM → TTS**, reconnaissance par fichier, synthèse non pipelinée, 2,6 s jusqu'au premier son (cf. `docs/design/conversation-chain.md`). Reste à choisir qui tient chaque maillon — Azure Speech et DeepSeek ont servi à mesurer, pas à décider.
+Le montage est tranché : **chaîne STT → LLM → TTS**, reconnaissance par fichier, synthèse non pipelinée, 2,6 s jusqu'au premier son (cf. `docs/conversation-chain.md`). Reste à choisir qui tient chaque maillon — Azure Speech et DeepSeek ont servi à mesurer, pas à décider.
 
 - **La synthèse est contrainte avant d'être choisie.** L'ancrage horodaté au caractère est structurel — c'est de lui que vient l'ancrage aux lettres — et ElevenLabs est le seul à le rendre en REST nu ; Azure ne le donne que par un SDK propriétaire, incompatible F-Droid. **Non vérifié** : l'API de synthèse par lot d'Azure rend-elle ces métadonnées en REST pur ? Si oui, l'arbitrage s'ouvre. Et **aucune voix n'est aujourd'hui qualifiée comme étalon** : le test qui existait notait une voix chez un service dont l'app ne dépend plus, il est à refaire contre la matrice (cf. chantier 1).
 - **La méthode de choix est un banc, pas un tableau de prix** — un banc par maillon, jamais le couple en boîte noire. Les énoncés des deux bancs sont écrits (`docs/design/grammar-test-set.md`) : banc du juge (LLM, 25 énoncés étiquetés, fausses alertes sur l'informel correct, frontière des crans, qualité d'`intended`) et banc de l'oreille (STT, fidélité verbatim sur la faute, disfluences coupées tolérées mais mots jamais réparés, ponctuation des questions — quatre prises existantes réutilisées, deux à enregistrer).

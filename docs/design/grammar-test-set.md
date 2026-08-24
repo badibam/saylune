@@ -1,6 +1,6 @@
 # Jeu d'essai grammatical
 
-Le contenu des deux bancs du chantier 2 (cf. `TODO.md`) : le **banc du juge** (LLM, texte seul) et le **banc de l'oreille** (STT, audio). Même esprit que `pronunciation-test-set.md` : chaque énoncé vise un endroit où le jugement peut basculer, une phrase qui se juge sans ambiguïté ne mesure rien, et le contexte est collé parce que la moitié des cas ne se tranchent que par lui.
+Le contenu des deux bancs du chantier 2 (cf. `../../TODO.md`) : le **banc du juge** (LLM, texte seul) et le **banc de l'oreille** (STT, audio). Même esprit que `../qualification.md` : chaque énoncé vise un endroit où le jugement peut basculer, une phrase qui se juge sans ambiguïté ne mesure rien, et le contexte est collé parce que la moitié des cas ne se tranchent que par lui.
 
 **Étiqueter, c'est décider la policy.** Ce jeu ne mesure pas seulement les candidats : il fixe ce que l'app considère comme une faute. La norme retenue est **le parlé natif informel, pas l'écrit scolaire** — l'app fait pratiquer l'oral, et marquer « gonna » ou une question sans inversion serait corriger l'anglais que les natifs parlent. C'est la décision la plus lourde du jeu, et elle est prise ici, pas laissée au LLM.
 
@@ -74,7 +74,7 @@ Les prises existantes se réutilisent — même voix, mêmes fichiers :
 - **Bloc B du jeu de prononciation** (prises 2, 3, 11, 12) : quatre fautes grammaticales acoustiquement nettes, le cœur du critère verbatim.
 - **Prises 21 et 22** (question montante / plat) : la ponctuation rendue — une question dite doit sortir avec « ? », c'est le contour du modèle TTS qui en dépend.
 
-Deux prises neuves à enregistrer (contrainte de capture de `pronunciation-test-set.md` : `trim 1 6`, deux secondes avant de parler) :
+Deux prises neuves à enregistrer (contrainte de capture de `../qualification.md` : `trim 1 6`, deux secondes avant de parler) :
 
 | # | à dire | ce qu'on observe |
 |---|---|---|

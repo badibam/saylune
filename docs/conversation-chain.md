@@ -1,6 +1,6 @@
 # La chaîne de conversation — latence mesurée
 
-Le chantier 2 demandait si la latence cumulée d'une chaîne STT → LLM → TTS est acceptable, là où une API voix-à-voix la rend native. Ça ne se discute pas, ça se mesure. Ce document porte les nombres ; la décision qu'ils appuient vit dans `../reference.md`.
+Le chantier 2 demandait si la latence cumulée d'une chaîne STT → LLM → TTS est acceptable, là où une API voix-à-voix la rend native. Ça ne se discute pas, ça se mesure. Ce document porte les nombres ; la décision qu'ils appuient vit dans `reference.md`.
 
 Maillons mesurés : Azure Speech pour la reconnaissance et la synthèse, DeepSeek (`deepseek-chat`) pour le modèle. Le banc est `tmp/bench/latency.py`. Ce ne sont pas des maillons retenus — ce sont ceux dont on a la clé, et la forme du résultat compte plus que le fournisseur.
 

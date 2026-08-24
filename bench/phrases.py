@@ -3,7 +3,7 @@
 
 Calibration renders each sentence and scores it against its own text: whatever
 the engine takes off is the engine's noise or the voice's, never a learner's
-fault. So these are the sentences of `docs/design/pronunciation-test-set.md` in
+fault. So these are the sentences of `docs/qualification.md` in
 their *correct* form -- the model is always what should have been said.
 
 Kept in one place because three things read the same list: the calibration, the

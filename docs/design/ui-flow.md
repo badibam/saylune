@@ -15,7 +15,7 @@ Ce que la conception d'interface a tranché, de bout en bout. Les principes qu'e
 
 **Ce mode est une piste parmi quatre**, pas un tranché (cf. `../reference.md`, « Les deux tuyaux ») : ce qui est décidé est l'invariant — rien ne coupe qui parle encore, l'audio du tour est conservé — pas le geste qui l'applique.
 
-**Les plages vides sont rognées localement avant envoi**, de tête, de queue et d'intérieur — rien ne distingue le milieu du bord une fois posé un **seuil de durée**, qui est ce qui rend la coupe sûre : une occlusive est du silence, mais elle dure 50 à 120 ms, et ne retirer que les plages de l'ordre de la demi-seconde place la coupe hors du domaine des phonèmes. Le gain n'est pas que financier : sur l'analyse embarquée, la mémoire d'une passe croît comme le carré de la durée (`embedded-analysis.md`). Le **seuil de niveau** reste à poser, et il demande des tours spontanés hésitants que le banc n'a pas.
+**Les plages vides sont rognées localement avant envoi**, de tête, de queue et d'intérieur — rien ne distingue le milieu du bord une fois posé un **seuil de durée**, qui est ce qui rend la coupe sûre : une occlusive est du silence, mais elle dure 50 à 120 ms, et ne retirer que les plages de l'ordre de la demi-seconde place la coupe hors du domaine des phonèmes. Le gain n'est pas que financier : la mémoire d'une passe d'analyse croît comme le carré de la durée (`../analysis.md`). Le **seuil de niveau** reste à poser, et il demande des tours spontanés hésitants que le banc n'a pas.
 
 ## L'écran de conversation
 

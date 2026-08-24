@@ -1,8 +1,17 @@
 # speakup — référence
 
-App Android de pratique de l'anglais oral : conversation libre avec une IA, jamais interrompue, doublée d'un travail de la grammaire et de la prononciation à la demande. Ce document est le point d'entrée ; il porte les décisions **propres au projet**, celles qu'aucune facette de sagesse ne couvre. Le craft transverse vit dans les modules abonnés (cf. `manifest.md`).
+App Android de pratique de l'anglais oral : conversation libre avec une IA, jamais interrompue, doublée d'un travail de la grammaire et de la prononciation à la demande. Ce document est le point d'entrée ; il porte les décisions **propres au projet**, celles qu'aucune facette de sagesse ne couvre. Le craft transverse vit dans les modules abonnés (cf. `../manifest.md`).
 
-Docs complémentaires, à ouvrir au besoin : `design/embedded-analysis.md` (l'analyse, brique par brique — ce qu'elle lit, ce qu'elle rend, ses limites mesurées), `design/pronunciation-test-set.md` (le jeu d'essai et la méthode de mesure), `design/conversation-chain.md` (la latence mesurée de la chaîne STT → LLM → TTS), `design/analysis-qualification.md` (le protocole par lequel l'analyse qualifie, rejouable par un tiers), `design/grammar-test-set.md` (le jeu d'essai des deux bancs du chantier 2 — juge grammatical et fidélité du STT) et `design/ui-flow.md` (le flux et l'écran, de bout en bout — posture, micro, marquage, chorégraphie du tour).
+Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai et se consulte** :
+
+- `analysis.md` — l'analyse, brique par brique : ce qu'elle lit, ce qu'elle rend, ce qui est mesuré et ce qui reste à écrire.
+- `qualification.md` — comment on la vérifie : la procédure, et le jeu d'essai étiqueté qu'elle déroule. Rejouable par un tiers.
+- `conversation-chain.md` — la latence mesurée de la chaîne STT → LLM → TTS.
+
+`design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
+
+- `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
+- `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 
 ## Le geste
 
@@ -76,11 +85,11 @@ Une note de prononciation ne veut rien dire seule : chaque son a sa note « norm
 
 Et ce qu'on compare n'est jamais deux notes, mais **deux formes** : à chaque instant, la répartition de la ressemblance sur tous les sons de l'anglais. `R 0,90 / W 0,10` et `R 0,90 / ER 0,10` ont le même pic et ne disent pas la même chose ; comparer les répartitions entières plutôt que leur maximum est ce qui rend la mesure honnête.
 
-Mesuré (cf. `design/embedded-analysis.md`) : sur le jeu d'essai étiqueté, les prises témoins restent à 0,003 d'écart du modèle et les fautes franches montent au-dessus de 0,93. L'étalon annule le bruit propre de la machine, ce qui supprime tout besoin de calibrer son par son.
+Mesuré (cf. `analysis.md`) : sur le jeu d'essai étiqueté, les prises témoins restent à 0,003 d'écart du modèle et les fautes franches montent au-dessus de 0,93. L'étalon annule le bruit propre de la machine, ce qui supprime tout besoin de calibrer son par son.
 
 Deux propriétés qui comptent autant que la précision : la comparaison est **interne au tour**, elle n'accumule rien ; et le modèle est de toute façon nécessaire, puisque c'est lui qu'on fait entendre.
 
-**Une marque est une proposition d'aller voir, pas un verdict.** L'écart au modèle est validé là où l'apprenant a **entendu** ce modèle avant de parler : deux fautes d'accent sur deux vues, aucune fausse alerte sur les calques (cf. `design/pronunciation-test-set.md`, bloc F). Sur un tour de conversation il n'a rien entendu, et une divergence peut alors être une vraie faute ou une réalisation légitime que la synthèse ne reproduit pas — l'emphase de sens en est le cas type : « I said it **IS** important » divergera toujours d'un modèle neutre. La mélodie a ses équivalents — montée de continuation, déclarative montante — le contour légitime d'une phrase spontanée n'étant pas unique, là où l'accent lexical est fixé par le dictionnaire.
+**Une marque est une proposition d'aller voir, pas un verdict.** L'écart au modèle est validé là où l'apprenant a **entendu** ce modèle avant de parler : deux fautes d'accent sur deux vues, aucune fausse alerte sur les calques (cf. `qualification.md`, bloc F). Sur un tour de conversation il n'a rien entendu, et une divergence peut alors être une vraie faute ou une réalisation légitime que la synthèse ne reproduit pas — l'emphase de sens en est le cas type : « I said it **IS** important » divergera toujours d'un modèle neutre. La mélodie a ses équivalents — montée de continuation, déclarative montante — le contour légitime d'une phrase spontanée n'étant pas unique, là où l'accent lexical est fixé par le dictionnaire.
 
 Ce risque n'est pas chiffré et ne peut pas l'être, puisque étiqueter une prise spontanée exigerait le modèle qu'elle n'a justement pas entendu. Ce qui le rend tenable est la forme de la parenthèse : une marque infondée mène à écouter le modèle et à redire, le calque concorde, et la parenthèse se referme sur une réussite. Une fausse alerte coûte un détour court, jamais une leçon fausse.
 
@@ -145,7 +154,7 @@ Deux circuits distincts partagent une seule ressource : le fichier audio du tour
 - **Appui maintenu, relâchement = fin, puis validation.** Un seul geste, pas d'air mort, un réessai offert sans appel — mais tenir un bouton pendant qu'on cherche ses mots est une charge de plus, et le tour long y devient pénible.
 - **Déclenchement au seuil, arrêt après un silence long.** Le mode que l'invariant menace le plus, et pas nécessairement au point de l'écarter : avec un seuil de fin généreux, ce qui se ferait couper n'est plus l'hésitation mais la pause de réflexion vraiment longue. À mesurer plutôt qu'à trancher.
 
-Un critère pèse sur ce choix et ne relève pas de l'ergonomie : sur l'analyse embarquée, la mémoire d'une passe croît comme le **carré** de la durée du tour (`design/embedded-analysis.md`). Un mode qui borne naturellement la durée vaut donc mieux qu'un mode qui la laisse filer — ça ne désigne pas de gagnant, ça interdit de choisir sur le seul confort.
+Un critère pèse sur ce choix et ne relève pas de l'ergonomie : la mémoire d'une passe d'analyse croît comme le **carré** de la durée du tour (`analysis.md`). Un mode qui borne naturellement la durée vaut donc mieux qu'un mode qui la laisse filer — ça ne désigne pas de gagnant, ça interdit de choisir sur le seul confort.
 
 **Tuyau B — analyser.** Le tour est examiné, **sur l'appareil**, pour savoir s'il y a un problème et où. Se fait sur l'enregistrement existant, sans jamais rien redemander.
 
@@ -166,7 +175,7 @@ L'analyse compare l'audio de l'apprenant au modèle synthétisé pour un **texte
 
 La porte grammaticale en retire déjà la moitié du problème — sur un tour fautif, il n'y a pas d'analyse, et la phrase corrigée est redite contre un texte certain. Reste le tour grammaticalement propre.
 
-**Décision** : le texte vient de la transcription, que le LLM peut corriger à partir du contexte de la conversation. La répartition des rôles est une règle : **le STT transcrit la bouche, le LLM décide l'intention.** La normalisation appartient au LLM, qui a le contexte et une instruction — jamais au STT, qui la ferait en silence et sans contexte ; un STT qui répare la grammaire d'office efface le signal d'apprentissage avant tout jugement, et sa fidélité verbatim est un critère de choix (cf. `TODO.md`, chantier 2). La ponctuation d'`intended` fait partie de cette tâche : le LLM ponctue selon l'intention à laquelle il répond — s'il répond à une question, il a lu une question — et le contour du modèle TTS en dépend. Deux faits mesurés encadrent ce choix.
+**Décision** : le texte vient de la transcription, que le LLM peut corriger à partir du contexte de la conversation. La répartition des rôles est une règle : **le STT transcrit la bouche, le LLM décide l'intention.** La normalisation appartient au LLM, qui a le contexte et une instruction — jamais au STT, qui la ferait en silence et sans contexte ; un STT qui répare la grammaire d'office efface le signal d'apprentissage avant tout jugement, et sa fidélité verbatim est un critère de choix (cf. `../TODO.md`, chantier 2). La ponctuation d'`intended` fait partie de cette tâche : le LLM ponctue selon l'intention à laquelle il répond — s'il répond à une question, il a lu une question — et le contour du modèle TTS en dépend. Deux faits mesurés encadrent ce choix.
 
 Le piège se déclenche moins souvent qu'on le craignait : sur *« I sink »* comme sur *« I am walkin »*, la reconnaissance a rendu `think` et `walking` d'elle-même — le modèle de langue normalise vers le mot plausible, et il n'y avait rien à corriger.
 
@@ -221,13 +230,13 @@ Limite connue et acceptée : le BYOK reste un mur d'adoption — créer une ress
 
 ## L'analyse est à l'app, les autres briques sont à des fournisseurs
 
-**L'analyse tourne sur l'appareil, et c'est la colonne vertébrale de l'app** (`design/embedded-analysis.md`). Elle ne consulte aucune norme : ni dictionnaire de prononciation, ni lexique de dialecte, ni table graphème-phonème. Un seul fichier extérieur dans tout le pipeline, les poids d'un modèle acoustique libre.
+**L'analyse tourne sur l'appareil, et c'est la colonne vertébrale de l'app** (`analysis.md`). Elle ne consulte aucune norme : ni dictionnaire de prononciation, ni lexique de dialecte, ni table graphème-phonème. Un seul fichier extérieur dans tout le pipeline, les poids d'un modèle acoustique libre.
 
 Ce montage ne ressemble pas à l'approche habituelle, et pour une raison de situation plus que d'astuce. Qui n'a que l'audio d'un apprenant et un texte a besoin d'un dictionnaire pour se donner une norme. L'app, elle, possède **deux enregistrements du même énoncé** — elle synthétise le modèle de toute façon, puisque c'est lui qu'elle fait entendre. Le modèle est donc la source de vérité, cru aveuglément, et rien d'extérieur aux deux enregistrements ne juge quoi que ce soit.
 
 Mesuré : sur le jeu d'essai étiqueté, les fautes se trouvent sans qu'aucun témoin ne se déclenche, et le pipeline **tourne sur un téléphone de 2019** — les poids chargent en 0,8 s, l'empreinte plafonne à 930 Mo, et une passe coûte quatre dixièmes de la durée du tour.
 
-Ce que l'analyse doit rendre, et qui se vérifie brique par brique (`design/analysis-qualification.md`) :
+Ce que l'analyse doit rendre, et qui se vérifie brique par brique (`qualification.md`) :
 
 1. **Localiser** chaque son dans l'audio — position et durée — et permettre de repérer quand elle n'y parvient pas. Les alignements dégénérés existent et se trahissent par des durées absurdes ; une aberration qu'on ne voit pas passe pour une faute de l'apprenant.
 2. **Ancrer ses mesures au texte** : quelles lettres porte ce son, quelles lettres forme cette syllabe. Sans cet ancrage il n'y a pas de marque, seulement des chiffres.
@@ -238,13 +247,13 @@ Ce que l'analyse doit rendre, et qui se vérifie brique par brique (`design/anal
 
 **Conversation et synthèse restent distantes, et substituables** — `NonFreeNet` reste déclarée à ce titre.
 
-**Le montage est la chaîne STT → LLM → TTS**, tranchée, plutôt qu'une API voix-à-voix. Trois raisons, dont la dernière est mesurée : chaque maillon reste substituable ; la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où le voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir ; et la latence est bonne — **2,6 s jusqu'au premier son** sur un tour court, de bout en bout (cf. `design/conversation-chain.md`).
+**Le montage est la chaîne STT → LLM → TTS**, tranchée, plutôt qu'une API voix-à-voix. Trois raisons, dont la dernière est mesurée : chaque maillon reste substituable ; la reconstruction du texte de référence voyage dans l'appel LLM qu'on fait de toute façon, là où le voix-à-voix exigerait un appel supplémentaire par tour rien que pour l'obtenir ; et la latence est bonne — **2,6 s jusqu'au premier son** sur un tour court, de bout en bout (cf. `conversation-chain.md`).
 
 Deux points de montage réglés par la même mesure. La synthèse **n'est pas pipelinée** sur la première phrase du modèle : le gain est de 0,16 s, parce que le modèle achève son objet un septième de seconde après sa première phrase. Et la reconnaissance se fait **par fichier, pas en flux** : elle coûte un sixième de la durée de l'audio, ce qui pèse sur le tour long — qui est l'exception, pas le régime nominal. Rien ne se complique tant que l'usage n'a pas montré que ça gêne.
 
 **La synthèse porte une contrainte structurelle : l'ancrage horodaté.** C'est de lui seul que vient l'ancrage aux lettres, donc l'exigence 2 ci-dessus en dépend entièrement. ElevenLabs le rend **caractère par caractère en REST nu** ; Azure rend l'équivalent — frontières de mots, visèmes — uniquement par un SDK propriétaire, ce qui heurte de front la publication F-Droid. **Un seul fournisseur convient donc aujourd'hui**, et c'est l'attache la plus étroite de tout le montage : l'analyse est à nous, mais l'endroit où poser ses marques ne l'est pas.
 
-**Les fournisseurs de conversation et de synthèse restent à choisir** (cf. `TODO.md`, chantier 2). Ceux du banc — Azure Speech, DeepSeek — ont servi à mesurer, pas à décider.
+**Les fournisseurs de conversation et de synthèse restent à choisir** (cf. `../TODO.md`, chantier 2). Ceux du banc — Azure Speech, DeepSeek — ont servi à mesurer, pas à décider.
 
 ### Capacités déclarées, pas plus petit dénominateur commun
 

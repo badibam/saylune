@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Does the gap find the faults of the test set without marking the controls?
 
-The measure that qualifies the analysis (`docs/design/embedded-analysis.md`).
+The measure that qualifies the analysis (`docs/analysis.md`).
 Two matrices and nothing else: no dictionary, no lexicon, no call. What decides
 is whether the gap lands on the sound that was labelled faulty and stays off the
 one that was labelled clean.
