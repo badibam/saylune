@@ -185,7 +185,23 @@ Rôle strictement à l'échelle de la phrase : nommer le son produit appartient 
 
 Poids sous licence libre uniquement — un poids non libre serait un `NonFreeAssets` et tuerait l'intérêt de la brique. Téléchargement en opt-in explicite au premier usage, jamais au premier lancement ni en silence.
 
-**Le changement de moteur d'exécution, lui, est mesuré et ne coûte rien.** Le réseau exporté en ONNX et relu par ONNX Runtime rend, en flottant, la lecture du banc à l'identique : pire cellule à 1,6 pour dix mille sur trente-deux fichiers, grille identique partout, et l'écart dont le marquage est fait qui bouge de 0,008 au pire. Le jeu d'essai étiqueté rejoue **ligne pour ligne**. Ce n'était donc pas une question de téléphone, et elle est close ; ce qui reste à l'appareil est la mémoire et le temps.
+**Le changement de moteur d'exécution, lui, est mesuré et ne coûte rien.** Le réseau exporté en ONNX et relu par ONNX Runtime rend, en flottant, la lecture du banc à l'identique : pire cellule à 1,6 pour dix mille sur trente-deux fichiers, grille identique partout, et l'écart dont le marquage est fait qui bouge de 0,008 au pire. Le jeu d'essai étiqueté rejoue **ligne pour ligne**.
+
+**Et le réseau tourne sur un téléphone.** Mesuré sur un appareil de 2019 (Galaxy S10+, huit cœurs, quatre fils d'inférence), sur l'audio du banc :
+
+| | flottant | entiers 8 bits |
+|---|---|---|
+| chargement des poids | 3,3 s | **0,8 s** |
+| empreinte après chargement | 1263 Mo | **795 Mo** |
+| empreinte maximale | 1563 Mo | **930 Mo** |
+| passe sur 6 s d'audio | 4,2 s | **2,4 s** |
+| coût rapporté à la durée du tour | ×0,70 | **×0,39** |
+
+Le 8 bits est donc à la fois plus léger et **plus rapide** — l'arrondi n'achète pas du temps contre de la place, il achète les deux. Une passe coûte quatre dixièmes de la durée du tour, sur un appareil de six ans, et la mémoire tient sans effort. Deux prises du même fichier rendent les mêmes octets : le déterminisme, qui est un critère de qualification, est vérifié et non supposé.
+
+**L'appareil ne rend pas les mêmes chiffres que le poste, et on sait exactement pourquoi.** En flottant, les deux sont la même lecture — pire cellule 5,6 pour cent mille, grille identique 32 fois sur 32 — ce qui disculpe d'un seul coup la préparation du signal réécrite en Kotlin, la lecture du wav, et l'arithmétique flottante d'ARM. Il ne reste que les **noyaux 8 bits**, qui ne sont pas le même code sur ARM et sur x86 : 0,74 % des trames y changent de son gagnant, toujours par bascule entre deux quasi-ex æquo, et un quart des trames s'écartent au-delà du millième.
+
+**Rien de cela n'atteint le verdict.** Le jeu d'essai étiqueté rejoué sur les matrices de l'appareil donne pire témoin 0,004 contre 0,003, les mêmes fautes vues, la même manquée. C'est la mesure qui compte, et elle est passée.
 
 Le graphe exporté porte **son softmax à l'intérieur** : le fichier rend la matrice de la brique 2, pas des logits, et il ne reste au côté Android qu'une chose à réimplémenter — la préparation du signal, moyenne nulle et variance unité, que `bench/matrix.py` écrit en clair pour cette raison.
 
@@ -215,7 +231,7 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 9 | Le découpage en mots | quelles voyelles appartiennent au même mot | tombe de la 1 |
 | 10 | La phrase | la pente de fin d'énoncé | codée |
 | 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
-| 12 | Le runtime Android | tout ça sur le téléphone | exporté et mesuré au poste (`bench/export.py`) ; l'appareil reste à faire |
+| 12 | Le runtime Android | tout ça sur le téléphone | **mesuré sur l'appareil** (`bench/export.py`, `bench/phone.py`) |
 
 **Un seul fichier extérieur dans tout le pipeline : les poids du modèle acoustique**, 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant. Aucune donnée linguistique, aucun dictionnaire, aucun lexique de dialecte, aucune table graphème-phonème.
 
@@ -402,7 +418,9 @@ Ce que ça dit au-delà du chiffre : **une mesure d'arrondi ne vaut que pour l'a
 
 Chaque étape se juge au protocole de `engine-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
-1. **Le modèle tourne-t-il sur un téléphone ?** Il en restait trois inconnues ; **l'écart du moteur d'exécution est tombé au poste** (cf. brique 12), et l'arrondi qui tournera est celui qui a été mesuré. Restent **la mémoire** qu'il faut pour charger 359 Mo de poids et **le temps** d'une passe sur un tour de parole réel. Le contrôle décisif reste numérique — les mêmes fichiers, la même matrice qu'ici, par `bench/concord.py` — et si les deux concordent, tout ce qui est au-dessus (grille, alignement, écart) est de l'arithmétique pure et se porte sans surprise.
+Une conséquence de méthode, tirée de l'étape 1 : **une lecture n'a pas à avoir été calculée ici.** Le téléphone range ses matrices dans le cache comme n'importe quelle autre lecture (`READING=<nom>`), et toutes les briques du banc tournent dessus sans le savoir. C'est ce qui permet de poser à l'appareil la question du verdict, et pas seulement celle des chiffres.
+
+1. ~~**Le modèle tourne-t-il sur un téléphone ?**~~ **Répondu, oui** (cf. brique 12). Les trois inconnues sont levées : le moteur d'exécution ne coûte rien, la mémoire tient à 930 Mo de pointe, et une passe coûte quatre dixièmes de la durée du tour. L'appareil ne rend pas les mêmes octets que le poste — les noyaux 8 bits diffèrent d'une architecture à l'autre — mais le verdict, lui, est le même.
 2. **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
 3. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
 4. **Quel son marquer ?** La mesure valide l'écart sur un son donné ; elle ne dit pas lequel mérite une marque. Les fautes franches au-dessus de 0,95 et les demi-fautes sous 0,25 donnent la matière d'un seuil, à condition de le tirer des prises et non de le poser.

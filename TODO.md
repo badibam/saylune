@@ -24,7 +24,11 @@ Ce qui reste ouvert de ce chantier, et qui n'attend pas :
 
   Ce qui a coûté, en revanche, c'est l'arrondi. L'outil d'ONNX quantifie plus large que celui de PyTorch et abîme les convolutions d'entrée : un témoin correct monte à 0,851, en plein territoire de faute. Ramené au périmètre de PyTorch, avec une échelle par canal, la lecture revient exactement — pour 39 Mo de fichier en plus, 359 au lieu de 320. Leçon à retenir ailleurs : **une mesure d'arrondi ne vaut que pour l'arrondisseur qui l'a faite.**
 
-  Restent les deux inconnues qui exigent l'appareil : **la mémoire** pour charger 359 Mo de poids et **le temps** d'une passe sur un tour réel. Le contrôle décisif reste numérique — les mêmes fichiers du banc, la même matrice qu'au poste, par `bench/concord.py`.
+  **Les deux inconnues qui exigeaient l'appareil sont levées, et le PoC est passé.** Sur un Galaxy S10+ de 2019 : les poids chargent en 0,8 s, l'empreinte plafonne à 930 Mo, et une passe coûte **quatre dixièmes de la durée du tour** — un tour de six secondes est lu en deux et demie. Deux prises du même fichier rendent les mêmes octets.
+
+  L'appareil ne rend pas les mêmes chiffres que le poste, et la cause est isolée : en flottant les deux sont la même lecture (pire cellule 5,6e-05, grille identique 32/32), ce qui disculpe la préparation du signal, la lecture du wav et l'arithmétique ARM. Ne restent que les **noyaux 8 bits**, qui diffèrent entre ARM et x86 — 0,74 % des trames changent de son gagnant, par bascule entre quasi-ex æquo. **Le verdict, lui, tient** : le jeu d'essai rejoué sur les matrices de l'appareil donne pire témoin 0,004 contre 0,003, mêmes fautes vues, même manquée.
+
+  Ce qui reste de l'étage appareil est de l'hygiène, pas de l'inconnu : `libonnxruntime.so` pèse 17,5 Mo pour arm64 seul (l'APK debug en fait 86 parce qu'il embarque les quatre architectures), et la sonde est tenue au build `debug` pour qu'aucune release ne porte une dépendance native sur un pari.
 
   **Le runtime natif est le seul point non instruit, et il devient une question de v1.** `onnxruntime-android` est distribué en AAR pré-compilé, ce que F-Droid n'accepte pas : leur exigence est de bâtir depuis les sources. Rien n'est fermé — ONNX Runtime est en MIT et son build Android est documenté (`./build.sh --android --build_java` produit l'AAR) — mais aucun précédent d'application F-Droid qui le compile dans sa recette n'a été trouvé, donc la voie n'est pas balisée. Trois issues, à instruire avant de s'engager sur du code :
 
