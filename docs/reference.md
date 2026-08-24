@@ -13,6 +13,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/letter-anchoring.md` — carnet d'exploration de l'ancrage calculé sur l'appareil : ce qui est mesuré, et le trou qu'il a ouvert dans la grille.
+- `design/dense-grid.md` — le diagnostic de ce trou (la peakiness du CTC), la preuve que les poids ne voient pas les sons manqués, et les candidats pour une grille dense.
 
 ## Le geste
 
