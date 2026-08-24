@@ -213,7 +213,7 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
 | 12 | Le runtime Android | tout ça sur le téléphone | à câbler |
 
-**Un seul fichier extérieur dans tout le pipeline : les poids du modèle acoustique**, une centaine de Mo une fois quantifiés en entiers 8 bits, contre environ 350 en flottant. Aucune donnée linguistique, aucun dictionnaire, aucun lexique de dialecte, aucune table graphème-phonème.
+**Un seul fichier extérieur dans tout le pipeline : les poids du modèle acoustique**, 315 Mo une fois quantifiés en entiers 8 bits, contre 1,26 Go en flottant. Aucune donnée linguistique, aucun dictionnaire, aucun lexique de dialecte, aucune table graphème-phonème.
 
 Trois briques seulement demandent du travail neuf et non trivial : la jointure (4), l'accent (7), la syllabification (8). Quatre autres sont des lectures d'un calcul déjà fait.
 
@@ -357,11 +357,33 @@ Deux critères de forme, moins profonds mais éliminatoires. L'inventaire doit �
 
 Ce que le classement ne dit pas : `excalibur12` part du **même encodeur pré-entraîné** que le multilingue et se fait battre par lui. La différence tient entièrement à l'affinage, pas à l'architecture.
 
+### L'arrondi ne prend que le milieu
+
+La quantification est la transformation à laquelle ce montage est le plus exposé, et pour une raison qui lui est propre : on ne lit pas le son gagnant, on lit ce qui reste autour de lui — l'information qui vit dans les décimales, la première que l'arrondi emporte. Un système qui ne regarde que le maximum y survit sans y penser ; celui-ci est le cas le plus fragile qui soit.
+
+Mesuré plutôt qu'argumenté, en entiers 8 bits sur les couches linéaires :
+
+| prise | flottant | entier 8 bits |
+|---|---|---|
+| `16-ship-lax` | 0,983 | 0,982 |
+| `07-bear-pear` | 0,967 | 0,971 |
+| `17-sink-full` | 0,966 | 0,964 |
+| `06-ship-sheep` | 0,962 | 0,961 |
+| `08-light-right` | 0,956 | 0,964 |
+| `01-sink` (demi-faute) | 0,246 | **0,114** |
+| témoins | 0,000 à 0,002 | 0,000 à 0,003 |
+
+Les fautes franches bougent de huit millièmes au pire, dans les deux sens — du bruit. Les témoins ne bougent pas. Toutes les fautes vues en flottant le restent, sur les deux accents de modèle.
+
+**Ce que l'arrondi prend, c'est le milieu.** La demi-faute perd plus de la moitié de son signal. Les extrêmes sont trop gros pour être érodés, un son laissé à mi-chemin ne l'est pas. D'où une règle pour plus tard : **le seuil de marquage se calibre sur les poids qui tourneront**, pas sur ceux qui ont été entraînés, faute de quoi il sera trop haut d'un facteur deux dans la zone grise.
+
+Ce que ce test ne couvre pas : les convolutions d'entrée restent en flottant ici, alors qu'un export Android les quantifierait sans doute aussi ; et le moteur d'exécution sera ONNX Runtime, pas PyTorch. C'est un bon indicateur, pas le mot de la fin — la mesure se refait sur l'appareil.
+
 ## Ce qui reste à mesurer, dans l'ordre
 
 Chaque étape se juge au protocole de `engine-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
-1. **La quantification abîme-t-elle ce qu'on lit ?** C'est la mesure la plus exposée du lot, et pour une raison propre à ce montage : on ne lit pas le son gagnant, on lit ce qui reste autour de lui, c'est-à-dire l'information qui vit dans les décimales — la première que l'arrondi emporte. Un système qui ne regarde que le maximum survit à la quantification ; celui-ci est le cas le plus fragile qui soit. Joue en notre faveur le fait que les deux enregistrements passent par le **même** modèle, donc qu'un biais systématique s'annule des deux côtés. Se vérifie en rejouant `faults.py` sur les poids quantifiés : les témoins doivent rester à zéro et les fautes franches au-dessus de 0,9.
+1. **Le modèle tourne-t-il sur un téléphone, et rend-il les mêmes chiffres ?** Trois inconnues qu'aucune mesure de poste ne lèvera : la mémoire qu'il faut pour charger 315 Mo de poids, le temps d'une passe sur un tour de parole réel, et l'écart introduit par ONNX Runtime. Le contrôle décisif est numérique — les mêmes fichiers, la même matrice qu'ici. Si les deux concordent, tout ce qui est au-dessus (grille, alignement, écart) est de l'arithmétique pure et se porte sans surprise.
 2. **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
 3. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
 4. **Quel son marquer ?** La mesure valide l'écart sur un son donné ; elle ne dit pas lequel mérite une marque. Les fautes franches au-dessus de 0,95 et les demi-fautes sous 0,25 donnent la matière d'un seuil, à condition de le tirer des prises et non de le poser.

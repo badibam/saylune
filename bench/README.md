@@ -37,14 +37,19 @@ python3 -m venv --system-site-packages tmp/venv && source tmp/venv/bin/activate
 pip install --index-url https://download.pytorch.org/whl/cpu torch
 pip install transformers soundfile
 export HF_HOME="$PWD/tmp/hf"          # jamais le défaut : /home est un tmpfs ici
-python3 -c "from transformers import AutoFeatureExtractor, AutoModelForCTC; m='facebook/wav2vec2-lv-60-espeak-cv-ft'; AutoFeatureExtractor.from_pretrained(m); AutoModelForCTC.from_pretrained(m)"
+cd bench && python3 pull.py           # tire les poids et dit ce qu'ils valent
 ```
 
-`HF_HOME` est lu par `matrix.py`, qui échoue franchement s'il est absent. Le tokenizer du modèle n'est jamais chargé — il ne sert qu'à transformer du texte en phonèmes, seul sens que ce pipeline refuse de prendre, et l'appeler réclamerait `phonemizer` et `espeak-ng` pour rien.
+`HF_HOME` est lu par `matrix.py`, qui échoue franchement s'il est absent. Le tokenizer d'un modèle n'est jamais chargé — il ne sert qu'à transformer du texte en phonèmes, seul sens que ce pipeline refuse de prendre, et l'appeler réclamerait `phonemizer` et `espeak-ng` pour rien.
+
+Deux variables d'environnement pilotent la lecture :
+
+- `ACOUSTIC_MODEL` — le candidat, par son nom court dans la table de `matrix.py` (`timit-ipa` par défaut retenu, `espeak`, `charsiu`, `gruut`, `timit`). Les cinq ont été mesurés ; ce qui les départage est dans `../docs/design/embedded-analysis.md`.
+- `QUANTISED=1` — les mêmes poids arrondis en entiers 8 bits, c'est-à-dire ce qui tournera sur un téléphone. Les deux lectures ont leur propre cache.
 
 ```
-python3 overlap.py -s sentences -v
-python3 faults.py -v
+python3 overlap.py -s sentences -v      # deux voix se recouvrent-elles
+python3 faults.py -v                    # l'écart tombe-t-il sur le son fautif
 ```
 
 Les vingt-sept prises étiquetées des blocs A à F vivent dans `out/takes/set/`. Elles ne se régénèrent pas : **si elles comptent, elles se sauvegardent hors du dépôt.**
