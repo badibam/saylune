@@ -185,6 +185,10 @@ Rôle strictement à l'échelle de la phrase : nommer le son produit appartient 
 
 Poids sous licence libre uniquement — un poids non libre serait un `NonFreeAssets` et tuerait l'intérêt de la brique. Téléchargement en opt-in explicite au premier usage, jamais au premier lancement ni en silence.
 
+**Le changement de moteur d'exécution, lui, est mesuré et ne coûte rien.** Le réseau exporté en ONNX et relu par ONNX Runtime rend, en flottant, la lecture du banc à l'identique : pire cellule à 1,6 pour dix mille sur trente-deux fichiers, grille identique partout, et l'écart dont le marquage est fait qui bouge de 0,008 au pire. Le jeu d'essai étiqueté rejoue **ligne pour ligne**. Ce n'était donc pas une question de téléphone, et elle est close ; ce qui reste à l'appareil est la mémoire et le temps.
+
+Le graphe exporté porte **son softmax à l'intérieur** : le fichier rend la matrice de la brique 2, pas des logits, et il ne reste au côté Android qu'une chose à réimplémenter — la préparation du signal, moyenne nulle et variance unité, que `bench/matrix.py` écrit en clair pour cette raison.
+
 ## Une seule machine, plusieurs lectures
 
 Les briques 3, 5, 6 et 11 ne sont pas quatre traitements : c'est **une passe par audio**, dont on tire plusieurs lectures.
@@ -211,9 +215,9 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 9 | Le découpage en mots | quelles voyelles appartiennent au même mot | tombe de la 1 |
 | 10 | La phrase | la pente de fin d'énoncé | codée |
 | 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
-| 12 | Le runtime Android | tout ça sur le téléphone | à câbler |
+| 12 | Le runtime Android | tout ça sur le téléphone | exporté et mesuré au poste (`bench/export.py`) ; l'appareil reste à faire |
 
-**Un seul fichier extérieur dans tout le pipeline : les poids du modèle acoustique**, 315 Mo une fois quantifiés en entiers 8 bits, contre 1,26 Go en flottant. Aucune donnée linguistique, aucun dictionnaire, aucun lexique de dialecte, aucune table graphème-phonème.
+**Un seul fichier extérieur dans tout le pipeline : les poids du modèle acoustique**, 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant. Aucune donnée linguistique, aucun dictionnaire, aucun lexique de dialecte, aucune table graphème-phonème.
 
 Trois briques seulement demandent du travail neuf et non trivial : la jointure (4), l'accent (7), la syllabification (8). Quatre autres sont des lectures d'un calcul déjà fait.
 
@@ -377,13 +381,28 @@ Les fautes franches bougent de huit millièmes au pire, dans les deux sens — d
 
 **Ce que l'arrondi prend, c'est le milieu.** La demi-faute perd plus de la moitié de son signal. Les extrêmes sont trop gros pour être érodés, un son laissé à mi-chemin ne l'est pas. D'où une règle pour plus tard : **le seuil de marquage se calibre sur les poids qui tourneront**, pas sur ceux qui ont été entraînés, faute de quoi il sera trop haut d'un facteur deux dans la zone grise.
 
-Ce que ce test ne couvre pas : les convolutions d'entrée restent en flottant ici, alors qu'un export Android les quantifierait sans doute aussi ; et le moteur d'exécution sera ONNX Runtime, pas PyTorch. C'est un bon indicateur, pas le mot de la fin — la mesure se refait sur l'appareil.
+**Ce test avait deux angles morts, et l'un des deux mordait.** Il arrondissait par PyTorch, sur les seules couches linéaires, alors que le moteur d'exécution sera ONNX Runtime et qu'il quantifie plus large.
+
+Refait par ONNX Runtime, réglages par défaut, la lecture ne tient plus : le témoin `13-field-clean`, un /θ/ correctement prononcé, monte à **0,851** — en plein territoire de faute — la bande vide tombe de 0,111 à 0,091, et trois fautes passent inaperçues. La cause est nommable : l'outil arrondit aussi les convolutions d'entrée, c'est-à-dire la part du réseau où le signal est encore un signal.
+
+Réparable, et réparé. Trois variantes mesurées au même jeu :
+
+| arrondi | pire témoin | fautes vues | taille |
+|---|---|---|---|
+| par défaut | 0,851 | 5 / 8 | 320 Mo |
+| produits matriciels seuls | 0,011 | 6 / 7 | 357 Mo |
+| **+ échelle par canal** | **0,003** | **6 / 7** | **359 Mo** |
+| *(PyTorch, pour mémoire)* | *0,003* | *6 / 7* | — |
+
+La dernière retrouve la lecture qualifiée, verdict pour verdict, pour 39 Mo de plus. L'échelle par canal compte parce qu'une seule échelle pour toute une matrice est fixée par sa plus grosse colonne, et toutes les autres la paient.
+
+Ce que ça dit au-delà du chiffre : **une mesure d'arrondi ne vaut que pour l'arrondisseur qui l'a faite.** Celle qui a fondé la décision 8 bits ne se transportait pas.
 
 ## Ce qui reste à mesurer, dans l'ordre
 
 Chaque étape se juge au protocole de `engine-qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
-1. **Le modèle tourne-t-il sur un téléphone, et rend-il les mêmes chiffres ?** Trois inconnues qu'aucune mesure de poste ne lèvera : la mémoire qu'il faut pour charger 315 Mo de poids, le temps d'une passe sur un tour de parole réel, et l'écart introduit par ONNX Runtime. Le contrôle décisif est numérique — les mêmes fichiers, la même matrice qu'ici. Si les deux concordent, tout ce qui est au-dessus (grille, alignement, écart) est de l'arithmétique pure et se porte sans surprise.
+1. **Le modèle tourne-t-il sur un téléphone ?** Il en restait trois inconnues ; **l'écart du moteur d'exécution est tombé au poste** (cf. brique 12), et l'arrondi qui tournera est celui qui a été mesuré. Restent **la mémoire** qu'il faut pour charger 359 Mo de poids et **le temps** d'une passe sur un tour de parole réel. Le contrôle décisif reste numérique — les mêmes fichiers, la même matrice qu'ici, par `bench/concord.py` — et si les deux concordent, tout ce qui est au-dessus (grille, alignement, écart) est de l'arithmétique pure et se porte sans surprise.
 2. **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
 3. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
 4. **Quel son marquer ?** La mesure valide l'écart sur un son donné ; elle ne dit pas lequel mérite une marque. Les fautes franches au-dessus de 0,95 et les demi-fautes sous 0,25 donnent la matière d'un seuil, à condition de le tirer des prises et non de le poser.
