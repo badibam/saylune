@@ -25,6 +25,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `overlap.py` | le recouvrement de deux répartitions, son par son — de combien deux voix s'écartent |
 | `faults.py` | le jeu d'essai étiqueté : l'écart tombe-t-il sur le son fautif, et reste-t-il à zéro sur le témoin |
 | `letters.py` | où chaque lettre d'un texte connu est prononcée — l'ancrage calculé chez nous, sans passer par le fournisseur |
+| `anchor.py` | de combien notre ancrage s'écarte de celui du fournisseur — le verdict qui décide si l'attache tombe |
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tourne sur le téléphone |
 | `concord.py` | deux machines lisant les mêmes poids disent-elles la même chose |
 | `phone.py` | pousse, mesure et rapatrie : l'appareil devient une lecture comme une autre |
@@ -59,7 +60,10 @@ Une **lecture** est une manière de calculer la matrice, et chacune a son propre
 ```
 python3 faults.py -v                    # l'écart tombe-t-il sur le son fautif
 python3 overlap.py -s sentences -v      # deux voix se recouvrent-elles
+python3 anchor.py -v                    # nos lettres tombent-elles où le fournisseur les met
 ```
+
+`anchor.py` est la seule qualification qui redemande de la synthèse : un rendu est désormais l'audio **et** l'horodatage qui vient avec, donc les rendus ElevenLabs tirés avant l'endpoint horodaté se refont une fois. Le coût est en caractères, pas en appels doublés — l'endpoint rend les deux d'un coup.
 
 Les vingt-sept prises étiquetées des blocs A à F vivent dans `out/takes/set/`. Elles ne se régénèrent pas : **si elles comptent, elles se sauvegardent hors du dépôt.**
 

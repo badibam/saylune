@@ -11,6 +11,8 @@ calibration fail, so voice and dialect have to be settable apart.
 """
 
 import argparse
+import base64
+import json
 import os
 import sys
 import wave
@@ -87,13 +89,19 @@ def azure(text, voice):
     )
     if response.status_code != 200:
         raise SystemExit(f"Azure TTS returned {response.status_code}: {response.text}")
-    return response.content, "riff"
+    return response.content, "riff", None
 
 
 def elevenlabs(text, voice):
+    """The render and, beside it, where the engine says each character falls.
+
+    Asked through the timestamped endpoint rather than the bare one, at the same
+    cost in characters: the alignment is what `letters.py` is measured against,
+    and a render without it would have to be paid for twice.
+    """
     (key,) = env("ELEVENLABS_KEY")
     response = requests.post(
-        f"https://api.elevenlabs.io/v1/text-to-speech/{voice}",
+        f"https://api.elevenlabs.io/v1/text-to-speech/{voice}/with-timestamps",
         params={"output_format": ELEVENLABS_FORMAT},
         headers={"xi-api-key": key, "Content-Type": "application/json"},
         json={"text": text, "model_id": ELEVENLABS_MODEL},
@@ -103,10 +111,23 @@ def elevenlabs(text, voice):
         raise SystemExit(
             f"ElevenLabs returned {response.status_code}: {response.text[:300]}"
         )
-    return response.content, "pcm"
+    payload = response.json()
+    # Both alignments are kept as they come. The plain one is on the characters
+    # we sent, the normalised one on what the engine decided to say -- and the
+    # two part company exactly where a text stops being letters: `25` is four
+    # syllables of speech under two characters of text.
+    alignment = {name: payload[name]
+                 for name in ("alignment", "normalized_alignment")
+                 if payload.get(name)}
+    return base64.b64decode(payload["audio_base64"]), "pcm", alignment
 
 
 PROVIDERS = {"azure": azure, "elevenlabs": elevenlabs}
+
+
+def alignment_path(path):
+    """Where a render keeps the engine's own timing, when it hands one over."""
+    return path.with_suffix(".alignment.json")
 
 
 def render(text, candidate, path, force=False):
@@ -114,18 +135,28 @@ def render(text, candidate, path, force=False):
 
     Renders are cache, not source: they cost characters against a monthly
     allowance and regenerate from this script alone.
+
+    A render is the audio *and* whatever timing came with it, so a file whose
+    alignment is missing counts as absent: it was fetched before the endpoint
+    that hands one over, and the measurement it serves has nothing to read.
     """
-    if path.is_file() and not force:
+    timed = candidate.provider == "elevenlabs"
+    kept = path.is_file() and (not timed or alignment_path(path).is_file())
+    if kept and not force:
         return path
     provider = PROVIDERS.get(candidate.provider)
     if provider is None:
         raise SystemExit(f"Unknown provider {candidate.provider!r}")
-    payload, shape = provider(text, candidate.voice)
+    payload, shape, alignment = provider(text, candidate.voice)
     if shape == "riff":
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(payload)
     else:
         write_wav(path, payload)
+    if alignment is not None:
+        alignment_path(path).write_text(
+            json.dumps(alignment, indent=2, ensure_ascii=False),
+            encoding="utf-8")
     return path
 
 
