@@ -40,7 +40,8 @@ def batches(entries, size):
                  for e in lot]
         # Same signal contract as the exported graph: zero mean, unit variance.
         audio = [(a - a.mean()) / (a.std() + 1e-7) for a in audio]
-        yield lot, torch.nn.utils.rnn.pad_sequence(audio, batch_first=True)
+        samples = torch.tensor([len(a) for a in audio])
+        yield lot, torch.nn.utils.rnn.pad_sequence(audio, batch_first=True), samples
 
 
 def main():
@@ -99,19 +100,33 @@ def main():
         raise SystemExit(f"{args.out} already holds checkpoints — name one output directory per run (--out)")
     step = 0
     args.out.mkdir(parents=True, exist_ok=True)
+    # Encoders whose feature extractor is layer-normed (large) were trained
+    # with an attention mask; group-normed ones (base) were not and must not
+    # receive one.
+    attends = model.config.feat_extract_norm == "layer"
     for epoch in range(args.epochs):
-        for lot, audio in batches(entries, args.batch):
-            logits = model(audio.to(device)).logits
+        for lot, audio, samples in batches(entries, args.batch):
+            if attends:
+                heard = (torch.arange(audio.shape[1])[None, :] < samples[:, None])
+                logits = model(audio.to(device), attention_mask=heard.to(device)).logits
+            else:
+                logits = model(audio.to(device)).logits
             frames = log_softmax(logits, dim=-1)
+            lengths = model._get_feat_extract_output_lengths(samples).to(torch.long)
+            valid = (torch.arange(frames.shape[1])[None, :] < lengths[:, None]).to(device)
             with torch.no_grad():
-                prior = 0.999 * prior + 0.001 * frames.exp().mean(dim=(0, 1))
-            penalised = frames - args.prior_weight * prior.clamp_min(1e-8).log()
-            penalised = log_softmax(penalised, dim=-1)
+                seen = (frames.exp() * valid[..., None]).sum(dim=(0, 1)) / valid.sum()
+                prior = 0.999 * prior + 0.001 * seen
+            # The penalised scores go to the loss unnormalised, as in the paper:
+            # a renormalising log_softmax here would let the head bias absorb
+            # w*log(prior) at zero cost, and the penalty with it. The floor
+            # bounds the boost a collapsed class can receive to ~9 nats.
+            penalised = frames - args.prior_weight * prior.clamp_min(1e-4).log()
             targets = [torch.tensor([table[p] for p in e["phones"]]) for e in lot]
             loss = ctc_loss(
                 penalised.transpose(0, 1),
                 torch.nn.utils.rnn.pad_sequence(targets, batch_first=True).to(device),
-                input_lengths=torch.full((len(lot),), penalised.shape[1]),
+                input_lengths=lengths,
                 target_lengths=torch.tensor([len(t) for t in targets]),
                 blank=blank, zero_infinity=True)
             optimiser.zero_grad()
