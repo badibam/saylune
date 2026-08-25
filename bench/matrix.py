@@ -45,10 +45,11 @@ CANDIDATES = {
     # vocabulary stays vitouphy's -- that is what makes the reading before and
     # after a comparison at iso-alphabet -- and the checkpoint carries no
     # preparation of its own, the standard one applying.
-    **{f"v1-pw0.1-e{epoch}": Candidate(
-        str(ROOT / f"tmp/train/runs/v1-pw0.1/epoch-{epoch:03d}"),
+    **{f"v1-pw{weight}-e{epoch}": Candidate(
+        str(ROOT / f"tmp/train/runs/v1-pw{weight}/epoch-{epoch:03d}"),
         "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
-       for epoch in (9, 19, 29)},
+       for weight, epoch in (("0.1", 9), ("0.1", 19), ("0.1", 29),
+                             ("0.3", 29), ("1.0", 29))},
 }
 
 CHOSEN = os.environ.get("ACOUSTIC_MODEL", "espeak")
