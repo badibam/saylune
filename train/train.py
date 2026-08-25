@@ -93,9 +93,10 @@ def main():
     model = Wav2Vec2ForCTC.from_pretrained(
         args.encoder, vocab_size=len(vocab), pad_token_id=blank,
         ctc_loss_reduction="mean", ignore_mismatched_sizes=True,
-        # LayerDrop skips whole encoder layers at random. It regularises, but a
-        # sweep whose verdict is a comparison between runs cannot afford the
-        # noise; the runs must differ by their argument, not by their dice.
+        # LayerDrop skips whole encoder layers at random. Zero is what the
+        # outgoing timit-ipa was trained with, and this run is meant to be an
+        # isolate against it. Dropout and SpecAugment stay on, so a run is not
+        # thereby deterministic — one source of noise less, not none.
         layerdrop=0.0)
     # masked_spec_embed is absent from the base-960h checkpoint, and
     # transformers fills missing parameters with NaN; SpecAugment then
