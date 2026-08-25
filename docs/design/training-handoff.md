@@ -23,14 +23,14 @@ Deux notebooks, tous deux **privés** : le lien MEGA porte sa clé de déchiffre
 
 **Le notebook d'entraînement**, un par run :
 
-1. Internet activé, persistance **Files only**, environnement **épinglé** (une mise à jour d'image en cours de balayage rendrait les checkpoints incomparables sans que rien ne le signale), accélérateur **P100** — une seule carte suffit pour V1, ne pas monter de `DataParallel` ; le T4×2 laisserait une carte inactive et le TPU exigerait de réécrire la boucle en XLA.
+1. Internet activé, persistance **Files only**, environnement **épinglé** (une mise à jour d'image en cours de balayage rendrait les checkpoints incomparables sans que rien ne le signale), accélérateur **T4 ×2** — une seule carte sert, `train.py` ne monte pas de `DataParallel` et le quota se compte en heures de session, pas en cartes ; le TPU exigerait de réécrire la boucle en XLA.
 2. `Add Input` : la version du notebook de préparation, et un Dataset privé portant `train/*.py`. **Lancer la boucle `os.walk('/kaggle/input')` de la cellule par défaut avant de la supprimer** — Kaggle fabrique les noms des dossiers montés, ils ne se devinent pas et tout le reste s'y réfère.
 3. Extraire l'archive vers `tmp/` sous la racine du code : `ROOT` est le parent de `train/`, donc `/kaggle/working`, et le tar porte `TIMIT/` à sa racine, ce qui reproduit `tmp/TIMIT/lisa/...`.
-4. Poser `HF_HOME`, puis y faire entrer le `vocab.json` de vitouphy par `hf_hub_download("vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "vocab.json")` — l'appel python dépose la structure que `vocabulary()` globbe sans dépendre de la version du CLI installée sur l'image. Les poids `base-960h` se téléchargent seuls au premier `from_pretrained`.
+4. Faire entrer le `vocab.json` de vitouphy dans un cache posé sur `/kaggle/temp/hf`, par un `hf_hub_download` lancé en sous-processus avec `HF_HOME` en préfixe — l'appel python dépose la structure que `vocabulary()` globbe sans dépendre de la version du CLI installée sur l'image. Les poids `base-960h` se téléchargent seuls au premier `from_pretrained`.
 5. `python train/manifest.py` — refait la preuve du décodage sur la machine du run.
 6. Pas à blanc GPU (`--steps 20 --utterances 64`), puis chronométrer : la session est plafonnée à 12 h et le quota hebdomadaire à 30 h. Si les 30 époques n'y tiennent pas, baisser `--epochs` — jamais couper un run en cours, `train.py` n'ayant aucune reprise.
 7. `python train/train.py --out <un dossier PAR run>` — le script **refuse** un dossier qui porte déjà des checkpoints ; c'est voulu, ne pas contourner. Un run part toujours de l'encodeur pré-entraîné.
-8. Élaguer les checkpoints, puis **Save & Run All** : le conteneur repart vierge et rejoue tout, une version par variante, les checkpoints dans son output.
+8. **Save & Run All**, le conteneur repart vierge et rejoue tout. Une époque coûtant ~52 s sur T4 (231 pas au batch 16), les 30 époques font une demi-heure et le balayage entier des trois `--prior-weight` tient dans **une seule** version, à condition d'élaguer chaque run **dès qu'il finit** : trois runs entiers cumuleraient 32 Go avant qu'un élagage final n'ait lieu.
 
 ## Hyperparamètres — points de départ, pas des valeurs qualifiées
 
@@ -39,6 +39,9 @@ Deux notebooks, tous deux **privés** : le lien MEGA porte sa clé de déchiffre
 ## Pièges déjà payés — ne pas les repayer
 
 - **`masked_spec_embed` absent du checkpoint `base-960h`** : transformers remplit les paramètres manquants de NaN et SpecAugment empoisonne toute passe en mode train. Corrigé dans `train.py` (ré-init + refus de tout paramètre NaN au chargement) — si un NaN réapparaît, chercher là d'abord.
+- **Le P100 de Kaggle est mort pour nous** : le PyTorch de l'image ne compile plus que pour `sm_70` et au-delà, quand la carte est `sm_60`. Le modèle charge, l'entête annonce `cuda`, puis le premier tenseur alloué lève `no kernel image is available for execution on the device`. Le T4 (`sm_75`) passe.
+- **Le cache HF ne peut pas vivre dans `/kaggle/working`** : la persistance conserve l'arborescence et perd les blobs, donc les liens de `snapshots/` pendent dans le vide au redémarrage de session. L'échec est trompeur — `glob` teste l'existence et rend « vocab.json absent » quand `find` voit le fichier, et un `config.json` se lit comme vide. Le cache va sur `/kaggle/temp`, ce qui lui évite en outre d'alourdir de 378 Mo la sortie de chaque version.
+- **`HF_HOME` ne se pose pas dans le noyau du notebook** : `huggingface_hub` le fige à l'import, donc un `os.environ` postérieur est ignoré en silence. Toute commande le reçoit en préfixe de son sous-processus, ce qui rend les cellules indépendantes de l'ordre d'exécution — ce qu'exige un Save & Run All.
 - **Les `.WAV` de TIMIT sont du NIST SPHERE** ; soundfile les lit, rien à convertir.
 - Le vocabulaire utilise les **ligatures à codepoint unique** — tout symbole composé `t`+`ʃ` est un bug.
 - **Trente époques écrivent trente modèles entiers** : `save_pretrained` ne sait pas ne sauver que la tête, soit ~360 Mo × 30 ≈ 10,8 Go pour un `/kaggle/working` plafonné à 20 Go. En V1 l'encodeur est gelé, donc ces copies ne diffèrent que par la tête — élaguer avant de sauver la version.
