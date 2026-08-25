@@ -17,12 +17,20 @@ Doc de passation pour la session qui lancera les runs. Tout ce qui suit est **ac
 
 ## Dérouler un run (Kaggle, V1)
 
-1. Notebook Kaggle : Internet activé, persistance **Files only**, accélérateur P100 (ou T4 — une seule carte suffit pour V1, ne pas monter de `DataParallel`).
-2. `apt-get install -y megatools && megadl '<lien MEGA>'` puis extraire vers un chemin qui reproduit `tmp/TIMIT/lisa/...` sous la racine du code.
-3. Amener `train/*.py` (quatre petits fichiers — cellule de collage ou Dataset utilitaire privé). Poser `HF_HOME`, puis y faire entrer le `vocab.json` de vitouphy : `hf download vitouphy/wav2vec2-xls-r-300m-timit-phoneme vocab.json` (le cache prend la structure que `vocabulary()` globbe). Les poids `base-960h` se téléchargent seuls au premier `from_pretrained`.
-4. `python train/manifest.py` — refait la preuve du décodage sur la machine du run.
-5. `python train/train.py --out <un dossier PAR run>` — le script **refuse** un dossier qui porte déjà des checkpoints ; c'est voulu, ne pas contourner. Il n'a **aucune reprise** : un run part toujours de l'encodeur pré-entraîné.
-6. Rapatrier les checkpoints (Save version → output), ménage du `working` entre variantes.
+Deux notebooks, tous deux **privés** : le lien MEGA porte sa clé de déchiffrement dans son propre source, et TIMIT est sous licence LDC.
+
+**Le notebook de préparation**, une fois pour tout le chantier. Accélérateur `none` (une session draft consomme le quota GPU pendant qu'on lit l'écran), internet activé, `apt-get install -y megatools` puis `megadl --path /kaggle/working/ '<lien>'` — guillemets simples obligatoires, sinon bash coupe l'URL au `#` et la clé est perdue. Vérifier l'empreinte contre `tmp/timit.tar.gz` du poste, puis **Save Version → Quick Save en demandant la sauvegarde de la sortie** : la version devient une source de données attachable, et le corpus ne se retéléchargera plus. L'archive reste **une archive** — 26 000 petits fichiers montés depuis `/kaggle/input` étranglent la lecture d'une époque, là où une extraction par run sur le disque local coûte moins d'une minute.
+
+**Le notebook d'entraînement**, un par run :
+
+1. Internet activé, persistance **Files only**, environnement **épinglé** (une mise à jour d'image en cours de balayage rendrait les checkpoints incomparables sans que rien ne le signale), accélérateur **P100** — une seule carte suffit pour V1, ne pas monter de `DataParallel` ; le T4×2 laisserait une carte inactive et le TPU exigerait de réécrire la boucle en XLA.
+2. `Add Input` : la version du notebook de préparation, et un Dataset privé portant `train/*.py`. **Lancer la boucle `os.walk('/kaggle/input')` de la cellule par défaut avant de la supprimer** — Kaggle fabrique les noms des dossiers montés, ils ne se devinent pas et tout le reste s'y réfère.
+3. Extraire l'archive vers `tmp/` sous la racine du code : `ROOT` est le parent de `train/`, donc `/kaggle/working`, et le tar porte `TIMIT/` à sa racine, ce qui reproduit `tmp/TIMIT/lisa/...`.
+4. Poser `HF_HOME`, puis y faire entrer le `vocab.json` de vitouphy par `hf_hub_download("vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "vocab.json")` — l'appel python dépose la structure que `vocabulary()` globbe sans dépendre de la version du CLI installée sur l'image. Les poids `base-960h` se téléchargent seuls au premier `from_pretrained`.
+5. `python train/manifest.py` — refait la preuve du décodage sur la machine du run.
+6. Pas à blanc GPU (`--steps 20 --utterances 64`), puis chronométrer : la session est plafonnée à 12 h et le quota hebdomadaire à 30 h. Si les 30 époques n'y tiennent pas, baisser `--epochs` — jamais couper un run en cours, `train.py` n'ayant aucune reprise.
+7. `python train/train.py --out <un dossier PAR run>` — le script **refuse** un dossier qui porte déjà des checkpoints ; c'est voulu, ne pas contourner. Un run part toujours de l'encodeur pré-entraîné.
+8. Élaguer les checkpoints, puis **Save & Run All** : le conteneur repart vierge et rejoue tout, une version par variante, les checkpoints dans son output.
 
 ## Hyperparamètres — points de départ, pas des valeurs qualifiées
 
@@ -33,6 +41,7 @@ Doc de passation pour la session qui lancera les runs. Tout ce qui suit est **ac
 - **`masked_spec_embed` absent du checkpoint `base-960h`** : transformers remplit les paramètres manquants de NaN et SpecAugment empoisonne toute passe en mode train. Corrigé dans `train.py` (ré-init + refus de tout paramètre NaN au chargement) — si un NaN réapparaît, chercher là d'abord.
 - **Les `.WAV` de TIMIT sont du NIST SPHERE** ; soundfile les lit, rien à convertir.
 - Le vocabulaire utilise les **ligatures à codepoint unique** — tout symbole composé `t`+`ʃ` est un bug.
+- **Trente époques écrivent trente modèles entiers** : `save_pretrained` ne sait pas ne sauver que la tête, soit ~360 Mo × 30 ≈ 10,8 Go pour un `/kaggle/working` plafonné à 20 Go. En V1 l'encodeur est gelé, donc ces copies ne diffèrent que par la tête — élaguer avant de sauver la version.
 - Fin de session payante : **détruire** pod et volume, pas arrêter (facturation à l'arrêt) ; `tmux` pour tout lancement SSH ; le lien MEGA se supprime en fin de chantier.
 
 ## Après les runs — qualification, de retour au poste
@@ -46,4 +55,4 @@ Doc de passation pour la session qui lancera les runs. Tout ce qui suit est **ac
 
 - Commits granulaires, messages en anglais, l'utilisateur seul auteur — cf. `dev_base`.
 - Ne pas toucher aux contrats du banc (`matrix.py`, `faults.py`) au-delà de l'ajout d'un candidat.
-- Toute envie de « corriger » une décision actée ci-dessus se consigne comme question dans le TODO, elle ne s'exécute pas.
+- Toute envie de « corriger » une décision actée ci-dessus se consigne comme question dans le TODO et se discute, elle ne s'exécute pas.
