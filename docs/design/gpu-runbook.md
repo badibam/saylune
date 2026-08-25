@@ -114,9 +114,14 @@ Dans les deux cas, rien du compte ne touche l'hôte : la machine récupère une 
 5. Rapatrier les poids finaux (0,4–1,3 Go) par `scp` depuis votre poste — c'est le débit **descendant** de votre ligne qui compte, bien meilleur que le montant. MEGA ne sert pas au retour : téléverser vers le compte exigerait ses identifiants sur l'hôte.
 6. **Détruire** le pod — pas seulement l'arrêter. Le stockage persistant continue d'être facturé sur un pod arrêté (voir les pièges du chiffrage).
 
-### Cas particulier Kaggle — encore plus simple
+### Cas particulier Kaggle — sans second upload
 
-Vous chargez TIMIT une seule fois comme **Dataset privé** (via le navigateur ou la CLI `kaggle`), et il est ensuite monté en lecture seule dans tous vos notebooks, gratuitement, sans jamais retransférer. Pour V1 et V2 c'est de loin le moins de friction : un seul upload depuis votre ligne, et c'est réglé pour tout le projet.
+Le Dataset privé Kaggle n'exige pas de téléverser TIMIT une deuxième fois depuis votre ligne : un notebook Kaggle a Internet et les droits root, donc il peut `apt-get install megatools` et `megadl` le lien MEGA lui-même, à débit datacenter. Deux façons de s'en servir :
+
+- **Directe** : chaque session de notebook re-télécharge l'archive au démarrage (~1 min) — zéro mise en place, le lien reste dans un notebook **privé** uniquement.
+- **Dataset** : une fois le notebook exécuté, son output se convertit en **Dataset privé** dans l'interface Kaggle (« create dataset from notebook output »), monté ensuite en lecture seule dans tous les notebooks sans retélécharger.
+
+Dans les deux cas, un seul upload depuis chez vous — celui vers MEGA — sert toutes les voies, Kaggle comme RunPod/Vast.
 
 ⚠ **Vérifier que le dataset est bien privé.** TIMIT est sous licence LDC, pas librement redistribuable.
 
