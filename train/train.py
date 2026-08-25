@@ -26,6 +26,9 @@ from transformers import Wav2Vec2ForCTC
 
 from timit import ROOT, vocabulary
 
+# The shared ear: an encoder whose letter head already exists on the shelf, so
+# one pass can serve both alphabets. `large` is the next one up, and carries
+# wav2vec2-large-960h as its letter head.
 ENCODER = "facebook/wav2vec2-base-960h"
 MANIFEST = ROOT / "tmp" / "train" / "manifest.json"
 
@@ -50,7 +53,9 @@ def main():
     parser.add_argument("--prior-weight", type=float, default=0.3,
                         help="weight on the subtracted log prior (to sweep on GPU)")
     parser.add_argument("--unfreeze", action="store_true",
-                        help="train the encoder too (V2); default is head only (V1)")
+                        help="train the encoder too; default is head only")
+    parser.add_argument("--encoder", default=ENCODER,
+                        help="the pre-trained ear to build the head on")
     parser.add_argument("--out", type=Path, default=ROOT / "tmp" / "train" / "checkpoints")
     args = parser.parse_args()
 
@@ -62,7 +67,7 @@ def main():
         entries = entries[:args.utterances]
 
     model = Wav2Vec2ForCTC.from_pretrained(
-        ENCODER, vocab_size=len(vocab), pad_token_id=blank,
+        args.encoder, vocab_size=len(vocab), pad_token_id=blank,
         ctc_loss_reduction="mean", ignore_mismatched_sizes=True)
     # masked_spec_embed is absent from the base-960h checkpoint, and
     # transformers fills missing parameters with NaN; SpecAugment then
@@ -79,7 +84,7 @@ def main():
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device).train()
-    print(f"{ENCODER} + fresh head of {len(vocab)}: {trainable:,} trainable parameters, {device}")
+    print(f"{args.encoder} + fresh head of {len(vocab)}: {trainable:,} trainable parameters, {device}")
 
     optimiser = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad], lr=args.lr)
