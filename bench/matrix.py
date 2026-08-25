@@ -50,6 +50,14 @@ CANDIDATES = {
         "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
        for weight, epoch in (("0.1", 9), ("0.1", 19), ("0.1", 29),
                              ("0.3", 29), ("1.0", 29))},
+    # Second generation: the same staircase step re-run on the corrected loss
+    # (penalised scores fed unnormalised, real lengths). Incomparable to the
+    # `v1-` checkpoints above, which the loss that produced them condemns.
+    **{f"v1b-pw{weight}-e{epoch}": Candidate(
+        str(ROOT / f"tmp/train/runs-v1b/v1b-pw{weight}/epoch-{epoch:03d}"),
+        "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
+       for weight in ("0.0", "0.1", "0.3", "1.0")
+       for epoch in (9, 19, 29)},
 }
 
 CHOSEN = os.environ.get("ACOUSTIC_MODEL", "espeak")
