@@ -127,6 +127,38 @@ Persistance de session Kaggle, deux réglages qui ne se voient pas : le mode **�
 
 ⚠ **Vérifier que le dataset est bien privé.** TIMIT est sous licence LDC, pas librement redistribuable.
 
+### Rapatrier la sortie d'un notebook — fichier par fichier, jamais l'archive
+
+Trois voies existent pour récupérer les poids, deux échouent, et la première échoue **en silence**. Mesuré sur la génération V1b, 12 checkpoints de 377 641 832 o chacun :
+
+- `kaggle kernels output <notebook>` rend une liste tronquée à trois entrées et écrit un `model.safetensors` de **0 octet**, sans message et sans code de retour non nul. Un fichier vide qui se fait passer pour un téléchargement abouti est le pire des deux échecs : rien ne prévient, et c'est au chargement des poids qu'on l'apprendrait.
+- `kaggle datasets download -d <dataset>` — l'archive complète — répond **404** sur `DownloadDataset`, alors même que `datasets status` dit `ready` et que `datasets files` liste les 41 fichiers. Déclarer une licence sur le dataset n'y change rien : essayé, le 404 est identique une fois passé en `apache-2.0`.
+- `kaggle datasets download -d <dataset> -f <chemin>` — un fichier à la fois — fonctionne, rend le fichier **nu** (jamais emballé en `.zip`) et affiche une barre de progression.
+
+Le procédé retenu suit de là. Convertir d'abord la sortie du notebook en **Dataset privé** (bouton *New Dataset* du panneau Output, visibilité à vérifier), attendre que `datasets status` rende `ready`, puis lister pour vérifier que le dernier run du balayage y est — `datasets files` pagine à 20 lignes, d'où `--page-size 100`, faute de quoi la fin de la liste passe pour absente. Enfin, boucler :
+
+```bash
+for run in v1b-pw0.0 v1b-pw0.1 v1b-pw0.3 v1b-pw1.0; do
+  for ep in 009 019 029; do
+    for f in config.json model.safetensors prior.pt; do
+      dest="tmp/train/runs-v1b/$run/epoch-$ep"
+      [ -s "$dest/$f" ] && continue
+      mkdir -p "$dest"
+      tmp/venv/bin/kaggle datasets download \
+        -d <compte>/<dataset> -f "tmp/train/runs/$run/epoch-$ep/$f" -p "$dest"
+    done
+  done
+done
+```
+
+Le `[ -s ]` teste le fichier **non vide**, pas sa seule présence : c'est ce qui rend la boucle reprenable après une coupure, et c'est exactement le piège du fichier de 0 octet ci-dessus. Il ne couvre pas le fichier interrompu à mi-course, qui serait pris pour complet — d'où la vérification finale, qui ne doit rien afficher :
+
+```bash
+find tmp/train/runs-v1b -name model.safetensors -size -377641832c
+```
+
+Le CLI s'installe dans le venv du projet (`tmp/venv/bin/pip install kaggle`) et s'authentifie par un jeton créé dans Settings → API, déposé en `~/.kaggle/` — le mode `600` est obligatoire, le CLI refuse de démarrer sinon. Un transfert de plusieurs gigaoctets se lance dans `tmux`, la barre de progression n'existant qu'en avant-plan.
+
 ### Les poids pré-entraînés ne vous concernent pas
 
 ~360 Mo pour `wav2vec2-base`, ~1,2 Go pour `xls-r-300m`. `transformers` les télécharge depuis le Hub **côté serveur**, automatiquement, à pleine bande passante datacenter. Rien à préparer.
