@@ -12,7 +12,8 @@ Doc de passation pour la session qui lancera les runs. Tout ce qui suit est **ac
 
 - **Alphabet de sortie = le `vocab.json` de `timit-ipa` (vitouphy), à l'identique**, ligatures comprises (ʧ U+02A7, ʤ U+02A4). C'est ce qui permet au banc de lire le modèle affiné sans modification. `train/timit.py::vocabulary()` le relit depuis le cache HF et échoue franchement s'il manque.
 - **Repliement TIMIT 61 → 39 Lee & Hon** (`train/timit.py::FOLD`) ; silences (h#, pau, epi, fermetures) et `q` ne sont pas des cibles — le silence appartient au blank. Variante en réserve, à ne dégainer que si la qualification montre un problème aux frontières : silence → espace.
-- **Escalier** : V1 tête seule sur oreille `base-960h` gelée (défaut du script) d'abord ; V2 (`--unfreeze`) seulement si la mesure condamne V1 ; V3 (`large`) seulement si V2 est condamné. Chaque marche se paie sur verdict de mesure, jamais sur intuition.
+- **Escalier** : V1 tête seule sur oreille `base-960h` gelée (défaut du script) d'abord ; V2 (`--unfreeze`) seulement si la mesure condamne V1 ; V3 (`large`, par `--encoder`) seulement si V2 est condamné. Chaque marche se paie sur verdict de mesure, jamais sur intuition.
+- **Le gel de l'oreille est une préférence, pas une condition.** `dense-grid.md` le présentait comme la condition du partage, et le partage vaut ce qu'il vaut — un téléchargement au lieu de deux, une passe au lieu de deux, ~1 Go de RAM. Mais le critère est la qualité que `faults.py` mesure : une oreille dégelée qui sépare mieux se garde, et le partage se paie alors comme un coût, non comme un interdit.
 - **Ce qui qualifie un checkpoint est `bench/faults.py`**, jamais la loss ni le PER. Un checkpoint « qui converge mieux » ne vaut rien tant que la séparation fautes/témoins et la densité de la grille ne sont pas relues.
 
 ## Dérouler un run (Kaggle, V1)
