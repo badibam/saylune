@@ -72,7 +72,12 @@ JupyterLab est un peu plus tolérant — le kernel survit à la fermeture de l'o
 
 ---
 
-## 3. Acheminer le corpus (~1 Go)
+## 3. Acheminer le corpus (630 Mo réels)
+
+Le TIMIT acheté pèse **630 Mo pour 25 208 fichiers** (`tmp/TIMIT/`, arborescence `lisa/data/timit/raw/TIMIT` — celle qu'attendent les loaders standard). Deux conséquences pratiques :
+
+- **Toujours transférer en une seule archive** (`tar.gz`) : 25 000 petits fichiers à l'unité, c'est l'enfer de n'importe quel protocole. Le PCM se compresse mal, compter ~500 Mo archivés.
+- **Les `.WAV` sont du NIST SPHERE, pas du RIFF** (en-tête `NIST_1A`) malgré l'extension. libsndfile — donc `soundfile` et le backend correspondant de torchaudio — les lit, mais **vérifier la chaîne de décodage en local avant de louer** : un décodage qui coince se débogue gratuitement sur le poste, pas au tarif GPU. Plus généralement, dérouler à blanc la préparation des données (manifeste, décodage de quelques fichiers, un pas d'entraînement sur CPU) avant le premier run loué.
 
 ### Depuis votre machine : ça dépend de votre débit montant
 
@@ -87,9 +92,9 @@ Si vous êtes dans le bas du tableau, **ne transférez jamais depuis votre poste
 
 ### La bonne méthode : sortir votre connexion du circuit
 
-Déposer TIMIT **une seule fois** sur un stockage objet, puis faire télécharger la machine louée directement depuis là. Le transfert devient datacenter-à-datacenter, typiquement 100 Mb/s à 1 Gb/s : 1 Go en quelques dizaines de secondes, quelle que soit votre ligne. Votre débit montant ne compte plus qu'une seule fois, au dépôt initial.
+Déposer TIMIT **une seule fois** sur un stockage que la machine louée télécharge elle-même. Le transfert devient datacenter-à-datacenter, typiquement 100 Mb/s à 1 Gb/s : quelques dizaines de secondes, quelle que soit votre ligne. Votre débit montant ne compte plus qu'une seule fois, au dépôt initial.
 
-Options de bucket S3-compatible, toutes équivalentes ici :
+**La voie retenue est MEGA par lien public** (§4) — le compte existe déjà, aucun bucket à créer. Les buckets S3-compatibles ci-dessous restent le repli si le quota MEGA de l'IP du pod est épuisé :
 
 | service | remarque |
 |---|---|
@@ -98,15 +103,15 @@ Options de bucket S3-compatible, toutes équivalentes ici :
 | Cloudflare R2 | egress gratuit |
 | Backblaze B2 | très bon marché |
 
-Sur la machine louée, ça se réduit à un `wget` d'une **URL présignée valable quelques heures** — aucun identifiant à déposer sur l'hôte.
+Dans les deux cas, rien du compte ne touche l'hôte : la machine récupère une URL — lien MEGA ou URL présignée valable quelques heures — sans identifiant.
 
 ### Ordre des opérations qui évite de payer pour rien
 
-1. Déposer le corpus sur le bucket (depuis chez vous, GPU éteint).
+1. Déposer l'archive du corpus sur MEGA (depuis chez vous, GPU éteint), générer le lien.
 2. Démarrer le pod avec une image Docker contenant déjà PyTorch + torchaudio.
-3. `wget` l'URL présignée, décompresser.
+3. `megadl` le lien, décompresser.
 4. Entraîner dans `tmux`, checkpoints sur `/workspace`.
-5. Pousser les poids finaux (0,4–1,3 Go) vers le bucket.
+5. Rapatrier les poids finaux (0,4–1,3 Go) par `scp` depuis votre poste — c'est le débit **descendant** de votre ligne qui compte, bien meilleur que le montant. MEGA ne sert pas au retour : téléverser vers le compte exigerait ses identifiants sur l'hôte.
 6. **Détruire** le pod — pas seulement l'arrêter. Le stockage persistant continue d'être facturé sur un pod arrêté (voir les pièges du chiffrage).
 
 ### Cas particulier Kaggle — encore plus simple
@@ -121,15 +126,16 @@ Vous chargez TIMIT une seule fois comme **Dataset privé** (via le navigateur ou
 
 ---
 
-## 4. Le cas Proton Drive
+## 4. Les drives personnels — MEGA retenu, Proton écarté
 
-Techniquement possible, pratiquement déconseillé.
+**MEGA convient, par le lien public — c'est la voie retenue.** Un fichier MEGA partagé par lien se télécharge **sans aucun identifiant** : la clé de déchiffrement voyage dans le fragment de l'URL, et `megadl` (paquet `megatools`, dans Debian/Ubuntu) ou `mega-get` (MEGAcmd) la consomment côté machine louée. Rien du compte ne touche l'hôte — même profil de sécurité qu'une URL présignée S3. Ordre des opérations : archiver TIMIT, le déposer une fois sur MEGA depuis chez soi, générer le lien, `megadl '<lien>'` sur le pod. Deux réserves :
 
-**Ce qui existe.** rclone dispose d'un backend `protondrive`. Il est en bêta et implémenté par rétro-ingénierie, Proton ne publiant pas la documentation de son API. En octobre 2025, le projet rclone a ouvert une discussion sur l'opportunité de le marquer comme non supporté, faute de mainteneur actif et avec un arriéré de tickets ouverts.
+- **Licence LDC** : un lien public MEGA est accessible à quiconque le détient. Le lien est indevinable, mais il ne va **ni dans un notebook, ni dans un dépôt, ni dans un chat** — et il se supprime (ou la clé du dossier se régénère) une fois le projet fini.
+- **Quota de transfert par IP** : le tier gratuit MEGA plafonne le téléchargement par adresse IP (~quelques Go par fenêtre de quelques heures). 630 Mo passent large, mais l'IP d'un hôte de marketplace est **partagée** et peut arriver déjà épuisée. Si `megadl` cale sur un quota, le repli est le bucket S3 du tableau ci-dessus — pas la peine de le monter d'avance.
 
-**Le problème de fond.** Proton Drive est chiffré de bout en bout : il n'existe pas de lien HTTP direct que la machine distante puisse récupérer avec un `wget`. Le déchiffrement se fait côté client. Il faut donc authentifier rclone avec **vos identifiants Proton complets** sur la machine louée — qui, chez Vast.ai ou RunPod Community, appartient à un particulier inconnu. C'est votre compte mail Proton que vous exposez pour économiser trois minutes de transfert.
+Attention : ce qui précède vaut pour le **lien public**. Monter le compte MEGA lui-même via rclone (backend `mega`) exige **l'identifiant et le mot de passe complets** du compte — pas un jeton révocable — et n'a rien à faire sur une machine de marketplace.
 
-**Si vous tenez au cloud grand public.** rclone gère proprement Google Drive, Dropbox ou Mega avec des jetons OAuth **révocables** — nettement plus acceptable qu'un mot de passe maître. Mais un bucket S3 avec une clé en lecture seule et courte durée de vie reste la réponse propre : rien de personnel ne touche la machine, révocation immédiate, et on reste dans l'esprit *one-shot, aucune infra persistante* du brief.
+**Proton Drive, lui, est écarté.** Son chiffrement de bout en bout ne laisse aucun lien HTTP qu'une machine distante puisse récupérer seul : il faudrait authentifier rclone (backend `protondrive`, bêta rétro-ingéniérée, quasi non maintenue) avec les identifiants Proton complets sur une machine appartenant à un inconnu. C'est le compte mail qu'on exposerait pour économiser trois minutes de transfert.
 
 **Hygiène générale, quel que soit le stockage.** Sur une machine de marketplace : pas de clé SSH personnelle réutilisée ailleurs, pas de token Hugging Face en écriture, pas de credentials cloud à longue durée de vie. Générer ce qui est nécessaire, avec le périmètre minimal, et le révoquer après.
 
@@ -137,10 +143,10 @@ Techniquement possible, pratiquement déconseillé.
 
 ## 5. Récapitulatif — checklist avant le premier run
 
-- [ ] TIMIT déposé sur un bucket (ou en Dataset **privé** Kaggle)
+- [ ] Chaîne de données déroulée à blanc en local : décodage SPHERE vérifié, manifeste construit, un pas d'entraînement sur CPU
+- [ ] Archive TIMIT déposée sur MEGA, lien généré (ou Dataset **privé** Kaggle pour V1/V2)
 - [ ] Clé SSH publique enregistrée chez le fournisseur
 - [ ] Image Docker retenue contenant déjà PyTorch + torchaudio (gain de plusieurs minutes facturées **par run** — poste de coût plus lourd que l'écart de prix entre deux fournisseurs)
 - [ ] Script d'entraînement écrivant des checkpoints périodiques sur `/workspace`
 - [ ] `tmux` systématique pour tout lancement
-- [ ] URL présignée générée, valable quelques heures
-- [ ] Procédure de fin claire : pousser les poids → **détruire** le pod et le volume
+- [ ] Procédure de fin claire : rapatrier les poids par `scp` → **détruire** le pod et le volume → supprimer le lien MEGA
