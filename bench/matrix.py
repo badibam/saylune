@@ -28,6 +28,8 @@ import soundfile as sf
 # describable. `vocabulary` names the repo holding vocab.json when it is not the
 # model's own; `extractor` says whether the repo carries its own preparation or
 # the standard one applies.
+ROOT = Path(__file__).resolve().parent.parent
+
 Candidate = namedtuple("Candidate", "model vocabulary extractor")
 
 CANDIDATES = {
@@ -39,6 +41,14 @@ CANDIDATES = {
                            None, "repo"),
     "timit": Candidate("excalibur12/wav2vec2-large-lv60_phoneme-timit"
                        "_english_timit-4k_simplified", None, "repo"),
+    # Fine-tuned here: a directory rather than a repo. The weights are ours, the
+    # vocabulary stays vitouphy's -- that is what makes the reading before and
+    # after a comparison at iso-alphabet -- and the checkpoint carries no
+    # preparation of its own, the standard one applying.
+    **{f"v1-pw0.1-e{epoch}": Candidate(
+        str(ROOT / f"tmp/train/runs/v1-pw0.1/epoch-{epoch:03d}"),
+        "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
+       for epoch in (9, 19, 29)},
 }
 
 CHOSEN = os.environ.get("ACOUSTIC_MODEL", "espeak")
@@ -103,7 +113,15 @@ def cached():
         raise SystemExit(
             "Missing environment variable: HF_HOME (the weights cache)")
     from huggingface_hub import hf_hub_download
-    return hf_hub_download
+
+    def fetch(repo, filename):
+        if not Path(repo).is_dir():
+            return hf_hub_download(repo, filename)
+        local = Path(repo) / filename
+        if not local.is_file():
+            raise SystemExit(f"{filename} absent from {repo}")
+        return str(local)
+    return fetch
 
 
 def loaded():
