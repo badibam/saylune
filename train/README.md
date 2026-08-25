@@ -11,7 +11,9 @@ Même venv et même cache que le banc (`../bench/README.md`) ; `HF_HOME` obligat
 ```
 HF_HOME=$PWD/tmp/hf tmp/venv/bin/python train/manifest.py       # décode tout le corpus, écrit tmp/train/manifest.json
 HF_HOME=$PWD/tmp/hf tmp/venv/bin/python train/train.py --steps 2 --utterances 8   # pas à blanc CPU
-HF_HOME=$PWD/tmp/hf tmp/venv/bin/python train/train.py          # le vrai run (GPU : V1 tête seule par défaut, --unfreeze pour V2)
+HF_HOME=$PWD/tmp/hf tmp/venv/bin/python train/train.py --encoder facebook/wav2vec2-xls-r-300m --unfreeze --checkpointing --lr 1e-4   # le régime en cours (GPU)
 ```
 
-Le manifeste et les checkpoints vivent sous `tmp/train/`, régénérables. Les hyperparamètres exposés (`--lr`, `--prior-weight`, `--epochs`) sont des points de départ à balayer sur GPU, pas des valeurs qualifiées ; ce qui qualifie un checkpoint reste `bench/faults.py`, jamais la loss.
+Par défaut le script n'entraîne que la tête sur une oreille gelée — le régime des deux premières générations, que la mesure a condamné (cf. `../docs/design/dense-grid.md`). Le régime en cours est l'affinage complet ; ses arguments et le mode opératoire Kaggle sont dans `../docs/design/training-handoff.md`. L'extracteur convolutionnel reste gelé quoi qu'il arrive.
+
+Le manifeste et les checkpoints vivent sous `tmp/train/`, régénérables. Les hyperparamètres exposés (`--lr`, `--prior-weight`, `--epochs`, `--warmup`) sont des points de départ à balayer sur GPU, pas des valeurs qualifiées ; ce qui qualifie un checkpoint reste `bench/faults.py`, jamais la loss.

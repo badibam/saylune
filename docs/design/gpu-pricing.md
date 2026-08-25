@@ -120,6 +120,8 @@ Trié par coût croissant sur 4 runs. « h fact. » = durée facturée par run, 
 
 Kaggle et Colab-T4 sortent de la grille : 16 Go de VRAM insuffisants. Les lignes marquées **(acc.)** utilisent l'accumulation de gradient sur carte 24 Go, avec la pénalité de ×1,45 déjà intégrée.
 
+**Le verdict sur les 16 Go suppose que les activations sont stockées ; avec recalcul (`--checkpointing`) elles cessent de dominer, et le T4 redevient candidat.** Ce qui reste — poids, gradients, états AdamW pour 315 M de paramètres en fp32 — est de l'ordre de 5 Go, déduit et non mesuré ; `training-handoff.md` porte la cellule de pas à blanc qui le vérifie, et le temps par époque qui décidera vraiment.
+
 | fournisseur | mode | carte | $/h | h fact. | $/run | $ × 4 | € × 4 | note |
 |---|---|---|---|---|---|---|---|---|
 | Vast.ai | interruptible | RTX 4090 24 Go | 0,16 | 11,0 | 1,76 | 7,03 | 6 | (acc.) prix plancher |

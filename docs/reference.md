@@ -17,7 +17,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 - `design/finetune-brief.md` — le chantier d'affinage empaqueté pour chiffrage : variantes, contraintes, fournisseurs GPU à bencher.
 - `design/gpu-pricing.md` — le chiffrage rendu : grille variante × fournisseur × carte × coût, recommandations, pièges de facturation.
 - `design/gpu-runbook.md` — le mode opératoire de la location : accès à la machine, acheminement du corpus, hygiène de session.
-- `design/training-handoff.md` — la passation pour la session qui déroule les runs : décisions actées, pas-à-pas Kaggle, pièges déjà payés, qualification au retour.
+- `design/training-handoff.md` — la passation pour la session qui déroule les runs de l'affinage complet : décisions actées, cellules Kaggle, pièges déjà payés, qualification au retour.
 
 ## Le geste
 
