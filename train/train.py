@@ -87,6 +87,11 @@ def main():
     # posteriors (EMA); uniform start so the first steps are plain CTC-ish.
     prior = torch.full((len(vocab),), 1 / len(vocab), device=device)
 
+    # One directory per run, enforced: mixed checkpoints from two runs are
+    # indistinguishable at qualification time. No resume logic exists here —
+    # a run always starts from the pre-trained encoder, never from tmp state.
+    if any(args.out.glob("epoch-*")):
+        raise SystemExit(f"{args.out} already holds checkpoints — name one output directory per run (--out)")
     step = 0
     args.out.mkdir(parents=True, exist_ok=True)
     for epoch in range(args.epochs):
