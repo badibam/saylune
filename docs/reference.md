@@ -15,6 +15,8 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 - `design/letter-anchoring.md` — carnet d'exploration de l'ancrage calculé sur l'appareil : ce qui est mesuré, et le trou qu'il a ouvert dans la grille.
 - `design/dense-grid.md` — le diagnostic de ce trou (la peakiness du CTC), la preuve que les poids ne voient pas les sons manqués, et le plan validé : un seul modèle de sons dense et acoustique, affiné à l'atelier.
 - `design/finetune-brief.md` — le chantier d'affinage empaqueté pour chiffrage : variantes, contraintes, fournisseurs GPU à bencher.
+- `design/gpu-pricing.md` — le chiffrage rendu : grille variante × fournisseur × carte × coût, recommandations, pièges de facturation.
+- `design/gpu-runbook.md` — le mode opératoire de la location : accès à la machine, acheminement du corpus, hygiène de session.
 
 ## Le geste
 
