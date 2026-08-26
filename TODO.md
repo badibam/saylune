@@ -19,7 +19,9 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 
   Deux réserves à ne pas lisser. La bande vide n'est pas uniformément meilleure — 0,058 contre 0,234 sur gb-daniel est un recul, contre 0,003 sur us-eric une amélioration ; le candidat rend en revanche la **même** bande sur les deux voix quand le sortant varie d'un facteur 78 selon l'accent. Et `09-walkin` reste manquée sur les deux voix, alors que le sortant l'attrape sur us-eric — de justesse, à 0,005 contre un témoin à 0,002. Mesures brutes dans `tmp/v3-measures.md`.
 
-  Les époques 009 et 019 ne sont pas encore rapatriées (`train/fetch.py --epoch 019`, `--epoch 009` ; c'est l'utilisateur qui lance).
+  **Le run `0,1` est en vol** — copie du notebook sous son propre nom, pour que la sortie de `pw0.0` reste adressable. C'est le premier run où le terme de Huang et al. est réellement actif, donc le premier qui puisse faire bouger la densité.
+
+  Les époques 009 et 019 de `pw0.0` ne sont pas encore rapatriées (`train/fetch.py --epoch 019`, `--epoch 009` ; c'est l'utilisateur qui lance). Elles diraient la trajectoire de la densité au fil de l'entraînement — se dégrade-t-elle en apprenant — ce qui oriente le choix du poids de prior.
 
   **Le point de rigueur sur l'étalon est levé** : `timit-ipa` a été relu du cache local dans la même passe que la marche 3, et rend un pire témoin de 0,002 sur les deux voix — dans la fourchette 0,002–0,004 qui n'était jusque-là que citée.
 - **Pour la brique 7, lire le rythme de l'alignement existant** : la déformation locale de la correspondance temporelle modèle ↔ apprenant (l'un traîne sur une syllabe, avale la suivante), une fois la pente d'ensemble — le débit — retirée, est un signal de durée pour l'accent lexical. Les positions des sons des deux côtés sortent déjà de la matrice : c'est une lecture de plus, pas un calcul de plus.

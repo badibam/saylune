@@ -123,7 +123,7 @@ Le Dataset privé Kaggle n'exige pas de téléverser TIMIT une deuxième fois de
 
 Dans les deux cas, un seul upload depuis chez vous — celui vers MEGA — sert toutes les voies, Kaggle comme RunPod/Vast.
 
-Persistance de session Kaggle, deux réglages qui ne se voient pas : le mode **« Files only »** (jamais « Variables », qui restaure l'état Python d'une session précédente — modèle déjà chargé, imports fantômes, l'inverse du reproductible), et le fait que `/kaggle/working` **survit d'une session à l'autre** — d'où un dossier de sortie **par run** (`train.py` refuse d'écrire dans un dossier qui porte déjà des checkpoints) et un ménage entre variantes, les fichiers persistés comptant dans le quota de stockage du compte.
+Persistance de session Kaggle, deux réglages qui ne se voient pas : le mode **« Files only »** (jamais « Variables », qui restaure l'état Python d'une session précédente — modèle déjà chargé, imports fantômes, l'inverse du reproductible) — il **retombe sur « aucune » à chaque *Copy & Edit*** et se repose à la main, la copie ne le portant pas avec le reste des réglages — et le fait que `/kaggle/working` **survit d'une session à l'autre** — d'où un dossier de sortie **par run** (`train.py` refuse d'écrire dans un dossier qui porte déjà des checkpoints) et un ménage entre variantes, les fichiers persistés comptant dans le quota de stockage du compte.
 
 ⚠ **Vérifier que le dataset est bien privé.** TIMIT est sous licence LDC, pas librement redistribuable.
 
