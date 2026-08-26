@@ -33,7 +33,11 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 
   **L'époque 019 est lue, et elle va dans le même sens sans l'atteindre** : 98,7 % de sons tenus sur une trame contre 99,4 %, 8 % de sons sans lettre contre 10 %, PER de 9,5 % — le meilleur de nos checkpoints. Elle reste au-dessus du sortant sur la peakiness et en dessous sur la jointure. Son « 8 fautes sur 8 » est à lire avec soin : c'est une faute de plus **ancrable**, `08-light-right` rentrant dans la comparaison à cette époque, pas une faute de plus attrapée.
 
-  **Portée de ce qui précède : un poids, deux époques sur trois.** L'époque 009 n'est pas descendue, alors que le contrôle avait montré l'entraînement retirer après l'époque 9 ce qu'il avait ajouté, et que les deux époques lues ici pointent dans cette direction. Le poids `0,3` n'a pas tourné. Le prior n'est pas jugé ; deux de ses checkpoints le sont.
+  **Les trois époques du poids `0,1` sont lues, et aucune ne passe la jointure.** 8 à 10 % de sons sans aucune lettre contre 7 % pour le sortant, et 98,7 à 99,4 % de sons tenus sur une seule trame contre 86,7 %. L'époque 9, que les deux autres points désignaient, ne renverse rien — c'est la pire des trois sur la jointure, et sa séparation fautes/témoins s'effondre par ailleurs à une bande de 0,003 avec `09-walkin` manquée. **Le poids `0,1` est donc jugé, sur ses trois points.** Le poids `0,3` n'a pas tourné, et le terme lui-même n'est pas jugé.
+
+  **L'époque 9 rend la meilleure position jamais mesurée** — 21,0 ms d'erreur médiane de départ et 47,5 ms au 9e décile, contre 25,0 et 70,6 pour le sortant. C'est le seul instrument où le prior devance tout le reste, et il ne se déduit rien de plus : la position est ce que `boundaries.py` sait mesurer en plus de l'étendue, et elle ne dit rien de la jointure.
+
+  **La séparation et la jointure ne classent pas les époques dans le même ordre**, ce qui est le fait de méthode de ce balayage : la 029 est la meilleure des trois sur `faults.py` et la pire sur `join.py`, la 9 l'inverse. C'est ce qui a fait entrer `join.py` dans la procédure de `qualification.md`.
 
   Le PER ne bouge pas — 10,2 % contre 10,1 % pour le contrôle, l'écart au sortant à 6,7 % restant celui qui n'est pas interprétable en l'état. Les insertions baissent (1,7 % contre 2,2 %), les substitutions montent (7,0 % contre 6,6 %).
 
