@@ -16,6 +16,8 @@ Mesuré, sur les matrices `timit-ipa` en cache (quinze phrases, `eleven-us-eric`
 - **Pénalité de blank au décodage** : facteur balayé de 1 à 0,001 → 221/253 sons retrouvés → 226/253 au mieux, les parasites passant de 15 à 28.
 - **La masse n'est pas dans la matrice** : chaque son manquant fenêtré par alignement forcé de la séquence attendue (annotation du banc), pic de sa propre colonne lu à ±100 ms. La grande majorité plafonne sous 0,2 (le `k` de *picked* à 0,00, les `t` d'*important* à 0,01) pendant que le blank tient 1,00.
 
+- **L'étendue manque, et elle manque partout** (`bench/boundaries.py`, 200 énoncés du split TEST de TIMIT, 5971 sons, bornes `.PHN` au niveau de l'échantillon) : un son reçoit **26,9 %** de sa durée réelle chez `timit-ipa` — et 26,9 / 26,7 / 26,7 % aux époques 9, 19 et 29 d'un affinage complet sur `xls-r-300m`. Ni le dégel de l'oreille, ni le changement de dos, ni la durée d'entraînement n'en rendent un millième. **La peakiness est donc une propriété du régime CTC nu, pas un défaut des poids sortants** — ce que cette section posait en diagnostic et que rien ne mesurait directement.
+
 Conséquence (déduite) : aucune lecture de cette matrice ne dépassera ~90 %. Le manque est dans les poids, pas dans la lecture.
 
 Les 95 % de charsiu, réattribués : `fc` dans son nom signifie *frame classification* — une tête entraînée à étiqueter chaque trame, pas un CTC plus fin. Le gain vient de la **densité de la lecture**, pas des 10 ms ; c'est ce critère-là qui départage les modèles de grille.

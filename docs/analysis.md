@@ -90,6 +90,10 @@ AO 0.19-0.27 s    R 0.27-0.29 s
 
 Le même symbole désigne maintenant le même endroit chez les deux. C'est la seule chose dont on avait besoin pour comparer, et c'est ce qui remplace toute tentative de coller les deux audios l'un sur l'autre : la correspondance passe par un repère symbolique commun, pas par la ressemblance des signaux — donc la différence de voix n'y entre pas.
 
+**Mesuré contre une vérité terrain** (`bench/boundaries.py`, 200 énoncés du split TEST de TIMIT, 5971 sons, bornes annotées au niveau de l'échantillon) : le départ d'un son tombe à **25 ms** de sa borne réelle en médiane, 71 ms au 9e décile — la trame de 20 ms posant le plancher. Le treillis n'échoue jamais : aucun son sans place, aucun énoncé refusé.
+
+**Mais la durée n'est pas rendue : un son reçoit 26,9 % de son étendue réelle.** C'est la peakiness du CTC (cf. `design/dense-grid.md`), et elle ne dépend pas des poids — quatre lectures, dont trois checkpoints d'un affinage complet, tiennent dans 0,2 point. La position sert donc, l'étendue non : toute brique qui voudrait lire une **durée** de cette matrice doit le savoir.
+
 ### 6. Le son — recouvrement de deux formes
 
 On met face à face les deux répartitions, aux instants qui se correspondent.
