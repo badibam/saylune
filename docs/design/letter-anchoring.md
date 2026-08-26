@@ -45,6 +45,25 @@ Correction : élargir chaque pic jusqu'à mi-chemin de son voisin, des deux côt
 
 Ce chiffre est à prendre avec deux réserves. Une part inconnue des 101 ratés vient de mon annotation, discutable là où le réseau découpe autrement : sur `The`, j'ai écrit `ð→Th` puis `ɪ→e`, le réseau rend `ð→T` puis `ɪ→he`, et les deux se défendent — ce motif seul revient dans neuf phrases. Et 57 % ne devient un verdict que si l'on sait ce dont une marque a besoin : un décalage d'une lettre au bord d'une marque de syllabe n'a peut-être aucun effet visible, un son qui ne reçoit rien ne peut pas être marqué du tout, et **les deux cas sont mélangés dans le même chiffre**.
 
+**Suite, et la réserve du dernier paragraphe est levée.** Deux corrections de géométrie et une table plus tard, `bench/join.py -s` rejoue cette même mesure : **62 %** avec les mots d'abord (l'espace devient une frontière au lieu d'une lettre), **92 %** en ajoutant une affinité graphème↔phonème en départage. Le motif `ð→T` contre `ð→Th` qui polluait neuf phrases tombe de lui-même — l'orthographe le tranche là où le temps hésitait.
+
+**Et ce carnet a produit le bon chiffre avant tout le monde.** Les 57 % ci-dessus mesuraient la seule question qui compte ; ils n'ont pas été rejoués, et chaque décision ultérieure sur la jointure s'est prise sur les compteurs de trous de `join.py -a`, qui rapportent huit défauts là où l'annotation en trouve quatre-vingt-neuf. Le score est maintenant une option du banc, pas un calcul de séance.
+
+## Ce que le réseau de lettres vaut, mesuré en le retirant
+
+La jointure a été rejouée **sans lui** : appariement monotone global des lettres du texte sur les sons décodés, l'affinité seule pour score, une bande diagonale pour tout garde-fou, aucun horodatage et aucune frontière de mot.
+
+| jointure | sons portant les bonnes lettres |
+|---|---|
+| temps seul | 62 % |
+| temps + affinité | **92 %** |
+| affinité seule, sans réseau de lettres | 86 % |
+| orthographe pure, sans même la diagonale | 80 % |
+
+Il vaut donc **six points**. Et sur la position, contre les horodatages d'ElevenLabs et à code identique : 8 ms de médiane sur le début d'un mot contre 18 pour la position héritée du son, 10 contre 22 sur l'instant d'un caractère. Deux limites structurelles à la version sans lui : deux lettres tombées sur le même son partagent son instant (`s` et `h` de `sh`), et la borne d'un son vient de l'élargissement, donc à moitié inventée.
+
+**Sa raison d'être a donc bougé.** Il a été construit pour porter la jointure ; la jointure se passe largement de lui. Ce qu'il achète est la position — dont les consommateurs sont l'extrait à faire réécouter, où une marge de trente millisecondes absorbe l'écart, et les briques 7 et 8, qui lisent la position des **sons** et non l'horodatage des lettres. Aucune cible n'a jamais été posée, et rien ne se retire tant que 7 et 8 ne sont pas écrites.
+
 ## Le vrai problème : la grille perd des sons
 
 En amont de la jointure, la brique 3. Le décodage libre du modèle rend **223 des 253 sons attendus, soit 88 %** — 30 sons n'ont aucune case.
@@ -76,9 +95,10 @@ L'annotation des sons attendus est la mienne, et la table d'équivalences de `ex
 
 Le versant grille — pourquoi elle perd des sons, et la voie de sortie — a été diagnostiqué et planifié depuis : cf. `dense-grid.md`, qui porte aussi la géométrie de jointure rodée et la tolérance de la marque. Reste ouvert ici, côté lettres :
 
-- **Corriger l'annotation** de `expected.py` là où elle est discutable, et recompter.
+- **Corriger l'annotation** de `expected.py` là où elle est discutable, et recompter. C'est devenu la première des tâches : sur les vingt erreurs qui restent à 92 %, trois à cinq sont des conventions d'annotation et non des fautes, et on n'optimise pas au-delà de l'erreur de la règle qui mesure.
 - **Les deux réseaux chargés ensemble**, ou la discipline charge-passe-décharge.
 - **Le garde-fou des textes non épelables**, côté app.
+- **Ce que six points de jointure et dix millisecondes de position valent à l'écran** — la seule chose qui déciderait du sort de ce réseau, et elle n'a pas d'instrument.
 
 ## Rejouer
 
