@@ -19,6 +19,7 @@ import re
 import sys
 from pathlib import Path
 
+import expected
 import letters
 import matrix
 import phrases
@@ -179,15 +180,55 @@ def tally(candidate):
           f"({100 * orphan / spelt:.0f} %)")
 
 
+def scored(candidate):
+    """The join marked against the letters a human said each sound should hold.
+
+    The two counters of `tally` see a hole, never a misplacement, and they miss
+    most of what is wrong: on the outgoing model they report eight defects where
+    the answer key finds eighty-nine. Whether the letters are the *right* ones
+    is a question about English spelling, and `expected.py` is where it was
+    answered, by hand, once -- indexed by the sounds the network actually
+    decoded, so it marks the model it was written against and no other.
+    """
+    right = counted = 0
+    for slug, text in phrases.CALIBRATION:
+        answer = expected.COVERED.get(slug)
+        wav = RENDERS / candidate / "sentences" / f"{slug}.wav"
+        if answer is None or letters.unspellable(text) or not wav.is_file():
+            continue
+        read = ["".join(held.split()) for *_, held in joined(wav, text)]
+        if len(read) != len(answer):
+            # A grid of another shape than the one annotated: marking it would
+            # compare sounds that are not the same sounds.
+            print(f"  {slug:<18}{len(read)} sons contre {len(answer)} annotés")
+            continue
+        wrong = [f"{ought or '∅'}→{held or '∅'}"
+                 for held, ought in zip(read, answer)
+                 if held.lower() != "".join(ought.split()).lower()]
+        right += len(answer) - len(wrong)
+        counted += len(answer)
+        print(f"  {slug:<18}{len(answer) - len(wrong):>3} / {len(answer):<4}"
+              + "  ".join(wrong))
+    if not counted:
+        raise SystemExit("aucune phrase annotée pour cette grille")
+    print(f"\n  {right} / {counted} sons portent les bonnes lettres "
+          f"({100 * right / counted:.0f} %)")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("slug", nargs="?", help="une phrase du jeu : "
                                                + ", ".join(sorted(BY_SLUG)))
     parser.add_argument("-a", "--all", action="store_true",
                         help="le compte sur tout le jeu")
+    parser.add_argument("-s", "--score", action="store_true",
+                        help="la note contre l'annotation d'expected.py")
     parser.add_argument("-c", "--candidate", default="eleven-us-eric")
     options = parser.parse_args(argv)
 
+    if options.score:
+        scored(options.candidate)
+        return 0
     if options.all:
         tally(options.candidate)
         return 0
