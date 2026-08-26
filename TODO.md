@@ -31,7 +31,9 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 
   **Les deux instruments se contredisent franchement, et ce n'est pas un paradoxe.** Une carte plus pointue sépare mieux deux répartitions au pic — d'où le 7 sur 7 de `faults.py`, le meilleur jamais obtenu — et donne moins de matière à joindre. Ce qui se déduit : **`faults.py` seul ne qualifie pas un modèle de sons**, puisqu'il récompense ce que la brique 4 paie. Toute lecture d'un candidat passe désormais par `join.py`.
 
-  **Portée de ce qui précède : un poids, une époque.** Tout ce qui est dit ici vaut pour `pw0.1` à l'époque 029, et rien de plus. Les époques 009 et 019 du même run ne sont pas lues, alors que le contrôle a montré que l'entraînement retire après l'époque 9 ce qu'il avait ajouté ; le poids `0,3` n'a pas tourné. Le prior n'est pas jugé, ce checkpoint l'est.
+  **L'époque 019 est lue, et elle va dans le même sens sans l'atteindre** : 98,7 % de sons tenus sur une trame contre 99,4 %, 8 % de sons sans lettre contre 10 %, PER de 9,5 % — le meilleur de nos checkpoints. Elle reste au-dessus du sortant sur la peakiness et en dessous sur la jointure. Son « 8 fautes sur 8 » est à lire avec soin : c'est une faute de plus **ancrable**, `08-light-right` rentrant dans la comparaison à cette époque, pas une faute de plus attrapée.
+
+  **Portée de ce qui précède : un poids, deux époques sur trois.** L'époque 009 n'est pas descendue, alors que le contrôle avait montré l'entraînement retirer après l'époque 9 ce qu'il avait ajouté, et que les deux époques lues ici pointent dans cette direction. Le poids `0,3` n'a pas tourné. Le prior n'est pas jugé ; deux de ses checkpoints le sont.
 
   Le PER ne bouge pas — 10,2 % contre 10,1 % pour le contrôle, l'écart au sortant à 6,7 % restant celui qui n'est pas interprétable en l'état. Les insertions baissent (1,7 % contre 2,2 %), les substitutions montent (7,0 % contre 6,6 %).
 
