@@ -31,7 +31,7 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 
   **Les deux instruments se contredisent franchement, et ce n'est pas un paradoxe.** Une carte plus pointue sépare mieux deux répartitions au pic — d'où le 7 sur 7 de `faults.py`, le meilleur jamais obtenu — et donne moins de matière à joindre. Ce qui se déduit : **`faults.py` seul ne qualifie pas un modèle de sons**, puisqu'il récompense ce que la brique 4 paie. Toute lecture d'un candidat passe désormais par `join.py`.
 
-  **Il n'y a plus de remède formulé contre la peakiness.** Le prior était le seul sur la table et il aggrave ; cinq lectures tiennent entre 25 et 27 % de durée couverte et entre 86 et 99 % de sons tenus sur une trame. C'est le point ouvert le plus lourd du chantier, et il est maintenant sans hypothèse. Le pas de temps reste la seule piste qui ait jamais fait bouger la grille (`charsiu` à 10 ms, 95 % contre 88 % de sons retrouvés — cf. `design/letter-anchoring.md`) ; elle n'a jamais été instruite comme paramètre d'entraînement.
+  **Portée de ce qui précède : un poids, une époque.** Tout ce qui est dit ici vaut pour `pw0.1` à l'époque 029, et rien de plus. Les époques 009 et 019 du même run ne sont pas lues, alors que le contrôle a montré que l'entraînement retire après l'époque 9 ce qu'il avait ajouté ; le poids `0,3` n'a pas tourné. Le prior n'est pas jugé, ce checkpoint l'est.
 
   Le PER ne bouge pas — 10,2 % contre 10,1 % pour le contrôle, l'écart au sortant à 6,7 % restant celui qui n'est pas interprétable en l'état. Les insertions baissent (1,7 % contre 2,2 %), les substitutions montent (7,0 % contre 6,6 %).
 
