@@ -76,9 +76,19 @@ sons     P 0.11-0.16   AO 0.16-0.22   R 0.22-0.26
 -> le p porte le P, le o porte le AO, le r porte le R
 ```
 
-C'est ainsi qu'une marque atterrit sur une lettre précise. Deux horloges lues ensemble, rien d'appris, aucun aligneur graphème-phonème à construire — c'est l'horodatage caractère du synthétiseur qui l'offre.
+C'est ainsi qu'une marque atterrit sur une lettre précise.
 
-Les deux irrégularités connues restent : une lettre peut porter deux sons (elle prend la couleur du pire), une lettre peut n'en porter aucun (elle reste neutre).
+**Mais deux horloges ne suffisent pas.** Les deux réseaux sont pointus : chacun dit « ici » sur une trame ou deux et laisse le reste au blanc. Élargir chaque pic jusqu'à mi-chemin de son voisin transforme les deux cartes en pavages et rend la superposition possible — sans rien décider quand elles hésitent à la trame près. Entre `k→ke, ɪ→n, n→—` et `k→k, ɪ→e, n→n`, le temps hésite ; l'orthographe non.
+
+Trois choses tranchent, dans cet ordre :
+
+- **Les mots d'abord.** L'espace est aligné comme n'importe quel symbole, donc chaque son est attribué à un mot, et une lettre ne peut atteindre que les sons du sien. Sans ça une lettre fuit chez le voisin.
+- **L'ordre.** L'appariement ne recule jamais.
+- **L'orthographe.** Une table d'affinité dit à quels sons une lettre **participe** — `s` participe à /ʃ/ par `sh` —, pondérée de 0 à 3, et pèse une fois et demie un recouvrement temporel parfait.
+
+**Cette table n'est pas la table graphème-phonème que le principe 1 refuse.** Le refus protège le jugement : rien d'extérieur ne doit dire ce qui est correct. La brique 4 ne juge rien, elle décide où peindre. La table ne dit jamais comment un mot se prononce, ne porte ni liste de mots ni lexique de dialecte, et répond seulement « telle lettre participe-t-elle à tel son ». Elle vaut quelques kilo-octets et se refuse à se brancher sur un modèle dont elle ne nomme pas l'alphabet.
+
+**Mesuré** (`bench/join.py -s`, contre l'annotation à la main d'`expected.py`, quinze phrases, 236 sons) : **92 %** des sons portent les lettres qu'un humain leur attribue, contre 62 % au temps seul. Les deux irrégularités connues restent : une lettre peut porter deux sons (elle prend la couleur du pire), une lettre peut n'en porter aucun (elle reste neutre).
 
 ### 5. L'apprenant sur la grille — alignement forcé
 
@@ -268,7 +278,7 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 1 | Le modèle (ElevenLabs) | audio + lettres → temps | existe, REST nu |
 | 2 | La matrice | répartition sur les sons, toutes les 20 ms | codée (`bench/matrix.py`) |
 | 3 | La grille | sons réellement produits par le modèle → temps | codée |
-| 4 | La jointure lettres ↔ sons | quelle lettre porte quel son | à écrire |
+| 4 | La jointure lettres ↔ sons | quelle lettre porte quel son | codée au banc (`bench/join.py`), 92 % contre l'annotation |
 | 5 | L'apprenant sur la grille | mêmes sons → temps chez lui | codée |
 | 6 | Le son | recouvrement des deux formes, et le son produit | recouvrement codé (`bench/overlap.py`) ; le son produit à écrire |
 | 7 | Le mot | quelle syllabe est la forte | à écrire |
@@ -278,7 +288,7 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
 | 12 | Le runtime Android | tout ça sur le téléphone | **mesuré sur l'appareil** (`bench/export.py`, `bench/phone.py`) |
 
-**Un seul fichier extérieur dans tout le pipeline : les poids du modèle acoustique**, 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant. Aucune donnée linguistique, aucun dictionnaire, aucun lexique de dialecte, aucune table graphème-phonème.
+**Deux fichiers extérieurs dans tout le pipeline.** Les poids du modèle acoustique, 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant. Et la table d'affinité de la brique 4, quelques kilo-octets, qui dit à quels sons une lettre participe — jamais comment un mot se prononce. Aucun dictionnaire de prononciation, aucun lexique de dialecte, aucune norme qui juge.
 
 Trois briques seulement demandent du travail neuf et non trivial : la jointure (4), l'accent (7), la syllabification (8). Quatre autres sont des lectures d'un calcul déjà fait.
 
