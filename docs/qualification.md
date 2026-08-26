@@ -26,7 +26,8 @@ Rendus et lectures sont mis en cache sous `bench/out/`, gitignoré : l'audio se 
 4. **Enregistrer le jeu humain** en suivant les blocs A à F du jeu d'essai, dans l'ordre par paires, et **vérifier les fautes franches** à la méthode du bloc D : une faute non détectée n'accuse l'analyse qu'une fois établi qu'elle a été produite.
 5. **Lire tout le jeu par écart au modèle**, en écartant les segments sans matière : un son dont les trames sont majoritairement du silence n'a rien à comparer, et une prise dont l'écart médian s'envole n'est pas une prise fautive mais une grille forcée sur une parole qui ne la contient pas (brique 11).
 6. **Lire les séparations.**
-7. **Refaire la lecture sur l'appareil.** Le poste ne suffit pas : les noyaux 8 bits ne sont pas le même code d'une architecture à l'autre. `phone.py` range la lecture de l'appareil dans le cache comme n'importe quelle autre, et `READING=<nom> python3 faults.py` rejoue le jeu dessus. C'est le verdict qui compte, pas l'identité des octets.
+7. **Lire la jointure** (`join.py -a`) : combien de sons de la grille ne reçoivent aucune lettre, combien de lettres ne se rattachent à aucun son. Une séparation ne qualifie pas seule — là où la grille n'a pas de lettre, aucune marque ne peut se poser, quelle que soit la netteté de l'écart. Les deux instruments peuvent diverger, et la divergence est réelle : un modèle acoustique plus pointu sépare mieux deux répartitions au pic tout en laissant moins de matière à joindre. Mesuré sur `v3-pw0.1-e29` (`../tmp/v3-pw01-measures.md`) : meilleure séparation jamais lue, et 10 % de sons sans lettre contre 7 % pour le sortant.
+8. **Refaire la lecture sur l'appareil.** Le poste ne suffit pas : les noyaux 8 bits ne sont pas le même code d'une architecture à l'autre. `phone.py` range la lecture de l'appareil dans le cache comme n'importe quelle autre, et `READING=<nom> python3 faults.py` rejoue le jeu dessus. C'est le verdict qui compte, pas l'identité des octets.
 
 ## Les critères
 
@@ -36,7 +37,7 @@ L'analyse qualifie si elle tient les propriétés suivantes — formulées sans 
 2. **Accent** : au protocole du calque (bloc F), toute faute spontanée vue, aucune alerte sur les calques.
 3. **Mélodie** : la question et le plat (bloc E) se séparent du modèle avec le bon signe, en demi-tons.
 4. **Localisation** : chaque son a une position et une durée, et les alignements dégénérés sont **repérables** (durées absurdes visibles, pas lissées).
-5. **Ancrage** : chaque son et chaque syllabe désignent leurs lettres dans le texte affiché, y compris les deux irrégularités (une lettre, deux sons ; une lettre, aucun son).
+5. **Ancrage** : chaque son et chaque syllabe désignent leurs lettres dans le texte affiché, y compris les deux irrégularités (une lettre, deux sons ; une lettre, aucun son). Se lit à `join.py -a`, sur deux compteurs qu'une machine voit sans connaître l'orthographe : sons sans aucune lettre, lettres rattachées à aucun son. Que les lettres reçues soient les *bonnes* demande une annotation humaine (`expected.py`) et se compte à part.
 6. **Portabilité** : les critères 1 à 3 tiennent sur l'appareil, pas seulement au poste.
 
 Une brique peut qualifier **séparément** : la mélodie est autonome — DSP pur, elle ne lit même pas la matrice — et se juge sans rien attendre des autres. Les trois échelles sont des briques indépendantes, et l'app allume ce qu'elle a.
