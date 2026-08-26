@@ -15,6 +15,7 @@ needed to see it.
 """
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -28,6 +29,20 @@ HERE = Path(__file__).resolve().parent
 RENDERS = HERE / "out" / "renders"
 
 BY_SLUG = dict(phrases.CALIBRATION)
+
+# Which sounds a letter takes part in writing, weighted 0 to 3. Not a
+# pronunciation dictionary and never asked how a word is said: it answers
+# whether `s` takes part in /ʃ/, which is what decides between two placements
+# time cannot separate. It was generated blind, by a session that had never seen
+# where the join failed, so that it could not be fitted to those failures.
+AFFINITY = json.loads((HERE / "affinity.json").read_text(encoding="utf-8"))
+
+# What a perfect affinity is worth against a letter's whole duration of overlap.
+# Below 1 spelling only breaks near-ties; at 1.5 it decides and time constrains.
+# Read off the answer key on the fifteen calibration sentences -- 62 % of sounds
+# correctly spelt at 0, 83 % at 1.0, 92 % at 1.5, 89 % from 2 to 6 -- so the
+# value is fitted on that set, on a plateau broad enough not to be a knife edge.
+STRENGTH = 1.5
 
 
 def widened(spans):
@@ -91,15 +106,65 @@ def owners(windows, stretches):
     return placed
 
 
-def nearest(low, high, spans):
-    """The span sharing the most time with `low`-`high`, the closest if none."""
-    shared = [min(high, stop) - max(low, start) for start, stop in spans]
-    best = max(range(len(shared)), key=lambda index: shared[index])
-    if shared[best] > 0:
-        return best
-    middle = (low + high) / 2
-    return min(range(len(spans)), key=lambda index: min(
-        abs(middle - spans[index][0]), abs(middle - spans[index][1])))
+def checked():
+    """The table and the model must name the same sounds, or nothing is joined.
+
+    A table written for another alphabet does not fail: every lookup misses, the
+    affinity falls to zero everywhere, and the join quietly returns to what time
+    alone can do -- thirty points worse, with nothing to say so.
+    """
+    symbols = set(matrix.symbols())
+    unknown = sorted({sound for row in AFFINITY.values() for sound in row}
+                     - symbols)
+    if unknown:
+        raise SystemExit(
+            f"affinity.json nomme des sons que {matrix.SLUG} ne rend pas "
+            f"({' '.join(unknown)}) — la table est écrite pour un autre "
+            "alphabet, elle ne se branche pas ici")
+
+
+def worth(span, character, stretches, symbols):
+    """What each sound is worth to this letter: the time, plus the spelling.
+
+    The time is the overlap as a fraction of the letter's own duration, so it
+    lies in [0, 1] and a long letter does not outweigh a short one; the spelling
+    is the table brought to the same range and multiplied by `STRENGTH`.
+    """
+    low, high = span
+    seconds = max(high - low, 1e-9)
+    affinities = AFFINITY.get(character.lower(), {})
+    return [max(0.0, min(high, stop) - max(low, start)) / seconds
+            + STRENGTH * affinities.get(symbol, 0) / 3
+            for (start, stop), symbol in zip(stretches, symbols)]
+
+
+def monotone(spans, characters, stretches, symbols):
+    """Each letter to a sound, the assignment never going backwards.
+
+    Time alone never needed the constraint -- it was already monotone on every
+    sentence of the set -- but spelling does: an affinity strong enough to
+    decide would otherwise send a letter back to a sound its neighbour passed.
+    """
+    best = [[0.0] * len(stretches) for _ in spans]
+    back = [[0] * len(stretches) for _ in spans]
+    for index, (span, character) in enumerate(zip(spans, characters)):
+        scores = worth(span, character, stretches, symbols)
+        running, argmax = float("-inf"), 0
+        for sound in range(len(stretches)):
+            if index:
+                if best[index - 1][sound] > running:
+                    running, argmax = best[index - 1][sound], sound
+                previous = running
+            else:
+                previous, argmax = 0.0, 0
+            best[index][sound] = previous + scores[sound]
+            back[index][sound] = argmax
+    chosen = [0] * len(spans)
+    last = max(range(len(stretches)), key=lambda sound: best[-1][sound])
+    for index in range(len(spans) - 1, -1, -1):
+        chosen[index] = last
+        last = back[index][last]
+    return chosen
 
 
 def joined(wav, text):
@@ -108,11 +173,13 @@ def joined(wav, text):
     The sounds come from free decoding -- what is there, not what the word
     should hold -- and the words come from the letter map, which knows the text.
     Words first: each sound is placed in one word, and a letter may only reach
-    the sounds of its own. Inside the word a letter goes to the sound it shares
-    the most time with, the nearest when it shares none, so every letter of a
-    word that was heard lands somewhere and lands once: a letter split across
-    two sounds is the ordinary case, and halving it would colour neither.
+    the sounds of its own. Inside the word, time and spelling decide together --
+    time says where the letter is, spelling says which sound it can belong to --
+    and every letter of a word that was heard lands somewhere and lands once: a
+    letter split across two sounds is the ordinary case, and halving it would
+    colour neither.
     """
+    checked()
     spread = matrix.probabilities(wav)
     step = matrix.seconds_per_frame()
     sounds = matrix.grid(spread)
@@ -137,10 +204,12 @@ def joined(wav, text):
             # A word no sound was placed in: its letters stay unattached, and
             # the tally counts them, no mark being able to reach them.
             continue
-        for position in positions:
-            low, high = spelt[position]
-            inside = nearest(low, high, [stretches[index]
-                                         for index in reachable])
+        chosen = monotone([spelt[position] for position in positions],
+                          [text[position] for position in positions],
+                          [stretches[index] for index in reachable],
+                          [matrix.symbols()[sounds[index][0]]
+                           for index in reachable])
+        for position, inside in zip(positions, chosen):
             covered[reachable[inside]].append(text[position])
 
     return [(matrix.symbols()[index], low, high, words[owner][0],
