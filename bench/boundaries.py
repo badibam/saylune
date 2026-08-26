@@ -20,6 +20,11 @@ Two numbers come out, and they answer different questions:
   spike. This is the one peakiness destroys, and the one a label prior is meant
   to restore -- a more direct trial of the prior than counting mass, because it
   measures what the app actually consumes.
+- **Held duration** says how long the alignment holds the symbol, in frames of
+  its own. Covered duration alone cannot tell a sound held one frame in the
+  right place from a sound held its full length in the wrong one, and it is
+  bounded by the true durations of TIMIT rather than by the network. Held
+  duration is the network's answer with the corpus taken out of it.
 
     cd bench && ACOUSTIC_MODEL=timit-ipa python3 boundaries.py
     cd bench && ACOUSTIC_MODEL=v3-pw0.0-e9 python3 boundaries.py --utterances 0
@@ -70,7 +75,7 @@ def columns(phones):
 
 
 def measure(wav, phn):
-    """Return per-phone (onset error, covered fraction) for one utterance."""
+    """Return per-phone (onset error, covered fraction, held frames) for one utterance."""
     spans = truth(phn)
     if not spans:
         return []
@@ -90,7 +95,7 @@ def measure(wav, phn):
             continue
         first, last = got[0] * step, got[1] * step
         overlap = max(0.0, min(last, stop) - max(first, start))
-        rows.append((abs(first - start), overlap / (stop - start)))
+        rows.append((abs(first - start), overlap / (stop - start), got[1] - got[0]))
     return rows
 
 
@@ -99,12 +104,15 @@ def quantile(values, q):
     return ordered[int(q * (len(ordered) - 1))]
 
 
-def report(name, onsets, covered, unplaced, failed, utterances):
+def report(name, onsets, covered, held, unplaced, failed, utterances):
     print(f"\n=== {name} — {utterances} énoncés, {len(onsets)} sons placés")
     print(f"    départ, erreur médiane   {statistics.median(onsets) * 1000:6.1f} ms"
           f"   (9e décile {quantile(onsets, 0.9) * 1000:6.1f} ms)")
     print(f"    durée couverte, médiane  {statistics.median(covered) * 100:6.1f} %"
           f"   (1er décile {quantile(covered, 0.1) * 100:6.1f} %)")
+    one = sum(1 for f in held if f == 1) / len(held)
+    print(f"    tenue, médiane           {statistics.median(held):6.0f} trames"
+          f"   ({one * 100:.1f} % sur une seule)")
     print(f"    sons sans place dans le treillis : {unplaced}")
     print(f"    énoncés que le treillis refuse   : {failed}")
 
@@ -125,7 +133,7 @@ def main(argv=None):
         stride = len(every) / args.utterances
         every = [every[int(i * stride)] for i in range(args.utterances)]
 
-    onsets, covered, unplaced, failed = [], [], 0, 0
+    onsets, covered, held, unplaced, failed = [], [], [], 0, 0
     for index, (_, wav, _) in enumerate(every, 1):
         rows = measure(wav, Path(wav).with_suffix(".PHN"))
         if rows is None:
@@ -137,12 +145,13 @@ def main(argv=None):
                 continue
             onsets.append(row[0])
             covered.append(row[1])
+            held.append(row[2])
         if index % 25 == 0:
             print(f"  {index}/{len(every)}", file=sys.stderr, flush=True)
 
     if not onsets:
         raise SystemExit("aucun son placé — rien à rapporter")
-    report(matrix.SLUG, onsets, covered, unplaced, failed, len(every))
+    report(matrix.SLUG, onsets, covered, held, unplaced, failed, len(every))
     return 0
 
 
