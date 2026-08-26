@@ -16,4 +16,6 @@ HF_HOME=$PWD/tmp/hf tmp/venv/bin/python train/train.py --encoder facebook/wav2ve
 
 Par défaut le script n'entraîne que la tête sur une oreille gelée — le régime des deux premières générations, que la mesure a condamné (cf. `../docs/design/dense-grid.md`). Le régime en cours est l'affinage complet ; ses arguments et le mode opératoire Kaggle sont dans `../docs/design/training-handoff.md`. L'extracteur convolutionnel reste gelé quoi qu'il arrive.
 
+`train/fetch.py` rapatrie les checkpoints d'un notebook Kaggle, un fichier à la fois et de façon reprenable — `train/fetch.py --epoch 029`, la même commande relancée reprenant un transfert coupé. **C'est l'utilisateur qui le lance**, pas la session d'IA ; le pourquoi et les voies mortes sont dans `../docs/design/gpu-runbook.md`.
+
 Le manifeste et les checkpoints vivent sous `tmp/train/`, régénérables. Les hyperparamètres exposés (`--lr`, `--prior-weight`, `--epochs`, `--warmup`) sont des points de départ à balayer sur GPU, pas des valeurs qualifiées ; ce qui qualifie un checkpoint reste `bench/faults.py`, jamais la loss.

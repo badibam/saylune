@@ -129,35 +129,32 @@ Persistance de session Kaggle, deux réglages qui ne se voient pas : le mode **�
 
 ### Rapatrier la sortie d'un notebook — fichier par fichier, jamais l'archive
 
-Trois voies existent pour récupérer les poids, deux échouent, et la première échoue **en silence**. Mesuré sur la génération V1b, 12 checkpoints de 377 641 832 o chacun :
+**Les téléchargements longs sont lancés par l'utilisateur, jamais par la session d'IA.** Elle instruit la voie, écrit le script et le vérifie sur un petit fichier ; le transfert lui-même se lance depuis le terminal de l'utilisateur. Un rapatriement de plusieurs gigaoctets dure plus qu'un tour de session, occupe la ligne, et se reprend — c'est à celui qui tient la machine de le conduire.
 
-- `kaggle kernels output <notebook>` rend une liste tronquée à trois entrées et écrit un `model.safetensors` de **0 octet**, sans message et sans code de retour non nul. Un fichier vide qui se fait passer pour un téléchargement abouti est le pire des deux échecs : rien ne prévient, et c'est au chargement des poids qu'on l'apprendrait.
-- `kaggle datasets download -d <dataset>` — l'archive complète — répond **404** sur `DownloadDataset`, alors même que `datasets status` dit `ready` et que `datasets files` liste les 41 fichiers. Déclarer une licence sur le dataset n'y change rien : essayé, le 404 est identique une fois passé en `apache-2.0`.
-- `kaggle datasets download -d <dataset> -f <chemin>` — un fichier à la fois — fonctionne, rend le fichier **nu** (jamais emballé en `.zip`) et affiche une barre de progression.
-
-Le procédé retenu suit de là. Convertir d'abord la sortie du notebook en **Dataset privé** (bouton *New Dataset* du panneau Output, visibilité à vérifier), attendre que `datasets status` rende `ready`, puis lister pour vérifier que le dernier run du balayage y est — `datasets files` pagine à 20 lignes, d'où `--page-size 100`, faute de quoi la fin de la liste passe pour absente. Enfin, boucler :
+Le script est `train/fetch.py`. Il lit la sortie du notebook par l'API, tire les fichiers un à un dans l'arborescence que le notebook a produite, **reprend un transfert coupé** là où les octets se sont arrêtés, et **échoue en rendant 1** si un fichier n'atteint pas la taille annoncée.
 
 ```bash
-for run in v1b-pw0.0 v1b-pw0.1 v1b-pw0.3 v1b-pw1.0; do
-  for ep in 009 019 029; do
-    for f in config.json model.safetensors prior.pt; do
-      dest="tmp/train/runs-v1b/$run/epoch-$ep"
-      [ -s "$dest/$f" ] && continue
-      mkdir -p "$dest"
-      tmp/venv/bin/kaggle datasets download \
-        -d <compte>/<dataset> -f "tmp/train/runs/$run/epoch-$ep/$f" -p "$dest"
-    done
-  done
-done
+train/fetch.py --epoch 029      # un snapshot ; relancer la même commande reprend
+train/fetch.py                  # les trois époques du run
 ```
 
-Le `[ -s ]` teste le fichier **non vide**, pas sa seule présence : c'est ce qui rend la boucle reprenable après une coupure, et c'est exactement le piège du fichier de 0 octet ci-dessus. Il ne couvre pas le fichier interrompu à mi-course, qui serait pris pour complet — d'où la vérification finale, qui ne doit rien afficher :
+Quatre voies ont été essayées, trois échouent, et deux échouent **en silence** :
 
-```bash
-find tmp/train/runs-v1b -name model.safetensors -size -377641832c
-```
+- `kaggle kernels output` **sans filtre** rend une liste tronquée à trois entrées et écrit un `model.safetensors` de **0 octet**, sans message et sans code de retour non nul (mesuré sur la génération V1b).
+- `kaggle kernels output --file-pattern <chemin>` filtre bien sur le chemin complet et préserve l'arborescence — c'est la seule forme du CLI qui désigne un fichier. Elle suffit pour les petits fichiers, mais sur un checkpoint de 1,2 Go le transfert meurt sur un `IncompleteRead` (mesuré : 31 863 702 octets reçus sur 1 261 979 632), après quoi le CLI écrit un fichier de **0 octet** et **sort avec le code 0**. Il n'a aucune reprise.
+- `kaggle datasets download -d <dataset>` — l'archive complète — répond **404** sur `DownloadDataset`, alors même que `datasets status` dit `ready` et que `datasets files` liste les fichiers. Déclarer une licence n'y change rien.
+- `kaggle datasets download -d <dataset> -f <chemin>` — un fichier à la fois — fonctionne, rend le fichier **nu** et affiche une barre de progression. C'est la voie qui a servi toute la V1b (12 × 377 Mo), au prix d'une conversion préalable de la sortie en **Dataset privé** depuis le navigateur.
 
-Le CLI s'installe dans le venv du projet (`tmp/venv/bin/pip install kaggle`) et s'authentifie par un jeton créé dans Settings → API, déposé en `~/.kaggle/` — le mode `600` est obligatoire, le CLI refuse de démarrer sinon. Un transfert de plusieurs gigaoctets se lance dans `tmux`, la barre de progression n'existant qu'en avant-plan.
+`fetch.py` prend une cinquième voie, qui retire cette conversion et apporte la reprise. `GET /api/v1/kernels/output` rend, pour chaque fichier de sortie, une **URL signée** vers `kaggleusercontent`. Trois faits mesurés la rendent exploitable, et un quatrième la contraint :
+
+- l'API refuse l'**authentification basique** (`403 kernels.get was denied`) dès qu'un jeton OAuth existe ; le jeton porteur de `~/.kaggle/access_token` passe ;
+- l'URL signée **honore `Range`** (`206`, comptes exacts), donc `curl -C -` reprend ;
+- elle **refuse `HEAD`** (`404`) : la taille attendue se demande par un GET d'un seul octet, dont l'entête `Content-Range: bytes 0-0/<total>` porte le total ;
+- ces URL sont **de courte durée**, d'où une relecture de la liste à chaque invocation — c'est ce qui rend la reprise possible après n'importe quelle interruption.
+
+**Aucune taille annoncée par le CLI ne vaut contrôle** : `kaggle kernels files` rend 946 octets pour un `model.safetensors` de 1,2 Go, et le champ `fileSize` de l'API revient nul. Le seul chiffre juste est le `Content-Range` ci-dessus, et c'est celui contre lequel `fetch.py` vérifie.
+
+Le CLI s'installe dans le venv du projet (`tmp/venv/bin/pip install kaggle`) et s'authentifie par `kaggle auth login` (OAuth, jeton en `~/.kaggle/access_token`) ou par un jeton créé dans Settings → API, déposé en `~/.kaggle/kaggle.json` — le mode `600` est obligatoire. Un transfert de plusieurs gigaoctets se lance dans `tmux`, la barre de progression n'existant qu'en avant-plan.
 
 ### Les poids pré-entraînés ne vous concernent pas
 
