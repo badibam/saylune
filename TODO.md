@@ -19,7 +19,17 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 
   Deux réserves à ne pas lisser. La bande vide n'est pas uniformément meilleure — 0,058 contre 0,234 sur gb-daniel est un recul, contre 0,003 sur us-eric une amélioration ; le candidat rend en revanche la **même** bande sur les deux voix quand le sortant varie d'un facteur 78 selon l'accent. Et `09-walkin` reste manquée sur les deux voix, alors que le sortant l'attrape sur us-eric — de justesse, à 0,005 contre un témoin à 0,002. Mesures brutes dans `tmp/v3-measures.md`.
 
-  **Le run `0,1` est en vol** — copie du notebook sous son propre nom, pour que la sortie de `pw0.0` reste adressable. C'est le premier run où le terme de Huang et al. est réellement actif, donc le premier qui puisse faire bouger la densité.
+  **Le run `0,1` a tourné, et son époque 029 est lue** (notebook `speakup-training-v3-pw01`). C'est le premier run de tout le chantier où le terme de Huang et al. est réellement actif sur une oreille dégelée, donc le premier procès du prior qui ne soit pas condamné d'avance par son régime. Mesures brutes dans `tmp/v3-pw01-measures.md`.
+
+  **Sur la séparation fautes/témoins, c'est la meilleure lecture jamais obtenue.** Sept fautes sur sept vues, sur les deux voix — `09-walkin`, que rien n'avait jamais attrapée proprement, sort à 0,126 et 0,123 contre des témoins à **0,000 exactement**, quand toute lecture précédente plafonnait à 0,001–0,002. Le sortant ne la voyait que sur us-eric, à 0,005 contre 0,002, faute et témoin se touchant. La bande de 0,126 ne se compare pas telle quelle aux 0,745 de `pw0.0-e9`, qui se calculait avec `09-walkin` manquée : à six fautes comparables elle vaut 0,712.
+
+  **Le prior redonne de la masse, mais pas de l'étendue, et les deux mesures ne disent pas la même chose.** `missing_mass.py` revient exactement à la parité avec le sortant — 32 sons perdus contre 34 pour le contrôle, pic soi moyen 0,152 contre 0,116 — ce que le terme existe pour faire. Mais `boundaries.py` rend une durée couverte de **25,3 %**, en **recul** sur les 26,7 à 26,9 % des quatre lectures précédentes. Le prior remplit des colonnes sans les élargir. Il ne ranime pas non plus les colonnes mortes : 17 sons à exactement 0,00 contre 8 pour le sortant, presque le compte du contrôle.
+
+  **Cinq lectures tiennent maintenant entre 25 et 27 % de durée couverte**, dont une avec prior actif. La peakiness résiste au seul remède qui était sur la table, et il n'y a pas d'autre hypothèse formulée. C'est le point ouvert le plus lourd du chantier.
+
+  Le PER ne bouge pas — 10,2 % contre 10,1 % pour le contrôle, l'écart au sortant à 6,7 % restant celui qui n'est pas interprétable en l'état. Les insertions baissent (1,7 % contre 2,2 %), les substitutions montent (7,0 % contre 6,6 %).
+
+  **Reste à lire pour ce run** : les époques 009 et 019, le contrôle ayant montré que l'entraînement retire après l'époque 9 ce qu'il avait ajouté. Et le balayage `0,3`, que le contrôle autorisait.
 
   **Les trois checkpoints sont lus, et le meilleur est le premier.** L'époque 9 rend une bande vide de **0,745 et 0,746** sur les deux voix, contre 0,234 au mieux pour `timit-ipa` et 0,058 pour l'époque 29 — sur le **même** nombre de fautes ancrables (6 sur 7), donc ce n'est pas l'artefact de grille clairsemée qui avait failli sauver les `pw0.3` de la V1b. Ses six fautes vues sont à 0,748 et au-dessus, ses témoins entre 0,000 et 0,003. Sur la densité elle bat aussi le sortant sur deux mesures (pic soi moyen 0,156 contre 0,152 ; sons à 0,20+ 9 contre 7), et lui reste inférieure sur deux autres (34 sons perdus contre 32 ; 14 à exactement 0,00 contre 8).
 
