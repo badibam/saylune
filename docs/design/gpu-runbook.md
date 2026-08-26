@@ -154,6 +154,8 @@ Quatre voies ont été essayées, trois échouent, et deux échouent **en silenc
 - elle **refuse `HEAD`** (`404`) : la taille attendue se demande par un GET d'un seul octet, dont l'entête `Content-Range: bytes 0-0/<total>` porte le total ;
 - ces URL sont **de courte durée**, d'où une relecture de la liste à chaque invocation — c'est ce qui rend la reprise possible après n'importe quelle interruption.
 
+**Le retry est celui du script, jamais celui de `curl`.** `--continue-at -` lit la taille locale **une seule fois**, au lancement de la commande : les retries internes de `curl` repartent tous de cet offset-là et jettent ce que la tentative coupée avait reçu — mesuré, 717 Mo perdus d'un coup sur `--retry 5 --retry-all-errors`. Une invocation de `curl` par tentative, et la boucle Python qui recalcule l'offset depuis le disque, est ce qui rend la reprise réelle. Le transfert est par ailleurs forcé en **HTTP/1.1** : sur HTTP/2 les URL signées coupent en cours de route sur `stream not closed cleanly: INTERNAL_ERROR`.
+
 **Aucune taille annoncée par le CLI ne vaut contrôle** : `kaggle kernels files` rend 946 octets pour un `model.safetensors` de 1,2 Go, et le champ `fileSize` de l'API revient nul. Le seul chiffre juste est le `Content-Range` ci-dessus, et c'est celui contre lequel `fetch.py` vérifie.
 
 Le CLI s'installe dans le venv du projet (`tmp/venv/bin/pip install kaggle`) et s'authentifie par `kaggle auth login` (OAuth, jeton en `~/.kaggle/access_token`) ou par un jeton créé dans Settings → API, déposé en `~/.kaggle/kaggle.json` — le mode `600` est obligatoire. Un transfert de plusieurs gigaoctets se lance dans `tmux`, la barre de progression n'existant qu'en avant-plan.

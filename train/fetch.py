@@ -93,8 +93,18 @@ def announced_length(url):
 
 
 def pull(url, destination, expected, attempts):
-    """Fetch one file, resuming a partial local copy, and return whether it is whole."""
+    """Fetch one file, resuming a partial local copy, and return whether it is whole.
+
+    Retrying is this loop's job alone, never curl's: `--continue-at -` reads the
+    local size once, when the command starts, so curl's own retries all restart
+    from that same offset and discard whatever the failed attempt had received.
+    One curl invocation per attempt is what makes the resume real.
+
+    HTTP/1.1 is forced because the signed URLs answer over HTTP/2 with
+    `stream not closed cleanly: INTERNAL_ERROR` partway through a large file.
+    """
     destination.parent.mkdir(parents=True, exist_ok=True)
+    stalled = 0
 
     for attempt in range(1, attempts + 1):
         have = destination.stat().st_size if destination.exists() else 0
@@ -112,8 +122,7 @@ def pull(url, destination, expected, attempts):
         )
         subprocess.run(
             [
-                "curl", "--location", "--continue-at", "-",
-                "--retry", "5", "--retry-all-errors", "--retry-delay", "5",
+                "curl", "--location", "--continue-at", "-", "--http1.1",
                 "--speed-time", "60", "--speed-limit", "1024",
                 "--output", str(destination), url,
             ],
@@ -127,7 +136,15 @@ def pull(url, destination, expected, attempts):
         if after == expected:
             return True
         if after == have:
-            print("  no progress on this attempt", flush=True)
+            # A signed URL that has expired refuses every attempt alike; giving
+            # up early sends the user back for a fresh listing instead of
+            # burning the whole budget on a dead link.
+            stalled += 1
+            print(f"  no progress on this attempt ({stalled} in a row)", flush=True)
+            if stalled == 3:
+                return False
+        else:
+            stalled = 0
 
     return False
 
@@ -153,7 +170,7 @@ def main():
         default="runs-v3/",
         help="substring a kernel path must contain to be fetched",
     )
-    parser.add_argument("--attempts", type=int, default=6)
+    parser.add_argument("--attempts", type=int, default=30)
     args = parser.parse_args()
 
     auth = credentials()
