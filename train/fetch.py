@@ -11,9 +11,8 @@ The signed URLs the kernel-output API hands out are short-lived, so the list is
 re-fetched on every invocation: re-running the script after any interruption
 picks up exactly where the bytes stopped.
 
-    train/fetch.py                        # every epoch of the default run
-    train/fetch.py --epoch 029            # one snapshot
-    train/fetch.py --kernel <owner>/<slug> --dest tmp/train
+    train/fetch.py --kernel <owner>/<slug>              # every epoch of that run
+    train/fetch.py --kernel <owner>/<slug> --epoch 029  # one snapshot
 
 Authenticates with the OAuth token `kaggle auth login` leaves in
 ~/.kaggle/access_token, falling back to the API key of ~/.kaggle/kaggle.json.
@@ -29,7 +28,6 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-KERNEL = "gilleslandrin/speakup-training-full"
 API = "https://www.kaggle.com/api/v1/kernels/output"
 
 
@@ -136,7 +134,10 @@ def pull(url, destination, expected, attempts):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--kernel", default=KERNEL, help="owner/slug of the notebook")
+    # Asked for rather than defaulted: a remembered notebook would always name
+    # the previous run, and the mistake would look like a finished download.
+    parser.add_argument("--kernel", required=True,
+                        help="owner/slug of the notebook to fetch from")
     parser.add_argument(
         "--epoch",
         action="append",

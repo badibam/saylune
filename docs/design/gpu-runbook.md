@@ -133,9 +133,11 @@ Persistance de session Kaggle, deux réglages qui ne se voient pas : le mode **�
 
 Le script est `train/fetch.py`. Il lit la sortie du notebook par l'API, tire les fichiers un à un dans l'arborescence que le notebook a produite, **reprend un transfert coupé** là où les octets se sont arrêtés, et **échoue en rendant 1** si un fichier n'atteint pas la taille annoncée.
 
+`--kernel` est **obligatoire, sans défaut** : un notebook mémorisé désignerait toujours le run précédent, et l'erreur ressemblerait à un téléchargement déjà fini — le script annoncerait « already whole » sur les fichiers de la génération d'avant.
+
 ```bash
-train/fetch.py --epoch 029      # un snapshot ; relancer la même commande reprend
-train/fetch.py                  # les trois époques du run
+train/fetch.py --kernel <compte>/<notebook> --epoch 029   # un snapshot ; relancer reprend
+train/fetch.py --kernel <compte>/<notebook>               # les trois époques du run
 ```
 
 Quatre voies ont été essayées, trois échouent, et deux échouent **en silence** :
