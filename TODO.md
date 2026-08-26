@@ -21,7 +21,11 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 
   **Le run `0,1` est en vol** — copie du notebook sous son propre nom, pour que la sortie de `pw0.0` reste adressable. C'est le premier run où le terme de Huang et al. est réellement actif, donc le premier qui puisse faire bouger la densité.
 
-  Les époques 009 et 019 de `pw0.0` ne sont pas encore rapatriées (`train/fetch.py --epoch 019`, `--epoch 009` ; c'est l'utilisateur qui lance). Elles diraient la trajectoire de la densité au fil de l'entraînement — se dégrade-t-elle en apprenant — ce qui oriente le choix du poids de prior.
+  **L'époque 019 répond à la question de la trajectoire : la densité se dégrade en s'entraînant.** Quatre mesures bougent dans le même sens de l'époque 19 à la 29 — un son perdu de plus (33 → 34), pic soi moyen de 0,147 à 0,116, sons portant 0,20 ou plus de 7 à 4. À l'époque 19, le pic moyen et le compte des 0,20+ sont au niveau du sortant ; seuls les sons à exactement 0,00 sont déjà doublés (17 contre 8). C'est la peakiness qui s'aiguise, ce qu'un CTC sans terme de prior est attendu de faire.
+
+  **Conséquence : l'époque 29 n'est pas évidemment le bon point de lecture, et le balayage doit se lire aux deux.** Sur gb-daniel l'époque 19 voit **7 fautes sur 7**, `09-walkin` comprise — que rien d'autre n'attrape sur cette voix — mais sa bande tombe à 0,001, faute et témoin se touchant. L'époque 29 rend 0,058 uniforme sur les deux voix en manquant `09-walkin`. Sensibilité contre marge, et rien ne tranche encore.
+
+  L'époque 009 n'est pas rapatriée (`train/fetch.py --epoch 009` ; c'est l'utilisateur qui lance). Elle dirait si la dégradation est monotone depuis le début ou si un optimum de densité existe plus tôt.
 
   **Le point de rigueur sur l'étalon est levé** : `timit-ipa` a été relu du cache local dans la même passe que la marche 3, et rend un pire témoin de 0,002 sur les deux voix — dans la fourchette 0,002–0,004 qui n'était jusque-là que citée.
 - **Pour la brique 7, lire le rythme de l'alignement existant** : la déformation locale de la correspondance temporelle modèle ↔ apprenant (l'un traîne sur une syllabe, avale la suivante), une fois la pente d'ensemble — le débit — retirée, est un signal de durée pour l'accent lexical. Les positions des sons des deux côtés sortent déjà de la matrice : c'est une lecture de plus, pas un calcul de plus.
