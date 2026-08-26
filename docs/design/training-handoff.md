@@ -35,11 +35,11 @@ Changement de comportement à connaître : les lots restent groupés par durée 
 
 ## Où ça tourne
 
-**Kaggle redevient candidat, contre ce qu'annonce `gpu-pricing.md`.** La grille V3 y écarte le T4 sur 16 Go de VRAM insuffisants, mais ce chiffrage supposait ni recalcul d'activations ni accumulation. Avec `--checkpointing`, les activations d'un lot de 8 énoncés de 3 s cessent d'être le poste dominant, et ce qui reste — poids, gradients, états AdamW pour 315 M de paramètres en fp32 — est de l'ordre de 5 Go. **C'est une déduction, pas une mesure** : la cellule de pas à blanc ci-dessous est là pour la vérifier avant d'engager une session.
+**Ça tourne sur le T4 de Kaggle, mesuré, contre ce qu'annonçait `gpu-pricing.md`.** La grille V3 y écartait le T4 sur 16 Go de VRAM insuffisants, mais ce chiffrage supposait les activations stockées. Avec `--checkpointing` elles cessent d'être le poste dominant, et le pas à blanc rend **7943 Mo de pic sur 15 360, à 1,00 s le pas** — `xls-r-300m` dégelé, lots de 8, accumulation 2. Soit 7,7 min l'époque de 462 lots, 3,9 h les 30 époques, quand la session en autorise 12 et le quota hebdomadaire 30. Réserve : le pic est relevé sur 30 lots tirés au hasard, qui n'incluent pas forcément le groupe des énoncés de 7,8 s ; les 7,4 Go de marge le couvrent sans que ce soit mesuré.
 
-Ce qui décide vraiment est le **temps par époque**, inconnu : une tête seule sur `base` coûtait ~52 s, un affinage complet sur `large` traverse un dos trois fois plus gros, y rétropropage, et recalcule ses activations. La règle est arithmétique — session plafonnée à 12 h, quota hebdomadaire à 30 h : chronométrer 20 pas, en tirer le coût d'une époque, et **baisser `--epochs` jusqu'à tenir**, jamais couper un run en cours (`train.py` n'a aucune reprise).
+Le repli **RunPod Community RTX 4090 24 Go** (~13 € les quatre runs) garde son intérêt si une variante future sort de l'enveloppe, mais il n'est plus le chemin.
 
-Si le T4 ne tient pas — VRAM insuffisante malgré le recalcul, ou époque trop lente pour 15 époques en 12 h — le repli est **RunPod Community RTX 4090 24 Go**, ~13 € les quatre runs selon `gpu-pricing.md`, avec le mode opératoire SSH du runbook.
+Règle qui reste, quelle que soit la machine : **baisser `--epochs` jusqu'à tenir dans la session**, jamais couper un run en cours — `train.py` n'a aucune reprise.
 
 ## Dérouler un run sur Kaggle
 
@@ -47,84 +47,45 @@ Deux notebooks, tous deux **privés** : le lien MEGA porte sa clé de déchiffre
 
 **Le notebook de préparation**, une fois pour tout le chantier, est inchangé — il existe déjà si le chantier V1b a été mené. Accélérateur `none`, internet activé, `apt-get install -y megatools` puis `megadl --path /kaggle/working/ '<lien>'` — guillemets simples obligatoires, sinon bash coupe l'URL au `#` et la clé est perdue. Vérifier l'empreinte contre `tmp/timit.tar.gz` du poste, puis **Save Version → Quick Save en demandant la sauvegarde de la sortie**. L'archive reste **une archive** : 26 000 petits fichiers montés depuis `/kaggle/input` étranglent la lecture d'une époque, là où une extraction par run sur le disque local coûte moins d'une minute.
 
-**Le notebook d'entraînement**, un par run. Réglages de session : internet activé, persistance **Files only**, environnement **épinglé** (une mise à jour d'image en cours de balayage rendrait les checkpoints incomparables sans que rien ne le signale), accélérateur **T4 ×2** — une seule carte sert, `train.py` ne monte pas de `DataParallel` et le quota se compte en heures de session, pas en cartes. En `Add Input` : la version du notebook de préparation, et un Dataset privé portant `train/*.py`.
+**Le notebook d'entraînement se copie, il ne se crée pas.** `speakup-training-reboot` (celui de la V1b) porte déjà les bons réglages — privé, T4 ×2, internet activé, persistance *Files only*, image Docker **épinglée** — et ses deux entrées branchées. Un *Copy & Edit* préserve tout ça ; une création de zéro rejouerait chaque piège. Renommer la copie, puis vérifier dans le panneau *Input* que le Dataset du code pointe la **dernière version** : une copie peut rester accrochée à celle qu'utilisait l'original, et le run tournerait alors sur un `train.py` périmé sans le dire.
 
-Cellule 1 — les noms des dossiers montés sont fabriqués par Kaggle et ne se devinent pas ; tout le reste s'y réfère.
+Les entrées se montent à des chemins que Kaggle fabrique et qu'on lit à la cellule 1 :
+
+- le code — Dataset `gilleslandrin/speakup-train`, monté sous `/kaggle/input/datasets/gilleslandrin/speakup-train`, les trois `.py` à plat ;
+- le corpus — **sortie du notebook** `gilleslandrin/timit` (un *kernel source*, pas un Dataset), donc `/kaggle/input/notebooks/gilleslandrin/timit/timit.tar.gz`.
+
+Les cellules 1 à 4 sont celles de la V1b, inchangées : inventaire des montages ; copie des `.py` vers `/kaggle/working/train` et extraction du tar vers `/kaggle/working/tmp` (`ROOT` est le parent de `train/`, et le tar porte `TIMIT/` à sa racine) ; téléchargement du `vocab.json` de vitouphy dans un cache sur `/kaggle/temp` ; puis `train/manifest.py`, qui doit annoncer **3696 + 1344 énoncés et 151 813 cibles sur 38 classes** — trois nombres qui, s'ils diffèrent, disent que le corpus monté n'est pas celui sur lequel tout le reste a été mesuré.
+
+Deux avertissements sans conséquence à cette étape : `tar` signale un horodatage de 1881 (artefact du CD TIMIT d'origine, code de retour zéro), et le Hub signale des requêtes non authentifiées (sans effet sur quelques kilo-octets ; poser un `HF_TOKEN` en secret Kaggle si le téléchargement de 1,2 Go venait à se faire limiter).
+
+**Toute cellule qui lance un entraînement se lit ligne par ligne, jamais par `subprocess.run`.** Python tamponne sa sortie quand elle n'est pas un terminal : une cellule qui attend la fin du sous-processus reste muette pendant toute sa durée, et rien ne distingue alors un run qui avance d'un run bloqué. La forme qui marche est `Popen` avec `python -u`, `stdout=PIPE`, `stderr=STDOUT`, et une boucle qui imprime chaque ligne avec `flush=True`. Sur un run de plusieurs heures ce n'est pas un confort, c'est le seul moyen de savoir qu'il vit.
+
+**Le pic de VRAM ne se mesure pas après coup** : `nvidia-smi` lancé une fois le sous-processus terminé rend `0 MiB`, la mémoire ayant été rendue à sa sortie. Il faut l'interroger *pendant*, depuis un fil de surveillance qui garde le maximum.
+
+La cellule de run, enfin — un seul `--prior-weight` par version du notebook :
 
 ```python
-import os
-for dirname, _, filenames in os.walk('/kaggle/input'):
-    print(dirname, len(filenames))
+run = subprocess.Popen(
+    ["python", "-u", "train/train.py",
+     "--encoder", "facebook/wav2vec2-xls-r-300m",
+     "--unfreeze", "--checkpointing",
+     "--lr", "1e-4", "--epochs", "30", "--batch", "8", "--accumulate", "2",
+     "--warmup", "0.1", "--save-every", "10",
+     "--prior-weight", "0",
+     "--out", "/kaggle/working/tmp/train/runs-v3/v3-pw0.0"],
+    cwd="/kaggle/working", env={**os.environ, "HF_HOME": "/kaggle/temp/hf"},
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 ```
 
-Cellule 2 — poser le code et le corpus sous une racine **inscriptible**. `ROOT` est le parent de `train/`, donc `/kaggle/working`, et le tar porte `TIMIT/` à sa racine, ce qui reproduit `tmp/TIMIT/lisa/...`.
+462 lots par époque au lot de 8 : n'imprimer qu'une ligne de perte sur 462 suffit à suivre, et évite un notebook de 14 000 lignes. Une dernière cellule retire `tmp/TIMIT` — la sortie d'une version est tout `/kaggle/working`, corpus extrait compris.
 
-```bash
-%%bash
-set -eux
-cp -r /kaggle/input/<dataset-du-code>/train /kaggle/working/train
-mkdir -p /kaggle/working/tmp
-tar -xzf /kaggle/input/<sortie-du-notebook-de-prep>/timit.tar.gz -C /kaggle/working/tmp
-ls /kaggle/working/tmp/TIMIT
-```
-
-Cellule 3 — le vocabulaire dans un cache posé sur `/kaggle/temp`. `HF_HOME` se donne **en préfixe de chaque sous-processus**, jamais par `os.environ` dans le noyau.
-
-```bash
-%%bash
-set -eux
-HF_HOME=/kaggle/temp/hf python -c "
-from huggingface_hub import hf_hub_download
-print(hf_hub_download('vitouphy/wav2vec2-xls-r-300m-timit-phoneme', 'vocab.json'))
-"
-```
-
-Cellule 4 — refaire la preuve du décodage sur la machine du run. Doit annoncer 3696 + 1344 énoncés et 151 813 cibles sur 38 classes.
-
-```bash
-%%bash
-set -eux
-cd /kaggle/working
-HF_HOME=/kaggle/temp/hf python train/manifest.py
-```
-
-Cellule 5 — le pas à blanc GPU, qui répond aux deux questions ouvertes : la VRAM tient-elle, et que coûte une époque. Le script annonce le nombre de lots par époque ; diviser le temps par 20 pas et multiplier.
-
-```bash
-%%bash
-set -eux
-cd /kaggle/working
-time HF_HOME=/kaggle/temp/hf python train/train.py \
-  --encoder facebook/wav2vec2-xls-r-300m \
-  --unfreeze --checkpointing \
-  --lr 1e-4 --batch 8 --accumulate 2 \
-  --steps 20 --out /kaggle/temp/smoke
-nvidia-smi --query-gpu=memory.used,memory.total --format=csv
-```
-
-Cellule 6 — le run. Un seul `--prior-weight` par version du notebook : un affinage complet ne se met pas trois fois dans une session de 12 h, et l'élagage entre runs qui sauvait la V1b n'a plus de marge à 1,2 Go le checkpoint.
-
-```bash
-%%bash
-set -eux
-cd /kaggle/working
-RUN=v3-pw0.0
-HF_HOME=/kaggle/temp/hf python train/train.py \
-  --encoder facebook/wav2vec2-xls-r-300m \
-  --unfreeze --checkpointing \
-  --lr 1e-4 --epochs 15 --batch 8 --accumulate 2 \
-  --warmup 0.1 --save-every 5 \
-  --prior-weight 0.0 \
-  --out tmp/train/runs-v3/$RUN
-rm -rf tmp/TIMIT tmp/train/manifest.json
-du -sh tmp/train/runs-v3/*
-```
+Les cellules de pas à blanc sont des instruments, pas des étapes : **les supprimer avant le Save & Run All**, sinon elles recoûtent leurs pas à chaque exécution complète.
 
 Puis **Save & Run All** : le conteneur repart vierge et rejoue tout.
 
 ## Hyperparamètres — points de départ, pas des valeurs qualifiées
 
-`--lr 1e-4` avec `--warmup 0.1` : 3e-4 était le réglage d'une tête seule, il est agressif pour 300 M de paramètres pré-entraînés. `--batch 8 --accumulate 2` donne un lot effectif de 16, celui des générations précédentes — à garder pour que l'échelle d'optimisation reste comparable ; monter `--batch` et baisser `--accumulate` d'autant si la VRAM le permet, le produit étant ce qui compte. `--epochs 15` : un affinage complet converge bien plus vite qu'une sonde à tête seule, et 30 époques ne tiendraient de toute façon ni dans la session ni dans les 20 Go de `/kaggle/working`.
+`--lr 1e-4` avec `--warmup 0.1` : 3e-4 était le réglage d'une tête seule, il est agressif pour 300 M de paramètres pré-entraînés. `--batch 8 --accumulate 2` donne un lot effectif de 16, celui des générations précédentes — à garder pour que l'échelle d'optimisation reste comparable ; monter `--batch` et baisser `--accumulate` d'autant si la VRAM le permet, le produit étant ce qui compte. `--epochs 30 --save-every 10` : 3,9 h mesurées, et les checkpoints tombent aux époques 009, 019 et 029, les points de lecture de la V1b — la comparaison entre générations se fait ainsi aux mêmes époques, pour 3,6 Go dans un `/kaggle/working` plafonné à 20.
 
 **L'ordre des runs est une décision, pas un détail.** Le contrôle `--prior-weight 0.0` passe **en premier** : c'est lui qui dit si le régime atteint la parité avec le sortant, question qui prime sur le réglage du prior. S'il échoue aussi, c'est la direction entière de l'affinage qui se rediscute, et les runs suivants sont de l'argent jeté. S'il tient, balayer `0.1` puis `0.3` — et `1.0` seulement si la densité progresse encore à `0.3`, ce que les deux générations précédentes rendent peu probable.
 

@@ -120,7 +120,7 @@ Trié par coût croissant sur 4 runs. « h fact. » = durée facturée par run, 
 
 Kaggle et Colab-T4 sortent de la grille : 16 Go de VRAM insuffisants. Les lignes marquées **(acc.)** utilisent l'accumulation de gradient sur carte 24 Go, avec la pénalité de ×1,45 déjà intégrée.
 
-**Le verdict sur les 16 Go suppose que les activations sont stockées ; avec recalcul (`--checkpointing`) elles cessent de dominer, et le T4 redevient candidat.** Ce qui reste — poids, gradients, états AdamW pour 315 M de paramètres en fp32 — est de l'ordre de 5 Go, déduit et non mesuré ; `training-handoff.md` porte la cellule de pas à blanc qui le vérifie, et le temps par époque qui décidera vraiment.
+**Le verdict sur les 16 Go supposait les activations stockées ; avec recalcul (`--checkpointing`) elles cessent de dominer, et le T4 passe — mesuré.** Sur `xls-r-300m` dégelé, lots de 8, accumulation 2 : **pic de 7943 Mo sur les 15 360 du T4, et 1,00 s par pas**, soit 7,7 min pour une époque de 462 lots et 3,9 h pour 30 époques, là où une session Kaggle en autorise 12 et le quota hebdomadaire 30. Les lignes 24-40 Go ci-dessous ne valent donc que pour qui stocke ses activations ; la location reste le repli, elle n'est plus le chemin.
 
 | fournisseur | mode | carte | $/h | h fact. | $/run | $ × 4 | € × 4 | note |
 |---|---|---|---|---|---|---|---|---|
