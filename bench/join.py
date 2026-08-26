@@ -15,6 +15,7 @@ needed to see it.
 """
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -49,13 +50,67 @@ def widened(spans):
     return widened
 
 
+def spoken(text, anchored):
+    """The words of `text`, each with its spelling and the characters that have
+    a time.
+
+    A word is a run of non-space characters, and the space between two of them
+    stops here being a character that can land on a sound: the letter network
+    aligns the separator like any other symbol, so where the words part is
+    something the audio was asked rather than something guessed -- an answer
+    worth more as a boundary than as a letter.
+    """
+    words = []
+    for match in re.finditer(r"\S+", text):
+        timed = [position for position in range(*match.span())
+                 if anchored[position] is not None]
+        if timed:
+            words.append((match.group(), timed))
+    return words
+
+
+def owners(windows, stretches):
+    """Which word each sound belongs to, by the time the two maps share.
+
+    Widened, both maps cover the whole audio, so every sound falls in some word
+    and falls in one. This partition is what keeps a letter from reaching across
+    a boundary -- the leak the pure-overlap geometry left open, and the shape
+    behind the empty counts.
+    """
+    placed = []
+    for start, stop in stretches:
+        shared = [min(stop, high) - max(start, low) for low, high in windows]
+        best = max(range(len(shared)), key=lambda index: shared[index])
+        if shared[best] <= 0:
+            middle = (start + stop) / 2
+            best = min(range(len(windows)), key=lambda index: min(
+                abs(middle - windows[index][0]),
+                abs(middle - windows[index][1])))
+        placed.append(best)
+    return placed
+
+
+def nearest(low, high, spans):
+    """The span sharing the most time with `low`-`high`, the closest if none."""
+    shared = [min(high, stop) - max(low, start) for start, stop in spans]
+    best = max(range(len(shared)), key=lambda index: shared[index])
+    if shared[best] > 0:
+        return best
+    middle = (low + high) / 2
+    return min(range(len(spans)), key=lambda index: min(
+        abs(middle - spans[index][0]), abs(middle - spans[index][1])))
+
+
 def joined(wav, text):
     """Every sound the voice produced, and the letters spoken inside it.
 
     The sounds come from free decoding -- what is there, not what the word
-    should hold. A letter goes to the sound it shares the most time with, so
-    every letter lands somewhere and lands once: a letter split across two
-    sounds is the ordinary case, and halving it would colour neither.
+    should hold -- and the words come from the letter map, which knows the text.
+    Words first: each sound is placed in one word, and a letter may only reach
+    the sounds of its own. Inside the word a letter goes to the sound it shares
+    the most time with, the nearest when it shares none, so every letter of a
+    word that was heard lands somewhere and lands once: a letter split across
+    two sounds is the ordinary case, and halving it would colour neither.
     """
     spread = matrix.probabilities(wav)
     step = matrix.seconds_per_frame()
@@ -66,21 +121,31 @@ def joined(wav, text):
                          for _, start, stop in sounds])
 
     anchored = letters.anchors(wav, text)
-    timed = [(position, span) for position, span in enumerate(anchored)
-             if span is not None]
-    spelt = widened([span for _, span in timed])
+    words = spoken(text, anchored)
+    timed = [position for _, positions in words for position in positions]
+    spelt = dict(zip(timed, widened([anchored[position]
+                                     for position in timed])))
+    windows = [(spelt[positions[0]][0], spelt[positions[-1]][1])
+               for _, positions in words]
 
+    held = owners(windows, stretches)
     covered = [[] for _ in sounds]
-    for (position, _), (low, high) in zip(timed, spelt):
-        shared = [min(high, stop) - max(low, start)
-                  for start, stop in stretches]
-        best = max(range(len(shared)), key=lambda index: shared[index])
-        if shared[best] > 0:
-            covered[best].append(text[position])
+    for rank, (_, positions) in enumerate(words):
+        reachable = [index for index, owner in enumerate(held) if owner == rank]
+        if not reachable:
+            # A word no sound was placed in: its letters stay unattached, and
+            # the tally counts them, no mark being able to reach them.
+            continue
+        for position in positions:
+            low, high = spelt[position]
+            inside = nearest(low, high, [stretches[index]
+                                         for index in reachable])
+            covered[reachable[inside]].append(text[position])
 
-    return [(matrix.symbols()[index], low, high, "".join(held))
-            for (index, _, _), (low, high), held
-            in zip(sounds, stretches, covered)]
+    return [(matrix.symbols()[index], low, high, words[owner][0],
+             "".join(letters_held))
+            for (index, _, _), (low, high), owner, letters_held
+            in zip(sounds, stretches, held, covered)]
 
 
 def tally(candidate):
@@ -101,14 +166,13 @@ def tally(candidate):
         if not wav.is_file():
             continue
         read = joined(wav, text)
-        held = "".join(covered for _, _, _, covered in read)
+        held = "".join(covered for *_, covered in read)
         sounds += len(read)
-        empty += sum(1 for _, _, _, covered in read if not covered.strip())
+        empty += sum(1 for *_, covered in read if not covered)
         spelt += sum(1 for character in text if character.strip())
-        orphan += sum(1 for character in text if character.strip()) - sum(
-            1 for character in held if character.strip())
+        orphan += sum(1 for character in text if character.strip()) - len(held)
         print(f"  {slug:<18}{len(read):>4} sons"
-              f"{sum(1 for _, _, _, c in read if not c.strip()):>4} vides")
+              f"{sum(1 for *_, covered in read if not covered):>4} vides")
     print(f"\n  {sounds} sons, {empty} sans aucune lettre "
           f"({100 * empty / sounds:.0f} %)")
     print(f"  {spelt} lettres, {orphan} rattachées à aucun son "
@@ -138,9 +202,9 @@ def main(argv=None):
         raise SystemExit(f"{wav} manque — rends d'abord le matériel du banc")
 
     print(f"\n{text}\n")
-    print(f"  {'son':<8}{'de':>8}{'à':>8}   lettres")
-    for symbol, low, high, covered in joined(wav, text):
-        print(f"  {symbol:<8}{low:>8.2f}{high:>8.2f}   "
+    print(f"  {'son':<8}{'de':>8}{'à':>8}   {'mot':<14}lettres")
+    for symbol, low, high, word, covered in joined(wav, text):
+        print(f"  {symbol:<8}{low:>8.2f}{high:>8.2f}   {word:<14}"
               + (covered or "—"))
     return 0
 
