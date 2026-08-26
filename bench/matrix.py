@@ -58,6 +58,14 @@ CANDIDATES = {
         "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
        for weight in ("0.0", "0.1", "0.3", "1.0")
        for epoch in (9, 19, 29)},
+    # Third generation: the frozen ear is gone. Full fine-tune on the outgoing
+    # model's own backbone, which makes this the cleanest isolate available --
+    # same data, same backbone, same alphabet, our recipe on top.
+    **{f"v3-pw{weight}-e{epoch}": Candidate(
+        str(ROOT / f"tmp/train/runs-v3/v3-pw{weight}/epoch-{epoch:03d}"),
+        "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
+       for weight in ("0.0",)
+       for epoch in (9, 19, 29)},
 }
 
 CHOSEN = os.environ.get("ACOUSTIC_MODEL", "espeak")
