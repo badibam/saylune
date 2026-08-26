@@ -116,8 +116,9 @@ Une lecture du PER sur le split `test` du manifeste est permise en cours de run,
    - `tmp/missing_mass.py` ensuite, pour la densité : les sons que la grille perd doivent porter de la masse à leur place.
    - `faults.py` en dernier, comme contrainte à ne pas casser. Regarder sur combien de fautes **ancrables** — une bande large sur deux fautes survivantes est un artefact de grille clairsemée, pas un succès ; c'est ce qui a failli sauver les runs `pw0.3` de la V1b.
    - **Lire aux époques 9 et 29, pas seulement à la dernière.** Sur le contrôle, l'époque 9 bat la 29 sur les trois instruments à la fois : bande vide 0,745 contre 0,058, pic soi moyen 0,156 contre 0,116, erreur de départ 22,4 ms contre 25,4. Trente époques est un nombre hérité de la V1b, jamais instruit, et le contrôle le désigne comme trop grand.
-4. Si la marche 3 tient : export ONNX (`bench/export.py`), concordance, mesure téléphone — le chemin déjà balisé du banc. La quantification int8 est à revérifier sur ce dos, le budget de 342 Mo de l'app en dépendant.
-5. Élaguer ce doc et les docs GPU une fois le modèle en place — le code et les commits deviennent le registre.
+4. `bench/recognition.py` en garde-fou : le décodage libre nomme-t-il encore les bons sons. Il ne qualifie rien — c'est la brique 3 qu'il protège, la grille du modèle étant un décodage libre. Repère mesuré sur le contrôle : 10,0 % de PER aux époques 9 et 19, contre 6,7 % pour `timit-ipa` — dont la réserve de fuite de split n'est pas levée (cf. `../../tmp/v3-measures.md`).
+5. Si la marche 3 tient : export ONNX (`bench/export.py`), concordance, mesure téléphone — le chemin déjà balisé du banc. La quantification int8 est à revérifier sur ce dos, le budget de 342 Mo de l'app en dépendant.
+6. Élaguer ce doc et les docs GPU une fois le modèle en place — le code et les commits deviennent le registre.
 
 ## Bornes de la session d'exécution
 

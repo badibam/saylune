@@ -25,6 +25,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `overlap.py` | le recouvrement de deux répartitions, son par son — de combien deux voix s'écartent |
 | `faults.py` | le jeu d'essai étiqueté : l'écart tombe-t-il sur le son fautif, et reste-t-il à zéro sur le témoin |
 | `boundaries.py` | où le réseau place chaque son dans le temps, contre les bornes de TIMIT — position et durée, la seule mesure adossée à une vérité terrain |
+| `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
 | `letters.py` | où chaque lettre d'un texte connu est prononcée — l'ancrage calculé chez nous, sans passer par le fournisseur |
 | `anchor.py` | de combien notre ancrage s'écarte de celui du fournisseur — le verdict qui décide si l'attache tombe |
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tourne sur le téléphone |
@@ -62,10 +63,13 @@ Une **lecture** est une manière de calculer la matrice, et chacune a son propre
 python3 faults.py -v                    # l'écart tombe-t-il sur le son fautif
 python3 overlap.py -s sentences -v      # deux voix se recouvrent-elles
 python3 anchor.py -v                    # nos lettres tombent-elles où le fournisseur les met
-ACOUSTIC_MODEL=<nom> python3 boundaries.py   # position et durée des sons, contre TIMIT
+ACOUSTIC_MODEL=<nom> python3 boundaries.py    # position et durée des sons, contre TIMIT
+ACOUSTIC_MODEL=<nom> python3 recognition.py   # le décodage libre nomme-t-il les bons sons
 ```
 
 `boundaries.py` est la seule qualification adossée à une **vérité terrain** plutôt qu'à notre jeu étiqueté : TIMIT annote chaque phone au niveau de l'échantillon, et le corpus acheté n'avait servi que par ses suites de sons. Il ne demande ni synthèse ni clé, et lit `ACOUSTIC_MODEL` comme le reste du banc. Sa mesure décisive est la **durée couverte** — la part de la durée réelle d'un son que le réseau lui accorde.
+
+`recognition.py` pose la seule question qu'aucune autre brique ne pose : **le réseau nomme-t-il les bons sons ?** `faults.py` compare des répartitions et dit explicitement que l'étiquette peut être fausse sans dommage, `boundaries.py` force la séquence attendue donc n'exerce jamais le décodage libre, et `missing_mass.py` lit la masse à des positions qu'on lui désigne. Or la **brique 3 de l'analyse est un décodage libre** : la grille du modèle, à laquelle tout s'ancre. Réserve à porter : cette brique lit la même matrice que les autres — c'est une quatrième question, pas un témoin extérieur.
 
 `anchor.py` est la seule qualification qui redemande de la synthèse : un rendu est désormais l'audio **et** l'horodatage qui vient avec, donc les rendus ElevenLabs tirés avant l'endpoint horodaté se refont une fois. Le coût est en caractères, pas en appels doublés — l'endpoint rend les deux d'un coup.
 
