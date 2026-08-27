@@ -1,6 +1,6 @@
 # La grille dense — diagnostic et plan
 
-Carnet, à élaguer une fois le code en place. Répond aux deux problèmes ouverts par `letter-anchoring.md`, et le plan en fin de doc est validé.
+Carnet, à élaguer une fois le code en place. Le plan en fin de doc est validé.
 
 ## Les deux besoins, et leur état
 

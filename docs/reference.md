@@ -12,8 +12,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
-- `design/letter-anchoring.md` — carnet d'exploration de l'ancrage calculé sur l'appareil : ce qui est mesuré, et le trou qu'il a ouvert dans la grille.
-- `design/dense-grid.md` — le diagnostic de ce trou (la peakiness du CTC), la preuve que les poids ne voient pas les sons manqués, et le plan validé : un seul modèle de sons dense et acoustique, affiné à l'atelier.
+- `design/dense-grid.md` — pourquoi la grille perd un son sur huit (la peakiness du CTC), la preuve que les poids ne voient pas les sons manqués, et le plan qui en est sorti.
 - `design/finetune-brief.md` — le chantier d'affinage empaqueté pour chiffrage : variantes, contraintes, fournisseurs GPU à bencher.
 - `design/gpu-pricing.md` — le chiffrage rendu : grille variante × fournisseur × carte × coût, recommandations, pièges de facturation.
 - `design/gpu-runbook.md` — le mode opératoire de la location : accès à la machine, acheminement du corpus, hygiène de session.
@@ -238,7 +237,7 @@ Limite connue et acceptée : le BYOK reste un mur d'adoption — créer une ress
 
 **L'analyse tourne sur l'appareil, et c'est la colonne vertébrale de l'app** (`analysis.md`). **Elle ne consulte aucune norme qui juge** : ni dictionnaire de prononciation, ni lexique de dialecte, ni référentiel de justesse. Ce qui décide si une prise est fautive reste l'écart au modèle, et rien d'autre.
 
-Deux fichiers extérieurs dans tout le pipeline : les poids d'un modèle acoustique libre, et une **table d'affinité graphème↔phonème** de quelques kilo-octets — laquelle ne juge rien. Elle sert à la seule brique du marquage : savoir si `s` participe à /ʃ/, donc sur quelles lettres poser une couleur déjà décidée ailleurs. La distinction porte tout le principe : une norme extérieure qui dirait ce qui est *correct* est refusée ; une table qui dit où *peindre* ne l'est pas, et sans elle la marque tombe à côté deux fois sur cinq (`analysis.md`).
+Deux fichiers extérieurs dans tout le pipeline : les poids d'un modèle acoustique libre, et une **table d'affinité graphème↔phonème** de quelques kilo-octets — laquelle ne juge rien. Elle sert à la seule brique du marquage : savoir si `s` participe à /ʃ/, donc sur quelles lettres poser une couleur déjà décidée ailleurs. La distinction porte tout le principe : une norme extérieure qui dirait ce qui est *correct* est refusée ; une table qui dit où *peindre* ne l'est pas, et sans elle la marque tombe à côté près de deux fois sur cinq (`analysis.md`).
 
 Ce montage ne ressemble pas à l'approche habituelle, et pour une raison de situation plus que d'astuce. Qui n'a que l'audio d'un apprenant et un texte a besoin d'un dictionnaire pour se donner une norme. L'app, elle, possède **deux enregistrements du même énoncé** — elle synthétise le modèle de toute façon, puisque c'est lui qu'elle fait entendre. Le modèle est donc la source de vérité, cru aveuglément, et rien d'extérieur aux deux enregistrements ne juge quoi que ce soit.
 
@@ -259,7 +258,7 @@ Ce que l'analyse doit rendre, et qui se vérifie brique par brique (`qualificati
 
 Deux points de montage réglés par la même mesure. La synthèse **n'est pas pipelinée** sur la première phrase du modèle : le gain est de 0,16 s, parce que le modèle achève son objet un septième de seconde après sa première phrase. Et la reconnaissance se fait **par fichier, pas en flux** : elle coûte un sixième de la durée de l'audio, ce qui pèse sur le tour long — qui est l'exception, pas le régime nominal. Rien ne se complique tant que l'usage n'a pas montré que ça gêne.
 
-**La synthèse porte une contrainte structurelle : l'ancrage horodaté.** C'est de lui seul que vient l'ancrage aux lettres, donc l'exigence 2 ci-dessus en dépend entièrement. ElevenLabs le rend **caractère par caractère en REST nu** ; Azure rend l'équivalent — frontières de mots, visèmes — uniquement par un SDK propriétaire, ce qui heurte de front la publication F-Droid. **Un seul fournisseur convient donc aujourd'hui**, et c'est l'attache la plus étroite de tout le montage : l'analyse est à nous, mais l'endroit où poser ses marques ne l'est pas. **La direction pour la dissoudre est tranchée** : l'ancrage se calcule sur l'appareil, et l'alignement fournisseur cesse d'être consommé dès que ce qui le remplace se qualifie, rendant tout TTS candidat (cf. `../TODO.md`, chantier 2). Ce qui le remplace a changé de forme en cours de route : la jointure ne se fait plus par le temps seul mais par l'ordre et l'orthographe, et un appariement sur l'affinité seule — sans réseau de lettres, sans un horodatage — rend déjà 86 % des sons correctement épelés contre 92 % avec lui, quand le temps seul en rend 62. Le réseau de caractères garde donc son emploi pour la **position** et non pour la jointure, et ce que cette position vaut n'est pas mesuré.
+**La synthèse ne doit rendre qu'un audio.** L'exigence 2 ci-dessus — ancrer les marques au texte — se calcule entièrement sur l'appareil, par l'ordre et l'orthographe : la suite de sons est partitionnée entre les mots, et dans chaque mot les lettres se posent sur les sons qu'elles participent à écrire. Rien n'est demandé au fournisseur qu'un wav. **Tout moteur de synthèse est donc candidat**, les libres compris, et le montage n'a plus d'attache étroite nulle part.
 
 **Les fournisseurs de conversation et de synthèse restent à choisir** (cf. `../TODO.md`, chantier 2). Ceux du banc — Azure Speech, DeepSeek — ont servi à mesurer, pas à décider.
 
@@ -267,7 +266,7 @@ Deux points de montage réglés par la même mesure. La synthèse **n'est pas pi
 
 Il y a deux manières d'être agnostique et elles sont opposées. La première n'expose que ce que *tous* les fournisseurs savent faire : on n'exploite alors jamais ce que le meilleur a de mieux, et le progrès de l'un ne profite à personne. La seconde, retenue : **chaque fournisseur déclare ce qu'il sait faire, et l'app allume ou éteint les briques en conséquence.**
 
-Contrepartie assumée : le jeu de fonctionnalités **dépend du fournisseur choisi**. Un utilisateur verra des options éteintes qu'un autre a — l'ancrage horodaté de la synthèse en est le cas net, et il éteint le marquage lui-même. Une option indisponible doit donc **porter sa raison** dans l'interface — sinon elle passe pour un bug, et c'est l'app qu'on accusera, pas le service.
+Contrepartie assumée : le jeu de fonctionnalités **dépend du fournisseur choisi**. Un utilisateur verra des options éteintes qu'un autre a. Une option indisponible doit donc **porter sa raison** dans l'interface — sinon elle passe pour un bug, et c'est l'app qu'on accusera, pas le service.
 
 ## Hors périmètre
 
