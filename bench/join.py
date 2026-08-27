@@ -17,6 +17,7 @@ hand, and `-s` marks the join against it.
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -36,6 +37,27 @@ BY_SLUG = dict(phrases.CALIBRATION)
 # generated blind, by a session that had never seen where the join failed, so
 # that it could not be fitted to those failures.
 AFFINITY = json.loads((HERE / "affinity.json").read_text(encoding="utf-8"))
+
+# The same question asked of groups of letters that write one sound between
+# them: `sh` writes /ʃ/, and the per-letter table cannot say so -- it can only
+# say that `s` and `h` each take part in it, which leaves `sch` free to hand its
+# `c` to the /s/. Generated blind like the table beside it, and by its own
+# session, so that neither could be fitted to where the join failed.
+#
+# Read only under `JOIN_GROUPS=1`, and the reason is measured: it costs two
+# sounds, 219 against 221. A group has to out-score the sum of its letters, and
+# the per-letter weights are generous by construction -- a letter takes 3 for
+# its main sound across every spelling it appears in -- so `ch` at 2 on /k/
+# loses to `c` at 3 on /s/ plus `h` at 2 on /k/. What is missing is not either
+# table but an arbiter between them, and a weighting chosen now would be chosen
+# against these fifteen sentences. It waits for the wider corpus.
+GROUPS = (json.loads((HERE / "affinity-groups.json").read_text(encoding="utf-8"))
+          if os.environ.get("JOIN_GROUPS") == "1" else {})
+
+# How many letters a single sound may be given at once. Four covers the longest
+# graphemes English writes -- `ough`, `eigh` -- and every group longer than that
+# is two graphemes running.
+LONGEST = 4
 
 # What it costs to step over a sound and leave it with no letter at all.
 # Without it the objective pays for letters and never for sounds, so nothing
@@ -85,8 +107,8 @@ def checked():
     can do, with nothing to say so.
     """
     symbols = set(matrix.symbols())
-    unknown = sorted({sound for row in AFFINITY.values() for sound in row}
-                     - symbols)
+    unknown = sorted({sound for table in (AFFINITY, GROUPS)
+                      for row in table.values() for sound in row} - symbols)
     if unknown:
         raise SystemExit(
             f"affinity.json nomme des sons que {matrix.SLUG} ne rend pas "
@@ -98,48 +120,68 @@ def inner(characters, symbols):
     """A word's letters onto a group of sounds, the assignment never going back.
 
     Returns what the match is worth and, beside it, the sound each letter chose.
-    A group too small to hold the letters is not refused: several letters
-    sharing a sound is the ordinary case for a digraph, and a letter split
-    across two sounds would colour neither.
+    Letters are taken one to `LONGEST` at a time: a group the table names is
+    read as the single grapheme it is, and paid for every letter it carries, so
+    that spelling `ch` as one /k/ outweighs spelling `c` and `h` apart. A group
+    too small to hold the letters is not refused -- several letters sharing a
+    sound is the ordinary case, and a letter split across two would colour
+    neither.
     """
+    count = len(characters)
     if not symbols:
-        return 0.0, [None] * len(characters)
-    best = [[0.0] * len(symbols) for _ in characters]
-    back = [[0] * len(symbols) for _ in characters]
-    for index, character in enumerate(characters):
-        affinities = AFFINITY.get(character.lower(), {})
-        # Stepping from `before` to `sound` costs one hunger per sound skipped,
-        # so the best predecessor maximises `best[before] + HUNGER * before` --
-        # a running maximum, the skipped stretch being the same for all of them.
-        running = float("-inf")
-        argmax = 0
-        for sound, symbol in enumerate(symbols):
+        return 0.0, [None] * count
+    best = [[float("-inf")] * len(symbols) for _ in range(count + 1)]
+    back = [[None] * len(symbols) for _ in range(count + 1)]
+    for index in range(count):
+        if index and all(score == float("-inf") for score in best[index]):
+            continue
+        # Stepping from `sound` to a later one costs one hunger per sound
+        # skipped, so the best predecessor maximises `best[sound] + HUNGER *
+        # sound` -- a running maximum, the skipped stretch being the same for
+        # all of them.
+        running, argmax = float("-inf"), 0
+        reached = []
+        for sound in range(len(symbols)):
             if index:
                 if sound:
-                    candidate = best[index - 1][sound - 1] + HUNGER * (sound - 1)
-                    if candidate > running:
-                        running, argmax = candidate, sound - 1
                     stepped = running - HUNGER * (sound - 1)
-                    # A tie goes to the earlier predecessor, which spreads the
-                    # letters over the sounds rather than piling them on one.
-                    if best[index - 1][sound] > stepped:
-                        previous, chosen = best[index - 1][sound], sound
+                    if best[index][sound] > stepped:
+                        reached.append((best[index][sound], sound))
                     else:
-                        previous, chosen = stepped, argmax
+                        reached.append((stepped, argmax))
                 else:
-                    previous, chosen = best[index - 1][0], 0
+                    reached.append((best[index][0], 0))
+                candidate = best[index][sound] + HUNGER * sound
+                if candidate > running:
+                    running, argmax = candidate, sound
             else:
-                previous, chosen = -HUNGER * sound, 0
-            best[index][sound] = previous + affinities.get(symbol, 0) / 3
-            back[index][sound] = chosen
+                reached.append((-HUNGER * sound, None))
+        for length in range(1, min(LONGEST, count - index) + 1):
+            group = "".join(characters[index:index + length]).lower()
+            weights = GROUPS.get(group) if length > 1 else AFFINITY.get(group)
+            if weights is None:
+                continue
+            for sound, symbol in enumerate(symbols):
+                previous, chosen = reached[sound]
+                score = previous + length * weights.get(symbol, 0) / 3
+                if score > best[index + length][sound]:
+                    best[index + length][sound] = score
+                    back[index + length][sound] = (length, chosen)
     last = max(range(len(symbols)),
-               key=lambda sound: best[-1][sound]
+               key=lambda sound: best[count][sound]
                - HUNGER * (len(symbols) - sound - 1))
-    total = best[-1][last] - HUNGER * (len(symbols) - last - 1)
-    chosen = [0] * len(characters)
-    for index in range(len(characters) - 1, -1, -1):
-        chosen[index] = last
-        last = back[index][last]
+    total = best[count][last] - HUNGER * (len(symbols) - last - 1)
+    if total == float("-inf"):
+        # Not one letter of the word is in the table: it takes no sound rather
+        # than taking them all for nothing.
+        return 0.0, [None] * count
+    chosen = [None] * count
+    index = count
+    while index:
+        length, previous = back[index][last]
+        for position in range(index - length, index):
+            chosen[position] = last
+        index, last = index - length, previous
     return total, chosen
 
 
