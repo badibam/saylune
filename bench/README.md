@@ -28,7 +28,8 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
 | `join.py` | quelles lettres chaque son couvre — les mots, l'ordre et l'orthographe, notés contre l'annotation (`-s`) |
 | `expected.py` | l'annotation à la main : les lettres que chaque son devrait porter. N'entre jamais dans l'app |
-| `affinity.json` | à quels sons une lettre participe, de 0 à 3 — la seule donnée linguistique du montage |
+| `affinity.json` | à quels sons une lettre participe, de 0 à 3 — avec `affinity-groups.json`, la seule donnée linguistique du montage |
+| `affinity-groups.json` | la même question pour les groupes qui écrivent un son (`sh`, `ough`) — lue sous `JOIN_GROUPS=1` seulement, cf. `../TODO.md` |
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tourne sur le téléphone |
 | `concord.py` | deux machines lisant les mêmes poids disent-elles la même chose |
 | `phone.py` | pousse, mesure et rapatrie : l'appareil devient une lecture comme une autre |
