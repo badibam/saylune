@@ -26,9 +26,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `faults.py` | le jeu d'essai étiqueté : l'écart tombe-t-il sur le son fautif, et reste-t-il à zéro sur le témoin |
 | `boundaries.py` | où le réseau place chaque son dans le temps, contre les bornes de TIMIT — position et durée, la seule mesure adossée à une vérité terrain |
 | `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
-| `letters.py` | où chaque lettre d'un texte connu est prononcée — l'ancrage calculé chez nous, sans passer par le fournisseur |
-| `anchor.py` | de combien notre ancrage s'écarte de celui du fournisseur — le verdict qui décide si l'attache tombe |
-| `join.py` | quelles lettres chaque son couvre — l'ordre, les mots et l'orthographe, notés contre l'annotation (`-s`) |
+| `join.py` | quelles lettres chaque son couvre — les mots, l'ordre et l'orthographe, notés contre l'annotation (`-s`) |
 | `expected.py` | l'annotation à la main : les lettres que chaque son devrait porter. N'entre jamais dans l'app |
 | `affinity.json` | à quels sons une lettre participe, de 0 à 3 — la seule donnée linguistique du montage |
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tourne sur le téléphone |
@@ -63,9 +61,9 @@ Une **lecture** est une manière de calculer la matrice, et chacune a son propre
 ## Qualifier
 
 ```
-python3 faults.py -v                    # l'écart tombe-t-il sur le son fautif
-python3 overlap.py -s sentences -v      # deux voix se recouvrent-elles
-python3 anchor.py -v                    # nos lettres tombent-elles où le fournisseur les met
+python3 faults.py -v                          # l'écart tombe-t-il sur le son fautif
+python3 overlap.py -s sentences -v            # deux voix se recouvrent-elles
+ACOUSTIC_MODEL=<nom> python3 join.py -s       # les sons portent-ils les bonnes lettres
 ACOUSTIC_MODEL=<nom> python3 boundaries.py    # position et durée des sons, contre TIMIT
 ACOUSTIC_MODEL=<nom> python3 recognition.py   # le décodage libre nomme-t-il les bons sons
 ```
@@ -74,7 +72,7 @@ ACOUSTIC_MODEL=<nom> python3 recognition.py   # le décodage libre nomme-t-il le
 
 `recognition.py` pose la seule question qu'aucune autre brique ne pose : **le réseau nomme-t-il les bons sons ?** `faults.py` compare des répartitions et dit explicitement que l'étiquette peut être fausse sans dommage, `boundaries.py` force la séquence attendue donc n'exerce jamais le décodage libre, et `missing_mass.py` lit la masse à des positions qu'on lui désigne. Or la **brique 3 de l'analyse est un décodage libre** : la grille du modèle, à laquelle tout s'ancre. Réserve à porter : cette brique lit la même matrice que les autres — c'est une quatrième question, pas un témoin extérieur.
 
-`anchor.py` est la seule qualification qui redemande de la synthèse : un rendu est désormais l'audio **et** l'horodatage qui vient avec, donc les rendus ElevenLabs tirés avant l'endpoint horodaté se refont une fois. Le coût est en caractères, pas en appels doublés — l'endpoint rend les deux d'un coup.
+`join.py -s` est le seul instrument que rien n'automatise : sa règle est `expected.py`, écrite à la main, et elle est indexée sur les sons que le réseau a réellement décodés — elle note donc le modèle contre lequel elle a été écrite et aucun autre. Le compteur de trous qui l'avait précédée rapportait huit défauts là où elle en trouve quinze ; c'est pour ça qu'il n'existe plus.
 
 Les vingt-sept prises étiquetées des blocs A à F vivent dans `out/takes/set/`. Elles ne se régénèrent pas : **si elles comptent, elles se sauvegardent hors du dépôt.**
 
