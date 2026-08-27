@@ -22,19 +22,15 @@ Entrent : l'audio du modèle, l'audio de l'apprenant, et le texte de ce qui a é
 
 Sortent les trois marques du projet — le son, le mot, la phrase — ancrées à des lettres précises du texte affiché.
 
-Le texte ne juge rien. Il sert à trois choses seulement : afficher, situer les lettres dans le temps, séparer les mots.
+Le texte ne juge rien. Il sert à deux choses seulement : afficher, et séparer les mots.
 
 ## Les briques
 
-### 1. Le modèle — ElevenLabs
+### 1. Le modèle — la synthèse
 
-L'endpoint de synthèse `with-timestamps` rend l'audio **et** la position de chaque caractère, en REST nu.
+Le texte part au fournisseur de synthèse, qui rend un audio. C'est tout ce qui lui est demandé, et c'est ce que rend n'importe quel moteur de synthèse : un wav, sans métadonnée, sans horodatage, sans format propriétaire.
 
-```
-p 0.11-0.16   o 0.16-0.21   r 0.21-0.26   t 0.26-0.34
-```
-
-Ce n'est pas une estimation : c'est ce que le synthétiseur a fabriqué. C'est le seul endroit du pipeline où le texte touche l'audio.
+Cet audio sert trois fois — d'étalon pour la mesure, de modèle à écouter, de modèle à réécouter — et il est mis en cache, indexé par le texte, la voix et le dialecte.
 
 ### 2. La matrice — une passe par audio
 
@@ -68,27 +64,29 @@ Les étiquettes servent malgré tout à trois tâches d'échafaudage, où elles 
 
 ### 4. La jointure lettres ↔ sons
 
-Les briques 1 et 3 décrivent le même fichier sur le même axe de temps. On les superpose.
+La brique 3 dit quels sons le modèle a produits, dans l'ordre. Le texte dit quels mots il devait dire, dans l'ordre. La jointure les apparie — et n'ouvre aucune horloge pour le faire.
 
 ```
-lettres  p o r  = 0.11-0.26 s
-sons     P 0.11-0.16   AO 0.16-0.22   R 0.22-0.26
--> le p porte le P, le o porte le AO, le r porte le R
+The sheep is in the field
+
+mots      The   |  sheep        |  is    |  in    |  the   |  field
+sons      ð  ɪ  |  ʃ   i   p    |  ɪ  z  |  ɪ  n  |  ð  ɪ  |  f  i   l  d
+lettres   Th e  |  sh  ee  p    |  i  s  |  i  n  |  th e  |  f  ie  l  d
 ```
 
-C'est ainsi qu'une marque atterrit sur une lettre précise.
+C'est ainsi qu'une marque atterrit sur une lettre précise. Trois choses la décident, dans cet ordre :
 
-**Mais deux horloges ne suffisent pas.** Les deux réseaux sont pointus : chacun dit « ici » sur une trame ou deux et laisse le reste au blanc. Élargir chaque pic jusqu'à mi-chemin de son voisin transforme les deux cartes en pavages et rend la superposition possible — sans rien décider quand elles hésitent à la trame près. Entre `k→ke, ɪ→n, n→—` et `k→k, ɪ→e, n→n`, le temps hésite ; l'orthographe non.
-
-Trois choses tranchent, dans cet ordre :
-
-- **Les mots d'abord.** L'espace est aligné comme n'importe quel symbole, donc chaque son est attribué à un mot, et une lettre ne peut atteindre que les sons du sien. Sans ça une lettre fuit chez le voisin.
-- **L'ordre.** L'appariement ne recule jamais.
-- **L'orthographe.** Une table d'affinité dit à quels sons une lettre **participe** — `s` participe à /ʃ/ par `sh` —, pondérée de 0 à 3, et pèse une fois et demie un recouvrement temporel parfait.
+- **Les mots d'abord.** La suite de sons est coupée en autant de groupes contigus que le texte a de mots, et une lettre ne peut atteindre que les sons du sien. La coupe retenue est celle qui épelle le mieux la phrase entière. Un mot peut recevoir zéro son — un mot outil escamoté est réel, et lui en forcer un le volerait à son voisin.
+- **L'ordre.** L'appariement ne recule jamais, ni entre les mots ni à l'intérieur d'un mot.
+- **L'orthographe.** Une table d'affinité dit à quels sons une lettre **participe** — `s` participe à /ʃ/ par `sh` —, pondérée de 0 à 3. Et un son laissé sans aucune lettre coûte : sans ce prix, l'appariement ne paie que les lettres, donc rien n'empêche une voyelle de happer les lettres de sa voisine et de la laisser vide. Un son sans lettre est un son sur lequel aucune marque ne peut se poser, c'est exactement le défaut à tarifer.
 
 **Cette table n'est pas la table graphème-phonème que le principe 1 refuse.** Le refus protège le jugement : rien d'extérieur ne doit dire ce qui est correct. La brique 4 ne juge rien, elle décide où peindre. La table ne dit jamais comment un mot se prononce, ne porte ni liste de mots ni lexique de dialecte, et répond seulement « telle lettre participe-t-elle à tel son ». Elle vaut quelques kilo-octets et se refuse à se brancher sur un modèle dont elle ne nomme pas l'alphabet.
 
-**Mesuré** (`bench/join.py -s`, contre l'annotation à la main d'`expected.py`, quinze phrases, 236 sons) : **92 %** des sons portent les lettres qu'un humain leur attribue, contre 62 % au temps seul. Les deux irrégularités connues restent : une lettre peut porter deux sons (elle prend la couleur du pire), une lettre peut n'en porter aucun (elle reste neutre).
+**Mesuré** (`bench/join.py -s`, contre l'annotation à la main d'`expected.py`, quinze phrases, 236 sons) : **221 sons portent les lettres qu'un humain leur attribue, soit 94 %**, et dix phrases sur quinze sont exactes. Ce qui ne s'en déduit pas : la table et le prix du son vide sont tous deux réglés sur ces quinze phrases, et rien n'a encore tourné ailleurs.
+
+Les deux irrégularités connues restent : une lettre peut porter deux sons (elle prend la couleur du pire), une lettre peut n'en porter aucun (elle reste neutre).
+
+**Cette brique n'a jamais besoin de savoir *quand*.** Un second réseau, à sortie caractères, a été construit puis retiré : il rendait la même jointure à un son près, pour 191 Mo de poids et une passe de plus.
 
 ### 5. L'apprenant sur la grille — alignement forcé
 
@@ -165,9 +163,9 @@ Réserve honnête : la syllabification phonologique ne coïncide pas toujours av
 
 Nécessaire, parce que la comparaison des noyaux se fait **à l'intérieur d'un mot** : sans frontières, on comparerait la voyelle de `important` à celle de `the`.
 
-Il tombe de la brique 1 : le texte a des espaces, chaque caractère a un instant, donc chaque mot a une plage de temps, et chaque voyelle appartient au mot dont la plage la contient.
+Il tombe de la brique 4, qui partitionne déjà la suite de sons entre les mots : chaque son appartient à un mot et à un seul, donc chaque voyelle aussi. Il n'y a pas de voyelle à cheval, la partition étant sur les sons et non sur le temps.
 
-Deux règles à poser : une voyelle à cheval sur deux mots appartient à celui où tombe **son milieu** ; un mot d'une seule voyelle n'a pas d'accent interne, donc ne porte **jamais** de marque d'accent.
+Une règle à poser : un mot d'une seule voyelle n'a pas d'accent interne, donc ne porte **jamais** de marque d'accent.
 
 ### 10. La phrase — la mélodie
 
@@ -275,15 +273,15 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 
 | # | brique | ce qu'elle rend | état |
 |---|---|---|---|
-| 1 | Le modèle (ElevenLabs) | audio + lettres → temps | existe, REST nu |
+| 1 | Le modèle (la synthèse) | l'audio de ce qui aurait dû être dit | existe, tout TTS convient |
 | 2 | La matrice | répartition sur les sons, toutes les 20 ms | codée (`bench/matrix.py`) |
 | 3 | La grille | sons réellement produits par le modèle → temps | codée |
-| 4 | La jointure lettres ↔ sons | quelle lettre porte quel son | codée au banc (`bench/join.py`), 92 % contre l'annotation |
+| 4 | La jointure lettres ↔ sons | quelle lettre porte quel son | codée au banc (`bench/join.py`), 94 % contre l'annotation |
 | 5 | L'apprenant sur la grille | mêmes sons → temps chez lui | codée |
 | 6 | Le son | recouvrement des deux formes, et le son produit | recouvrement codé (`bench/overlap.py`) ; le son produit à écrire |
 | 7 | Le mot | quelle syllabe est la forte | à écrire |
 | 8 | La syllabification | l'étendue en lettres de chaque syllabe | à écrire |
-| 9 | Le découpage en mots | quelles voyelles appartiennent au même mot | tombe de la 1 |
+| 9 | Le découpage en mots | quelles voyelles appartiennent au même mot | tombe de la 4 |
 | 10 | La phrase | la pente de fin d'énoncé | codée |
 | 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
 | 12 | Le runtime Android | tout ça sur le téléphone | **mesuré sur l'appareil** (`bench/export.py`, `bench/phone.py`) |
@@ -299,14 +297,14 @@ Ce qui produirait un comportement inattendu, et où ça se traite.
 ### Le modèle escamote, lie, ou reste mou
 
 - **La voix avale un son.** La grille ne le contient pas ; l'apprenant qui le prononce présente un son hors grille, que l'alignement forcé étale sur les voisins. Peut déplacer une marque d'un son. À surveiller.
-- **La voix lie deux mots** (`want to` → `wanna`). Moins de sons que le texte n'a de lettres, et la frontière de mots devient floue à la jointure. À surveiller.
+- **La voix lie deux mots** (`want to` → `wanna`). Moins de sons que le texte n'a de lettres, et la coupe entre les deux mots se joue alors sur la seule orthographe. À surveiller.
 - **La voix est molle partout** — débit rapide, tout réduit. Toutes les répartitions sont larges, tout se recouvre, et **l'app ne marque presque rien**. C'est le cas le plus vicieux : sous-détection totale et silencieuse, et c'est le prix exact du principe de confiance aveugle. Un contrôle simple existe et n'a pas besoin de norme extérieure — la netteté moyenne des pics de la grille. Une grille molle veut dire « cette prise n'est pas un bon étalon ».
 
 ### Le texte n'est pas fait de lettres qui se prononcent
 
-- **Chiffres et symboles** (`25`, `3rd`, `$10`) : deux caractères horodatés pour six sons prononcés, la jointure lettres ↔ sons s'effondre localement. **À traiter** en normalisant le texte en toutes lettres avant synthèse, ce qui est de toute façon souhaitable pour le TTS.
+- **Chiffres et symboles** (`25`, `3rd`, `$10`) : deux caractères pour six sons prononcés, et la table ne les écrit pas, donc les sons de « twenty-five » ne reçoivent aucune lettre. **À traiter** en normalisant le texte en toutes lettres avant synthèse, ce qui est de toute façon souhaitable pour le TTS.
 - **Sigles** (`USA`, `OK`) : même problème, plus rare, même traitement.
-- **Ponctuation et majuscules** : horodatées mais muettes. Couvert par la règle de la lettre neutre.
+- **Ponctuation et majuscules** : absentes de la table, donc muettes pour la jointure. Couvert par la règle de la lettre neutre.
 - **Nom propre ou mot étranger** : le TTS l'invente et un réseau phonémique anglais le décode mal. Grille bruitée localement. À surveiller.
 
 ### L'apprenant ne dit pas exactement la grille
