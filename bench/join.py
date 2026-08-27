@@ -29,7 +29,7 @@ import phrases
 HERE = Path(__file__).resolve().parent
 RENDERS = HERE / "out" / "renders"
 
-BY_SLUG = dict(phrases.CALIBRATION)
+SETS = {"calibration": phrases.CALIBRATION, "heldout": phrases.HELDOUT}
 
 # Which sounds a letter takes part in writing, weighted 0 to 3. Not a
 # pronunciation dictionary and never asked how a word is said: it answers
@@ -270,7 +270,7 @@ def joined(wav, text):
             in zip(symbols, stretches, held, covered)]
 
 
-def scored(candidate):
+def scored(candidate, material):
     """The join marked against the letters a human said each sound should hold.
 
     Whether the letters are the *right* ones is a question about English
@@ -279,7 +279,7 @@ def scored(candidate):
     was written against and no other.
     """
     right = counted = 0
-    for slug, text in phrases.CALIBRATION:
+    for slug, text in material:
         answer = expected.COVERED.get(slug)
         wav = RENDERS / candidate / "sentences" / f"{slug}.wav"
         if answer is None or unspellable(text) or not wav.is_file():
@@ -305,20 +305,24 @@ def scored(candidate):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("slug", nargs="?", help="une phrase du jeu : "
-                                               + ", ".join(sorted(BY_SLUG)))
+    parser.add_argument("slug", nargs="?", help="une phrase du jeu")
     parser.add_argument("-s", "--score", action="store_true",
                         help="la note contre l'annotation d'expected.py")
+    parser.add_argument("-j", "--jeu", default="calibration", choices=sorted(SETS),
+                        help="calibration (celui qui a réglé) ou heldout "
+                             "(celui qui n'a rien réglé)")
     parser.add_argument("-c", "--candidate", default="eleven-us-eric")
     options = parser.parse_args(argv)
+    material = SETS[options.jeu]
 
     if options.score:
-        scored(options.candidate)
+        scored(options.candidate, material)
         return 0
     if options.slug is None:
-        raise SystemExit("nomme une phrase, ou -s pour la note")
+        raise SystemExit("nomme une phrase du jeu : "
+                         + ", ".join(slug for slug, _ in material))
 
-    text = BY_SLUG.get(options.slug)
+    text = dict(material).get(options.slug)
     if text is None:
         raise SystemExit(f"{options.slug!r} n'est pas une phrase du jeu")
     missing = unspellable(text)

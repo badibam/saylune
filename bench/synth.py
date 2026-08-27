@@ -130,18 +130,48 @@ def render(text, candidate, path, force=False):
     return path
 
 
+def whole(name, candidate, force=False):
+    """Render a whole set of sentences where every other brick looks for them.
+
+    The bench addresses a render by voice and slug, never by path, so the
+    destination is not a choice: a set rendered anywhere else is a set no
+    measurement can find.
+    """
+    import phrases
+
+    material = {"calibration": phrases.CALIBRATION,
+                "heldout": phrases.HELDOUT}[name]
+    destination = (Path(__file__).resolve().parent / "out" / "renders"
+                   / candidate.name / "sentences")
+    destination.mkdir(parents=True, exist_ok=True)
+    for slug, text in material:
+        path = destination / f"{slug}.wav"
+        existed = path.is_file()
+        render(text, candidate, path, force)
+        print(f"  {slug:<20}{'déjà là' if existed and not force else 'rendu'}")
+    return destination
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("text")
-    parser.add_argument("destination", type=Path)
+    parser.add_argument("text", nargs="?")
+    parser.add_argument("destination", nargs="?", type=Path)
     parser.add_argument("-c", "--candidate", default="azure-us-jenny",
                         help="one of: " + ", ".join(BY_NAME))
+    parser.add_argument("-j", "--jeu", choices=("calibration", "heldout"),
+                        help="rendre tout un jeu de phrases plutôt qu'un texte")
     parser.add_argument("-f", "--force", action="store_true")
     args = parser.parse_args(argv)
 
     if args.candidate not in BY_NAME:
         raise SystemExit(f"Unknown candidate {args.candidate!r}. "
                          "Known: " + ", ".join(BY_NAME))
+    if args.jeu:
+        print(f"\n{args.jeu} — {args.candidate}\n")
+        print(f"\n  dans {whole(args.jeu, BY_NAME[args.candidate], args.force)}")
+        return 0
+    if not args.text or not args.destination:
+        raise SystemExit("donne un texte et une destination, ou -j <jeu>")
     path = render(args.text, BY_NAME[args.candidate], args.destination, args.force)
     print(f"{path} ({path.stat().st_size} bytes)")
     return 0

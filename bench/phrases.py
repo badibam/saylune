@@ -30,6 +30,41 @@ CALIBRATION = (
     ("interesting", "This lesson is interesting for me"),
 )
 
+# Held out, and held out on purpose: nothing here has fitted a table, a weight
+# or a geometry, so a score read on these sentences is the first one the join
+# has not been shown the answer to. Each carries something the calibration set
+# does not -- a letter that writes two sounds, a grapheme the per-letter table
+# cannot see, a silent letter, a contraction, a digit, a long turn -- and four
+# are ordinary, so that what comes back is not only the worst case.
+HELDOUT = (
+    # Ordinary speech, to keep the set from being made of hard cases only.
+    ("weather-nice", "The weather is nice today"),
+    ("friend-called", "My friend called me yesterday"),
+    ("book-table", "The book is on the table"),
+    ("coffee-morning", "I drink coffee in the morning"),
+    # One letter, several sounds -- the lever the calibration set cannot show.
+    ("six-boxes", "There are six boxes here"),
+    ("use-music", "I use music to relax"),
+    ("question-easy", "That question was easy"),
+    # Graphemes the per-letter table cannot see.
+    ("enough-time", "We do not have enough time"),
+    ("thought-night", "I thought about it last night"),
+    ("watch-match", "I watch the match on Sunday"),
+    ("phone-pocket", "My phone is in my pocket"),
+    ("write-letter", "I want to write a letter"),
+    ("bridge-river", "The bridge crosses the river"),
+    ("station-far", "The station is far from here"),
+    # Letters that are written and not spoken.
+    ("climb-wall", "He can climb the wall"),
+    ("listen-carefully", "Please listen carefully"),
+    ("island-summer", "We visit the island in summer"),
+    # A contraction, a digit the table cannot write, and a long turn.
+    ("wont-come", "I won't be able to come"),
+    ("ten-minutes", "I will be there in 10 minutes"),
+    ("long-station", "If you have time tomorrow we could walk to the station "
+                     "and take the early train"),
+)
+
 # The accent trial: does the gap between a learner and the model still separate
 # a good take from a bad one when the scoring lexicon does not match the voice?
 # Chosen where GB and US actually diverge -- post-vocalic /r/, the vowels of

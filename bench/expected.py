@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Which letters each sound of the grid ought to cover.
 
+Run it to get the worksheet for a set of sentences -- the sounds the network
+decoded, in order, beside the text -- which is the one form an answer can be
+written in, since the annotation is indexed by those sounds and not by the word:
+
+    python3 expected.py -j heldout
+
 The one thing no machine in this montage can supply. The join produces letters
 for every sound; whether they are the right letters is a question about English
 spelling, and the pipeline deliberately holds no grapheme-to-phoneme table. So
@@ -17,6 +23,10 @@ Where a sound is written by several letters the whole group is given (`igh` for
 the vowel of `right`); where several sounds share one letter the letter is
 repeated. Spaces are ignored in the comparison.
 """
+
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
 
 # slug -> the letters of each sound of the grid, in order.
 COVERED = {
@@ -108,3 +118,44 @@ def alike(symbol):
         seen.add(symbol)
         symbol = SAME[symbol]
     return symbol
+
+
+def worksheet(material, candidate):
+    """The grid to be annotated, one line per sentence, ready to be filled in.
+
+    Deliberately shows the text and the decoded sounds and nothing else. Showing
+    what a join produced would make the answer an edit of the join's output
+    rather than a judgement about English spelling, and the two are not the same
+    document.
+    """
+    import matrix
+    renders = HERE / "out" / "renders" / candidate / "sentences"
+    for slug, text in material:
+        wav = renders / f"{slug}.wav"
+        if not wav.is_file():
+            print(f'    # "{slug}" — {wav.name} manque, phrase non rendue')
+            continue
+        sounds = matrix.grid(matrix.probabilities(wav))
+        symbols = [matrix.symbols()[index] for index, _, _ in sounds]
+        print(f'    # {text}')
+        print(f'    #   {"  ".join(symbols)}')
+        print(f'    "{slug}": [{", ".join(chr(34) * 2 for _ in symbols)}],')
+
+
+def main(argv=None):
+    import argparse
+    import phrases
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("-j", "--jeu", default="heldout",
+                        choices=("calibration", "heldout"))
+    parser.add_argument("-c", "--candidate", default="eleven-us-eric")
+    options = parser.parse_args(argv)
+    worksheet({"calibration": phrases.CALIBRATION,
+               "heldout": phrases.HELDOUT}[options.jeu], options.candidate)
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())
