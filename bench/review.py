@@ -42,8 +42,12 @@ REVIEWS = HERE / "reviews"
 # about something nobody will ever see.
 NOISE = 0.05
 
-# A phoneme lasts sixty milliseconds and is not judgeable alone; the word is.
-PAD = 0.06
+# A phoneme lasts sixty milliseconds and is not judgeable alone; the word is,
+# with a little air on either side so it is heard arriving and leaving rather
+# than cut out of the sentence. Kept short on purpose: a wide margin drags in
+# the neighbouring word, and then what is being judged is no longer this one.
+# `--pad` moves it, because how much air reads as natural is a thing to hear.
+PAD = 0.15
 
 # How much of a spread to show. Past three the tail is noise, and the claim is
 # in the head of it.
@@ -56,7 +60,7 @@ PLAYERS = (["paplay"], ["aplay", "-q"], ["ffplay", "-nodisp", "-autoexit",
                                          "-loglevel", "quiet"])
 
 
-def play(wav, low, high, chosen):
+def play(wav, low, high, chosen, pad=PAD):
     """The stretch, on the speakers, through a file rather than a pipe.
 
     The player is settled on the first stretch actually played: asking a machine
@@ -66,8 +70,8 @@ def play(wav, low, high, chosen):
     a guess written into the file as an answer.
     """
     audio, rate = sf.read(wav)
-    first = max(0, int((low - PAD) * rate))
-    last = min(len(audio), int((high + PAD) * rate))
+    first = max(0, int((low - pad) * rate))
+    last = min(len(audio), int((high + pad) * rate))
     if last <= first:
         return chosen
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as handle:
@@ -138,6 +142,9 @@ def main(argv=None):
     parser.add_argument("take")
     parser.add_argument("-m", "--model", required=True)
     parser.add_argument("-c", "--candidate", default="eleven-us-eric")
+    parser.add_argument("-p", "--pad", type=float, default=PAD,
+                        help="l'air autour du mot, en secondes "
+                             f"(défaut {PAD})")
     options = parser.parse_args(argv)
 
     text = dict(phrases.CALIBRATION + phrases.HELDOUT)[options.model]
@@ -185,10 +192,10 @@ def main(argv=None):
             print(f"     mot « {sound.word} », son /{sound.symbol}/, "
                   f"{gap.value * 100:.1f} points")
             print("     modèle…", flush=True)
-            speaker = play(model, *model_span, speaker)
+            speaker = play(model, *model_span, speaker, options.pad)
             if take_span:
                 print("     ta prise…", flush=True)
-                speaker = play(learner, *take_span, speaker)
+                speaker = play(learner, *take_span, speaker, options.pad)
             answer = ask("     ? ")
             if answer != "r":
                 break
