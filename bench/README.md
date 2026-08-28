@@ -36,6 +36,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `phone.py` | pousse, mesure et rapatrie : l'appareil devient une lecture comme une autre |
 | `turn.py` | un tour analysé au format que l'écran de marquage consomme — le tuyau du banc vers l'app |
 | `review.py` | écouter ce qui a été marqué, modèle puis prise, et écrire si c'est une faute |
+| `divergence.py` | écouter là où deux modèles ne nomment pas le même son, et écrire lequel a raison |
 
 Chaque brique s'utilise seule.
 
@@ -92,6 +93,14 @@ python3 review.py 15-right-clean -m turn-right-long
 ```
 
 Plusieurs témoins ne vont pas avec la phrase qu'on croit — `13-field-clean` est celui de `think-sheep`, `15-right-clean` celui de `turn-right-long`. La table des cas de `faults.py` fait foi.
+
+```
+python3 divergence.py -r timit-ipa -r v3-pw0.1-e29 -n     # combien de désaccords, et où
+python3 divergence.py -r timit-ipa -r v3-pw0.1-e29        # les juger, sur les rendus
+python3 divergence.py -r timit-ipa -r v3-pw0.1-e29 -t     # sur les prises
+```
+
+`divergence.py` ne calcule aucune des deux lectures : remplir l'une depuis l'autre comparerait un modèle avec lui-même. Un cache absent ou périmé est fatal, et la commande qui le remplit est nommée. La même commande relancée reprend où elle s'est arrêtée.
 
 `review.py` parcourt les marques d'une prise, joue le mot comme le modèle le dit puis comme la prise le dit, et écrit le verdict dans `reviews/<prise>.json`, versionné. Ce que chaque instrument répond, et ce qu'il ne répond pas, est dans `../docs/qualification.md`.
 
