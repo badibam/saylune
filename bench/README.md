@@ -29,10 +29,12 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `join.py` | quelles lettres chaque son couvre — les mots, l'ordre et l'orthographe, notés contre l'annotation (`-s`) |
 | `expected.py` | l'annotation à la main : les lettres que chaque son devrait porter. N'entre jamais dans l'app |
 | `affinity.json` | à quels sons une lettre participe, de 0 à 3 — avec `affinity-groups.json`, la seule donnée linguistique du montage |
-| `affinity-groups.json` | la même question pour les groupes qui écrivent un son (`sh`, `ough`) — lue sous `JOIN_GROUPS=1` seulement, cf. `../TODO.md` |
+| `affinity-groups.json` | la même question pour les groupes qui écrivent un son (`sh`, `ough`, `kn`) — c'est elle qui retient les muettes qui appartiennent au son |
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tourne sur le téléphone |
 | `concord.py` | deux machines lisant les mêmes poids disent-elles la même chose |
 | `phone.py` | pousse, mesure et rapatrie : l'appareil devient une lecture comme une autre |
+| `turn.py` | un tour analysé au format que l'écran de marquage consomme — le tuyau du banc vers l'app |
+| `review.py` | écouter ce qui a été marqué, modèle puis prise, et écrire si c'est une faute |
 
 Chaque brique s'utilise seule.
 
@@ -84,8 +86,12 @@ Ce que `turn.py` montre et qu'aucune qualification ne montrait : **le tour entie
 ## Juger
 
 ```
+source ../tmp/venv/bin/activate
+export HF_HOME="$(cd .. && pwd)/tmp/hf" ACOUSTIC_MODEL=timit-ipa
 python3 review.py 15-right-clean -m turn-right-long
 ```
+
+Plusieurs témoins ne vont pas avec la phrase qu'on croit — `13-field-clean` est celui de `think-sheep`, `15-right-clean` celui de `turn-right-long`. La table des cas de `faults.py` fait foi.
 
 Le jeu d'essai répond pour **un** son par prise, celui autour duquel il a été bâti. Une prise dite témoin est donc un témoin sur ce son-là et sur rien d'autre, et lire ses autres marques comme des fausses alertes est une supposition. Aucun chiffre ne tranche : seul celui qui a enregistré la prise le peut, en écoutant.
 
