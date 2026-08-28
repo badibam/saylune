@@ -26,7 +26,7 @@ Ce que la conception d'interface a tranché, de bout en bout. Les principes qu'e
 La porte grammaticale garantit qu'un tour ne porte jamais les deux genres de marques :
 
 - **Tour marqué en formulation** → la portion fautive colorée, aucune marque sonore (l'analyse n'a pas tourné). Appui → parenthèse de formulation.
-- **Tour propre** → marques de prononciation éventuelles. Appui n'importe où sur le tour → parenthèse de prononciation, **à l'échelle de la phrase**, le mot le plus divergent pré-focalisé.
+- **Tour propre** → marques de prononciation éventuelles. Appui n'importe où sur le tour → parenthèse de prononciation, **à l'échelle de la phrase**. Aucun mot n'est désigné en entrant : toutes les fautes sont marquées et se retravaillent dans le même énoncé, donc en élire une trierait ce que rien ne trie.
 
 L'appui ne peut donc pas ouvrir la mauvaise parenthèse : le genre est une propriété du tour.
 

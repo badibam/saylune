@@ -1,0 +1,53 @@
+{
+  "take": "15-right-clean",
+  "model": "turn-right-long",
+  "voice": "eleven-us-eric",
+  "text": "You have to turn right at the corner",
+  "marks": {
+    "4": {
+      "symbol": "v",
+      "word": "have",
+      "letters": "v",
+      "points": 63.48,
+      "model": "v 0.78  f 0.21",
+      "take": "f 0.99",
+      "verdict": "cohérent"
+    },
+    "6": {
+      "symbol": "ɪ",
+      "word": "to",
+      "letters": "o",
+      "points": 88.6,
+      "model": "ɪ 0.84  u 0.08  ʊ 0.04",
+      "take": "u 0.97",
+      "verdict": "incertain"
+    },
+    "12": {
+      "symbol": "ɾ",
+      "word": "right",
+      "letters": "t",
+      "points": 87.69,
+      "model": "ɾ 0.98",
+      "take": "t 0.14  k 0.09  d 0.06",
+      "verdict": "cohérent"
+    },
+    "13": {
+      "symbol": "ɪ",
+      "word": "at",
+      "letters": "a",
+      "points": 92.88,
+      "model": "ɪ 0.85  ɛ 0.15",
+      "take": "ə 0.57  ɑ 0.16  æ 0.10",
+      "verdict": "cohérent"
+    },
+    "20": {
+      "symbol": "ɝ",
+      "word": "corner",
+      "letters": "er",
+      "points": 30.31,
+      "model": "ɝ 1.00",
+      "take": "ɝ 0.50  ə 0.35  ʊ 0.10",
+      "verdict": "cohérent"
+    }
+  }
+}
