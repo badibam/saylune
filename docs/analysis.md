@@ -430,7 +430,7 @@ Deux critères de forme, moins profonds mais éliminatoires. L'inventaire doit �
 
 Ce que le classement ne dit pas : `excalibur12` part du **même encodeur pré-entraîné** que le multilingue et se fait battre par lui. La différence tient entièrement à l'affinage, pas à l'architecture.
 
-**L'affinage maison ne départage rien.** Quatre checkpoints d'un affinage complet sur le dos du sortant, lus contre lui sur ce que l'app consomme : 162 à 164 lettres justes sur 166, contre 164 pour le sortant, et 32 à 34 mots au bon nombre de syllabes sur 37, contre 34. Deux sons d'écart entre le meilleur et le pire. Ce qui ne s'en déduit pas : le jeu est de onze à seize phrases d'une seule voix, et rien n'a été lu au-delà.
+**L'affinage maison ne se départage pas du sortant sur ce qui se mesure aujourd'hui.** Quatre checkpoints d'un affinage complet sur le dos du sortant, lus contre lui sur ce que l'app consomme : 162 à 164 lettres justes sur 166, contre 164 pour le sortant, et 32 à 34 mots au bon nombre de syllabes sur 37, contre 34. Deux sons d'écart entre le meilleur et le pire. Ce qui ne s'en déduit pas — et c'est l'essentiel : le jeu est de onze à seize phrases d'une seule voix, et rien n'a été lu au-delà. Que rien ne les sépare ici ne dit pas qu'ils se valent, et le chantier n'est pas clos (cf. `../TODO.md`).
 
 ### Ce qui a été examiné puis écarté
 

@@ -10,9 +10,11 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 - **Pour la brique 7, lire le rythme de l'alignement existant** : la déformation locale de la correspondance temporelle modèle ↔ apprenant (l'un traîne sur une syllabe, avale la suivante), une fois la pente d'ensemble — le débit — retirée, est un signal de durée pour l'accent lexical. Les positions des sons des deux côtés sortent déjà de la matrice : c'est une lecture de plus, pas un calcul de plus.
 - **L'arithmétique au-dessus de la matrice n'est pas écrite en Kotlin**, donc pas mesurée sur l'appareil ; au poste elle est négligeable devant la passe du réseau. La jointure (4) est dans le même cas.
 
-### Le modèle de sons — le chantier a une réponse : ça ne change rien
+### Le modèle de sons — le choix reste ouvert
 
-**On garde `timit-ipa`, et ce n'est plus un report.** Sur tout ce que l'app consomme, les cinq lectures — le sortant et les quatre checkpoints de l'affinage complet — sont **indiscernables**.
+**Rien ne sépare les candidats sur ce que l'app consomme, et ce n'est pas une clôture.** Réentraîner reste une option ouverte ; ce qui suit dit seulement que les instruments actuels ne départagent pas, pas qu'il n'y a rien à gagner. **Discussion à reprendre en début de session.**
+
+On tourne donc sur `timit-ipa` en attendant. Les cinq lectures — le sortant et les quatre checkpoints de l'affinage complet — sont **indiscernables** sur ce qui se mesure aujourd'hui.
 
 | lecture | lettres justes (`join`) | mots au bon nombre de syllabes |
 |---|---|---|
@@ -22,9 +24,11 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 | `v3-pw0.1-e9` | 162 / 166 | 33 / 37 |
 | `v3-pw0.1-e29` | 163 / 166 | 32 / 37 |
 
-Lettres justes lues sur les onze phrases de calibration où les cinq rendent la même forme de grille que l'annotation. Deux sons d'écart sur 166 entre le meilleur et le pire. Changer de modèle coûterait une requalification complète — l'annotation d'`expected.py` est indexée sur les sons du sortant — et n'achèterait aucune différence mesurable.
+Lettres justes lues sur les onze phrases de calibration où les cinq rendent la même forme de grille que l'annotation. Deux sons d'écart sur 166 entre le meilleur et le pire.
 
-**Ce que ça ne dit pas** : les candidats n'ont été lus que sur onze à seize phrases d'une seule voix. Un matériel plus large pourrait les séparer ; rien n'indique qu'il le ferait. **À rouvrir sur le corpus L2, pas avant.**
+**Ce que ça ne dit pas, et qui est l'essentiel** : les candidats n'ont été lus que sur onze à seize phrases d'une seule voix, avec des instruments dont on vient de voir qu'ils mesurent mal (l'étiquette n'est pas consommée, l'étendue non plus). Que rien ne les sépare **ici** ne dit pas qu'ils se valent. Trois choses rouvriraient franchement : un matériel plus large, un instrument qui mesure ce que l'app consomme vraiment, et le corpus L2. Et le poids de prior `0,3` n'a jamais tourné.
+
+Le coût du changement, à peser le moment venu : l'annotation d'`expected.py` est indexée sur les sons du sortant, donc en changer demande de la réécrire.
 
 **Et la fidélité ne se juge pas à l'étiquette.** `divergence.py` a été écrit pour faire trancher à l'oreille les endroits où deux modèles ne nomment pas le même son. Dix cas jugés sur les rendus : 6 pour le sortant, 4 pour le candidat — un pile ou face. La raison est structurelle : neuf des dix désaccords sont des **voyelles voisines d'un même continuum** (`ɪ` / `i`, `ə` / `ɪ`, `ɝ` / `ə`), donc deux pics posés à deux endroits d'une même pente, et non deux réponses à une question fermée. Or l'étiquette est précisément ce dont la conception dit qu'elle ne dépend pas : elle n'entre dans aucune comparaison, seules les plages comptent. Elle n'est consommée qu'à la **jointure**, qui se mesure sans oreille — c'est le tableau ci-dessus.
 
