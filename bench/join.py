@@ -293,9 +293,51 @@ def joined(wav, text):
             if sound is not None:
                 covered[start + sound] += text[position]
 
-    return [(symbol, low, high, word or "—", letters_held)
-            for symbol, (low, high), word, letters_held
-            in zip(symbols, stretches, held, covered)]
+    return [(symbol, low, high, word or "—", letters_held, borrowed)
+            for symbol, (low, high), word, letters_held, borrowed
+            in zip(symbols, stretches, held, covered,
+                   lent(symbols, held, covered, text))]
+
+
+def lent(symbols, held, covered, text):
+    """For a sound holding no letter, the letter it would light anyway.
+
+    A letter lands on one sound and no more, which is what keeps the match
+    honest -- but it is a rule of the match, not of the screen. `x` writes the
+    /k/ of `boxes` and then its /s/, one of the two gets the letter, and the
+    other would have nothing to colour although the very same `x` is where it
+    is written. So the sound borrows rather than holds: two sounds may light one
+    letter, neither owns it.
+
+    Only a sound that touches it can lend, and only inside the same word. Those
+    two sounds are adjacent in time and their letters adjacent in the text,
+    which is the whole reason the loan reads as pointing at the right place; a
+    letter fetched from across the word would mark somewhere the sound is not.
+
+    Empty where the word offers no letter the table pays for that sound, which
+    is the other case entirely -- the schwa of `doesn't`, that English writes
+    with nothing. Nothing here can invent a letter for it; the screen marks the
+    gutter between its neighbours instead.
+    """
+    out = [""] * len(symbols)
+    for index, letters in enumerate(covered):
+        if letters.strip() or held[index] is None:
+            continue
+        word = held[index]
+        # The letters of this word, wherever they landed, ranked by what the
+        # table pays them for *this* sound; ties go to the nearest sound.
+        best, score = "", 0
+        for other in (index - 1, index + 1):
+            if not 0 <= other < len(held):
+                continue
+            if held[other] is not word or not covered[other].strip():
+                continue
+            for letter in covered[other]:
+                weight = AFFINITY.get(letter.lower(), {}).get(symbols[index], 0)
+                if weight > score:
+                    best, score = letter, weight
+        out[index] = best
+    return out
 
 
 def scored(candidate, material):
@@ -312,7 +354,8 @@ def scored(candidate, material):
         wav = RENDERS / candidate / "sentences" / f"{slug}.wav"
         if answer is None or unspellable(text) or not wav.is_file():
             continue
-        read = ["".join(held.split()) for *_, held in joined(wav, text)]
+        read = ["".join(held.split())
+                for *_, held, _borrowed in joined(wav, text)]
         if len(read) != len(answer):
             # A grid of another shape than the one annotated: marking it would
             # compare sounds that are not the same sounds.
@@ -363,9 +406,11 @@ def main(argv=None):
 
     print(f"\n{text}\n")
     print(f"  {'son':<8}{'de':>8}{'à':>8}   {'mot':<14}lettres")
-    for symbol, low, high, word, covered in joined(wav, text):
-        print(f"  {symbol:<8}{low:>8.2f}{high:>8.2f}   {word:<14}"
-              + (covered or "—"))
+    for symbol, low, high, word, covered, borrowed in joined(wav, text):
+        # A borrowed letter is shown in brackets: nothing is held there, but
+        # that is where a mark would be drawn.
+        shown = covered or (f"({borrowed})" if borrowed else "— intervalle")
+        print(f"  {symbol:<8}{low:>8.2f}{high:>8.2f}   {word:<14}{shown}")
     return 0
 
 
