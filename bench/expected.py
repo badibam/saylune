@@ -59,6 +59,61 @@ COVERED = {
                   "or", "m", "e"],
     "interesting": ["Th", "i", "s", "l", "e", "ss", "o", "n", "i", "s", "i",
                     "n", "te", "re", "s", "t", "i", "ng", "f", "or", "m", "e"],
+    # The set held out from the fitting. Same hand, same rule: the letters of
+    # the text that write each decoded sound, in order. Where the grid drops a
+    # sound its letters join the neighbour that survives, so the whole word is
+    # still spelt out. `ten-minutes` is absent on purpose -- its digit is a
+    # character the table cannot write, so the join declines the sentence before
+    # an answer is ever consulted.
+    "weather-nice": ["Th", "e", "w", "ea", "th", "er", "i", "s", "n", "i",
+                     "ce", "t", "o", "d", "ay"],
+    "friend-called": ["M", "y", "f", "r", "ie", "nd", "c", "a", "lled", "m",
+                      "e", "y", "e", "s", "t", "er", "d", "ay"],
+    "book-table": ["Th", "e", "b", "oo", "k", "i", "s", "o", "n", "th", "e",
+                   "t", "a", "b", "le"],
+    "coffee-morning": ["I", "d", "r", "i", "n", "k", "co", "ff", "ee", "i",
+                       "n", "th", "e", "m", "o", "r", "n", "i", "ng"],
+    # `x` writes two sounds: the letter is repeated, once per sound.
+    "six-boxes": ["Th", "ere", "are", "s", "i", "x", "x", "b", "o", "x", "x",
+                  "e", "s", "h", "e", "re"],
+    # `u` of `use` and of `music` writes two sounds as well.
+    "use-music": ["I", "u", "u", "se", "m", "u", "u", "s", "ic", "t", "o",
+                  "r", "e", "l", "a", "x", "x"],
+    "question-easy": ["Th", "at", "q", "u", "e", "sti", "on", "w", "a", "s",
+                      "ea", "s", "y"],
+    "enough-time": ["W", "e", "d", "o", "n", "ot", "h", "a", "ve", "e", "n",
+                    "ou", "gh", "t", "i", "me"],
+    "thought-night": ["I", "th", "ou", "ght", "a", "b", "ou", "t", "it", "l",
+                      "a", "st", "n", "igh", "t"],
+    "watch-match": ["I", "w", "a", "tch", "th", "e", "m", "a", "tch", "o",
+                    "n", "S", "u", "n", "d", "ay"],
+    "phone-pocket": ["M", "y", "ph", "o", "ne", "i", "s", "i", "n", "m", "y",
+                     "p", "o", "ck", "et"],
+    # The `t` of `to` never surfaces: the vowel carries the whole word, and the
+    # silent `w` of `write` rides on the `r`.
+    "write-letter": ["I", "w", "a", "nt", "to", "wr", "i", "te", "a", "l",
+                     "e", "tt", "er"],
+    "bridge-river": ["Th", "e", "b", "r", "i", "dge", "c", "r", "o", "ss", "e",
+                     "s", "th", "e", "r", "i", "v", "er"],
+    "station-far": ["Th", "e", "s", "t", "a", "ti", "on", "i", "s", "f", "a",
+                    "r", "fro", "m", "h", "e", "re"],
+    # The silent `b` of `climb` joins the `m` it does not sound apart from.
+    "climb-wall": ["H", "e", "c", "an", "c", "l", "i", "mb", "th", "e", "w",
+                   "a", "ll"],
+    # The silent `t` of `listen` joins the vowel beside it.
+    "listen-carefully": ["P", "l", "ea", "se", "l", "i", "s", "ten", "c", "a",
+                         "re", "f", "ull", "y"],
+    # The silent `s` of `island` joins the vowel it is written inside.
+    "island-summer": ["W", "e", "v", "i", "s", "it", "th", "e", "is", "l",
+                      "a", "nd", "i", "n", "s", "u", "mm", "er"],
+    # The apostrophe is silent, so it belongs to no sound.
+    "wont-come": ["I", "w", "o", "nt", "b", "e", "a", "b", "le", "t", "o",
+                  "c", "o", "me"],
+    "long-station": ["I", "f", "y", "ou", "ha", "ve", "t", "i", "me", "t",
+                     "o", "m", "o", "rr", "ow", "w", "e", "c", "ould", "w",
+                     "alk", "t", "o", "th", "e", "s", "t", "a", "ti", "o",
+                     "n", "a", "nd", "t", "ake", "th", "e", "ear", "l", "y",
+                     "t", "r", "ai", "n"],
 }
 
 
