@@ -199,6 +199,12 @@ def main(argv=None):
     parser.add_argument("-u", "--uncertain", action="store_true",
                         help="reposer les cas laissés incertains")
     parser.add_argument("-p", "--pad", type=float, default=review.PAD)
+    # A vowel is what has to be placed here, and half speed is what makes that
+    # possible for an ear that does not read IPA. `-s 1` gives the word back
+    # unprocessed, which stays the reference when the stretch is in doubt.
+    parser.add_argument("-s", "--slow", type=float, default=0.5,
+                        help="la vitesse de lecture, hauteur conservée "
+                             "(défaut 0.5, deux fois plus lent ; 1 = telle quelle)")
     options = parser.parse_args(argv)
     if len(options.reading) != 2:
         raise SystemExit("deux lectures, ni plus ni moins : -r <a> -r <b>")
@@ -244,7 +250,8 @@ def main(argv=None):
                   f"\n    a — {first}  entend  {expected.like(one)}"
                   f"\n    b — {second}  entend  {expected.like(two)}")
             while True:
-                chosen = review.play(wav, low, high, chosen, options.pad)
+                chosen = review.play(wav, low, high, chosen, options.pad,
+                                     options.slow)
                 answer = review.ask(f"  a={first}  b={second}  "
                                     f"n=aucun  ?=incertain  r=réécouter  q  ")
                 if answer is None or answer == "q":

@@ -63,7 +63,34 @@ PLAYERS = (["paplay"], ["aplay", "-q"], ["ffplay", "-nodisp", "-autoexit",
                                          "-loglevel", "quiet"])
 
 
-def play(wav, low, high, chosen, pad=PAD):
+# Half speed makes a vowel easy to place and is not free: a stretched word is a
+# processed signal, and the stretcher decides some of what is heard. `sox tempo`
+# keeps the pitch, which is the whole point -- writing the file at half the
+# sample rate would drop the formants an octave and turn `ɪ` into something
+# nobody said. The unstretched word stays the reference: `--slow 1` gives it.
+STRETCHERS = (["sox", "{in}", "{out}", "tempo", "-s", "{rate}"],
+              ["ffmpeg", "-y", "-loglevel", "quiet", "-i", "{in}",
+               "-filter:a", "atempo={rate}", "{out}"])
+
+
+def stretched(path, rate):
+    """The same word, slower, at the same pitch. In place, through a tool."""
+    if rate == 1:
+        return path
+    out = path.replace(".wav", "-slow.wav")
+    for command in STRETCHERS:
+        filled = [part.format(**{"in": path, "out": out, "rate": rate})
+                  for part in command]
+        if subprocess.run(filled, capture_output=True,
+                          check=False).returncode == 0:
+            Path(path).unlink(missing_ok=True)
+            return out
+    raise SystemExit(f"ralentir demande sox ou ffmpeg, qui manquent — "
+                     f"jouer à vitesse pleine sans le dire serait mentir "
+                     f"sur ce qui est entendu")
+
+
+def play(wav, low, high, chosen, pad=PAD, slow=1.0):
     """The stretch, on the speakers, through a file rather than a pipe.
 
     The player is settled on the first stretch actually played: asking a machine
@@ -79,13 +106,14 @@ def play(wav, low, high, chosen, pad=PAD):
         return chosen
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as handle:
         sf.write(handle.name, audio[first:last], rate)
-        for command in ([chosen] if chosen else PLAYERS):
-            done = subprocess.run(command + [handle.name],
-                                  capture_output=True, check=False)
-            if done.returncode == 0:
-                Path(handle.name).unlink(missing_ok=True)
-                return command
-    Path(handle.name).unlink(missing_ok=True)
+    heard = stretched(handle.name, slow)
+    for command in ([chosen] if chosen else PLAYERS):
+        done = subprocess.run(command + [heard], capture_output=True,
+                              check=False)
+        if done.returncode == 0:
+            Path(heard).unlink(missing_ok=True)
+            return command
+    Path(heard).unlink(missing_ok=True)
     raise SystemExit("aucun lecteur audio n'a joué (paplay, aplay, ffplay) — "
                      "juger une marque sans l'entendre serait une supposition "
                      "écrite comme une réponse")
@@ -148,6 +176,9 @@ def main(argv=None):
     parser.add_argument("-p", "--pad", type=float, default=PAD,
                         help="l'air autour du mot, en secondes "
                              f"(défaut {PAD})")
+    parser.add_argument("-s", "--slow", type=float, default=1.0,
+                        help="la vitesse de lecture, hauteur conservée "
+                             "(1 = telle quelle, 0.5 = deux fois plus lent)")
     options = parser.parse_args(argv)
 
     text = dict(phrases.CALIBRATION + phrases.HELDOUT)[options.model]
@@ -196,10 +227,12 @@ def main(argv=None):
             print(f"     mot « {sound.word} », son {expected.like(sound.symbol)}, "
                   f"{gap.value * 100:.1f} points")
             print("     modèle…", flush=True)
-            speaker = play(model, *model_span, speaker, options.pad)
+            speaker = play(model, *model_span, speaker, options.pad,
+                           options.slow)
             if take_span:
                 print("     ta prise…", flush=True)
-                speaker = play(learner, *take_span, speaker, options.pad)
+                speaker = play(learner, *take_span, speaker, options.pad,
+                               options.slow)
             answer = ask("     ? ")
             if answer != "r":
                 break
