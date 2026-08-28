@@ -142,6 +142,34 @@ SOUNDS = {
     "interesting": "ð ɪ s l ɛ s ə n ɪ z ɪ n t ɹ ɛ s t ɪ ŋ f ɝ m i",
 }
 
+
+# What each symbol sounds like, for the person being asked to judge by ear.
+# The letters that write the sound are bracketed, because naming a sound in the
+# abstract asks for phonetics where what is wanted is recognition.
+#
+# This is a legend, not a norm: it enters no comparison, no score and no app --
+# it only lets a human read the label a network wrote. The words are American,
+# like the model voice the bench renders with.
+LIKE = {
+    "ɑ": "l[o]ck", "æ": "c[a]t", "ə": "[a]bout", "aʊ": "h[ou]se",
+    "aɪ": "t[i]me", "b": "[b]ig", "ʧ": "[ch]air", "d": "[d]og",
+    "ð": "[th]is", "ɾ": "wa[t]er", "ɛ": "b[e]d", "ɝ": "b[ir]d",
+    "eɪ": "d[ay]", "f": "[f]ish", "g": "[g]o", "h": "[h]at",
+    "ɪ": "sh[i]p", "i": "sh[ee]p", "ʤ": "[j]ump", "k": "[k]ey",
+    "l": "[l]ike", "m": "[m]an", "n": "[n]o", "ŋ": "si[ng]",
+    "oʊ": "g[o]", "ɔɪ": "b[oy]", "p": "[p]en", "ɹ": "[r]ed",
+    "s": "[s]un", "ʃ": "[sh]oe", "t": "[t]op", "θ": "[th]ink",
+    "ʊ": "b[oo]k", "u": "f[oo]d", "v": "[v]an", "w": "[w]in",
+    "j": "[y]es", "z": "[z]oo",
+}
+
+
+def like(symbol):
+    """The symbol with a word that carries the sound, or bare if unknown."""
+    example = LIKE.get(symbol)
+    return f"{symbol} ({example})" if example else symbol
+
+
 # Differences that are not a missing sound but the same sound written twice:
 # the flapped `t` of American speech, and the unstressed vowels a transcription
 # calls schwa and a network calls whatever is nearest. Held apart from the real

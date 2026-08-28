@@ -26,6 +26,7 @@ from pathlib import Path
 
 import soundfile as sf
 
+import expected
 import join
 import matrix
 import overlap
@@ -192,7 +193,7 @@ def main(argv=None):
             print(f"  {shown(text, sound.spots)}")
             print(f"     le modèle dit   {heard(model_spread, (start, stop))}")
             print(f"     ta prise dit    {heard(take_spread, gap.span)}")
-            print(f"     mot « {sound.word} », son /{sound.symbol}/, "
+            print(f"     mot « {sound.word} », son {expected.like(sound.symbol)}, "
                   f"{gap.value * 100:.1f} points")
             print("     modèle…", flush=True)
             speaker = play(model, *model_span, speaker, options.pad)

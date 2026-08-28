@@ -35,6 +35,7 @@ from pathlib import Path
 
 import numpy as np
 
+import expected
 import join
 import matrix
 import phrases
@@ -195,6 +196,8 @@ def main(argv=None):
                         help="les prises humaines au lieu des rendus")
     parser.add_argument("-n", "--dry-run", action="store_true",
                         help="compter et situer, sans rien jouer")
+    parser.add_argument("-u", "--uncertain", action="store_true",
+                        help="reposer les cas laissés incertains")
     parser.add_argument("-p", "--pad", type=float, default=review.PAD)
     options = parser.parse_args(argv)
     if len(options.reading) != 2:
@@ -204,6 +207,11 @@ def main(argv=None):
     VERDICTS.mkdir(exist_ok=True)
     book = VERDICTS / f"{first}--{second}.json"
     given = json.loads(book.read_text(encoding="utf-8")) if book.is_file() else {}
+    if options.uncertain:
+        # A verdict given without knowing what the symbol sounds like is not a
+        # verdict; the legend arrived after the first pass, so these come back.
+        given = {key: entry for key, entry in given.items()
+                 if entry["juste"] != "incertain"}
 
     chosen, seen, alone, absent = None, 0, 0, []
     for slug, wav, text, tag, name in material(options.takes):
@@ -223,7 +231,8 @@ def main(argv=None):
         print(f"\n{text}   ({slug})")
         for kind, rank, other, one, two, word in rows:
             mark = "seul" if kind == "seul" else ""
-            print(f"  {word:<14}{one:>4} | {two:<4}  {mark}")
+            print(f"  {word:<14}{expected.like(one):>14} | "
+                  f"{expected.like(two):<14}  {mark}")
         if options.dry_run:
             continue
         for kind, rank, other, one, two, word in heard:
@@ -231,8 +240,9 @@ def main(argv=None):
             if key in given:
                 continue
             low, high = stretch(grids[0], words[0], rank, word)
-            print(f"\n  mot « {word} » — {first} entend {one}, "
-                  f"{second} entend {two}")
+            print(f"\n  mot « {word} »"
+                  f"\n    a — {first}  entend  {expected.like(one)}"
+                  f"\n    b — {second}  entend  {expected.like(two)}")
             while True:
                 chosen = review.play(wav, low, high, chosen, options.pad)
                 answer = review.ask(f"  a={first}  b={second}  "
