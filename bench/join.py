@@ -54,6 +54,16 @@ AFFINITY = json.loads((HERE / "affinity.json").read_text(encoding="utf-8"))
 GROUPS = (json.loads((HERE / "affinity-groups.json").read_text(encoding="utf-8"))
           if os.environ.get("JOIN_GROUPS") == "1" else {})
 
+# Under `JOIN_ORPHANS=1` a letter the table scores at zero on the sound it
+# landed on holds no letters at all, rather than being posted to whichever
+# neighbour the walk reached first. The score already knows: the silent `t` of
+# `listen` is worth zero on every sound its word offers, so where it lands is
+# decided by nothing. What the switch does not do is separate the two kinds of
+# zero -- the letter that writes no sound, and the letter that writes one
+# *inside a group the per-letter table cannot see*. Only the group table tells
+# them apart, which is why the two switches are measured together.
+ORPHANS = os.environ.get("JOIN_ORPHANS") == "1"
+
 # How many letters a single sound may be given at once. Four covers the longest
 # graphemes English writes -- `ough`, `eigh` -- and every group longer than that
 # is two graphemes running.
@@ -176,13 +186,41 @@ def inner(characters, symbols):
         # than taking them all for nothing.
         return 0.0, [None] * count
     chosen = [None] * count
+    worth = [False] * count
     index = count
     while index:
         length, previous = back[index][last]
+        group = "".join(characters[index - length:index]).lower()
+        weights = GROUPS.get(group) if length > 1 else AFFINITY.get(group)
         for position in range(index - length, index):
             chosen[position] = last
+            worth[position] = bool(weights.get(symbols[last], 0))
         index, last = index - length, previous
+    if ORPHANS:
+        chosen = trimmed(chosen, worth)
     return total, chosen
+
+
+def trimmed(chosen, worth):
+    """Each sound's letters cut back to the ones it is paid for, at the ends.
+
+    Only at the ends: a letter worth nothing in the middle of a run is held
+    inside a spelling, and dropping it would leave the sound two letters with a
+    hole between them -- `take` painted as `a`..`e`. What the trim removes is
+    the silent tail and the silent head, which is where English keeps them.
+    """
+    kept = list(chosen)
+    for sound in {value for value in chosen if value is not None}:
+        run = [position for position, value in enumerate(chosen)
+               if value == sound]
+        low, high = 0, len(run) - 1
+        while low <= high and not worth[run[low]]:
+            kept[run[low]] = None
+            low += 1
+        while high > low and not worth[run[high]]:
+            kept[run[high]] = None
+            high -= 1
+    return kept
 
 
 def partition(words, symbols):
@@ -236,8 +274,8 @@ def joined(wav, text):
     The sounds come from free decoding -- what is there, not what the word
     should hold -- and the words come from the text. Words first: the sound
     sequence is partitioned between them, then each word's letters are matched
-    inside its own group. Every letter the table can write lands somewhere and
-    lands once.
+    inside its own group. Every letter the table can write lands once, and lands
+    somewhere unless `JOIN_ORPHANS` lets a letter worth nothing land nowhere.
     """
     checked()
     spread = matrix.probabilities(wav)
