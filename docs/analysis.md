@@ -2,19 +2,11 @@
 
 L'analyse tourne **sur l'appareil**, et c'est la colonne vertébrale de l'app. Ce document la décrit brique par brique : ce qu'elle lit, ce qu'elle rend, ce qui est mesuré et ce qui reste à écrire.
 
-Ce qu'elle ne retire pas : la conversation et la synthèse, qui restent distantes en BYOK et se paient aux centimes. `NonFreeNet` reste déclarée à ce titre.
-
 ## Les deux principes
 
-Toute la forme du pipeline découle de deux décisions, et elles ne sont pas des choix d'implémentation.
+Toute la forme du pipeline découle des deux décisions de `reference.md` : **le modèle est la source de vérité et on le croit aveuglément** — rien d'extérieur aux deux enregistrements n'est jamais consulté — et **on ne compare jamais deux notes, mais deux formes**, la répartition entière de la ressemblance à chaque instant plutôt que son maximum.
 
-**1. Le modèle est la source de vérité, et on lui fait confiance aveuglément.** Rien d'extérieur aux deux enregistrements n'est jamais consulté pour juger : ni dictionnaire de prononciation, ni lexique de dialecte, ni phonémiseur, ni référentiel de justesse. La seule question posée est *en quoi cette prise s'écarte-t-elle de celle-là*.
-
-Ce principe se paie et se gagne. Il se gagne parce que l'apprenant imite un enregistrement, pas un livre : si la voix lie, réduit ou escamote, c'est ça la cible, et un dictionnaire l'aurait mesuré contre une prononciation que personne ne lui a fait entendre. Il se gagne aussi parce que le problème du dialecte disparaît à la racine — le modèle est britannique, donc tout ce qui en dérive l'est, mécaniquement, sans référentiel à choisir ni accord à vérifier. Il se paie parce qu'un modèle bâclé devient un mauvais étalon sans que rien ne le signale (cf. « Les cas limites »).
-
-**2. On ne compare jamais deux notes, mais deux formes.** Le modèle acoustique ne rend pas un score : il rend, à chaque instant, la répartition de la ressemblance sur tous les sons de l'anglais. `R 0.90 / W 0.10` et `R 0.90 / ER 0.10` ont le même pic et ne disent pas la même chose. Comparer les répartitions entières plutôt que leur maximum est ce qui rend la mesure honnête.
-
-Ce principe est né d'une objection. Tant qu'on comparait deux pics, le pic du modèle était le maximum de sa propre ligne — la grille étant tirée de cette ligne, la « mesure de référence » n'était qu'une relecture d'un argmax, et l'écart se réduisait à la valeur de l'apprenant. Le nombre n'est pas vide pour autant : il porte le **plafond local** — un son que le réseau distingue mal pique bas même sur une synthèse parfaite, et une syllabe floue pique bas parce que la voix était floue. Mais c'est une échelle, pas un terme de comparaison. Comparer les répartitions le remet à sa place et donne trois choses gratuitement, dites plus bas.
+Le second a une conséquence propre au pipeline, née d'une objection. Tant qu'on comparait deux pics, le pic du modèle était le maximum de sa propre ligne — la grille étant tirée de cette ligne, la « mesure de référence » n'était qu'une relecture d'un argmax, et l'écart se réduisait à la valeur de l'apprenant. Le nombre n'est pas vide pour autant : il porte le **plafond local** — un son que le réseau distingue mal pique bas même sur une synthèse parfaite, et une syllabe floue pique bas parce que la voix était floue. Mais c'est une échelle, pas un terme de comparaison.
 
 ## Ce qui entre, ce qui sort
 
@@ -286,7 +278,7 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
 | 12 | Le runtime Android | tout ça sur le téléphone | **mesuré sur l'appareil** (`bench/export.py`, `bench/phone.py`) |
 
-**Deux fichiers extérieurs dans tout le pipeline.** Les poids du modèle acoustique, 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant. Et la table d'affinité de la brique 4, quelques kilo-octets, qui dit à quels sons une lettre participe — jamais comment un mot se prononce. Aucun dictionnaire de prononciation, aucun lexique de dialecte, aucune norme qui juge.
+**Deux fichiers extérieurs dans tout le pipeline** (le principe est dans `reference.md`) : les poids du modèle acoustique — 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant — et la table d'affinité de la brique 4, quelques kilo-octets.
 
 Trois briques seulement demandent du travail neuf et non trivial : la jointure (4), l'accent (7), la syllabification (8). Quatre autres sont des lectures d'un calcul déjà fait.
 
@@ -467,15 +459,8 @@ La dernière retrouve la lecture qualifiée, verdict pour verdict, pour 39 Mo de
 
 Ce que ça dit au-delà du chiffre : **une mesure d'arrondi ne vaut que pour l'arrondisseur qui l'a faite.** Celle qui a fondé la décision 8 bits ne se transportait pas.
 
-## Ce qui reste à mesurer, dans l'ordre
+## Ce qui reste à mesurer
 
-Chaque étape se juge au protocole de `qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
+Le travail ouvert vit dans `../TODO.md` ; la façon de le juger dans `qualification.md`, sur le matériel déjà enregistré du banc — aucun appel d'API n'est nécessaire.
 
-Une conséquence de méthode, tirée de l'étape 1 : **une lecture n'a pas à avoir été calculée ici.** Le téléphone range ses matrices dans le cache comme n'importe quelle autre lecture (`READING=<nom>`), et toutes les briques du banc tournent dessus sans le savoir. C'est ce qui permet de poser à l'appareil la question du verdict, et pas seulement celle des chiffres.
-
-1. ~~**Le modèle tourne-t-il sur un téléphone ?**~~ **Répondu, oui** (cf. brique 12). Les trois inconnues sont levées : le moteur d'exécution ne coûte rien, la mémoire tient à 930 Mo de pointe, et une passe coûte quatre dixièmes de la durée du tour. L'appareil ne rend pas les mêmes octets que le poste — les noyaux 8 bits diffèrent d'une architecture à l'autre — mais le verdict, lui, est le même.
-2. **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
-3. **La grille est-elle stable ?** Deux rendus du même texte par la même voix doivent donner la même suite de sons. Le cache de synthèse neutralise en partie la question, mais une grille instable rendrait la mesure irreproductible.
-4. **Quel son marquer ?** La mesure valide l'écart sur un son donné ; elle ne dit pas lequel mérite une marque. Les fautes franches au-dessus de 0,95 et les demi-fautes sous 0,25 donnent la matière d'un seuil, à condition de le tirer des prises et non de le poser.
-
-La brique 10 ne dépend de rien et pourrait exister avant tout le reste.
+Une conséquence de méthode, tirée du portage sur l'appareil : **une lecture n'a pas à avoir été calculée ici.** Le téléphone range ses matrices dans le cache comme n'importe quelle autre lecture (`READING=<nom>`), et toutes les briques du banc tournent dessus sans le savoir. C'est ce qui permet de poser à l'appareil la question du verdict, et pas seulement celle des chiffres.

@@ -94,7 +94,7 @@ Deux propriétés qui comptent autant que la précision : la comparaison est **i
 
 Ce risque n'est pas chiffré et ne peut pas l'être, puisque étiqueter une prise spontanée exigerait le modèle qu'elle n'a justement pas entendu. Ce qui le rend tenable est la forme de la parenthèse : une marque infondée mène à écouter le modèle et à redire, le calque concorde, et la parenthèse se referme sur une réussite. Une fausse alerte coûte un détour court, jamais une leçon fausse.
 
-**Un modèle n'est un étalon que s'il s'étalonne.** Une voix de synthèse que l'analyse lit mal accuserait l'apprenant d'une faute commise par la machine — le principe se paie ici précisément parce que le modèle est cru aveuglément : rien d'extérieur ne viendra dire qu'il était bâclé. Toute voix promue modèle passe donc un test, et une voix qui échoue est écartée quelle que soit sa beauté. **La forme de ce test est à refaire** : celle qui existait jugeait une voix aux notes d'un service, et le montage n'en rend plus. Ce qui la remplacera se lit de la matrice — une grille nette, pas de son écrasé, pas de zone où la répartition s'effondre.
+**Un modèle n'est un étalon que s'il s'étalonne.** Une voix de synthèse que l'analyse lit mal accuserait l'apprenant d'une faute commise par la machine — le principe se paie ici précisément parce que le modèle est cru aveuglément : rien d'extérieur ne viendra dire qu'il était bâclé. Toute voix promue modèle passe donc un test, et une voix qui échoue est écartée quelle que soit sa beauté (cf. « L'accent », où ce test se choisit).
 
 ## Écouter plutôt que se faire expliquer
 
@@ -206,7 +206,7 @@ Réglage **global unique**, exposé à l'utilisateur. Il gouverne deux choses, q
 
 **Il n'y a pas de troisième chose à aligner.** L'analyse ne consulte aucun référentiel de dialecte : elle compare l'apprenant au modèle, et le modèle est la seule norme. Si le modèle est britannique, tout ce qui en dérive l'est — mécaniquement, sans lexique à choisir ni accord à vérifier. L'accent cesse donc d'être un paramètre de mesure pour n'être plus qu'un choix de voix, et le désaccord d'accent, qui inversait la mesure quand un référentiel extérieur existait, n'a plus de lieu où se produire.
 
-**La voix se choisit.** Deux sélecteurs — le fournisseur de synthèse, puis la voix chez ce fournisseur — et un **étalonnage à la demande** qui avertit si elle échoue. Rien n'est imposé et rien n'est deviné : une voix qui ne s'étalonne pas reste utilisable pour parler, mais elle est signalée comme impropre à servir de modèle. Ce que l'étalonnage vérifie est à redéfinir contre la matrice (cf. « Marquer par écart au modèle »), et **aucune voix n'est aujourd'hui qualifiée** : les verdicts qu'on avait étaient ceux d'un service dont l'app ne dépend plus.
+**La voix se choisit.** Deux sélecteurs — le fournisseur de synthèse, puis la voix chez ce fournisseur — et un **étalonnage à la demande** qui avertit si elle échoue. Rien n'est imposé et rien n'est deviné : une voix qui ne s'étalonne pas reste utilisable pour parler, mais elle est signalée comme impropre à servir de modèle. **Ce que l'étalonnage vérifie est à redéfinir**, et **aucune voix n'est aujourd'hui qualifiée** : le test qui existait jugeait une voix aux notes d'un service dont l'app ne dépend plus. Ce qui le remplacera se lit de la matrice — une grille nette, pas de son écrasé, pas de zone où la répartition s'effondre (cf. `../TODO.md`).
 
 Par défaut, **le modèle à imiter est la voix de la conversation** — c'est celle qu'on entend déjà, et rien ne justifie d'en présenter une autre. Les dissocier reste possible pour qui le veut : les briques *conversation* et *synthèse* sont indépendantes, unifiées par le seul paramètre d'accent.
 
@@ -237,7 +237,7 @@ Deux fichiers extérieurs dans tout le pipeline : les poids d'un modèle acousti
 
 Ce montage ne ressemble pas à l'approche habituelle, et pour une raison de situation plus que d'astuce. Qui n'a que l'audio d'un apprenant et un texte a besoin d'un dictionnaire pour se donner une norme. L'app, elle, possède **deux enregistrements du même énoncé** — elle synthétise le modèle de toute façon, puisque c'est lui qu'elle fait entendre. Le modèle est donc la source de vérité, cru aveuglément, et rien d'extérieur aux deux enregistrements ne juge quoi que ce soit.
 
-Mesuré : sur le jeu d'essai étiqueté, les fautes se trouvent sans qu'aucun témoin ne se déclenche, et le pipeline **tourne sur un téléphone de 2019** — les poids chargent en 0,8 s, l'empreinte plafonne à 930 Mo, et une passe coûte quatre dixièmes de la durée du tour.
+Mesuré : les fautes du jeu d'essai se trouvent sans qu'aucun témoin ne se déclenche, et le pipeline **tourne sur un téléphone de 2019** (chiffres dans `analysis.md`).
 
 Ce que l'analyse doit rendre, et qui se vérifie brique par brique (`qualification.md`) :
 
