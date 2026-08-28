@@ -26,6 +26,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `faults.py` | le jeu d'essai étiqueté : l'écart tombe-t-il sur le son fautif, et reste-t-il à zéro sur le témoin |
 | `boundaries.py` | où le réseau place chaque son dans le temps, contre les bornes de TIMIT — position et durée, la seule mesure adossée à une vérité terrain |
 | `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
+| `syllables.py` | la grille sait-elle combien de syllabes a un mot — les sons qu'elle perd, et le nombre de noyaux par mot |
 | `join.py` | quelles lettres chaque son couvre — les mots, l'ordre et l'orthographe, notés contre l'annotation (`-s`) |
 | `expected.py` | l'annotation à la main : les lettres que chaque son devrait porter. N'entre jamais dans l'app |
 | `affinity.json` | à quels sons une lettre participe, de 0 à 3 — avec `affinity-groups.json`, la seule donnée linguistique du montage |
@@ -69,6 +70,7 @@ python3 overlap.py -s sentences -v            # deux voix se recouvrent-elles
 ACOUSTIC_MODEL=<nom> python3 join.py -s       # les sons portent-ils les bonnes lettres
 ACOUSTIC_MODEL=<nom> python3 boundaries.py    # position et durée des sons, contre TIMIT
 ACOUSTIC_MODEL=<nom> python3 recognition.py   # le décodage libre nomme-t-il les bons sons
+ACOUSTIC_MODEL=<nom> python3 syllables.py      # les syllabes se comptent-elles sur les sons
 ```
 
 ## Regarder
