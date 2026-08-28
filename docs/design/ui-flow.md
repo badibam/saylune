@@ -32,7 +32,9 @@ L'appui ne peut donc pas ouvrir la mauvaise parenthèse : le genre est une propr
 
 ## Le marquage — silence sous le seuil, gradation au-delà
 
-Rien n'est teinté dans la zone de bruit (±5 d'écart au modèle) : un tour réussi est visuellement calme, et une nuance affichée là serait un mensonge de précision. Au-delà du seuil, **la marque porte son intensité** — écart faible en teinte douce, écart profond en teinte franche. Par échelle : **phonème** gradation pleine (points d'écart), **accent** binaire par nature (la syllabe forte est au bon endroit ou pas), **mélodie** sans seuil ni teinte, son silence étant géométrique — cf. ci-dessous.
+Rien n'est teinté dans la zone de bruit (±5 d'écart au modèle) : une nuance affichée là serait un mensonge de précision. **Le seuil est bien placé et c'est mesuré** — sur les prises étiquetées, les sons calmes valent 0,01 à 2,2 points et la plus faible marque en vaut 25, donc la bande tombe au milieu d'un vide franc. Ce qui ne se vérifie pas, en revanche, c'est qu'un tour appliqué reste calme : la prise `15-right-clean` en porte cinq, jugées réelles par son auteur. Au-delà du seuil, **la marque porte son intensité** — écart faible en teinte douce, écart profond en teinte franche. Par échelle : **phonème** gradation pleine (points d'écart), **accent** binaire par nature (la syllabe forte est au bon endroit ou pas), **mélodie** sans seuil ni teinte, son silence étant géométrique — cf. ci-dessous.
+
+**Le dégradé sature à 30 points, et la matière le dépasse largement.** Les marques relevées valent 25, 30, 63, 88, 93, 96 : au-delà de 30, tout est du même rouge, donc la gradation cesse de porter là où la plupart des marques tombent. Ce n'est un défaut que si l'on veut distinguer un écart de 40 d'un écart de 95 ; si le rouge dit « beaucoup de travail ici », la fenêtre actuelle suffit. À trancher en regardant l'écran, pas d'avance — c'est un paramètre de `MarkingColors.kt` (`NOISE_BAND` et le 25 qui le suit), pas une question de conception.
 
 ### La forme retenue : le fil derrière le texte
 
