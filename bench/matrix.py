@@ -11,8 +11,10 @@ table: the only question ever asked of the network is what a recording sounds
 like, never what a word should sound like.
 """
 
+import hashlib
 import json
 import os
+import sys
 from collections import namedtuple
 from pathlib import Path
 
@@ -241,11 +243,52 @@ def blank():
     raise SystemExit(f"No blank symbol among {PAD} in {MODEL}")
 
 
+def frames_for(samples):
+    """How many rows the matrix of `samples` samples must have.
+
+    Read off the convolutions like `seconds_per_frame`, never declared: each
+    layer consumes a window and advances by a stride, and the count that falls
+    out is what tells a cached matrix whether it was computed on this audio.
+    """
+    settings = configured()
+    for kernel, stride in zip(settings["conv_kernel"], settings["conv_stride"]):
+        samples = (samples - kernel) // stride + 1
+    return samples
+
+
+def fingerprint(wav):
+    """The audio's identity: the hash of its bytes, never its name."""
+    return hashlib.sha256(Path(wav).read_bytes()).hexdigest()
+
+
+def stale(wav, held):
+    """Whether a cached matrix was computed on some other audio than `wav`.
+
+    Synthesis is not reproducible -- the same text and voice render differently
+    from one call to the next -- so a cache filed under a phrase's name outlives
+    the audio it describes, silently. The digest settles it outright; a cache
+    written before digests were stored is judged on its row count, which the
+    audio's length fixes.
+    """
+    if "audio" in held:
+        return str(held["audio"]) != fingerprint(wav)
+    return len(held["probabilities"]) != frames_for(sf.info(wav).frames)
+
+
 def probabilities(wav, cache=None):
     """The matrix of `wav`: one row per 20 ms, one column per sound, summing to 1."""
     wav = Path(wav)
     if cache is not None and Path(cache).is_file():
-        return np.load(cache)["probabilities"]
+        held = np.load(cache)
+        if not stale(wav, held):
+            return held["probabilities"]
+        if BORROWED:
+            # The borrowed reading was computed elsewhere, on an audio that is
+            # no longer this one. Reading it would compare two recordings.
+            raise SystemExit(f"{cache} a été calculé sur un autre audio que "
+                             f"{wav} — la lecture {BORROWED} est périmée")
+        print(f"  {cache.name} périmé — recalculé sur {wav.name}",
+              file=sys.stderr)
     if BORROWED:
         # Computing here would quietly fill someone else's reading with ours,
         # and the comparison would then be with itself.
@@ -268,7 +311,8 @@ def probabilities(wav, cache=None):
 
     if cache is not None:
         Path(cache).parent.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(cache, probabilities=probabilities)
+        np.savez_compressed(cache, probabilities=probabilities,
+                            audio=fingerprint(wav))
     return probabilities
 
 
