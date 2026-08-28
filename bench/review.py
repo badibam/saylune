@@ -34,7 +34,9 @@ import phrases
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes" / "set"
 RENDERS = HERE / "out" / "renders"
-MATRICES = HERE / "out" / "matrices"
+# Through `overlap`, so the path carries the model's name: a matrix filed
+# where the reading is not named is read back under whatever model runs next.
+MATRICES = overlap.MATRICES
 REVIEWS = HERE / "reviews"
 
 # The ramp of `MarkingColors.kt` ignores anything under 5 points, and points are
@@ -156,7 +158,8 @@ def main(argv=None):
 
     tag = f"sentences-{options.candidate}"
     gaps = overlap.sounds(model, learner, tag, options.take, options.model)
-    sounds = join.joined(model, text)
+    sounds = join.joined(model, text,
+                         cache=join.cache_for(options.candidate, options.model))
     if len(gaps) != len(sounds):
         raise SystemExit(f"{len(gaps)} sons comparés contre {len(sounds)} "
                          "joints — la prise n'est pas lisible ainsi")
