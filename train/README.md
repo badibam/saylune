@@ -1,6 +1,6 @@
 # L'atelier — affiner le modèle de sons
 
-Ce qui fabrique le remplaçant de `timit-ipa` : wav2vec2 + tête CTC phonémique entraînée avec label priors (Huang et al., ICASSP 2024). Le pourquoi est dans `../docs/design/dense-grid.md`, l'état du chantier dans `../TODO.md`. Rien de ce dossier ne part dans l'app : comme le banc, c'est l'instrument.
+Ce qui fabrique le remplaçant de `timit-ipa` : wav2vec2 + tête CTC phonémique entraînée avec label priors (Huang et al., ICASSP 2024). Le pourquoi et l'état du chantier sont dans `../TODO.md`, la peakiness qui l'avait motivé dans `../docs/analysis.md`. Rien de ce dossier ne part dans l'app : comme le banc, c'est l'instrument.
 
 **L'alphabet de sortie est celui de `timit-ipa`, à l'identique** — son `vocab.json` est relu depuis le cache HF et le repliement TIMIT 61 → 39 (Lee & Hon) vise ses symboles, ligatures comprises (ʧ, ʤ). C'est ce qui permet à `bench/matrix.py` et `bench/faults.py` de lire le modèle affiné sans modification, et fait de la comparaison avant/après une comparaison à iso-alphabet. Les silences (h#, pau, epi, fermetures) et le coup de glotte q ne sont pas des cibles : le silence appartient au blank.
 
@@ -14,7 +14,7 @@ HF_HOME=$PWD/tmp/hf tmp/venv/bin/python train/train.py --steps 2 --utterances 8 
 HF_HOME=$PWD/tmp/hf tmp/venv/bin/python train/train.py --encoder facebook/wav2vec2-xls-r-300m --unfreeze --checkpointing --lr 1e-4   # le régime retenu (GPU)
 ```
 
-Par défaut le script n'entraîne que la tête sur une oreille gelée — le régime des deux premières générations, que la mesure a condamné (cf. `../docs/design/dense-grid.md`). Le régime retenu est l'affinage complet, dos `xls-r-300m`, trente époques, checkpoints aux époques 9, 19 et 29. L'extracteur convolutionnel reste gelé quoi qu'il arrive.
+Par défaut le script n'entraîne que la tête sur une oreille gelée — le régime des deux premières générations, que la mesure a condamné. Le régime retenu est l'affinage complet, dos `xls-r-300m`, trente époques, checkpoints aux époques 9, 19 et 29. L'extracteur convolutionnel reste gelé quoi qu'il arrive.
 
 `train/fetch.py` rapatrie les checkpoints d'un notebook Kaggle, un fichier à la fois et de façon reprenable — `train/fetch.py --kernel <compte>/<notebook> --epoch 029`, la même commande relancée reprenant un transfert coupé, sans argument les trois époques du run. `--kernel` n'a pas de défaut : un notebook mémorisé désignerait toujours le run précédent, et l'erreur ressemblerait à un téléchargement déjà fini. **C'est l'utilisateur qui le lance**, pas la session d'IA — un transfert de plusieurs gigaoctets dure plus qu'un tour de session et occupe la ligne.
 

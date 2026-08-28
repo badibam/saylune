@@ -116,6 +116,6 @@ python3 take.py --gb azure-gb-sonia # changer de voix modèle
 
 L'ordre de `take.py` n'est pas cosmétique : chaque phrase se dit **à froid** avant qu'aucun modèle ne soit entendu. Un témoin d'accent est le calque d'un modèle entendu, jamais une prise qu'on a demandé de dire « correctement » — l'analyse compare des réalisations, pas des normes.
 
-Les rendus vivent dans `out/`, gitignoré : c'est du cache, régénérable par `-f`. Le matériel synthétique se régénère par script, il ne vit pas en fichiers versionnés.
+Les rendus vivent dans `out/`, gitignoré. **`-f` les refait, mais ne rend pas le même fichier** : la synthèse n'est pas reproductible, et tout chiffre du banc bouge avec l'audio qu'il a lu. Un rendu se **sauvegarde** comme une prise, il ne se régénère pas.
 
 Les prises, elles, sont dans `out/takes/` — les vingt-sept prises étiquetées des blocs A à F sous `out/takes/set/` — donc gitignorées aussi : c'est une voix, et publier une voix ne se défait pas. Mais elles ne se régénèrent pas non plus — **si elles comptent, elles se sauvegardent hors du dépôt.**
