@@ -28,6 +28,7 @@ import phrases
 
 HERE = Path(__file__).resolve().parent
 RENDERS = HERE / "out" / "renders"
+MATRICES = HERE / "out" / "matrices" / matrix.SLUG
 
 SETS = {"calibration": phrases.CALIBRATION, "heldout": phrases.HELDOUT}
 
@@ -265,7 +266,17 @@ def spoken(text):
     return words
 
 
-def joined(wav, text):
+def cache_for(voice, slug):
+    """Where a render's matrix is filed -- the same place `overlap` reads it.
+
+    Two readings of the same audio have to be the one reading: a join computed
+    fresh beside a comparison read from cache pairs sounds with the letters of
+    their neighbours as soon as the two grids differ by one.
+    """
+    return MATRICES / f"sentences-{voice}" / f"{slug}.npz"
+
+
+def joined(wav, text, cache=None):
     """Every sound the voice produced, and the letters spoken inside it.
 
     The sounds come from free decoding -- what is there, not what the word
@@ -275,7 +286,7 @@ def joined(wav, text):
     and a letter the table pays nothing for lands nowhere at all.
     """
     checked()
-    spread = matrix.probabilities(wav)
+    spread = matrix.probabilities(wav, cache=cache)
     step = matrix.seconds_per_frame()
     sounds = matrix.grid(spread)
     if not sounds:
@@ -366,7 +377,8 @@ def scored(candidate, material):
         if answer is None or unspellable(text) or not wav.is_file():
             continue
         read = ["".join(sound.letters.split())
-                for sound in joined(wav, text)]
+                for sound in joined(wav, text,
+                                    cache=cache_for(candidate, slug))]
         if len(read) != len(answer):
             # A grid of another shape than the one annotated: marking it would
             # compare sounds that are not the same sounds.
@@ -417,7 +429,8 @@ def main(argv=None):
 
     print(f"\n{text}\n")
     print(f"  {'son':<8}{'de':>8}{'à':>8}   {'mot':<14}lettres")
-    for sound in joined(wav, text):
+    for sound in joined(wav, text, cache=cache_for(options.candidate,
+                                                   options.slug)):
         # A borrowed letter is shown in brackets: nothing is held there, but
         # that is where a mark would be drawn.
         loan = "".join(text[at] for at in sound.borrowed)

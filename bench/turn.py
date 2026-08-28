@@ -65,7 +65,7 @@ def read(take, model_slug, voice):
     # lists face each other sound for sound.
     gaps = overlap.sounds(model, learner, f"sentences-{voice}", take,
                           model_slug)
-    sounds = join.joined(model, text)
+    sounds = join.joined(model, text, cache=join.cache_for(voice, model_slug))
     if len(gaps) != len(sounds):
         # `overlap` drops a sound it cannot align or whose spread is mostly
         # silence; a mark cannot be placed on what was not compared.
