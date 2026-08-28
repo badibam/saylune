@@ -1,0 +1,62 @@
+{
+  "sink-broken:3": {
+    "mot": "sink",
+    "timit-ipa": "ɪ",
+    "v3-pw0.1-e29": "i",
+    "juste": "v3-pw0.1-e29"
+  },
+  "turn-right:4": {
+    "mot": "right",
+    "timit-ipa": "aɪ",
+    "v3-pw0.1-e29": "eɪ",
+    "juste": "timit-ipa"
+  },
+  "walking-office:6": {
+    "mot": "walking",
+    "timit-ipa": "i",
+    "v3-pw0.1-e29": "ɪ",
+    "juste": "timit-ipa"
+  },
+  "comfortable:4": {
+    "mot": "is",
+    "timit-ipa": "ɝ",
+    "v3-pw0.1-e29": "ɪ",
+    "juste": "v3-pw0.1-e29"
+  },
+  "comfortable:8": {
+    "mot": "very",
+    "timit-ipa": "i",
+    "v3-pw0.1-e29": "ɪ",
+    "juste": "timit-ipa"
+  },
+  "market:9": {
+    "mot": "went",
+    "timit-ipa": "ɛ",
+    "v3-pw0.1-e29": "ɪ",
+    "juste": "timit-ipa"
+  },
+  "pear-tree:7": {
+    "mot": "pear",
+    "timit-ipa": "ɹ",
+    "v3-pw0.1-e29": "ɝ",
+    "juste": "v3-pw0.1-e29"
+  },
+  "comfortable:14": {
+    "mot": "comfortable",
+    "timit-ipa": "ɝ",
+    "v3-pw0.1-e29": "ə",
+    "juste": "timit-ipa"
+  },
+  "market:14": {
+    "mot": "the",
+    "timit-ipa": "ə",
+    "v3-pw0.1-e29": "ɪ",
+    "juste": "timit-ipa"
+  },
+  "interesting:13": {
+    "mot": "interesting",
+    "timit-ipa": "ɪ",
+    "v3-pw0.1-e29": "ɝ",
+    "juste": "v3-pw0.1-e29"
+  }
+}

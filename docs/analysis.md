@@ -430,6 +430,8 @@ Deux critères de forme, moins profonds mais éliminatoires. L'inventaire doit �
 
 Ce que le classement ne dit pas : `excalibur12` part du **même encodeur pré-entraîné** que le multilingue et se fait battre par lui. La différence tient entièrement à l'affinage, pas à l'architecture.
 
+**L'affinage maison ne départage rien.** Quatre checkpoints d'un affinage complet sur le dos du sortant, lus contre lui sur ce que l'app consomme : 162 à 164 lettres justes sur 166, contre 164 pour le sortant, et 32 à 34 mots au bon nombre de syllabes sur 37, contre 34. Deux sons d'écart entre le meilleur et le pire. Ce qui ne s'en déduit pas : le jeu est de onze à seize phrases d'une seule voix, et rien n'a été lu au-delà.
+
 ### Ce qui a été examiné puis écarté
 
 - **Un modèle framewise en troisième réseau, pour la seule grille** (charsiu, `wav2textgrid`). Écarté sur objection juste : ça répare la case, pas la mesure. La répartition du modèle *lue dans la case* viendrait toujours de la matrice CTC, vide à cet endroit — l'apprenant qui prononce bien le son y opposerait une répartition pleine à une répartition vide, donc une divergence forte : **marqué pour avoir eu raison**. S'ajoutent une table de correspondance entre deux inventaires et 190 à 380 Mo.

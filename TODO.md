@@ -10,18 +10,29 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 - **Pour la brique 7, lire le rythme de l'alignement existant** : la déformation locale de la correspondance temporelle modèle ↔ apprenant (l'un traîne sur une syllabe, avale la suivante), une fois la pente d'ensemble — le débit — retirée, est un signal de durée pour l'accent lexical. Les positions des sons des deux côtés sortent déjà de la matrice : c'est une lecture de plus, pas un calcul de plus.
 - **L'arithmétique au-dessus de la matrice n'est pas écrite en Kotlin**, donc pas mesurée sur l'appareil ; au poste elle est négligeable devant la passe du réseau. La jointure (4) est dans le même cas.
 
-### Le modèle de sons — le choix est rouvert
+### Le modèle de sons — le chantier a une réponse : ça ne change rien
 
-**Le critère est la fidélité : rendre les sons réellement prononcés**, éprouvée sur les prises fautives comme sur les correctes. Ce n'est pas « la plus belle suite de sons » — un modèle qui devine celle qu'on voulait produire la rend excellente et ne voit jamais la faute, c'est la signature de `charsiu`.
+**On garde `timit-ipa`, et ce n'est plus un report.** Sur tout ce que l'app consomme, les cinq lectures — le sortant et les quatre checkpoints de l'affinage complet — sont **indiscernables**.
 
-Ce qui a changé et rouvre le dossier : le second réseau à sortie caractères a été retiré, la jointure n'ouvre plus d'horloge, et **aucune brique ne lit l'étendue d'un son**. Les deux instruments sur lesquels les candidats maison perdaient — la durée couverte de `boundaries.py`, et la jointure telle qu'elle se calculait alors — ne pèsent plus ce qu'ils pesaient. Le report tenait en partie sur eux.
+| lecture | lettres justes (`join`) | mots au bon nombre de syllabes |
+|---|---|---|
+| `timit-ipa` | 164 / 166 | 34 / 37 |
+| `v3-pw0.0-e9` | 164 / 166 | 33 / 37 |
+| `v3-pw0.0-e29` | 164 / 166 | 34 / 37 |
+| `v3-pw0.1-e9` | 162 / 166 | 33 / 37 |
+| `v3-pw0.1-e29` | 163 / 166 | 32 / 37 |
 
-L'état des candidats : le régime à oreille gelée est condamné ; l'affinage complet sur `xls-r-300m` atteint la parité sur la séparation fautes/témoins ; le poids de prior `0,1` est jugé sur ses trois époques et ne renverse rien ; le poids `0,3` n'a pas tourné, donc le terme de Huang et al. n'est pas jugé. L'atelier est dans `train/README.md`.
+Lettres justes lues sur les onze phrases de calibration où les cinq rendent la même forme de grille que l'annotation. Deux sons d'écart sur 166 entre le meilleur et le pire. Changer de modèle coûterait une requalification complète — l'annotation d'`expected.py` est indexée sur les sons du sortant — et n'achèterait aucune différence mesurable.
 
-- **Juger les désaccords** (`bench/divergence.py`, écrit). Entre `timit-ipa` et `v3-pw0.1-e29` : **10 mots** sur les rendus du modèle, **29** sur les prises. Une soirée d'écoute, et le choix se décide sur le bon critère pour la première fois. Les verdicts vivent dans `bench/divergences/`, versionnés — même matière qu'`expected.py`, écrits une fois à l'oreille et régénérables par rien.
-- **Mesurer la composition des trois instruments.** Une marque n'arrive à l'écran que si le son existe dans la grille, que l'écart le sépare du témoin, et qu'il porte les bonnes lettres. Les trois se mesurent sur du matériel qui partage les mêmes phrases, donc la composition est calculable. **Ni montée ni chiffrée.**
-- **L'écart de PER n'est pas interprétable en l'état.** Nos checkpoints sont à 10 % quand `timit-ipa` est à 6,7 %, très bas pour TIMIT en 39 classes (état de l'art 13 à 16 %), ce qui fait soupçonner une **fuite de split** chez `vitouphy` — invérifiable, c'est un modèle tiers. Nos runs n'ont vu que `TRAIN`. À trancher seulement si l'écart doit peser sur une décision.
-- **Un fait non expliqué à garder en tête** : sur TIMIT le décodage libre n'omet presque rien (0,7 % chez l'étalon, 1,3 à 1,5 % chez nous) alors que sur le jeu d'essai la grille perd un son sur huit. Parole lue et proche de l'entraînement d'un côté, synthèse ElevenLabs de l'autre — la différence n'est pas mesurée, et elle nuance « les poids ne voient pas ces sons » en « ils ne les voient pas *là* ».
+**Ce que ça ne dit pas** : les candidats n'ont été lus que sur onze à seize phrases d'une seule voix. Un matériel plus large pourrait les séparer ; rien n'indique qu'il le ferait. **À rouvrir sur le corpus L2, pas avant.**
+
+**Et la fidélité ne se juge pas à l'étiquette.** `divergence.py` a été écrit pour faire trancher à l'oreille les endroits où deux modèles ne nomment pas le même son. Dix cas jugés sur les rendus : 6 pour le sortant, 4 pour le candidat — un pile ou face. La raison est structurelle : neuf des dix désaccords sont des **voyelles voisines d'un même continuum** (`ɪ` / `i`, `ə` / `ɪ`, `ɝ` / `ə`), donc deux pics posés à deux endroits d'une même pente, et non deux réponses à une question fermée. Or l'étiquette est précisément ce dont la conception dit qu'elle ne dépend pas : elle n'entre dans aucune comparaison, seules les plages comptent. Elle n'est consommée qu'à la **jointure**, qui se mesure sans oreille — c'est le tableau ci-dessus.
+
+- **Restreindre `divergence.py` avant de s'en resservir.** Filtrer les cas où seul le maximum a basculé alors que les deux répartitions sont quasi identiques : l'oreille n'y peut rien et ça ne change rien. Restent les désaccords francs — une consonne contre une autre, un son contre rien. Sur les dix cas jugés, le filtre en aurait écarté huit ou neuf.
+- **Les 29 désaccords des prises n'ont pas été jugés**, et rien ne presse : le tableau ci-dessus a déjà répondu à la question qu'ils devaient trancher.
+- **Mesurer la composition des trois instruments.** Une marque n'arrive à l'écran que si le son existe dans la grille, que l'écart le sépare du témoin, et qu'il porte les bonnes lettres. Calculable, jamais calculé.
+- **L'écart de PER n'est pas interprétable en l'état.** Nos checkpoints sont à 10 % quand `timit-ipa` est à 6,7 %, très bas pour TIMIT en 39 classes (état de l'art 13 à 16 %), ce qui fait soupçonner une **fuite de split** chez `vitouphy` — invérifiable, c'est un modèle tiers. À trancher seulement si l'écart doit peser sur une décision.
+- **Un fait non expliqué à garder en tête** : sur TIMIT le décodage libre n'omet presque rien (0,7 % chez l'étalon, 1,3 à 1,5 % chez nous) alors que sur le jeu d'essai la grille perd un son sur huit. Parole lue d'un côté, synthèse ElevenLabs de l'autre — la différence n'est pas mesurée.
 
 ### Les rendus du modèle ne sont pas régénérables
 
