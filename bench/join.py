@@ -17,6 +17,7 @@ hand, and `-s` marks the join against it.
 
 import argparse
 import json
+from collections import namedtuple
 import re
 import sys
 from pathlib import Path
@@ -35,6 +36,12 @@ SETS = {"calibration": phrases.CALIBRATION, "heldout": phrases.HELDOUT}
 # whether `s` takes part in /ʃ/, which is the whole of what decides here. It was
 # generated blind, by a session that had never seen where the join failed, so
 # that it could not be fitted to those failures.
+# One sound of the model's grid, and everything a mark needs of it. `letters`
+# reads; `spots` is what a mark is actually drawn on, offsets into the text, and
+# `borrowed` the offsets of a neighbour's letter when this sound holds none of
+# its own. Empty `spots` and empty `borrowed` together mean the gutter.
+Sound = namedtuple("Sound", "symbol low high word letters spots borrowed")
+
 AFFINITY = json.loads((HERE / "affinity.json").read_text(encoding="utf-8"))
 
 # The same question asked of groups of letters that write one sound between
@@ -282,6 +289,7 @@ def joined(wav, text):
                       for word, positions in words], symbols)
 
     covered = ["" for _ in sounds]
+    spots = [[] for _ in sounds]
     held = [None] * len(sounds)
     for rank, (word, positions) in enumerate(words):
         start, stop = cuts[rank], cuts[rank + 1]
@@ -292,14 +300,16 @@ def joined(wav, text):
         for position, sound in zip(positions, chosen):
             if sound is not None:
                 covered[start + sound] += text[position]
+                spots[start + sound].append(position)
 
-    return [(symbol, low, high, word or "—", letters_held, borrowed)
-            for symbol, (low, high), word, letters_held, borrowed
-            in zip(symbols, stretches, held, covered,
-                   lent(symbols, held, covered, text))]
+    return [Sound(symbol, low, high, word or "—", letters_held,
+                  tuple(where), borrowed)
+            for symbol, (low, high), word, letters_held, where, borrowed
+            in zip(symbols, stretches, held, covered, spots,
+                   lent(symbols, held, covered, spots, text))]
 
 
-def lent(symbols, held, covered, text):
+def lent(symbols, held, covered, spots, text):
     """For a sound holding no letter, the letter it would light anyway.
 
     A letter lands on one sound and no more, which is what keeps the match
@@ -319,24 +329,25 @@ def lent(symbols, held, covered, text):
     with nothing. Nothing here can invent a letter for it; the screen marks the
     gutter between its neighbours instead.
     """
-    out = [""] * len(symbols)
+    out = [()] * len(symbols)
     for index, letters in enumerate(covered):
         if letters.strip() or held[index] is None:
             continue
         word = held[index]
         # The letters of this word, wherever they landed, ranked by what the
         # table pays them for *this* sound; ties go to the nearest sound.
-        best, score = "", 0
+        best, score = None, 0
         for other in (index - 1, index + 1):
             if not 0 <= other < len(held):
                 continue
             if held[other] is not word or not covered[other].strip():
                 continue
-            for letter in covered[other]:
-                weight = AFFINITY.get(letter.lower(), {}).get(symbols[index], 0)
+            for position in spots[other]:
+                weight = AFFINITY.get(text[position].lower(),
+                                      {}).get(symbols[index], 0)
                 if weight > score:
-                    best, score = letter, weight
-        out[index] = best
+                    best, score = position, weight
+        out[index] = () if best is None else (best,)
     return out
 
 
@@ -354,8 +365,8 @@ def scored(candidate, material):
         wav = RENDERS / candidate / "sentences" / f"{slug}.wav"
         if answer is None or unspellable(text) or not wav.is_file():
             continue
-        read = ["".join(held.split())
-                for *_, held, _borrowed in joined(wav, text)]
+        read = ["".join(sound.letters.split())
+                for sound in joined(wav, text)]
         if len(read) != len(answer):
             # A grid of another shape than the one annotated: marking it would
             # compare sounds that are not the same sounds.
@@ -406,11 +417,13 @@ def main(argv=None):
 
     print(f"\n{text}\n")
     print(f"  {'son':<8}{'de':>8}{'à':>8}   {'mot':<14}lettres")
-    for symbol, low, high, word, covered, borrowed in joined(wav, text):
+    for sound in joined(wav, text):
         # A borrowed letter is shown in brackets: nothing is held there, but
         # that is where a mark would be drawn.
-        shown = covered or (f"({borrowed})" if borrowed else "— intervalle")
-        print(f"  {symbol:<8}{low:>8.2f}{high:>8.2f}   {word:<14}{shown}")
+        loan = "".join(text[at] for at in sound.borrowed)
+        shown = sound.letters or (f"({loan})" if loan else "— intervalle")
+        print(f"  {sound.symbol:<8}{sound.low:>8.2f}{sound.high:>8.2f}"
+              f"   {sound.word:<14}{shown}")
     return 0
 
 

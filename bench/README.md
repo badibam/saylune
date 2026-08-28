@@ -69,6 +69,18 @@ ACOUSTIC_MODEL=<nom> python3 boundaries.py    # position et durée des sons, con
 ACOUSTIC_MODEL=<nom> python3 recognition.py   # le décodage libre nomme-t-il les bons sons
 ```
 
+## Regarder
+
+```
+python3 turn.py 01-sink -m think -o ../tmp/turn.json
+```
+
+`turn.py` rend **un tour analysé** au format que l'écran de marquage consomme : le texte, et pour chaque son de la grille l'écart au modèle et les caractères qu'il couvre. C'est le tuyau qui manquait entre le banc et l'app, dont l'écran est alimenté par des données en dur (`SampleTurns.kt`, qui se dit lui-même « stand-in for the engine »). L'arithmétique reste en Python et le dessin en Kotlin, ce qui ne change rien de ce qui se voit.
+
+Deux canaux sortent vides et le resteront jusqu'aux briques 7 et 8 : l'accent et la mélodie passent tous deux par `syllables`, qu'aucun code ne calcule encore.
+
+Ce que `turn.py` montre et qu'aucune qualification ne montrait : **le tour entier**. `faults.py` ne lit que le son étiqueté fautif et son témoin ; ici tout se peint, y compris ce qui diverge pour de bonnes raisons.
+
 `boundaries.py` est la seule qualification adossée à une **vérité terrain** plutôt qu'à notre jeu étiqueté : TIMIT annote chaque phone au niveau de l'échantillon, et le corpus acheté n'avait servi que par ses suites de sons. Il ne demande ni synthèse ni clé, et lit `ACOUSTIC_MODEL` comme le reste du banc. Sa mesure décisive est la **durée couverte** — la part de la durée réelle d'un son que le réseau lui accorde.
 
 `recognition.py` pose la seule question qu'aucune autre brique ne pose : **le réseau nomme-t-il les bons sons ?** `faults.py` compare des répartitions et dit explicitement que l'étiquette peut être fausse sans dommage, `boundaries.py` force la séquence attendue donc n'exerce jamais le décodage libre, et `missing_mass.py` lit la masse à des positions qu'on lui désigne. Or la **brique 3 de l'analyse est un décodage libre** : la grille du modèle, à laquelle tout s'ancre. Réserve à porter : cette brique lit la même matrice que les autres — c'est une quatrième question, pas un témoin extérieur.
