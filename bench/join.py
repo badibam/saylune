@@ -17,7 +17,6 @@ hand, and `-s` marks the join against it.
 
 import argparse
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -44,25 +43,12 @@ AFFINITY = json.loads((HERE / "affinity.json").read_text(encoding="utf-8"))
 # `c` to the /s/. Generated blind like the table beside it, and by its own
 # session, so that neither could be fitted to where the join failed.
 #
-# Read only under `JOIN_GROUPS=1`, and the reason is measured: it costs two
-# sounds, 219 against 221. A group has to out-score the sum of its letters, and
-# the per-letter weights are generous by construction -- a letter takes 3 for
-# its main sound across every spelling it appears in -- so `ch` at 2 on /k/
-# loses to `c` at 3 on /s/ plus `h` at 2 on /k/. What is missing is not either
-# table but an arbiter between them, and a weighting chosen now would be chosen
-# against these fifteen sentences. It waits for the wider corpus.
-GROUPS = (json.loads((HERE / "affinity-groups.json").read_text(encoding="utf-8"))
-          if os.environ.get("JOIN_GROUPS") == "1" else {})
-
-# Under `JOIN_ORPHANS=1` a letter the table scores at zero on the sound it
-# landed on holds no letters at all, rather than being posted to whichever
-# neighbour the walk reached first. The score already knows: the silent `t` of
-# `listen` is worth zero on every sound its word offers, so where it lands is
-# decided by nothing. What the switch does not do is separate the two kinds of
-# zero -- the letter that writes no sound, and the letter that writes one
-# *inside a group the per-letter table cannot see*. Only the group table tells
-# them apart, which is why the two switches are measured together.
-ORPHANS = os.environ.get("JOIN_ORPHANS") == "1"
+# It earns its place only beside the rule below, and that is why it was long
+# thought to buy nothing: while every letter had to land somewhere, a group
+# could only change *which* neighbour a silent letter was posted to, never
+# spare it the trip. Once a letter can hold nothing, the group is what keeps
+# the ones that belong -- `kn` on /n/, `mb` on /m/, `wr` on /ɹ/, `dge` on /ʤ/.
+GROUPS = json.loads((HERE / "affinity-groups.json").read_text(encoding="utf-8"))
 
 # How many letters a single sound may be given at once. Four covers the longest
 # graphemes English writes -- `ough`, `eigh` -- and every group longer than that
@@ -196,13 +182,17 @@ def inner(characters, symbols):
             chosen[position] = last
             worth[position] = bool(weights.get(symbols[last], 0))
         index, last = index - length, previous
-    if ORPHANS:
-        chosen = trimmed(chosen, worth)
-    return total, chosen
+    return total, trimmed(chosen, worth)
 
 
 def trimmed(chosen, worth):
     """Each sound's letters cut back to the ones it is paid for, at the ends.
+
+    A letter worth nothing on the sound it landed on was posted there by the
+    order of the walk and by nothing else, so where it sits says nothing: the
+    silent `t` of `listen` is worth zero on every sound that word offers. It
+    holds nothing instead. What saves the silent letters that do belong is the
+    group table, which pays `kn` on /n/ where neither `k` nor `n` alone would.
 
     Only at the ends: a letter worth nothing in the middle of a run is held
     inside a spelling, and dropping it would leave the sound two letters with a
@@ -274,8 +264,8 @@ def joined(wav, text):
     The sounds come from free decoding -- what is there, not what the word
     should hold -- and the words come from the text. Words first: the sound
     sequence is partitioned between them, then each word's letters are matched
-    inside its own group. Every letter the table can write lands once, and lands
-    somewhere unless `JOIN_ORPHANS` lets a letter worth nothing land nowhere.
+    inside its own group. Every letter the table can write lands at most once,
+    and a letter the table pays nothing for lands nowhere at all.
     """
     checked()
     spread = matrix.probabilities(wav)

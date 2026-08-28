@@ -19,9 +19,16 @@ and all, and a different voice or a different model produces a different grid
 that this annotation no longer describes. And it never enters the app: it lives
 in the bench, beside the takes, as the answer a test is marked against.
 
-Where a sound is written by several letters the whole group is given (`igh` for
-the vowel of `right`); where several sounds share one letter the letter is
-repeated. Spaces are ignored in the comparison.
+A sound holds the whole group that writes it -- `igh` for the vowel of `right`,
+`kn` for the /n/ of `know`, `mb` for the /m/ of `climb`. A silent letter inside
+such a group belongs to it: if that sound is marked, the group is what has to
+light up, and colouring `k`+`n`+`ow` with the `k` left dark points at the wrong
+place.
+
+A letter whose sound the grid never decoded holds nothing at all. The `ck` of
+`picked` where no /k/ is read, the `o` of `-tion` where the vowel is lost: there
+is nothing measured there to mark, so there is nothing to light. Where several
+sounds share one letter the letter is repeated. Spaces are ignored.
 """
 
 from pathlib import Path
@@ -35,85 +42,78 @@ COVERED = {
                     "k", "e", "n"],
     "sheep-field": ["Th", "e", "sh", "ee", "p", "i", "s", "i", "n", "th", "e",
                     "f", "ie", "l", "d"],
-    "pear-tree": ["I", "p", "i", "cked", "a", "p", "ea", "r", "fro", "m",
-                  "th", "e", "t", "r", "ee"],
-    "turn-right": ["T", "ur", "n", "r", "igh", "t", "at", "th", "e", "c", "o",
+    "pear-tree": ["I", "p", "i", "d", "a", "p", "ea", "r", "f", "m", "th", "e",
+                  "t", "r", "ee"],
+    "turn-right": ["T", "ur", "n", "r", "igh", "t", "a", "th", "e", "c", "o",
                    "r", "n", "er"],
     "walking-office": ["I", "a", "m", "w", "al", "k", "i", "ng", "t", "o",
                        "th", "e", "o", "ff", "i", "ce"],
-    "comfortable": ["Th", "e", "ch", "ai", "r", "is", "v", "er", "y", "c",
-                    "o", "m", "fo", "rt", "a", "b", "le"],
-    "doesnt-know": ["H", "e", "d", "oe", "s", "n", "'tkn", "ow"],
-    "school": ["I", "g", "o", "t", "o", "s", "ch", "oo", "l", "e", "ve", "r",
+    "comfortable": ["Th", "e", "ch", "ai", "r", "s", "v", "er", "y", "c", "o",
+                    "m", "f", "t", "a", "b", "le"],
+    "doesnt-know": ["H", "e", "d", "oe", "s", "n", "kn", "ow"],
+    "school": ["I", "g", "o", "t", "o", "s", "ch", "oo", "l", "e", "v", "r",
                "y", "d", "ay"],
-    "market": ["Y", "e", "s", "t", "er", "d", "ay", "I", "w", "e", "nt", "t",
-               "o", "th", "e", "m", "a", "r", "k", "et"],
-    "think-sheep": ["I", "th", "i", "nk", "th", "e", "sh", "ee", "p", "are",
+    "market": ["Y", "e", "s", "t", "er", "d", "ay", "I", "w", "e", "n", "t",
+               "o", "th", "e", "m", "a", "r", "k", "e"],
+    "think-sheep": ["I", "th", "i", "n", "th", "e", "sh", "ee", "p", "are",
                     "i", "n", "th", "e", "f", "ie", "l", "d"],
     "turn-right-long": ["Y", "ou", "h", "a", "ve", "t", "o", "t", "ur", "n",
-                        "r", "igh", "t", "at", "th", "e", "c", "o", "r", "n",
+                        "r", "igh", "t", "a", "th", "e", "c", "o", "r", "n",
                         "er"],
-    "going-office": ["Y", "ou", "a", "re", "g", "o", "i", "ng", "t", "o",
-                     "th", "e", "o", "ff", "i", "ce"],
-    "important": ["I", "t", "i", "s", "i", "m", "p", "o", "r", "tant", "f",
-                  "or", "m", "e"],
+    "going-office": ["Y", "ou", "a", "re", "g", "o", "i", "ng", "t", "o", "th",
+                     "e", "o", "ff", "i", "ce"],
+    "important": ["I", "t", "i", "s", "i", "m", "p", "o", "r", "n", "f", "or",
+                  "m", "e"],
     "interesting": ["Th", "i", "s", "l", "e", "ss", "o", "n", "i", "s", "i",
-                    "n", "te", "re", "s", "t", "i", "ng", "f", "or", "m", "e"],
-    # The set held out from the fitting. Same hand, same rule: the letters of
-    # the text that write each decoded sound, in order. Where the grid drops a
-    # sound its letters join the neighbour that survives, so the whole word is
-    # still spelt out. `ten-minutes` is absent on purpose -- its digit is a
-    # character the table cannot write, so the join declines the sentence before
-    # an answer is ever consulted.
+                    "n", "t", "e", "s", "t", "i", "ng", "f", "or", "m", "e"],
+
+    # The set held out from the fitting. `ten-minutes` is absent on purpose:
+    # its digit is a character the table cannot write, so the join declines the
+    # sentence before an answer is consulted, which is the limit it was chosen
+    # to show.
     "weather-nice": ["Th", "e", "w", "ea", "th", "er", "i", "s", "n", "i",
                      "ce", "t", "o", "d", "ay"],
-    "friend-called": ["M", "y", "f", "r", "ie", "nd", "c", "a", "lled", "m",
-                      "e", "y", "e", "s", "t", "er", "d", "ay"],
+    "friend-called": ["M", "y", "f", "r", "ie", "n", "c", "a", "ll", "m", "e",
+                      "y", "e", "s", "t", "er", "d", "ay"],
     "book-table": ["Th", "e", "b", "oo", "k", "i", "s", "o", "n", "th", "e",
                    "t", "a", "b", "le"],
-    "coffee-morning": ["I", "d", "r", "i", "n", "k", "co", "ff", "ee", "i",
-                       "n", "th", "e", "m", "o", "r", "n", "i", "ng"],
+    "coffee-morning": ["I", "d", "r", "i", "n", "k", "o", "ff", "ee", "i", "n",
+                       "th", "e", "m", "o", "r", "n", "i", "ng"],
     # `x` writes two sounds: the letter is repeated, once per sound.
-    "six-boxes": ["Th", "ere", "are", "s", "i", "x", "x", "b", "o", "x", "x",
+    "six-boxes": ["Th", "e", "are", "s", "i", "x", "x", "b", "o", "x", "x",
                   "e", "s", "h", "e", "re"],
     # `u` of `use` and of `music` writes two sounds as well.
-    "use-music": ["I", "u", "u", "se", "m", "u", "u", "s", "ic", "t", "o",
-                  "r", "e", "l", "a", "x", "x"],
-    "question-easy": ["Th", "at", "q", "u", "e", "sti", "on", "w", "a", "s",
-                      "ea", "s", "y"],
-    "enough-time": ["W", "e", "d", "o", "n", "ot", "h", "a", "ve", "e", "n",
+    "use-music": ["I", "u", "u", "se", "m", "u", "u", "s", "i", "t", "o", "r",
+                  "e", "l", "a", "x", "x"],
+    "question-easy": ["Th", "a", "q", "u", "e", "ti", "n", "w", "a", "s", "ea",
+                      "s", "y"],
+    "enough-time": ["W", "e", "d", "o", "n", "o", "h", "a", "ve", "e", "n",
                     "ou", "gh", "t", "i", "me"],
-    "thought-night": ["I", "th", "ou", "ght", "a", "b", "ou", "t", "it", "l",
-                      "a", "st", "n", "igh", "t"],
+    "thought-night": ["I", "th", "ough", "t", "a", "b", "ou", "t", "i", "l",
+                      "a", "s", "n", "igh", "t"],
     "watch-match": ["I", "w", "a", "tch", "th", "e", "m", "a", "tch", "o",
                     "n", "S", "u", "n", "d", "ay"],
     "phone-pocket": ["M", "y", "ph", "o", "ne", "i", "s", "i", "n", "m", "y",
-                     "p", "o", "ck", "et"],
-    # The `t` of `to` never surfaces: the vowel carries the whole word, and the
-    # silent `w` of `write` rides on the `r`.
-    "write-letter": ["I", "w", "a", "nt", "to", "wr", "i", "te", "a", "l",
-                     "e", "tt", "er"],
+                     "p", "o", "ck", "e"],
+    "write-letter": ["I", "w", "a", "n", "o", "wr", "i", "te", "a", "l", "e",
+                     "tt", "er"],
     "bridge-river": ["Th", "e", "b", "r", "i", "dge", "c", "r", "o", "ss", "e",
                      "s", "th", "e", "r", "i", "v", "er"],
-    "station-far": ["Th", "e", "s", "t", "a", "ti", "on", "i", "s", "f", "a",
-                    "r", "fro", "m", "h", "e", "re"],
-    # The silent `b` of `climb` joins the `m` it does not sound apart from.
-    "climb-wall": ["H", "e", "c", "an", "c", "l", "i", "mb", "th", "e", "w",
+    "station-far": ["Th", "e", "s", "t", "a", "ti", "n", "i", "s", "f", "a",
+                    "r", "f", "m", "h", "e", "re"],
+    "climb-wall": ["H", "e", "c", "n", "c", "l", "i", "mb", "th", "e", "w",
                    "a", "ll"],
-    # The silent `t` of `listen` joins the vowel beside it.
-    "listen-carefully": ["P", "l", "ea", "se", "l", "i", "s", "ten", "c", "a",
-                         "re", "f", "ull", "y"],
-    # The silent `s` of `island` joins the vowel it is written inside.
-    "island-summer": ["W", "e", "v", "i", "s", "it", "th", "e", "is", "l",
-                      "a", "nd", "i", "n", "s", "u", "mm", "er"],
-    # The apostrophe is silent, so it belongs to no sound.
-    "wont-come": ["I", "w", "o", "nt", "b", "e", "a", "b", "le", "t", "o",
-                  "c", "o", "me"],
-    "long-station": ["I", "f", "y", "ou", "ha", "ve", "t", "i", "me", "t",
-                     "o", "m", "o", "rr", "ow", "w", "e", "c", "ould", "w",
-                     "alk", "t", "o", "th", "e", "s", "t", "a", "ti", "o",
-                     "n", "a", "nd", "t", "ake", "th", "e", "ear", "l", "y",
-                     "t", "r", "ai", "n"],
+    "listen-carefully": ["P", "l", "ea", "se", "l", "i", "s", "n", "c", "a",
+                         "re", "f", "ll", "y"],
+    "island-summer": ["W", "e", "v", "i", "s", "i", "th", "e", "i", "l", "a",
+                      "n", "i", "n", "s", "u", "mm", "er"],
+    "wont-come": ["I", "w", "o", "n", "b", "e", "a", "b", "le", "t", "o", "c",
+                  "o", "me"],
+    "long-station": ["I", "f", "y", "ou", "a", "ve", "t", "i", "me", "t", "o",
+                     "m", "o", "rr", "ow", "w", "e", "c", "ou", "w", "al", "t",
+                     "o", "th", "e", "s", "t", "a", "ti", "o", "n", "a", "n",
+                     "t", "a", "th", "e", "ear", "l", "y", "t", "r", "ai",
+                     "n"],
 }
 
 
