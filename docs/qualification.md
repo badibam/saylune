@@ -28,6 +28,7 @@ Rendus et lectures sont mis en cache sous `bench/out/`, gitignoré : l'audio se 
 6. **Lire les séparations.**
 7. **Lire la jointure** (`join.py -s`) : la part des sons qui portent les lettres qu'un humain leur attribue, contre l'annotation d'`expected.py`. Une séparation ne qualifie pas seule — là où un son ne reçoit pas les bonnes lettres, la marque tombe à côté, quelle que soit la netteté de l'écart. Les deux instruments peuvent diverger, et la divergence est réelle : un modèle acoustique plus pointu sépare mieux deux répartitions au pic tout en laissant moins de matière à joindre.
 8. **Refaire la lecture sur l'appareil.** Le poste ne suffit pas : les noyaux 8 bits ne sont pas le même code d'une architecture à l'autre. `phone.py` range la lecture de l'appareil dans le cache comme n'importe quelle autre, et `READING=<nom> python3 faults.py` rejoue le jeu dessus. C'est le verdict qui compte, pas l'identité des octets.
+9. **Écouter ce qui est marqué** (`review.py`) : le jeu d'essai répond pour **un** son par prise, celui autour duquel il a été bâti, et l'écran les peint tous. Les autres marques d'une prise ne sont ni des fautes ni des fausses alertes tant que personne ne les a entendues.
 
 ## Les critères
 
@@ -41,6 +42,17 @@ L'analyse qualifie si elle tient les propriétés suivantes — formulées sans 
 6. **Portabilité** : les critères 1 à 3 tiennent sur l'appareil, pas seulement au poste.
 
 Une brique peut qualifier **séparément** : la mélodie est autonome — DSP pur, elle ne lit même pas la matrice — et se juge sans rien attendre des autres. Les trois échelles sont des briques indépendantes, et l'app allume ce qu'elle a.
+
+## Ce que chaque instrument répond, et ce qu'il ne répond pas
+
+Aucun de ces instruments ne qualifie seul, et chacun a un angle mort nommable.
+
+- `faults.py` — l'écart tombe-t-il sur le son fautif et reste-t-il à zéro sur le témoin. Il compare des répartitions et dit explicitement que l'étiquette peut être fausse sans dommage. Il ne lit qu'**un son par prise** : une prise dite témoin est un témoin sur ce son-là et sur rien d'autre.
+- `join.py -s` — les sons portent-ils les lettres qu'un humain leur attribue. Le seul instrument que rien n'automatise : sa règle est `expected.py`, écrite à la main et indexée sur les sons **réellement décodés**, donc elle note le modèle pour lequel elle a été écrite et aucun autre. Le compteur de trous qui l'avait précédée rapportait huit défauts là où elle en trouve quinze ; c'est pour ça qu'il n'existe plus.
+- `boundaries.py` — où le réseau place chaque son dans le temps. La seule qualification adossée à une **vérité terrain** plutôt qu'à notre jeu étiqueté : TIMIT annote chaque phone au niveau de l'échantillon. Sa mesure décisive est la **durée couverte**, la part de la durée réelle d'un son que le réseau lui accorde.
+- `recognition.py` — le décodage libre nomme-t-il les bons sons. La seule question qu'aucune autre brique ne pose, et elle porte : la brique 3 de l'analyse **est** un décodage libre, la grille à laquelle tout s'ancre. Réserve : il lit la même matrice que les autres, c'est une quatrième question et pas un témoin extérieur.
+- `turn.py` — le tour entier, ce qu'aucune qualification ne montrait. Un tour porte 2 à 6 marques, témoins compris.
+- `review.py` — la marque est-elle une faute, jugée à l'oreille par l'auteur de la prise. Il joue le **mot entier**, modèle puis prise : soixante millisecondes de phonème ne se jugent pas isolées. Si rien ne joue, la session s'arrête — juger une marque sans l'entendre serait une supposition écrite comme une réponse. Les verdicts vivent dans `bench/reviews/`, versionnés : même matière qu'`expected.py`, écrits une fois à la main et régénérables par rien.
 
 ## Le jeu d'essai
 

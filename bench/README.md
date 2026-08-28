@@ -77,11 +77,9 @@ ACOUSTIC_MODEL=<nom> python3 recognition.py   # le décodage libre nomme-t-il le
 python3 turn.py 01-sink -m think -o ../tmp/turn.json
 ```
 
-`turn.py` rend **un tour analysé** au format que l'écran de marquage consomme : le texte, et pour chaque son de la grille l'écart au modèle et les caractères qu'il couvre. C'est le tuyau qui manquait entre le banc et l'app, dont l'écran est alimenté par des données en dur (`SampleTurns.kt`, qui se dit lui-même « stand-in for the engine »). L'arithmétique reste en Python et le dessin en Kotlin, ce qui ne change rien de ce qui se voit.
+`turn.py` rend **un tour analysé** au format que l'écran de marquage consomme : le texte, et pour chaque son de la grille l'écart au modèle et les caractères qu'il couvre. C'est le tuyau entre le banc et l'app, dont l'écran est sinon alimenté par des données en dur (`SampleTurns.kt`). L'arithmétique reste en Python et le dessin en Kotlin.
 
 Deux canaux sortent vides et le resteront jusqu'aux briques 7 et 8 : l'accent et la mélodie passent tous deux par `syllables`, qu'aucun code ne calcule encore.
-
-Ce que `turn.py` montre et qu'aucune qualification ne montrait : **le tour entier**. `faults.py` ne lit que le son étiqueté fautif et son témoin ; ici tout se peint, et le tour entier porte 2 à 6 marques, témoins compris.
 
 ## Juger
 
@@ -93,19 +91,7 @@ python3 review.py 15-right-clean -m turn-right-long
 
 Plusieurs témoins ne vont pas avec la phrase qu'on croit — `13-field-clean` est celui de `think-sheep`, `15-right-clean` celui de `turn-right-long`. La table des cas de `faults.py` fait foi.
 
-Le jeu d'essai répond pour **un** son par prise, celui autour duquel il a été bâti. Une prise dite témoin est donc un témoin sur ce son-là et sur rien d'autre, et lire ses autres marques comme des fausses alertes est une supposition. Aucun chiffre ne tranche : seul celui qui a enregistré la prise le peut, en écoutant.
-
-`review.py` parcourt les marques d'une prise, joue le mot comme le modèle le dit puis comme la prise le dit, et écrit le verdict dans `reviews/<prise>.json` — versionné, parce que c'est la même matière qu'`expected.py` : écrit une fois à la main, régénérable par rien.
-
-Le mot entier plutôt que le son seul : soixante millisecondes de phonème ne se jugent pas isolées. Et si rien ne joue, la session s'arrête — juger une marque sans l'entendre serait une supposition écrite comme une réponse.
-
-`boundaries.py` est la seule qualification adossée à une **vérité terrain** plutôt qu'à notre jeu étiqueté : TIMIT annote chaque phone au niveau de l'échantillon, et le corpus acheté n'avait servi que par ses suites de sons. Il ne demande ni synthèse ni clé, et lit `ACOUSTIC_MODEL` comme le reste du banc. Sa mesure décisive est la **durée couverte** — la part de la durée réelle d'un son que le réseau lui accorde.
-
-`recognition.py` pose la seule question qu'aucune autre brique ne pose : **le réseau nomme-t-il les bons sons ?** `faults.py` compare des répartitions et dit explicitement que l'étiquette peut être fausse sans dommage, `boundaries.py` force la séquence attendue donc n'exerce jamais le décodage libre, et `missing_mass.py` lit la masse à des positions qu'on lui désigne. Or la **brique 3 de l'analyse est un décodage libre** : la grille du modèle, à laquelle tout s'ancre. Réserve à porter : cette brique lit la même matrice que les autres — c'est une quatrième question, pas un témoin extérieur.
-
-`join.py -s` est le seul instrument que rien n'automatise : sa règle est `expected.py`, écrite à la main, et elle est indexée sur les sons que le réseau a réellement décodés — elle note donc le modèle contre lequel elle a été écrite et aucun autre. Le compteur de trous qui l'avait précédée rapportait huit défauts là où elle en trouve quinze ; c'est pour ça qu'il n'existe plus.
-
-Les vingt-sept prises étiquetées des blocs A à F vivent dans `out/takes/set/`. Elles ne se régénèrent pas : **si elles comptent, elles se sauvegardent hors du dépôt.**
+`review.py` parcourt les marques d'une prise, joue le mot comme le modèle le dit puis comme la prise le dit, et écrit le verdict dans `reviews/<prise>.json`, versionné. Ce que chaque instrument répond, et ce qu'il ne répond pas, est dans `../docs/qualification.md`.
 
 ## Porter sur le téléphone
 
@@ -132,4 +118,4 @@ L'ordre de `take.py` n'est pas cosmétique : chaque phrase se dit **à froid** a
 
 Les rendus vivent dans `out/`, gitignoré : c'est du cache, régénérable par `-f`. Le matériel synthétique se régénère par script, il ne vit pas en fichiers versionnés.
 
-Les prises, elles, sont dans `out/takes/`, donc gitignorées aussi : c'est une voix, et publier une voix ne se défait pas. Mais elles ne se régénèrent pas non plus — **si elles comptent, elles se sauvegardent hors du dépôt.**
+Les prises, elles, sont dans `out/takes/` — les vingt-sept prises étiquetées des blocs A à F sous `out/takes/set/` — donc gitignorées aussi : c'est une voix, et publier une voix ne se défait pas. Mais elles ne se régénèrent pas non plus — **si elles comptent, elles se sauvegardent hors du dépôt.**
