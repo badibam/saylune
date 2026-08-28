@@ -74,7 +74,7 @@ C'est ainsi qu'une marque atterrit sur une lettre précise. Trois choses la déc
 
 **Cette table n'est pas la table graphème-phonème que le principe 1 refuse.** Le refus protège le jugement : rien d'extérieur ne doit dire ce qui est correct. La brique 4 ne juge rien, elle décide où peindre. La table ne dit jamais comment un mot se prononce, ne porte ni liste de mots ni lexique de dialecte, et répond seulement « telle lettre participe-t-elle à tel son ». Elle vaut quelques kilo-octets et se refuse à se brancher sur un modèle dont elle ne nomme pas l'alphabet.
 
-**Mesuré** (`bench/join.py -s`, contre l'annotation à la main d'`expected.py`, quinze phrases, 236 sons) : **221 sons portent les lettres qu'un humain leur attribue, soit 94 %**, et dix phrases sur quinze sont exactes. Ce qui ne s'en déduit pas : la table et le prix du son vide sont tous deux réglés sur ces quinze phrases, et rien n'a encore tourné ailleurs.
+**Mesuré** (`bench/join.py -s`, contre l'annotation à la main d'`expected.py`) : **231 sons sur 236 portent les lettres qu'un humain leur attribue, soit 98 %**, sur les quinze phrases de calibration. Et **311 sur 326, soit 95 %**, sur les vingt phrases tenues à l'écart, qui n'ont réglé ni table ni prix — c'est le seul des deux chiffres que rien n'a ajusté.
 
 Les deux irrégularités connues restent : une lettre peut porter deux sons (elle prend la couleur du pire), une lettre peut n'en porter aucun (elle reste neutre).
 
@@ -92,7 +92,9 @@ Le même symbole désigne maintenant le même endroit chez les deux. C'est la se
 
 **Mesuré contre une vérité terrain** (`bench/boundaries.py`, 200 énoncés du split TEST de TIMIT, 5971 sons, bornes annotées au niveau de l'échantillon) : le départ d'un son tombe à **25 ms** de sa borne réelle en médiane, 71 ms au 9e décile — la trame de 20 ms posant le plancher. Le treillis n'échoue jamais : aucun son sans place, aucun énoncé refusé.
 
-**Mais la durée n'est pas rendue : un son reçoit 26,9 % de son étendue réelle.** C'est la peakiness du CTC (cf. `design/dense-grid.md`), et elle ne dépend pas des poids — quatre lectures, dont trois checkpoints d'un affinage complet, tiennent dans 0,2 point. La position sert donc, l'étendue non : toute brique qui voudrait lire une **durée** de cette matrice doit le savoir.
+**Mais la durée n'est pas rendue : un son reçoit 26,9 % de son étendue réelle.** C'est la peakiness du CTC — un réseau entraîné en CTC n'est payé que pour rendre la bonne *séquence*, jamais pour couvrir le temps, donc le blank absorbe presque toutes les trames et chaque symbole ne surnage qu'en pic. Elle ne dépend pas des poids : quatre lectures, dont trois checkpoints d'un affinage complet sur un autre dos, tiennent dans 0,2 point. **C'est donc une propriété du régime, pas un défaut des poids retenus.**
+
+**Et elle ne coûte rien, parce que l'étendue d'un son n'a aucun consommateur.** La jointure n'ouvre pas d'horloge (brique 4) ; l'accent et la mélodie lisent des durées de **syllabes**, qui se prennent entre deux débuts de sons — une soustraction de deux positions, jamais une étendue. La position, elle, est bonne à 25 ms. La densité a longtemps été tenue pour le grand mal de ce montage ; elle l'était d'un montage qui n'existe plus, celui où un second réseau à sortie caractères devait être marié à celui-ci dans le temps.
 
 ### 6. Le son — recouvrement de deux formes
 
@@ -138,7 +140,11 @@ AO..AH : groupe R T -- "rt-" illégal, "t-" légal -> coupe après R
 -> IH M / P AO R / T AH N T -> im / por / tant
 ```
 
-Les frontières sont des instants, et les instants donnent des lettres par la brique 4. L'étendue est exacte, pas heuristique.
+**Les lettres d'une syllabe sont celles de ses sons**, réunies — la brique 4 les a déjà posées, et aucune horloge n'entre ici non plus. La syllabe se **compte** sur les sons et se **peint** sur les lettres.
+
+**Mesuré** (`bench/syllables.py`, quinze phrases, voix `eleven-us-eric`) : **34 mots pleins sur 37 reçoivent le bon nombre de noyaux**, et 48 mots outils sur 49. Des trois désaccords, `chair` est une faute du compteur — `ɛ`+`ɝ` est un seul noyau, et c'est la grille qui a raison ; `comfortable` et `important` perdent chacun une syllabe finale non accentuée.
+
+**Aucun noyau accentué n'est perdu sur tout le jeu.** La raison se dit : la voyelle qui disparaît est la voyelle **réduite**, et une voyelle réduite est par définition non accentuée. Ce qui s'en déduit et n'est pas mesuré : un mot dont la syllabe forte porterait une voyelle brève serait le cas à surveiller — il n'y en a pas dans ce jeu.
 
 **Le dialecte se règle tout seul**, puisqu'on syllabe ce que le modèle a réellement prononcé :
 
@@ -404,6 +410,8 @@ Le motif est bon ; le seuil qu'on en avait tiré ne l'est pas. Posé à 0,2 sur 
 
 ## Ce qui départage un modèle acoustique
 
+**Le critère est la fidélité : rendre les sons réellement prononcés.** Il ne se confond pas avec « rendre une belle suite de sons » — un modèle qui devine celle qu'on voulait produire la rend excellente, et c'est exactement celui qui ne verra jamais la faute. La fidélité s'éprouve donc dans les deux sens, sur les prises fautives **et** sur les prises correctes.
+
 Cinq candidats mesurés sur les mêmes prises et le même modèle de voix. Le classement importe moins que ce qui l'explique : deux critères sont sortis des échecs, et ils se vérifient tous les deux **avant** de lancer quoi que ce soit.
 
 | modèle | inventaire | certitude | témoins | fautes vues |
@@ -421,6 +429,13 @@ Cinq candidats mesurés sur les mêmes prises et le même modèle de voix. Le cl
 Deux critères de forme, moins profonds mais éliminatoires. L'inventaire doit être fait de **sons entiers** et non de caractères : `mrrubino` et `speech31`, écartés sur pièces, coupent `aɪ` en deux, ce qui prive la syllabification de toute unité à quoi se raccrocher. Et les poids doivent porter une **licence libre vérifiable** : `charsiu` est publié nu, sans fiche ni licence, le dépôt de code MIT ne couvrant pas un artefact hébergé ailleurs.
 
 Ce que le classement ne dit pas : `excalibur12` part du **même encodeur pré-entraîné** que le multilingue et se fait battre par lui. La différence tient entièrement à l'affinage, pas à l'architecture.
+
+### Ce qui a été examiné puis écarté
+
+- **Un modèle framewise en troisième réseau, pour la seule grille** (charsiu, `wav2textgrid`). Écarté sur objection juste : ça répare la case, pas la mesure. La répartition du modèle *lue dans la case* viendrait toujours de la matrice CTC, vide à cet endroit — l'apprenant qui prononce bien le son y opposerait une répartition pleine à une répartition vide, donc une divergence forte : **marqué pour avoir eu raison**. S'ajoutent une table de correspondance entre deux inventaires et 190 à 380 Mo.
+- **`charsiu` embarqué** : poids publiés nus, sans fiche ni licence — le dépôt de code MIT ne couvre pas un artefact hébergé ailleurs.
+- **MMS_FA embarqué** : licence CC-BY-NC, et alphabet **lettres** (~28 symboles romanisés) — même libre, il ne saurait pas dire « ici un /k/ ». Reste mesurable localement comme témoin d'une recette, jamais comme pièce de l'app.
+- **Un second réseau à sortie caractères**, qui ancrait les mesures au texte : construit, mesuré, **retiré**. Il rendait la même jointure à un son près, pour 191 Mo de poids et une passe de plus.
 
 ### L'arrondi ne prend que le milieu
 

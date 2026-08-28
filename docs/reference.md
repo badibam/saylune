@@ -12,7 +12,6 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
-- `design/dense-grid.md` — pourquoi la grille perd un son sur huit (la peakiness du CTC), la preuve que les poids ne voient pas les sons manqués, et le plan qui en est sorti.
 
 ## Le geste
 
