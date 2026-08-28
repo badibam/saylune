@@ -3,4 +3,7 @@
     <string name="app_name">Speakup</string>
     <string name="sample_multi_fault_turn">Tour multi-fautes</string>
     <string name="sample_clean_turn">Tour propre</string>
+    <string name="measured_turn">Tour mesuré — %1$s</string>
+    <string name="no_turn_file">Aucun tour mesuré. Produire avec bench/turn.py, puis pousser dans %1$s</string>
+    <string name="gutter_sounds">%1$d son(s) tombent dans un intervalle et ne sont pas encore dessinés</string>
 </resources>

@@ -3,4 +3,7 @@
     <string name="app_name">Speakup</string>
     <string name="sample_multi_fault_turn">Multi-fault turn</string>
     <string name="sample_clean_turn">Clean turn</string>
+    <string name="measured_turn">Measured turn — %1$s</string>
+    <string name="no_turn_file">No measured turn. Write one with bench/turn.py, then push it to %1$s</string>
+    <string name="gutter_sounds">%1$d sound(s) fall between letters and are not drawn yet</string>
 </resources>
