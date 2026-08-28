@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""Listen to what was marked, and say whether it is a fault.
+"""What the analysis claims about one take, put to the person who recorded it.
 
 The labelled set answers for one sound per take -- the one it was built around
--- and says nothing of the thirteen others. So a take called a control is a
+-- and says nothing of the other thirteen. So a take called a control is a
 control on that sound alone, and reading its other marks as false alarms is a
-guess. Nobody can settle it from the numbers: the only person who can is the one
-who recorded the take, by listening.
+guess. No number settles it.
 
-This walks the marks of one take, plays the word as the model says it and then
-as the take says it, and writes down the verdict:
+What is asked here is not whether a sound was well said, which would need a norm
+this montage refuses to hold. It is whether the claim **holds together**: the
+model says this, the network heard that, here is the word on both sides -- does
+that read as one thing?
 
     python3 review.py 15-right-clean -m turn-right-long
 
 Verdicts land in `reviews/<take>.json`, versioned, because they are the same
-kind of thing as `expected.py` -- written once by hand, regenerable by nothing.
+matter as `expected.py`: written once by hand, regenerable by nothing.
 """
 
 import argparse
@@ -33,22 +34,24 @@ import phrases
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes" / "set"
 RENDERS = HERE / "out" / "renders"
+MATRICES = HERE / "out" / "matrices"
 REVIEWS = HERE / "reviews"
 
 # The ramp of `MarkingColors.kt` ignores anything under 5 points, and points are
-# the gap times a hundred. Marking what the screen would not draw would ask
+# the gap times a hundred: asking about what the screen would not draw would ask
 # about something nobody will ever see.
 NOISE = 0.05
 
 # A phoneme lasts sixty milliseconds and is not judgeable alone; the word is.
 PAD = 0.06
 
+# How much of a spread to show. Past three the tail is noise, and the claim is
+# in the head of it.
+SHOWN = 3
 
-# Whichever of these the machine has. Any of them plays the file and none
-# changes what is heard, so the order is about honesty rather than quality:
-# `paplay` and `aplay` fail loudly when no sound card opens, `ffplay` reports
-# success either way, which makes it useless as a witness and fine as a last
-# resort.
+# Any of these plays the file and none changes what is heard, so the order is
+# about honesty: `paplay` and `aplay` fail loudly when no sound card opens,
+# `ffplay` reports success either way -- a poor witness, an acceptable last one.
 PLAYERS = (["paplay"], ["aplay", "-q"], ["ffplay", "-nodisp", "-autoexit",
                                          "-loglevel", "quiet"])
 
@@ -56,14 +59,11 @@ PLAYERS = (["paplay"], ["aplay", "-q"], ["ffplay", "-nodisp", "-autoexit",
 def play(wav, low, high, chosen):
     """The stretch, on the speakers, through a file rather than a pipe.
 
-    The player is settled on the first stretch actually played and remembered
-    after that: asking a machine whether it can play, without playing, does not
-    work -- every one of these fails on an empty file whether or not the sound
-    card opens.
-
-    Judging a mark without hearing it is worse than not judging it, since the
-    verdict would be a guess written down as an answer. So a stretch that plays
-    nowhere stops the session rather than letting it run.
+    The player is settled on the first stretch actually played: asking a machine
+    whether it can play, without playing, does not work -- every one of these
+    fails on an empty file whether or not the sound card opens. And a stretch
+    that plays nowhere is fatal, since a verdict given without hearing would be
+    a guess written into the file as an answer.
     """
     audio, rate = sf.read(wav)
     first = max(0, int((low - PAD) * rate))
@@ -84,6 +84,25 @@ def play(wav, low, high, chosen):
                      "écrite comme une réponse")
 
 
+def heard(probabilities, span):
+    """The head of what the network heard over a stretch, as it writes it.
+
+    Naming the sound produced is the least reliable thing an acoustic machine
+    renders, and the analysis deliberately does not depend on it. It is shown
+    here and nowhere else, because a claim one cannot read is a claim one cannot
+    contradict.
+    """
+    spread, _ = overlap.spread(probabilities, span)
+    if spread is None:
+        return "—"
+    # `spread` is indexed over the spoken columns alone, silence and notation
+    # dropped, so a position in it is not a position in the alphabet.
+    names = [matrix.symbols()[column] for column in matrix.spoken()]
+    order = sorted(range(len(spread)), key=lambda i: -spread[i])[:SHOWN]
+    return "  ".join(f"{names[i]} {spread[i]:.2f}"
+                     for i in order if spread[i] >= 0.01)
+
+
 def words(sounds):
     """Each sound's word, as the run of sounds that share it."""
     runs, start = [], 0
@@ -94,6 +113,14 @@ def words(sounds):
     return {index: run for run in runs for index in range(*run)}
 
 
+def shown(text, spots):
+    """The sentence with the marked letters raised, so the claim has a place."""
+    if not spots:
+        return text
+    low, high = min(spots), max(spots) + 1
+    return f"{text[:low]}[{text[low:high]}]{text[high:]}"
+
+
 def ask(prompt):
     """A verdict, or None on Ctrl+C -- never a traceback (cf. `cli-interactif`)."""
     try:
@@ -101,6 +128,9 @@ def ask(prompt):
     except (EOFError, KeyboardInterrupt):
         print()
         return None
+
+
+VERDICTS = {"o": "cohérent", "n": "incohérent", "?": "incertain"}
 
 
 def main(argv=None):
@@ -117,53 +147,62 @@ def main(argv=None):
         if not overlap.readable(wav):
             raise SystemExit(f"{wav} manque ou est trop court")
 
-    gaps = overlap.sounds(model, learner, f"sentences-{options.candidate}",
-                          options.take, options.model)
+    tag = f"sentences-{options.candidate}"
+    gaps = overlap.sounds(model, learner, tag, options.take, options.model)
     sounds = join.joined(model, text)
     if len(gaps) != len(sounds):
         raise SystemExit(f"{len(gaps)} sons comparés contre {len(sounds)} "
                          "joints — la prise n'est pas lisible ainsi")
 
-    speaker = None
+    # The same two matrices `overlap` just read, from the same caches: what it
+    # reduced to one number is shown here in full.
+    model_spread = matrix.probabilities(
+        model, cache=MATRICES / tag / f"{options.model}.npz")
+    take_spread = matrix.probabilities(
+        learner, cache=MATRICES / options.take / f"{options.model}.npz")
+    grid = matrix.grid(model_spread)
+
     step = matrix.seconds_per_frame()
     grouped = words(sounds)
     marked = [index for index, gap in enumerate(gaps) if gap.value > NOISE]
     print(f"\n{text}\n{len(marked)} marques sur {len(gaps)} sons\n")
-    print("  f = faute   c = correct   ? = je ne sais pas   "
+    print("  o = cohérent   n = incohérent   ? = incertain   "
           "r = réécouter   q = quitter\n")
 
-    verdicts = {}
+    verdicts, speaker = {}, None
     for index in marked:
         gap, sound = gaps[index], sounds[index]
         low, high = grouped[index]
-        letters = "".join(text[at] for at in sound.spots) or "—"
-        # The word, on both sides: the model's stretch from its own grid, the
-        # take's from where the alignment put those same sounds.
         model_span = (sounds[low].low, sounds[high - 1].high)
         frames = [gaps[i].span for i in range(low, high) if gaps[i].span]
         take_span = (min(s[0] for s in frames) * step,
                      max(s[1] for s in frames) * step) if frames else None
+        _, start, stop = grid[index]
         while True:
-            print(f"  /{sound.symbol}/ « {letters} » dans « {sound.word} »"
-                  f"   {gap.value * 100:.1f} points")
+            print(f"  {shown(text, sound.spots)}")
+            print(f"     le modèle dit   {heard(model_spread, (start, stop))}")
+            print(f"     ta prise dit    {heard(take_spread, gap.span)}")
+            print(f"     mot « {sound.word} », son /{sound.symbol}/, "
+                  f"{gap.value * 100:.1f} points")
             print("     modèle…", flush=True)
             speaker = play(model, *model_span, speaker)
             if take_span:
                 print("     ta prise…", flush=True)
                 speaker = play(learner, *take_span, speaker)
             answer = ask("     ? ")
-            if answer is None or answer == "q":
+            if answer != "r":
                 break
-            if answer == "r":
-                continue
-            verdicts[str(index)] = {"symbol": sound.symbol, "letters": letters,
-                                    "word": sound.word,
-                                    "points": round(gap.value * 100, 2),
-                                    "verdict": {"f": "faute", "c": "correct"}
-                                    .get(answer, "incertain")}
-            break
         if answer is None or answer == "q":
             break
+        verdicts[str(index)] = {
+            "symbol": sound.symbol, "word": sound.word,
+            "letters": "".join(text[at] for at in sound.spots),
+            "points": round(gap.value * 100, 2),
+            "model": heard(model_spread, (start, stop)),
+            "take": heard(take_spread, gap.span),
+            "verdict": VERDICTS.get(answer, "incertain"),
+        }
+        print()
 
     if not verdicts:
         print("\n  rien de jugé, rien d'écrit")
@@ -178,7 +217,7 @@ def main(argv=None):
     counts = {}
     for mark in verdicts.values():
         counts[mark["verdict"]] = counts.get(mark["verdict"], 0) + 1
-    print(f"\n  {out}")
+    print(f"  {out}")
     print("  " + "   ".join(f"{name} {n}" for name, n in sorted(counts.items())))
     return 0
 
