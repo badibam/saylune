@@ -78,7 +78,7 @@ La syllabe **porte** l'accent et la hauteur, mais elle n'est la portée d'aucun 
 
 **Les trois s'ancrent aux mêmes caractères du texte affiché** — chaque son connaît les lettres qu'il couvre, chaque syllabe sa sous-chaîne, et la mélodie se pose sur ces mêmes groupes. Ce sont trois propriétés d'une seule chaîne, pas trois analyses à superposer. C'est ce qui rend possible de les marquer **d'un seul mouvement**, et la forme de ce marquage reste à trouver.
 
-Deux irrégularités à prévoir : une lettre peut porter deux sons, et une lettre peut n'en porter aucun.
+Trois irrégularités à prévoir : une lettre peut porter deux sons, une lettre peut n'en porter aucun, et **un son peut ne porter aucune lettre**. La troisième est mesurée à 1,4 % des sons du banc, et se sépare en deux causes qui n'appellent pas le même geste — la lettre déjà prise par le son voisin (le `x` de `boxes`, qui écrit /k/ puis /s/), et la voyelle que l'orthographe n'écrit pas du tout (le schwa de `doesn't`). Le marquage doit servir les deux, sans quoi une faute trouvée reste invisible.
 
 **Les trois échelles sont disponibles partout où le modèle l'est** : elles se lisent toutes de la même matrice, et aucune ne dépend d'un lexique qui existerait dans un dialecte et pas dans l'autre. L'accent choisi change la voix du modèle, jamais ce qui est mesurable.
 
