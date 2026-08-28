@@ -50,7 +50,10 @@ COVERED = {
                        "th", "e", "o", "ff", "i", "c"],
     "comfortable": ["Th", "e", "ch", "ai", "r", "s", "v", "er", "y", "c", "o",
                     "m", "f", "t", "a", "b", "le"],
-    "doesnt-know": ["H", "e", "d", "oe", "s", "n", "kn", "ow"],
+    # Nothing writes the vowel of `-n't`, and the one /n/ the grid reads is
+    # the one `know` starts with, so the `n` of `doesn't` writes nothing
+    # either.
+    "doesnt-know": ["H", "e", "d", "oe", "s", "", "kn", "ow"],
     "school": ["I", "g", "o", "t", "o", "s", "ch", "oo", "l", "e", "v", "r",
                "y", "d", "ay"],
     "market": ["Y", "e", "s", "t", "er", "d", "ay", "I", "w", "e", "n", "t",
