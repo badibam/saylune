@@ -79,7 +79,19 @@ python3 turn.py 01-sink -m think -o ../tmp/turn.json
 
 Deux canaux sortent vides et le resteront jusqu'aux briques 7 et 8 : l'accent et la mélodie passent tous deux par `syllables`, qu'aucun code ne calcule encore.
 
-Ce que `turn.py` montre et qu'aucune qualification ne montrait : **le tour entier**. `faults.py` ne lit que le son étiqueté fautif et son témoin ; ici tout se peint, y compris ce qui diverge pour de bonnes raisons.
+Ce que `turn.py` montre et qu'aucune qualification ne montrait : **le tour entier**. `faults.py` ne lit que le son étiqueté fautif et son témoin ; ici tout se peint, et le tour entier porte 2 à 6 marques, témoins compris.
+
+## Juger
+
+```
+python3 review.py 15-right-clean -m turn-right-long
+```
+
+Le jeu d'essai répond pour **un** son par prise, celui autour duquel il a été bâti. Une prise dite témoin est donc un témoin sur ce son-là et sur rien d'autre, et lire ses autres marques comme des fausses alertes est une supposition. Aucun chiffre ne tranche : seul celui qui a enregistré la prise le peut, en écoutant.
+
+`review.py` parcourt les marques d'une prise, joue le mot comme le modèle le dit puis comme la prise le dit, et écrit le verdict dans `reviews/<prise>.json` — versionné, parce que c'est la même matière qu'`expected.py` : écrit une fois à la main, régénérable par rien.
+
+Le mot entier plutôt que le son seul : soixante millisecondes de phonème ne se jugent pas isolées. Et si rien ne joue, la session s'arrête — juger une marque sans l'entendre serait une supposition écrite comme une réponse.
 
 `boundaries.py` est la seule qualification adossée à une **vérité terrain** plutôt qu'à notre jeu étiqueté : TIMIT annote chaque phone au niveau de l'échantillon, et le corpus acheté n'avait servi que par ses suites de sons. Il ne demande ni synthèse ni clé, et lit `ACOUSTIC_MODEL` comme le reste du banc. Sa mesure décisive est la **durée couverte** — la part de la durée réelle d'un son que le réseau lui accorde.
 
