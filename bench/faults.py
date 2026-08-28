@@ -12,9 +12,13 @@ read against the same model. What is compared is a labelled sound to a labelled
 sound, never a sentence average.
 
 The worst sound of the whole utterance is printed beside it, and the two do not
-say the same thing. A learner saying "you're" where the model says "you are"
-diverges hugely and legitimately, on a clean take as much as on a faulty one --
-which is why the sentence maximum is not a marking policy.
+say the same thing. A take labelled clean was labelled clean on the one sound
+being tested and on nothing else, so its worst sound is regularly a real fault
+nobody wrote down -- `you're` for the model's `you are`, `t ʊ` for its reduced
+`t ə`. Those are faults, not noise: if the text says `you are`, saying `you're`
+is a fault, or there is no reference left at all (`../docs/analysis.md`). What
+the sentence maximum is not is a *choice of which sound to mark*, which is a
+question this bench never asks.
 
 Blocks A, C and D only. The grammar block asks a different question, and prosody
 and stress are other scales -- bricks 7 and 10, not this one.
