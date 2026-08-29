@@ -21,7 +21,7 @@ Le soin ne baisse pas, il change d'endroit : il quitte le *fini* pour aller aux 
 Dans l'ordre :
 
 1. ~~Clés et écran de configuration~~ — fait. Reste le **fini que `docs/reference.md` réclame et qui n'est pas facultatif à terme** : le bouton « tester la clé » qui valide sur-le-champ, sans quoi toute panne ultérieure sera imputée à l'app ; l'écran guidé ; et la sonde de capacités, un appel par fonction optionnelle, qui allume ou éteint les briques au lieu de deviner d'après le plan souscrit.
-2. **La capture** : micro → fichier PCM 16 kHz mono conservé. Le mode retenu par `design/ui-flow.md` (armement automatique, un tap pour clore) ne borne pas la durée par lui-même, or la mémoire d'une passe croît comme le **carré** du tour — 4316 Mo sur une minute. Il faut donc un plafond franc et visible, tant que le fenêtrage n'est pas tranché.
+2. ~~La capture~~ — faite, en **maintien avec reprise** (relâcher pour réfléchir, réappuyer pour continuer le même tour), ce qui remplace l'armement automatique que `design/ui-flow.md` avait retenu — le doc de conception est à élaguer sur ce point. Deux provisoires qui sautent ensemble : le **plafond de 30 s**, qui existe parce que la mémoire d'une passe croît comme le carré du tour et disparaît quand le fenêtrage est tranché ; et le **retrait des plages vides**, dont le seuil de niveau attend des tours spontanés hésitants — que l'app produit désormais.
 3. **La boucle** : reconnaissance → modèle de langue → synthèse → lecture, sur un écran de conversation nu.
 4. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
 
