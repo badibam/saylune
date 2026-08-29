@@ -21,7 +21,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import app.speakup.capture.TurnRecorder
 import app.speakup.keys.SecretStore
+import app.speakup.ui.ConversationScreen
 import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.SettingsScreen
 
@@ -29,10 +31,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val store = SecretStore(applicationContext)
+        val recorder = TurnRecorder(applicationContext)
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    Root(store)
+                    Root(store, recorder)
                 }
             }
         }
@@ -48,16 +51,27 @@ class MainActivity : ComponentActivity() {
  * orientation lock is declared.
  */
 @Composable
-private fun Root(store: SecretStore) {
+private fun Root(store: SecretStore, recorder: TurnRecorder) {
     var showingSettings by rememberSaveable { mutableStateOf(false) }
+    var showingMarks by rememberSaveable { mutableStateOf(false) }
 
-    BackHandler(enabled = showingSettings) { showingSettings = false }
+    BackHandler(enabled = showingSettings || showingMarks) {
+        showingSettings = false
+        showingMarks = false
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
+            TextButton(onClick = { showingMarks = !showingMarks; showingSettings = false }) {
+                Text(
+                    stringResource(
+                        if (showingMarks) R.string.conversation_open else R.string.measured_marks
+                    )
+                )
+            }
             TextButton(onClick = { showingSettings = !showingSettings }) {
                 Text(
                     stringResource(
@@ -69,8 +83,10 @@ private fun Root(store: SecretStore) {
         Box(modifier = Modifier.weight(1f)) {
             if (showingSettings) {
                 SettingsScreen(store, modifier = Modifier.fillMaxSize())
-            } else {
+            } else if (showingMarks) {
                 MarkingPrototypeScreen()
+            } else {
+                ConversationScreen(recorder, modifier = Modifier.fillMaxSize())
             }
         }
     }

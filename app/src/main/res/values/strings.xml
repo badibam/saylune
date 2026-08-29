@@ -17,4 +17,15 @@
     <string name="secret_deepseek_key">DeepSeek — API key</string>
     <string name="secret_elevenlabs_key">ElevenLabs — key</string>
     <string name="settings_close">Back</string>
+    <string name="capture_hold">Hold to speak</string>
+    <string name="capture_recording">Recording — %1$s</string>
+    <string name="capture_held">%1$s recorded. Press again to carry on.</string>
+    <string name="capture_full">Ceiling reached: a turn stops at %1$d seconds while the analysis pass is not windowed.</string>
+    <string name="capture_redo">Redo</string>
+    <string name="capture_send">Send</string>
+    <string name="capture_permission">Speakup needs the microphone to hear your turn.</string>
+    <string name="capture_grant">Allow the microphone</string>
+    <string name="capture_kept">Turn kept: %1$s</string>
+    <string name="conversation_open">Conversation</string>
+    <string name="measured_marks">Marks</string>
 </resources>
