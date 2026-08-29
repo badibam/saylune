@@ -66,7 +66,7 @@ CANDIDATES = {
     **{f"v3-pw{weight}-e{epoch}": Candidate(
         str(ROOT / f"tmp/train/runs-v3/v3-pw{weight}/epoch-{epoch:03d}"),
         "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
-       for weight in ("0.0", "0.1")
+       for weight in ("0.0", "0.1", "0.3")
        for epoch in (9, 19, 29)},
 }
 
