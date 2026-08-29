@@ -98,12 +98,16 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                 "points low / median / high" to points.takeIf { it.isNotEmpty() }?.let {
                     "%.1f / %.1f / %.1f".format(it.first(), it[it.size / 2], it.last())
                 },
+            )
+            // To the log alone. On the screen these two wrapped into nonsense; what the
+            // screen shows is laid out instead, under the turn itself.
+            Trace.wide(
+                "analysis: the whole table, times included",
                 "sounds" to Readout.table(
                     text, reading.gaps, sounds, drawn.phonemes,
                     reading.grid, reading.dropped, step, NOISE_BAND,
                 ),
-                "spreads: what was actually compared" to
-                    Readout.spreads(reading.gaps, sounds, step),
+                "spreads" to Readout.spreads(reading.gaps, sounds, step),
             )
 
             // Stress and melody stay empty, and that is not an omission to fill in later

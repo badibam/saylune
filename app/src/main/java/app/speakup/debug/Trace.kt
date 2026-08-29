@@ -54,10 +54,20 @@ object Trace {
         add("— turn —")
     }
 
-    fun add(name: String, vararg bricks: Pair<String, String?>) = record(name, false, bricks)
+    fun add(name: String, vararg bricks: Pair<String, String?>) = record(name, false, bricks, true)
+
+    /**
+     * To logcat and not to the screen, for what is too wide to be read on a phone.
+     *
+     * A monospace table wide enough to be complete is wider than any phone, and shown in a
+     * dialog it wraps into nonsense -- which is a worse way to say something than not saying
+     * it. In the log the width costs nothing. What the screen needs instead is laid out
+     * rather than written out (`../ui/AnalysisReadout.kt`).
+     */
+    fun wide(name: String, vararg bricks: Pair<String, String?>) = record(name, false, bricks, false)
 
     /** Same, but the step is the one that gave way. */
-    fun fail(name: String, vararg bricks: Pair<String, String?>) = record(name, true, bricks)
+    fun fail(name: String, vararg bricks: Pair<String, String?>) = record(name, true, bricks, true)
 
     fun clear() {
         origin = SystemClock.elapsedRealtime()
@@ -69,9 +79,15 @@ object Trace {
         if (body.length <= BODY_CEILING) body
         else body.take(BODY_CEILING) + "\n\n[cut here — ${body.length} chars in all]"
 
-    private fun record(name: String, failed: Boolean, bricks: Array<out Pair<String, String?>>) {
+    private fun record(
+        name: String,
+        failed: Boolean,
+        bricks: Array<out Pair<String, String?>>,
+        onScreen: Boolean,
+    ) {
         if (!on) return
         val step = Step(
+            onScreen = onScreen,
             name = name,
             atMs = SystemClock.elapsedRealtime() - origin,
             failed = failed,
@@ -100,6 +116,8 @@ data class Step(
     val atMs: Long,
     val bricks: List<Brick>,
     val failed: Boolean = false,
+    /** False for a step the log carries and the panel does not: see [Trace.wide]. */
+    val onScreen: Boolean = true,
 )
 
 /**

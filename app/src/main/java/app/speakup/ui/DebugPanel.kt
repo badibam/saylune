@@ -60,7 +60,7 @@ fun DebugPanel(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TextButton(onClick = { open = !open }) {
-                Text(stringResource(R.string.debug_steps, steps.size))
+                Text(stringResource(R.string.debug_steps, steps.count { it.onScreen }))
             }
             if (open && steps.isNotEmpty()) {
                 TextButton(onClick = { Trace.clear() }) {
@@ -78,7 +78,7 @@ fun DebugPanel(modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        steps.forEach { step -> Recorded(step) { opened = it } }
+        steps.filter { it.onScreen }.forEach { step -> Recorded(step) { opened = it } }
     }
 
     opened?.let { brick ->
