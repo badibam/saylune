@@ -121,13 +121,17 @@ def read(voice, take):
         return None
 
     order = [word for word, _ in spoken]
-    largest = {}
+    spread = {}
     for gap in gaps:
-        word = sounds[gap.rank].word
-        largest[word] = max(largest.get(word, 0.0), gap.value)
+        spread.setdefault(sounds[gap.rank].word, []).append(gap.value)
+    # Every sound of the word, not only the largest: the maximum says a mark
+    # would fall, and cannot say whether one sound came loose or the whole word
+    # sits apart -- which is the difference between a fault and a voice that
+    # never matches this model anywhere.
     return [{"word": written.text, "state": written.state,
              "stress": written.stress,
-             "gap": largest.get(name)}
+             "gap": max(spread[name]) if name in spread else None,
+             "sounds": [round(value, 4) for value in spread.get(name, ())]}
             for name, written in zip(order, take.words)]
 
 
@@ -150,6 +154,37 @@ def quantile(values, q):
     return sorted(values)[int(q * (len(values) - 1))]
 
 
+def localised(seen, threshold=0.05):
+    """Of a marked word's sounds, how many are marked too.
+
+    A word is one number above -- the largest gap among its sounds -- and that
+    number cannot tell a sound that came loose from a word that sits apart from
+    the model everywhere. This reads the same rows again and asks how much of
+    the word the mark covers. A threshold has to be named to ask the question
+    at all; it is this reading's own, and nothing else in the bench is held to
+    it.
+
+    Words of a single sound are left out: the share is 1 by construction.
+    """
+    print(f"\n    marque localisée ou mot entier ? (mots au-dessus de "
+          f"{threshold}, 2 sons ou plus)")
+    print(f"    {'verdict':<10}{'mots':>6}{'sons/mot':>10}"
+          f"{'part du mot marquée':>22}{'mot entier':>13}")
+    for label in learners.LABELS:
+        chosen = [row for row in seen
+                  if row["state"] == label and row["gap"] > threshold
+                  and len(row["sounds"]) >= 2]
+        if not chosen:
+            continue
+        shares = [sum(1 for v in row["sounds"] if v > threshold)
+                  / len(row["sounds"]) for row in chosen]
+        whole = sum(1 for share in shares if share == 1.0) / len(shares)
+        print(f"    {label:<10}{len(chosen):>6}"
+              f"{statistics.median(len(r['sounds']) for r in chosen):>10.1f}"
+              f"{100 * statistics.median(shares):>21.1f}%"
+              f"{100 * whole:>12.1f}%")
+
+
 def report(voice, rows, refused):
     seen = [row for row in rows if row["gap"] is not None]
     silent = len(rows) - len(seen)
@@ -164,6 +199,8 @@ def report(voice, rows, refused):
         print(f"    {label:<10}{len(values):>6}"
               f"{statistics.median(values):>10.3f}"
               f"{quantile(values, 0.9):>9.3f}{max(values):>9.3f}")
+
+    localised(seen)
 
     print(f"\n    dérivé des chiffres ci-dessus, aucun seuil n'est posé :")
     print(f"    {'seuil':<10}" + "".join(f"{label:>10}"
