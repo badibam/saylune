@@ -14,6 +14,11 @@ does: it aligns two readings of the same audio in time, keeps the places where
 they name a different sound, plays the **whole word** -- sixty milliseconds are
 not judgeable alone, the lesson of `review.py` -- and counts who was right.
 
+The two readings are put **blind**: which one is A and which is B is drawn per
+case, their names are never shown while judging, and the draw is written into
+the verdict. A judge who knows which model is the incumbent is answering a
+question about the incumbent, not about the sound.
+
 Sounds that are simply *missing* need no ear: `syllables.py` counts them.
 
     python3 divergence.py -r timit-ipa -r v3-pw0.1-e29 -n     # combien, et où
@@ -31,6 +36,7 @@ resumes where it stopped: they are the same matter as `expected.py` and
 
 import argparse
 import json
+import random
 from pathlib import Path
 
 import numpy as np
@@ -61,6 +67,13 @@ NEAR = 0.08
 SAME, OTHER, ALONE = 2.0, 0.5, -0.6
 
 ANSWERS = {"a": None, "b": None, "n": "aucun", "?": "incertain"}
+
+# The listening speeds, on their own keys. A vowel is what has to be placed and
+# it goes by before the ear catches it, so the word arrives already stretched;
+# a third of speed is there for the pairs half speed does not open. Full speed
+# stays reachable, because a stretched word is a processed signal and the
+# stretcher decides some of what is heard.
+SPEEDS = {"5": 0.5, "3": 0.33, "1": 1.0}
 
 
 def reading(wav, name, tag, slug):
@@ -203,8 +216,9 @@ def main(argv=None):
     # possible for an ear that does not read IPA. `-s 1` gives the word back
     # unprocessed, which stays the reference when the stretch is in doubt.
     parser.add_argument("-s", "--slow", type=float, default=0.5,
-                        help="la vitesse de lecture, hauteur conservée "
-                             "(défaut 0.5, deux fois plus lent ; 1 = telle quelle)")
+                        help="la vitesse à laquelle un mot arrive, hauteur "
+                             "conservée (défaut 0.5 ; les touches 5/3/1 "
+                             "rejouent à 0.5, 0.33 ou vitesse pleine)")
     options = parser.parse_args(argv)
     if len(options.reading) != 2:
         raise SystemExit("deux lectures, ni plus ni moins : -r <a> -r <b>")
@@ -235,34 +249,45 @@ def main(argv=None):
         alone += len(rows) - len(heard)
         seen += len(heard)
         print(f"\n{text}   ({slug})")
-        for kind, rank, other, one, two, word in rows:
-            mark = "seul" if kind == "seul" else ""
-            print(f"  {word:<14}{expected.like(one):>14} | "
-                  f"{expected.like(two):<14}  {mark}")
         if options.dry_run:
+            # Only here: the table's columns are the two readings in the order
+            # they were named, so reading it before judging says which is which.
+            for kind, rank, other, one, two, word in rows:
+                mark = "seul" if kind == "seul" else ""
+                print(f"  {word:<14}{expected.like(one):>14} | "
+                      f"{expected.like(two):<14}  {mark}")
             continue
         for kind, rank, other, one, two, word in heard:
             key = f"{slug}:{rank}"
             if key in given:
                 continue
             low, high = stretch(grids[0], words[0], rank, word)
+            # Drawn per case rather than per sentence: one draw for a whole
+            # sentence would be learnable from the first word of it.
+            sides = [(first, one), (second, two)]
+            random.shuffle(sides)
             print(f"\n  mot « {word} »"
-                  f"\n    a — {first}  entend  {expected.like(one)}"
-                  f"\n    b — {second}  entend  {expected.like(two)}")
+                  f"\n    A  entend  {expected.like(sides[0][1])}"
+                  f"\n    B  entend  {expected.like(sides[1][1])}")
+            speed = options.slow
             while True:
-                chosen = review.play(wav, low, high, chosen, options.pad,
-                                     options.slow)
-                answer = review.ask(f"  a={first}  b={second}  "
-                                    f"n=aucun  ?=incertain  r=réécouter  q  ")
+                chosen = review.play(wav, low, high, chosen, options.pad, speed)
+                answer = review.ask("  a  b  n=aucun  ?=incertain  "
+                                    "5/3/1=vitesse  r=réécouter  q  ")
                 if answer is None or answer == "q":
                     book.write_text(json.dumps(given, ensure_ascii=False,
                                                indent=2), encoding="utf-8")
                     return 0
+                if answer in SPEEDS:
+                    speed = SPEEDS[answer]
+                    continue
                 if answer == "r":
                     continue
                 if answer in ANSWERS:
                     given[key] = {"mot": word, first: one, second: two,
-                                  "juste": {"a": first, "b": second}.get(
+                                  "A": sides[0][0],
+                                  "juste": {"a": sides[0][0],
+                                            "b": sides[1][0]}.get(
                                       answer, ANSWERS[answer])}
                     book.write_text(json.dumps(given, ensure_ascii=False,
                                                indent=2), encoding="utf-8")
