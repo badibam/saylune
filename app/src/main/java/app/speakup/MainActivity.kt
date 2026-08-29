@@ -22,6 +22,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.speakup.capture.TurnRecorder
+import app.speakup.conversation.TurnPipeline
+import app.speakup.providers.AzureRecognition
+import app.speakup.providers.DeepseekConversation
+import app.speakup.providers.ElevenLabsSynthesis
 import app.speakup.keys.SecretStore
 import app.speakup.ui.ConversationScreen
 import app.speakup.ui.MarkingPrototypeScreen
@@ -32,10 +36,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val store = SecretStore(applicationContext)
         val recorder = TurnRecorder(applicationContext)
+        val pipeline = TurnPipeline(
+            context = applicationContext,
+            store = store,
+            recognition = AzureRecognition(store),
+            conversation = DeepseekConversation(store),
+            synthesis = ElevenLabsSynthesis(applicationContext, store),
+        )
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    Root(store, recorder)
+                    Root(store, recorder, pipeline)
                 }
             }
         }
@@ -51,7 +62,7 @@ class MainActivity : ComponentActivity() {
  * orientation lock is declared.
  */
 @Composable
-private fun Root(store: SecretStore, recorder: TurnRecorder) {
+private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipeline) {
     var showingSettings by rememberSaveable { mutableStateOf(false) }
     var showingMarks by rememberSaveable { mutableStateOf(false) }
 
@@ -86,7 +97,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder) {
             } else if (showingMarks) {
                 MarkingPrototypeScreen()
             } else {
-                ConversationScreen(recorder, modifier = Modifier.fillMaxSize())
+                ConversationScreen(recorder, pipeline, modifier = Modifier.fillMaxSize())
             }
         }
     }

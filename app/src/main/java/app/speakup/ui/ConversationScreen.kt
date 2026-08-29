@@ -20,44 +20,51 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import app.speakup.R
 import app.speakup.capture.TurnRecorder
+import app.speakup.chain.Exchange
+import app.speakup.conversation.Phase
+import app.speakup.conversation.TurnPipeline
 import kotlinx.coroutines.launch
-import java.io.File
 
 /**
- * The turn: hold to speak, release to think, press again to carry on, send when it is said.
+ * The turn, end to end: hold to speak, release to think, press again to carry on, send.
  *
- * Only the capture is wired. What the sent file goes on to -- recognition, the language
- * model, the voice coming back, the marks -- is the next step, and this screen is where it
- * lands (`../../../../../../TODO.md`, chantier 0).
+ * The marks are not here yet -- the analysis is step 4, and this is where it will land. The
+ * screen is bare on purpose; its shape is what the real use of these turns is meant to
+ * decide (`../../../../../../TODO.md`, chantier 0).
  */
 @Composable
-fun ConversationScreen(recorder: TurnRecorder, modifier: Modifier = Modifier) {
+fun ConversationScreen(
+    recorder: TurnRecorder,
+    pipeline: TurnPipeline,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val state by recorder.state.collectAsState()
+    val capture by recorder.state.collectAsState()
+    val turn by pipeline.state.collectAsState()
     var granted by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
                 PackageManager.PERMISSION_GRANTED
         )
     }
-    var kept by remember { mutableStateOf<File?>(null) }
     val ask = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted = it }
@@ -65,7 +72,7 @@ fun ConversationScreen(recorder: TurnRecorder, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (!granted) {
             Text(
@@ -79,10 +86,36 @@ fun ConversationScreen(recorder: TurnRecorder, modifier: Modifier = Modifier) {
             return@Column
         }
 
+        if (turn.exchanges.isEmpty()) {
+            Text(
+                stringResource(R.string.conversation_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        turn.exchanges.forEach { Said(it) }
+
+        turn.failure?.let { said ->
+            Text(
+                stringResource(R.string.turn_failed, said),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+            Button(onClick = { scope.launch { pipeline.submit() } }) {
+                Text(stringResource(R.string.turn_retry))
+            }
+        }
+
+        val busy = turn.phase != Phase.Idle
         Text(
             when {
-                state.recording -> stringResource(R.string.capture_recording, seconds(state.elapsedMs))
-                state.hasAudio -> stringResource(R.string.capture_held, seconds(state.elapsedMs))
+                turn.phase == Phase.Hearing -> stringResource(R.string.phase_hearing)
+                turn.phase == Phase.Thinking -> stringResource(R.string.phase_thinking)
+                turn.phase == Phase.Speaking -> stringResource(R.string.phase_speaking)
+                capture.recording ->
+                    stringResource(R.string.capture_recording, seconds(capture.elapsedMs))
+                capture.hasAudio ->
+                    stringResource(R.string.capture_held, seconds(capture.elapsedMs))
                 else -> stringResource(R.string.capture_hold)
             },
             style = MaterialTheme.typography.bodyLarge,
@@ -91,13 +124,19 @@ fun ConversationScreen(recorder: TurnRecorder, modifier: Modifier = Modifier) {
 
         Surface(
             shape = CircleShape,
-            color = if (state.recording) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.primary,
+            color = when {
+                busy -> MaterialTheme.colorScheme.surfaceVariant
+                capture.recording -> MaterialTheme.colorScheme.error
+                else -> MaterialTheme.colorScheme.primary
+            },
             modifier = Modifier
-                .size(160.dp)
-                .pointerInput(state.full) {
+                .size(150.dp)
+                .pointerInput(busy, capture.full) {
                     detectTapGestures(
                         onPress = {
+                            // A held button while the chain is busy would record over an
+                            // answer the learner is still hearing.
+                            if (busy) return@detectTapGestures
                             recorder.hold(scope)
                             tryAwaitRelease()
                             recorder.release()
@@ -106,7 +145,7 @@ fun ConversationScreen(recorder: TurnRecorder, modifier: Modifier = Modifier) {
                 },
         ) {}
 
-        if (state.full) {
+        if (capture.full) {
             Text(
                 stringResource(R.string.capture_full, TurnRecorder.CEILING_MS / 1000),
                 style = MaterialTheme.typography.bodySmall,
@@ -115,15 +154,14 @@ fun ConversationScreen(recorder: TurnRecorder, modifier: Modifier = Modifier) {
             )
         }
 
-        if (state.hasAudio) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-            ) {
-                OutlinedButton(onClick = { recorder.discard(); kept = null }) {
+        if (capture.hasAudio && !busy) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(onClick = { recorder.discard() }) {
                     Text(stringResource(R.string.capture_redo))
                 }
-                Button(onClick = { scope.launch { kept = recorder.finish() } }) {
+                Button(onClick = {
+                    scope.launch { recorder.finish()?.let { pipeline.submit(it) } }
+                }) {
                     Text(stringResource(R.string.capture_send))
                 }
             }
@@ -135,14 +173,21 @@ fun ConversationScreen(recorder: TurnRecorder, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+    }
+}
 
-        kept?.let {
-            Text(
-                stringResource(R.string.capture_kept, it.name),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+@Composable
+private fun Said(exchange: Exchange) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            stringResource(
+                if (exchange.fromLearner) R.string.speaker_learner else R.string.speaker_ai
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

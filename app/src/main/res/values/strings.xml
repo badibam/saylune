@@ -31,4 +31,13 @@
     <string name="mic_unprocessed">unprocessed microphone</string>
     <string name="mic_voice_recognition">speech microphone (this device offers no unprocessed one)</string>
     <string name="capture_source">Recording through the %1$s.</string>
+    <string name="secret_elevenlabs_voice">ElevenLabs — voice id</string>
+    <string name="phase_hearing">Listening to your turn…</string>
+    <string name="phase_thinking">Thinking…</string>
+    <string name="phase_speaking">Answering…</string>
+    <string name="turn_retry">Try again</string>
+    <string name="turn_failed">The chain gave way: %1$s. Your turn is kept — nothing to say again.</string>
+    <string name="conversation_empty">Hold the button and say something.</string>
+    <string name="speaker_learner">You</string>
+    <string name="speaker_ai">Speakup</string>
 </resources>

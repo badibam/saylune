@@ -31,4 +31,13 @@
     <string name="mic_unprocessed">micro sans traitement</string>
     <string name="mic_voice_recognition">micro de reconnaissance (cet appareil n\'offre pas de source sans traitement)</string>
     <string name="capture_source">Enregistrement par le %1$s.</string>
+    <string name="secret_elevenlabs_voice">ElevenLabs — identifiant de voix</string>
+    <string name="phase_hearing">Écoute de ton tour…</string>
+    <string name="phase_thinking">Réflexion…</string>
+    <string name="phase_speaking">Réponse…</string>
+    <string name="turn_retry">Réessayer</string>
+    <string name="turn_failed">La chaîne a lâché : %1$s. Ton tour est conservé — rien à redire.</string>
+    <string name="conversation_empty">Maintiens le bouton et dis quelque chose.</string>
+    <string name="speaker_learner">Toi</string>
+    <string name="speaker_ai">Speakup</string>
 </resources>
