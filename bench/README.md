@@ -28,6 +28,8 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
 | `stress.py` | de combien l'accent allonge une syllabe — sur les bornes de TIMIT posées à la main, sans réseau : le signal que la brique 7 aurait à lire |
 | `syllables.py` | la grille sait-elle combien de syllabes a un mot — les sons qu'elle perd, et le nombre de noyaux par mot |
+| `learners.py` | le corpus d'apprenants étiqueté (SpeechOcean762) : ses mots et leur verdict, et le tirage sous budget de caractères |
+| `alarms.py` | à quelle fréquence une marque tombe sur un mot que rien n'accusait — la jointure se fait au mot, aucun seuil n'est posé |
 | `join.py` | quelles lettres chaque son couvre — les mots, l'ordre et l'orthographe, notés contre l'annotation (`-s`) |
 | `expected.py` | l'annotation à la main : les lettres que chaque son devrait porter. N'entre jamais dans l'app |
 | `affinity.json` | à quels sons une lettre participe, de 0 à 3 — avec `affinity-groups.json`, la seule donnée linguistique du montage |

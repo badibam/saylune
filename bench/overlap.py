@@ -39,8 +39,10 @@ MATRICES = HERE / "out" / "matrices" / matrix.SLUG
 # Where the model puts a sound, and how far the other recording sits from it.
 # `span` is where the *other* recording says this sound, in frames: the only
 # way back to the audio a person can listen to, which no measure can settle for
-# them.
-Gap = namedtuple("Gap", "value symbol seconds span")
+# them. `rank` is which sound of the model's grid this is -- a comparison that
+# cannot be made is dropped rather than returned empty, so the list is shorter
+# than the grid and its positions stop meaning anything without it.
+Gap = namedtuple("Gap", "value symbol seconds span rank")
 
 
 # An empty capture is skipped by name rather than sent to the network: there is
@@ -90,7 +92,7 @@ def sounds(model_wav, other_wav, model_tag, other_tag, slug):
     spans = matrix.align(other, ids)
 
     read = []
-    for (index, start, stop), span in zip(segments, spans):
+    for rank, ((index, start, stop), span) in enumerate(zip(segments, spans)):
         if span is None:
             continue
         here, empty_here = spread(model, (start, stop))
@@ -100,7 +102,7 @@ def sounds(model_wav, other_wav, model_tag, other_tag, slug):
         if empty_here > EMPTY_MASS or empty_there > EMPTY_MASS:
             continue
         read.append(Gap(divergence(here, there), matrix.symbols()[index],
-                        start * matrix.seconds_per_frame(), span))
+                        start * matrix.seconds_per_frame(), span, rank))
     return read
 
 
