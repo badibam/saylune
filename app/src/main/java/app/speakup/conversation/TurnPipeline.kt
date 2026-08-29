@@ -47,6 +47,15 @@ data class ConversationState(
     val marking: Map<Int, TurnMarking> = emptyMap(),
     /** Whether the marks are on at all, settled once for the session. Null until asked. */
     val analysis: Readiness? = null,
+    /**
+     * The learner's turns the model judged grammatically wrong, by their position in
+     * [exchanges].
+     *
+     * Kept because the gate has to be legible. A turn in here carries no sound marks and
+     * that is not an absence of findings: grammar is a door in front of the sound analysis,
+     * and behind a closed door nothing was measured.
+     */
+    val faulty: Set<Int> = emptySet(),
 )
 
 /**
@@ -119,7 +128,16 @@ class TurnPipeline(
             Trace.add("turn: said, and done")
 
             // The learner's turn sits two before the end: it was appended with the answer.
-            examine(at = _state.value.exchanges.size - 2, said = turn, text = reply.intended)
+            val at = _state.value.exchanges.size - 2
+            if (reply.faulty) {
+                // The gate: grammar is a door in front of the sound analysis. One does not
+                // work the pronunciation of a sentence about to be rewritten, so on a
+                // faulty turn the analysis is not hidden -- it is not computed.
+                _state.value = _state.value.copy(faulty = _state.value.faulty + at)
+                Trace.add("turn: grammar closes the gate, no sound analysis", "said" to reply.intended)
+            } else {
+                examine(at = at, said = turn, text = reply.intended)
+            }
         } catch (failure: ChainFailure) {
             Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
             _state.value = _state.value.copy(

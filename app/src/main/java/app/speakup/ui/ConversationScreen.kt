@@ -103,7 +103,9 @@ fun ConversationScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        turn.exchanges.forEachIndexed { at, exchange -> Said(exchange, turn.marking[at]) }
+        turn.exchanges.forEachIndexed { at, exchange ->
+            Said(exchange, turn.marking[at], at in turn.faulty)
+        }
 
         (turn.analysis as? Readiness.Off)?.let { off ->
             // An option that is off carries its reason, or it reads as a bug in the app
@@ -200,7 +202,7 @@ fun ConversationScreen(
 }
 
 @Composable
-private fun Said(exchange: Exchange, marking: TurnMarking?) {
+private fun Said(exchange: Exchange, marking: TurnMarking?, faulty: Boolean) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             stringResource(
@@ -212,6 +214,17 @@ private fun Said(exchange: Exchange, marking: TurnMarking?) {
         )
         if (marking != null) MarkedTurn(marking, modifier = Modifier.fillMaxWidth())
         else Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
+        if (faulty) {
+            // The whole turn, for want of the span. The doc asks for the portion concerned
+            // and the model does not return one yet (`../../../../../../TODO.md`), so this
+            // says where the fault is only as far as the sentence -- and says nothing about
+            // pronunciation, which behind a closed gate was never measured.
+            Text(
+                stringResource(R.string.turn_grammar_marked),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
+        }
     }
 }
 

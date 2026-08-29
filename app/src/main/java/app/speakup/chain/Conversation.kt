@@ -32,10 +32,20 @@ data class Exchange(val fromLearner: Boolean, val text: String)
  * the learner's grammar: a turn whose grammar is wrong keeps its wrong grammar here, since
  * the whole of the grammatical gate is downstream of it.
  *
- * The gate itself is not in this type yet, and that is a placeholder, not a design: v1 owes
- * a severity cran and a verdict here (`../../../../../../TODO.md`).
+ * [faulty] is the grammatical gate's verdict, and it is left by the model on its own
+ * judgement -- no severity is sent to it yet, so what it marks is what it judges. The gate
+ * decides whether the sound analysis runs at all: on a turn that is going to be rewritten,
+ * the doc is explicit that the analysis is not hidden, it is not computed. It works with
+ * [intended] rather than against it -- the fault stays written there exactly as it was said,
+ * and this says it is there.
+ *
+ * What is still owed here is the severity cran, which turns the verdict from "is it wrong"
+ * into "is it wrong at the cran set for this session", and the span of the fault, without
+ * which the discreet mark the doc asks for has nowhere to sit
+ * (`../../../../../../TODO.md`).
  */
 data class Reply(
     val spoken: String,
     val intended: String,
+    val faulty: Boolean,
 )

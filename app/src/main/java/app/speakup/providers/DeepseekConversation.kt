@@ -82,18 +82,32 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
             // Falling back to the raw transcript is the documented, harmless case: the
             // analysis then measures against exactly what was heard.
             val intended = parsed.optString("intended").ifBlank { transcript }
+            // No default. Absent, it would have to stand for something, and both readings
+            // are wrong: "not faulty" runs the sound analysis on a turn about to be
+            // rewritten, "faulty" silently withholds marks. A missing field is the model
+            // breaking its contract, which is a failure like any other and says so.
+            if (!parsed.has("faulty")) {
+                Trace.fail("conversation: no grammatical verdict", "content" to content)
+                throw ChainFailure("DeepSeek left out the grammatical verdict")
+            }
+            val faulty = parsed.getBoolean("faulty")
             Trace.add(
                 "conversation: answered",
                 "spoken" to spoken,
                 "intended" to intended,
+                "grammatically faulty" to faulty.toString(),
                 "intended fell back to the transcript" to
                     if (parsed.optString("intended").isBlank()) "yes" else null,
             )
-            Reply(spoken = spoken, intended = intended)
+            Reply(spoken = spoken, intended = intended, faulty = faulty)
         }
 
     /**
      * A past answer of the model, written as the object it actually emitted.
+     *
+     * `faulty` is left out of the replay: it was a verdict on the learner's turn, not part
+     * of the answer, and putting it back would invite the model to keep re-judging a turn
+     * that is already behind.
      *
      * Measured on the device: replaying these as bare prose makes the third turn come back
      * as twenty spaces with `finish_reason: stop`. The conversation then shows the model its
@@ -132,7 +146,7 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
             You receive their turn as a raw transcript: lower case, no punctuation, and
             possibly a word the recogniser misheard.
 
-            Answer with a JSON object holding exactly two fields.
+            Answer with a JSON object holding exactly three fields.
 
             "spoken": your reply, in English, as it should be said aloud.
 
@@ -143,6 +157,14 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
             tense, a missing article, a clumsy turn of phrase must survive here exactly as
             they said it. If nothing was misheard, return the transcript with punctuation and
             capitals only.
+
+            "faulty": true when the turn you wrote into "intended" is not correct English --
+            a wrong tense, a missing or wrong article, a wrong preposition, a word order or a
+            construction English does not use. false when it is correct, however simple or
+            short. Judge what they said and not how well they said it: a plain sentence, a
+            three-word answer or a hesitation is not a fault. This decides whether the app
+            works on their pronunciation for this turn, so a false alarm costs them the
+            exercise.
         """.trimIndent()
     }
 }
