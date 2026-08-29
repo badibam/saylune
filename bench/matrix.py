@@ -392,9 +392,20 @@ def probabilities(wav, cache=None):
         probabilities = torch.softmax(logits, dim=-1).numpy().astype(np.float32)
 
     if cache is not None:
-        Path(cache).parent.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(cache, probabilities=probabilities,
-                            audio=heard(wav))
+        # Written aside then renamed, never in place: a run killed mid-write
+        # otherwise leaves a truncated cache, and a truncated cache is worse
+        # than an absent one -- it is not detected as missing, it raises in the
+        # middle of the next run. Regenerable does not exempt it.
+        cache = Path(cache)
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        part = cache.with_suffix(".npz.part")
+        # Through a handle, because savez appends `.npz` to any name that does
+        # not already end in it -- the temporary would land beside the cache
+        # instead of becoming it.
+        with open(part, "wb") as handle:
+            np.savez_compressed(handle, probabilities=probabilities,
+                                audio=heard(wav))
+        part.replace(cache)
     return probabilities
 
 
