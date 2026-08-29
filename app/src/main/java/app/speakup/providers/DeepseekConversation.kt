@@ -113,8 +113,13 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
         JSONObject().put("role", role).put("content", content)
 
     private companion object {
-        /** Provisional, like the provider. */
-        const val MODEL = "deepseek-chat"
+        /**
+         * Provisional, like the provider -- but named outright rather than left to the
+         * alias: `deepseek-chat` was being served by `deepseek-v4-flash`, which the trace
+         * showed and nothing else would have. A measure is worth what the model behind it
+         * is known to be.
+         */
+        const val MODEL = "deepseek-v4-pro"
 
         val SYSTEM = """
             You are a warm, curious English conversation partner for someone practising

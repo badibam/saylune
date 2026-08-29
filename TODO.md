@@ -37,7 +37,13 @@ Dans l'ordre :
 
   Ce qui n'est **pas** su, et qu'aucune retouche de prompt ne doit trancher à l'aveugle : si c'est le modèle servi (`deepseek-chat` est rendu par **`deepseek-v4-flash`**), l'instruction, ou la tâche elle-même — demander à un modèle de réparer un mot mal entendu **sans** réparer la grammaire lui demande de distinguer deux réparations que rien dans son entraînement ne sépare. C'est exactement ce que le banc de fidélité du chantier 2 doit juger, et ce tour est son premier cas réel : une faute que la reconnaissance **ne pouvait pas** deviner, ce que le chantier 0 notait comme manquant.
 
-6. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
+6. **Le modèle est nommé `deepseek-v4-pro`, et ça coûte la latence que le doc annonce.** L'alias `deepseek-chat` était servi par `deepseek-v4-flash` — la trace l'a montré, rien d'autre ne l'aurait fait ; le modèle est donc nommé en clair, une mesure valant ce qu'on sait du modèle derrière. Mesuré sur trois tours, 2026-08-29 : **6,0 / 5,7 / 6,1 s jusqu'au premier son**, contre les **2,6 s** que `docs/reference.md` inscrit. Le maillon LLM seul passe de 0,7–1,5 s (flash) à **3,3–3,5 s** (pro), ce qu'explique le `reasoning_content` que pro renvoie et que flash ne renvoyait pas — 93 à 120 jetons de raisonnement par tour.
+
+  Rien n'est tranché là-dessus : le chiffre du doc a été pris sur un autre modèle et il est à réécrire quand le fournisseur le sera. Ce qui est acté est seulement qu'**on ne peut plus citer 2,6 s** comme la latence de la chaîne telle qu'elle tourne.
+
+7. **La fidélité de `intended` n'est pas retestée sous pro.** Les trois tours du 2026-08-29 étaient de l'anglais correct — le modèle n'avait rien à réparer, donc ce passage ne dit **rien** sur la fuite de l'item 5. Il faut un tour non natif dit exprès, du genre de *« how are you going yours »*, avant de croire la fuite refermée par le changement de modèle.
+
+8. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
 
 **Les provisoires, notés à l'écriture :**
 
