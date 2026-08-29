@@ -8,6 +8,7 @@ import app.speakup.chain.Exchange
 import app.speakup.chain.Recognition
 import app.speakup.chain.Synthesis
 import app.speakup.chain.Voice
+import app.speakup.debug.Trace
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import kotlinx.coroutines.Dispatchers
@@ -56,10 +57,17 @@ class TurnPipeline(
     /** Run [audio] through the chain, or run again what a previous failure left pending. */
     suspend fun submit(audio: File? = null) {
         val turn = audio ?: _state.value.pending ?: return
+        Trace.turn()
+        Trace.add(
+            if (audio == null) "turn: sending again what was kept" else "turn: a new recording",
+            "file" to turn.path,
+            "bytes" to turn.length().toString(),
+        )
         _state.value = _state.value.copy(phase = Phase.Hearing, failure = null, pending = turn)
         try {
             val heard = recognition.transcribe(turn)
             if (heard.isEmpty()) {
+                Trace.add("turn: nothing was said, dropped")
                 // Holding the button by accident is not a failure and must not read as one.
                 _state.value = _state.value.copy(phase = Phase.Idle, pending = null)
                 return
@@ -77,8 +85,10 @@ class TurnPipeline(
             )
 
             play(synthesis.speak(reply.spoken, voice()))
+            Trace.add("turn: said, and done")
             _state.value = _state.value.copy(phase = Phase.Idle)
         } catch (failure: ChainFailure) {
+            Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
             _state.value = _state.value.copy(
                 phase = Phase.Idle,
                 failure = failure.message,

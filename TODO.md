@@ -28,7 +28,10 @@ Dans l'ordre :
 
   - **Ce téléphone n'offre aucune source micro sans traitement** — `PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED` est absent, donc le repli sur la source de reconnaissance s'active sur l'appareil même de toutes les mesures. Ce que le traitement du micro fait aux mesures d'intensité n'est pas connu, et l'intensité est une dimension que la brique 7 réorientée veut lire.
   - **La reconnaissance normalise la faute**, confirmé sur une prise étiquetée : sur `01-sink.wav`, où la bouche dit /s/ pour /θ/, Azure rend `i think you're right`. C'est le comportement que `docs/reference.md` avait relevé et qui sert le montage — l'analyse compare l'audio au modèle synthétisé depuis ce texte, donc la faute reste à trouver là où elle est, dans le son. Mais ça dit aussi que **la fidélité verbatim ne se vérifiera jamais sur ce genre de cas** : il faut des fautes que la reconnaissance ne peut pas deviner.
-4. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
+4. **Le modèle n'a pas tenu le format demandé** — sur l'appareil, DeepSeek a rendu autre chose que les deux champs `spoken`/`intended`, et le code ne gardait alors que le mot « mauvais format ». Rien n'est corrigé à l'aveugle : l'écran porte désormais les **étapes du tour** (`app/src/main/java/app/speakup/debug/Trace.kt`, panneau replié au bas de la conversation, tenu hors release par `BuildConfig.DEBUG`). Ce qu'il faut lire est la brique `content` du pas marqué en échec — la réponse brute du modèle, telle qu'elle est arrivée. À reprendre avec ce qu'elle montre, jamais sur une hypothèse.
+
+  Le panneau est un instrument, pas une brique provisoire : un pas y est un nom, un temps depuis le début du tour, et des champs nommés — court écrit tel quel, long ouvert d'un appui. Il ne consigne **jamais un en-tête**, pour la raison qui met les clés derrière le Keystore : un écran se lit. L'analyse s'y posera comme les trois liens, sans rien changer aux coutures — c'est pour ça que la trace est un objet global et non un paramètre de `transcribe`, `reply` et `speak`.
+5. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
 
 **Les provisoires, notés à l'écriture :**
 

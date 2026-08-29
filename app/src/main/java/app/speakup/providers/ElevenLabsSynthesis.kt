@@ -5,6 +5,7 @@ import app.speakup.capture.WavFile
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Synthesis
 import app.speakup.chain.Voice
+import app.speakup.debug.Trace
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +35,16 @@ class ElevenLabsSynthesis(
 
     override suspend fun speak(text: String, voice: Voice): File = withContext(Dispatchers.IO) {
         val cached = cacheFile(text, voice)
-        if (cached.isFile && cached.length() > 0) return@withContext cached
+        if (cached.isFile && cached.length() > 0) {
+            Trace.add(
+                "synthesis: already rendered",
+                "voice" to voice.id,
+                "text" to text,
+                "cached as" to cached.name,
+            )
+            return@withContext cached
+        }
+        Trace.add("synthesis: rendering", "voice" to voice.id, "model" to MODEL, "text" to text)
 
         val key = store.values().first()[Secret.ElevenlabsKey]
             ?: throw ChainFailure("no ElevenLabs key has been entered")
@@ -56,6 +66,11 @@ class ElevenLabsSynthesis(
         raw.writeBytes(pcm)
         WavFile.wrap(raw, cached)
         raw.delete()
+        Trace.add(
+            "synthesis: rendered",
+            "wav" to cached.name,
+            "bytes" to cached.length().toString(),
+        )
         cached
     }
 

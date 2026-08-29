@@ -173,6 +173,8 @@ fun ConversationScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+
+        DebugPanel()
     }
 }
 

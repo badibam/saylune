@@ -38,6 +38,9 @@ android {
     }
     buildFeatures {
         compose = true
+        // Only for BuildConfig.DEBUG, which is what holds the debug panel out of a
+        // release. No secret is ever put here (`docs/reference.md`, "Les clés d'API").
+        buildConfig = true
     }
     packaging {
         resources {

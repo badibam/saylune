@@ -5,6 +5,7 @@ import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
 import app.speakup.chain.Reply
 import app.speakup.chain.Word
+import app.speakup.debug.Trace
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import kotlinx.coroutines.Dispatchers
@@ -29,10 +30,18 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
             val key = store.values().first()[Secret.DeepseekApiKey]
                 ?: throw ChainFailure("no DeepSeek key has been entered")
 
+            val transcript = heard.joinToString(" ") { it.text }
+            Trace.add(
+                "conversation: asking $MODEL",
+                "system prompt" to SYSTEM,
+                "turns of history" to history.size.toString(),
+                "transcript" to transcript,
+            )
+
             val messages = JSONArray().apply {
                 put(message("system", SYSTEM))
                 history.forEach { put(message(if (it.fromLearner) "user" else "assistant", it.text)) }
-                put(message("user", heard.joinToString(" ") { it.text }))
+                put(message("user", transcript))
             }
             val body = JSONObject()
                 .put("model", MODEL)
@@ -53,16 +62,27 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
                 ?: throw ChainFailure("DeepSeek returned no message")
 
             val parsed = runCatching { JSONObject(content) }.getOrElse {
+                // The raw answer goes in the trace: a model that breaks its format is only
+                // fixable by someone who can read what it actually wrote.
+                Trace.fail("conversation: not the JSON it was asked for", "content" to content)
                 throw ChainFailure("DeepSeek did not answer with the JSON it was asked for")
             }
             val spoken = parsed.optString("spoken")
-            if (spoken.isBlank()) throw ChainFailure("DeepSeek returned nothing to say")
-            Reply(
-                spoken = spoken,
-                // Falling back to the raw transcript is the documented, harmless case: the
-                // analysis then measures against exactly what was heard.
-                intended = parsed.optString("intended").ifBlank { heard.joinToString(" ") { it.text } },
+            if (spoken.isBlank()) {
+                Trace.fail("conversation: nothing to say", "content" to content)
+                throw ChainFailure("DeepSeek returned nothing to say")
+            }
+            // Falling back to the raw transcript is the documented, harmless case: the
+            // analysis then measures against exactly what was heard.
+            val intended = parsed.optString("intended").ifBlank { transcript }
+            Trace.add(
+                "conversation: answered",
+                "spoken" to spoken,
+                "intended" to intended,
+                "intended fell back to the transcript" to
+                    if (parsed.optString("intended").isBlank()) "yes" else null,
             )
+            Reply(spoken = spoken, intended = intended)
         }
 
     private fun message(role: String, content: String) =

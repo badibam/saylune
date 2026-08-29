@@ -40,4 +40,11 @@
     <string name="conversation_empty">Hold the button and say something.</string>
     <string name="speaker_learner">You</string>
     <string name="speaker_ai">Speakup</string>
+    <string name="debug_steps">Debug — %1$d step(s)</string>
+    <string name="debug_clear">Clear</string>
+    <string name="debug_nothing">Nothing recorded yet.</string>
+    <string name="debug_step">%1$s — %2$.1f s</string>
+    <string name="debug_brick">%1$s: %2$s</string>
+    <string name="debug_open">%1$s (%2$d chars)</string>
+    <string name="debug_dialog_close">Close</string>
 </resources>

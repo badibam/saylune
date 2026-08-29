@@ -3,6 +3,7 @@ package app.speakup.providers
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Recognition
 import app.speakup.chain.Word
+import app.speakup.debug.Trace
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,12 @@ class AzureRecognition(private val store: SecretStore) : Recognition {
         val region = secrets[Secret.AzureSpeechRegion]
             ?: throw ChainFailure("no Azure Speech region has been entered")
 
+        Trace.add(
+            "recognition: sending the turn",
+            "file" to audio.name,
+            "bytes" to audio.length().toString(),
+        )
+
         val url = "https://${URLEncoder.encode(region, "UTF-8")}.stt.speech.microsoft.com" +
             "/speech/recognition/conversation/cognitiveservices/v1" +
             "?language=en-US&format=detailed&profanity=raw"
@@ -49,13 +56,25 @@ class AzureRecognition(private val store: SecretStore) : Recognition {
             "Success" -> Unit
             // A turn with nothing in it is a legitimate outcome of holding the button by
             // accident, and the caller must be able to tell it from a link that broke.
-            "NoMatch", "InitialSilenceTimeout" -> return@withContext emptyList()
-            else -> throw ChainFailure("Azure returned status $status")
+            "NoMatch", "InitialSilenceTimeout" -> {
+                Trace.add("recognition: heard nothing", "status" to status)
+                return@withContext emptyList()
+            }
+            else -> {
+                Trace.fail("recognition: refused", "status" to status)
+                throw ChainFailure("Azure returned status $status")
+            }
         }
 
         val best = json.optJSONArray("NBest")?.optJSONObject(0)
             ?: throw ChainFailure("Azure returned no transcript")
-        best.optString("Lexical")
+        val lexical = best.optString("Lexical")
+        Trace.add(
+            "recognition: read the mouth",
+            "lexical" to lexical,
+            "display (not used)" to best.optString("Display"),
+        )
+        lexical
             .split(' ')
             .filter { it.isNotBlank() }
             .map { Word(it) }
