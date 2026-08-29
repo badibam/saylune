@@ -27,6 +27,7 @@ import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -45,13 +46,21 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
     // Saving has to say so. The only other sign is a warning line going away, which is
     // no sign at all to someone who never saw it.
     var saved by remember { mutableStateOf(false) }
+    var seeded by remember { mutableStateOf(false) }
 
-    // Seed the fields once from what is stored, and never again: re-seeding on every
+    // Seeded from the store's own first emission, and never again: re-seeding on every
     // emission would overwrite what the user is in the middle of typing.
-    LaunchedEffect(stored.isNotEmpty()) {
+    //
+    // From `first()` and not from `stored`, which starts at the placeholder empty map the
+    // collection is given before DataStore has answered. Seeding off that filled every
+    // field with "" and then declined to seed again, so the screen showed blanks over real
+    // keys -- and saving wrote the blanks back, which removes them.
+    LaunchedEffect(Unit) {
+        val held = store.values().first()
         Secret.entries.forEach { secret ->
-            if (secret !in edits) edits[secret] = stored[secret].orEmpty()
+            if (secret !in edits) edits[secret] = held[secret].orEmpty()
         }
+        seeded = true
     }
 
     Column(
@@ -78,10 +87,20 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 scope.launch {
-                    edits.forEach { (secret, value) -> store.write(secret, value) }
+                    // Only what actually changed. A blank write removes the entry, so
+                    // saving after touching one field would otherwise wipe every other --
+                    // and a key is not something the user can get back by retyping what
+                    // they no longer have.
+                    edits.forEach { (secret, value) ->
+                        if (value != stored[secret].orEmpty()) store.write(secret, value)
+                    }
                     saved = true
                 }
             },
+            // The android wisdom's rule, and this screen is exactly what it is for: an
+            // action whose data is still loading is disabled, not merely slow. Left
+            // clickable it would save the empty form over the real one and say "Saved".
+            enabled = seeded,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.settings_save))
