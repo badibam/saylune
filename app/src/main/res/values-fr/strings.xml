@@ -6,4 +6,15 @@
     <string name="measured_turn">Tour mesuré — %1$s</string>
     <string name="no_turn_file">Aucun tour mesuré. Produire avec bench/turn.py, puis pousser dans %1$s</string>
     <string name="gutter_sounds">%1$d son(s) tombent dans un intervalle et ne sont pas encore dessinés</string>
+    <string name="settings_title">Clés des fournisseurs</string>
+    <string name="settings_lead">L\'app n\'a aucune clé à elle : apporte les tiennes. Elles sont chiffrées sur cet appareil et ne partent qu\'au fournisseur auquel elles appartiennent.</string>
+    <string name="settings_save">Enregistrer</string>
+    <string name="settings_saved">Enregistré</string>
+    <string name="settings_missing">Remplir chaque champ pour démarrer une conversation.</string>
+    <string name="settings_open">Clés</string>
+    <string name="secret_azure_key">Azure Speech — clé</string>
+    <string name="secret_azure_region">Azure Speech — région</string>
+    <string name="secret_deepseek_key">DeepSeek — clé d\'API</string>
+    <string name="secret_elevenlabs_key">ElevenLabs — clé</string>
+    <string name="settings_close">Retour</string>
 </resources>

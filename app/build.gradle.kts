@@ -55,6 +55,11 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.material3:material3")
 
+    // The keys the user brings, kept encrypted. DataStore rather than
+    // SharedPreferences is what the android wisdom prescribes for light
+    // preferences; the cipher key itself lives in the Keystore, not here.
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+
     testImplementation("junit:junit:4.13.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
