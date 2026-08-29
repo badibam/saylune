@@ -22,7 +22,12 @@ Dans l'ordre :
 
 1. ~~Clés et écran de configuration~~ — fait. Reste le **fini que `docs/reference.md` réclame et qui n'est pas facultatif à terme** : le bouton « tester la clé » qui valide sur-le-champ, sans quoi toute panne ultérieure sera imputée à l'app ; l'écran guidé ; et la sonde de capacités, un appel par fonction optionnelle, qui allume ou éteint les briques au lieu de deviner d'après le plan souscrit.
 2. ~~La capture~~ — faite, en **maintien avec reprise** (relâcher pour réfléchir, réappuyer pour continuer le même tour), ce qui remplace l'armement automatique que `design/ui-flow.md` avait retenu — le doc de conception est à élaguer sur ce point. Deux provisoires qui sautent ensemble : le **plafond de 30 s**, qui existe parce que la mémoire d'une passe croît comme le carré du tour et disparaît quand le fenêtrage est tranché ; et le **retrait des plages vides**, dont le seuil de niveau attend des tours spontanés hésitants — que l'app produit désormais.
-3. ~~La boucle~~ — écrite, jamais lancée contre les fournisseurs. Premier essai à faire sur l'appareil, avec une clé ElevenLabs approvisionnée et un identifiant de voix.
+3. ~~La boucle~~ — **écrite et vérifiée sur l'appareil** (SM-G975F, LineageOS) le 2026-08-29 : un tour tenu au bouton, la phrase de l'apprenant affichée juste, la réponse de l'IA écrite et dite. Les trois contrats HTTP ont d'abord été sondés depuis le poste (`tmp/chain_probe.py`).
+
+  Deux faits relevés à ce premier essai, à ne pas perdre :
+
+  - **Ce téléphone n'offre aucune source micro sans traitement** — `PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED` est absent, donc le repli sur la source de reconnaissance s'active sur l'appareil même de toutes les mesures. Ce que le traitement du micro fait aux mesures d'intensité n'est pas connu, et l'intensité est une dimension que la brique 7 réorientée veut lire.
+  - **La reconnaissance normalise la faute**, confirmé sur une prise étiquetée : sur `01-sink.wav`, où la bouche dit /s/ pour /θ/, Azure rend `i think you're right`. C'est le comportement que `docs/reference.md` avait relevé et qui sert le montage — l'analyse compare l'audio au modèle synthétisé depuis ce texte, donc la faute reste à trouver là où elle est, dans le son. Mais ça dit aussi que **la fidélité verbatim ne se vérifiera jamais sur ce genre de cas** : il faut des fautes que la reconnaissance ne peut pas deviner.
 4. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
 
 **Les provisoires, notés à l'écriture :**
