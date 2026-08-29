@@ -22,6 +22,18 @@ Le script prend une voie que le CLI Kaggle n'offre pas, parce que ses deux voies
 
 Le CLI s'installe dans le venv du projet (`tmp/venv/bin/pip install kaggle`) et s'authentifie par `kaggle auth login`, ou par un jeton déposé en `~/.kaggle/kaggle.json` en mode `600`.
 
-**Côté Kaggle, trois réglages qui ne se voient pas.** Le corpus se charge en **dataset privé** — TIMIT est sous licence LDC, pas librement redistribuable. La persistance de session se met sur « Files only », jamais « Variables » qui restaure l'état Python d'une session précédente ; elle retombe à « aucune » à chaque *Copy & Edit* et se repose à la main. Et `/kaggle/working` survit d'une session à l'autre, d'où un dossier de sortie **par run** — `train.py` refuse d'écrire dans un dossier qui porte déjà des checkpoints — et un ménage entre variantes.
+**Côté Kaggle, trois réglages qui ne se voient pas.** Le corpus se charge en **dataset privé** — TIMIT est sous licence LDC, pas librement redistribuable. La persistance de session se met sur « Files only », jamais « Variables » qui restaure l'état Python d'une session précédente ; elle retombe à « aucune » à chaque *Copy & Edit* et se repose à la main. Et `/kaggle/working` survit d'une session à l'autre, d'où un dossier de sortie **par run** — `train.py` refuse d'écrire dans un dossier qui porte déjà des checkpoints — et un ménage entre variantes, à coller en première cellule :
+
+```python
+import pathlib, shutil
+
+working = pathlib.Path("/kaggle/working")
+for item in sorted(working.iterdir()):
+    print("supprimé :", item)
+    shutil.rmtree(item) if item.is_dir() else item.unlink()
+print("vide." if not any(working.iterdir()) else "reste quelque chose")
+```
+
+Une copie fraîche part vide, la persistance retombant à « aucune » au *Copy & Edit* : ce que cette cellule sert vraiment est le **relancement après un plantage**, où le refus d'écrire de `train.py` bloque sur les checkpoints d'un run interrompu.
 
 Le manifeste et les checkpoints vivent sous `tmp/train/`, régénérables. Les hyperparamètres exposés (`--lr`, `--prior-weight`, `--epochs`, `--warmup`) sont des points de départ à balayer sur GPU, pas des valeurs qualifiées ; ce qui qualifie un checkpoint est la procédure de `../docs/qualification.md`, jamais la loss — et `faults.py` seul n'y suffit pas, un modèle plus pointu séparant mieux les fautes tout en donnant moins de matière à joindre.
