@@ -339,6 +339,142 @@ def disagreement(picks):
                   f"plus : {100 * statistics.mean(solid):.1f} %")
 
 
+# What the network writes when a vowel has lost its colour. The two are read
+# as a quantity and not as a label: a vowel halfway to a schwa keeps its peak
+# elsewhere and still lays mass here, which is exactly what the categorical
+# test throws away.
+CENTRAL = ("ə", "ɚ")
+
+
+def central(spread, names):
+    """How much of one nucleus's shape sits on the reduced vowels."""
+    return sum(float(spread[rank]) for rank, name in enumerate(names)
+               if name in CENTRAL)
+
+
+def read_matrix(wav, uid):
+    """The network's reading of one TIMIT utterance, cached like every other."""
+    import matrix
+    import overlap
+    return matrix.probabilities(
+        wav, cache=overlap.MATRICES / "timit-shared" / f"{uid}.npz")
+
+
+def shapes(wav, uid, nuclei):
+    """The central mass under each nucleus, on the hand-placed spans.
+
+    The spans come from TIMIT and not from the network: what is being tried is
+    whether the *shape* separates the syllables, not whether the network also
+    finds them, which `boundaries.py` measures on its own.
+    """
+    import matrix
+    import overlap
+
+    spread = read_matrix(wav, uid)
+    names = [matrix.symbols()[column] for column in matrix.spoken()]
+    step = matrix.seconds_per_frame()
+    out = []
+    for _, begin, end in nuclei:
+        span = (int(begin / step), max(int(end / step), int(begin / step) + 1))
+        shape, _ = overlap.spread(spread, span)
+        out.append(None if shape is None else central(shape, names))
+    return out
+
+
+def repeated(limit):
+    """The `SX` sentences read by seven mouths, `limit` of them."""
+    families = {}
+    for phn in sorted(timit.CORPUS.rglob("SX*.PHN")):
+        families.setdefault(phn.stem, []).append(phn)
+    full = [phn for stem in sorted(families, key=lambda s: int(s[2:]))
+            for phn in families[stem] if len(families[stem]) >= 2]
+    stems, kept = [], []
+    for phn in full:
+        if phn.stem not in stems:
+            if len(stems) >= limit:
+                continue
+            stems.append(phn.stem)
+        kept.append(phn)
+    return kept
+
+
+def centralisation(limit):
+    """All three arbitrators on one base, the network's reading included.
+
+    The two above are read off TIMIT's transcription alone; this one needs the
+    network, so everything is recomputed on the same sample rather than set
+    beside numbers taken on another one.
+    """
+    table = dictionary()
+    files = repeated(limit)
+    print(f"\n=== la centralisation — {len(files)} lectures de "
+          f"{len({phn.stem for phn in files})} phrases partagées")
+
+    cases, picks = [], {}
+    for index, phn in enumerate(files, 1):
+        wrd = phn.with_suffix(".WRD")
+        wav = phn.with_suffix(".WAV")
+        if not (wrd.is_file() and wav.is_file()):
+            continue
+        rows = phones(phn)
+        samples = audio(wav)
+        uid = "-".join(phn.parts[-3:]).removesuffix(".PHN")
+        masses = None
+        for rank, (text, start, stop) in enumerate(words(wrd)):
+            stresses = table.get(text)
+            if stresses is None or len(stresses) < 2 or 1 not in stresses:
+                continue
+            if text in FUNCTION:
+                continue
+            read = durations(rows, start, stop)
+            if read is None:
+                continue
+            spans, own, nuclei_rows = read
+            if len(spans) != len(stresses):
+                continue
+            if masses is None:
+                masses = shapes(wav, uid, [row for row in rows
+                                           if row[0] in NUCLEI])
+            here = [masses[i] for i, row in
+                    enumerate([r for r in rows if r[0] in NUCLEI])
+                    if start <= row[1] and row[2] <= stop]
+            if len(here) != len(nuclei_rows) or any(m is None for m in here):
+                continue
+            seen = [spoken_as(symbol) for symbol, _, _ in nuclei_rows]
+            mark = stresses.index(1)
+            trials = {
+                "durée": picked(seen, own, SPOKEN_REDUCED),
+                "intensité": picked(seen, loudness(samples, nuclei_rows),
+                                    SPOKEN_REDUCED),
+                # Least central wins, so the weight is the mass negated.
+                "centralisation": picked(seen, [-m for m in here],
+                                         SPOKEN_REDUCED),
+                # No label at all: the shape decides on its own, every nucleus
+                # in the running.
+                "la forme seule": (min(range(len(here)), key=lambda i: here[i]),
+                                   "sans étiquette"),
+            }
+            cases.append((mark, trials))
+            for name, (guess, _) in trials.items():
+                picks.setdefault(name, {}).setdefault(
+                    (phn.stem, rank, text), []).append(guess)
+        if index % 100 == 0:
+            print(f"  {index}/{len(files)}", file=sys.stderr, flush=True)
+
+    if not cases:
+        raise SystemExit("aucun mot mesurable")
+    print(f"    {len(cases)} mots pleins de deux syllabes ou plus\n")
+    for name in ("durée", "intensité", "centralisation", "la forme seule"):
+        right = sum(1 for mark, trials in cases if trials[name][0] == mark)
+        split = [(mark, trials) for mark, trials in cases
+                 if trials[name][1].startswith("départagée")]
+        won = sum(1 for mark, trials in split if trials[name][0] == mark)
+        detail = (f"   —   sur les {len(split)} à départager : "
+                  f"{100 * won / len(split):.1f} %") if split else ""
+        print(f"      {name:<16}{100 * right / len(cases):5.1f} % justes{detail}")
+    disagreement(picks)
+
+
 def quantile(values, q):
     return sorted(values)[int(q * (len(values) - 1))]
 
@@ -393,7 +529,14 @@ def main(argv=None):
     parser.add_argument("-n", "--utterances", type=int, default=200,
                         help="how many of the split to read; 0 reads all")
     parser.add_argument("-s", "--split", default="TEST")
+    parser.add_argument("-m", "--matrix", type=int, default=0, metavar="N",
+                        help="lire aussi la centralisation, sur N phrases "
+                             "partagées — demande le réseau")
     args = parser.parse_args(argv)
+
+    if args.matrix:
+        centralisation(args.matrix)
+        return 0
 
     every = list(timit.utterances(args.split))
     if not every:
