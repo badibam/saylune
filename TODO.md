@@ -1,5 +1,12 @@
 # TODO
 
+## Ordre acté (2026-08-29) — le fil, pour ne plus le reperdre
+
+1. **Stabiliser le sol** : le hash des audios dans chaque chiffre de banc (cf. « Qualifier l'étalon »). Sans lui, toute mesure est périssable.
+2. **Acheter le chiffre derrière lequel tout fait la queue** : rendre la moitié `test` du corpus L2 et lancer `bench/alarms.py` — le taux de fausse alerte, pour tous les candidats de modèle à la fois.
+3. **La brique 7 est de la recherche, hors du chemin de la v1** : la v1 marque au niveau du son, canaux d'accent vides comme aujourd'hui. Acté durablement dans `docs/reference.md` (portée de « Se taire n'est jamais une issue »).
+4. **Revenir au produit** : chantier 2, deux bancs spécifiés, zéro ligne écrite.
+
 ## Chantier 1 — l'analyse : ce qu'il reste à écrire
 
 L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont dans `docs/analysis.md`, la façon de le vérifier dans `docs/qualification.md`. Ce qui suit est ce qui manque.
