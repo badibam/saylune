@@ -89,6 +89,12 @@ Mesuré (cf. `analysis.md`) : sur le jeu d'essai étiqueté, les prises témoins
 
 Deux propriétés qui comptent autant que la précision : la comparaison est **interne au tour**, elle n'accumule rien ; et le modèle est de toute façon nécessaire, puisque c'est lui qu'on fait entendre.
 
+**Rien ne se fait à un seul des deux audios.** C'est la conséquence directe du fait que le biais de la machine s'annule parce qu'il est le même des deux côtés : un gain automatique, un débruitage, une normalisation appliqués à la prise et pas au modèle rendraient l'écart mesuré en partie fabriqué. Tout traitement est donc **symétrique ou inexistant**, et son point d'application est unique — entre la capture et l'analyse, sur les deux enregistrements — jamais caché derrière la reconnaissance ou la synthèse, qui ne voient qu'un côté par construction.
+
+**Et la symétrie d'application ne suffit pas à rendre un traitement neutre.** Les deux signaux ne sont pas de même nature : un micro dans une pièce d'un côté, une synthèse propre de l'autre. Un débruiteur appliqué aux deux ne ferait presque rien sur le modèle et beaucoup sur la prise — symétrie du geste, asymétrie de l'effet. C'est un argument pour en faire le moins possible, pas pour en faire des deux côtés.
+
+Ce qui suit n'est pas du traitement mais le contrat d'entrée : 16 kHz, mono, PCM 16 bits, ce que le modèle acoustique consomme des deux côtés. Ce qui est refusé nommément : gain automatique, suppression de bruit, annulation d'écho. La capture demande donc au système sa source **sans traitement** quand l'appareil déclare en avoir une, la source de reconnaissance sinon — et elle **dit laquelle elle a obtenue**, plutôt que de garder la différence pour elle.
+
 **Le seuil est une exigence, pas un quota.** Une barre unique sur l'écart, la même pour chaque son, partout et tout le temps. Jamais « marquer les n pires », jamais un budget par mot ou par tour, jamais un classement : **toutes les fautes se marquent, aucune ne s'élit**. Un quota serait une élection, et il ferait dépendre une marque de ce qu'il y a d'autre dans la phrase, ce que l'indépendance des tours interdit — la même faute doit produire la même marque à n'importe quel moment.
 
 La barre est absolue, mais **ce qu'elle mesure est relatif** : l'écart de l'apprenant à son modèle. Exigence absolue sur une mesure relative — c'est ce qui permet au curseur d'exister. Le bouger déclare un niveau d'exigence pour la séance ; il ne change jamais la façon de mesurer.

@@ -28,4 +28,7 @@
     <string name="capture_kept">Tour conservé : %1$s</string>
     <string name="conversation_open">Conversation</string>
     <string name="measured_marks">Marques</string>
+    <string name="mic_unprocessed">micro sans traitement</string>
+    <string name="mic_voice_recognition">micro de reconnaissance (cet appareil n\'offre pas de source sans traitement)</string>
+    <string name="capture_source">Enregistrement par le %1$s.</string>
 </resources>

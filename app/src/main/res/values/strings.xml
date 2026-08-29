@@ -28,4 +28,7 @@
     <string name="capture_kept">Turn kept: %1$s</string>
     <string name="conversation_open">Conversation</string>
     <string name="measured_marks">Marks</string>
+    <string name="mic_unprocessed">unprocessed microphone</string>
+    <string name="mic_voice_recognition">speech microphone (this device offers no unprocessed one)</string>
+    <string name="capture_source">Recording through the %1$s.</string>
 </resources>

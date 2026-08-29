@@ -129,6 +129,13 @@ fun ConversationScreen(recorder: TurnRecorder, modifier: Modifier = Modifier) {
             }
         }
 
+        Text(
+            stringResource(R.string.capture_source, stringResource(recorder.source.label)),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+
         kept?.let {
             Text(
                 stringResource(R.string.capture_kept, it.name),

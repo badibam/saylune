@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
-import android.media.MediaRecorder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,6 +35,9 @@ class TurnRecorder(private val context: Context) {
 
     private val _state = MutableStateFlow(CaptureState())
     val state: StateFlow<CaptureState> = _state.asStateFlow()
+
+    /** Read once: what the device declares does not change under the app's feet. */
+    val source: MicSource = MicSource.of(context)
 
     private var job: Job? = null
     private var pcm: File? = null
@@ -86,15 +88,12 @@ class TurnRecorder(private val context: Context) {
             AudioFormat.ENCODING_PCM_16BIT,
         )
         check(minimum > 0) { "this device will not record 16 kHz mono PCM" }
-        // VOICE_RECOGNITION, not MIC and not VOICE_COMMUNICATION: it is the source
-        // devices tune for speech engines, and the one least likely to apply automatic
-        // gain, noise suppression or echo cancellation of its own. That matters more here
-        // than it would elsewhere -- the measure compares the learner to the model through
-        // the same machine, so a filter on one side and not the other is exactly the
-        // asymmetry the whole design exists to avoid. The guarantee is not absolute: what
-        // a given device really applies is not something the API promises.
+        // Never MIC and never VOICE_COMMUNICATION: the measure compares the learner to the
+        // model through the same machine, so gain or noise suppression applied to one side
+        // alone is exactly the asymmetry the whole design exists to avoid. Which of the two
+        // acceptable sources the device gives is reported on screen, not swallowed.
         val recorder = AudioRecord(
-            MediaRecorder.AudioSource.VOICE_RECOGNITION,
+            source.id,
             WavFile.SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
