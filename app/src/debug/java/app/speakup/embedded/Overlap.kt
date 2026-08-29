@@ -27,9 +27,31 @@ object Overlap {
         val symbol: String,
         /** Which sound of the model's grid this is: the list is shorter than the grid. */
         val rank: Int,
+        /** Where the model says it. */
+        val at: IntRange,
         /** Where the *other* recording says it -- the only way back to audio to listen to. */
         val span: IntRange,
+        /**
+         * The heaviest shares of each spread, which is what the measure actually compares.
+         *
+         * Kept so the two can be *looked at* rather than taken on the word of one number:
+         * `R .90 / W .10` and `R .90 / ER .10` share a peak and do not say the same thing,
+         * and no divergence written out alone will ever show that.
+         *
+         * The topmost symbol of each side reads like a verdict and is not one. Naming the
+         * sound produced is the least reliable thing an acoustic machine renders, and the
+         * app depends on none of it: the mark is born of the gap between the two whole
+         * shapes (`docs/reference.md`).
+         */
+        val model: List<Share>,
+        val said: List<Share>,
     )
+
+    /** One sound's share of a spread. */
+    data class Share(val symbol: String, val part: Float)
+
+    /** How many shares of each side are kept: enough to read the shape, not the whole table. */
+    const val SHARES = 4
 
     /** The mean spread over a span, silence dropped and the rest renormalised. */
     private fun spread(frames: Frames, from: Int, until: Int, alphabet: Alphabet): Spread? {
@@ -86,12 +108,40 @@ object Overlap {
                     value = divergence(here.over, there.over),
                     symbol = alphabet[segments[rank].symbol],
                     rank = rank,
+                    at = segments[rank].start until segments[rank].stop,
                     span = span,
+                    model = shares(here.over, alphabet),
+                    said = shares(there.over, alphabet),
                 )
             )
         }
         return Reading(gaps, segments.size, dropped)
     }
+
+    /**
+     * Peaks turned into a covering of the time, the gaps split down the middle.
+     *
+     * The network is peaky: it says "here" on one or two frames and leaves the rest to the
+     * blank, so a sound arrives as an instant where what is wanted is a stretch -- an
+     * extract to replay, a duration to find absurd. Giving every peak the silence up to
+     * half way to its neighbour turns the grid into a covering.
+     *
+     * **Nothing in the measure reads these bounds.** They are the sound's own geometry, for
+     * replaying and for looking at; the spreads are still read off the raw spans, and
+     * widening them would change what is compared.
+     */
+    fun widened(spans: List<IntRange>): List<IntRange> = spans.mapIndexed { at, span ->
+        val low = if (at > 0) (spans[at - 1].last + 1 + span.first) / 2 else span.first
+        val high = if (at < spans.size - 1) (span.last + spans[at + 1].first) / 2 else span.last
+        low..maxOf(low, high)
+    }
+
+    /** The heaviest [SHARES] of a spread, biggest first. */
+    private fun shares(over: FloatArray, alphabet: Alphabet): List<Share> =
+        over.indices
+            .sortedByDescending { over[it] }
+            .take(SHARES)
+            .map { Share(alphabet[alphabet.spoken[it]], over[it]) }
 
     /** The gaps, and enough to know the grid they were read off. */
     data class Reading(val gaps: List<Gap>, val grid: Int, val dropped: Int)

@@ -10,6 +10,7 @@ import app.speakup.embedded.Grid
 import app.speakup.embedded.Join
 import app.speakup.embedded.Marks
 import app.speakup.embedded.Overlap
+import app.speakup.embedded.Readout
 import app.speakup.debug.Trace
 import app.speakup.marking.TurnMarking
 import app.speakup.ui.NOISE_BAND
@@ -69,8 +70,10 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
             // Both readings walk the same grid, decoded once from the model, so the two
             // face each other sound for sound.
-            val modelFrames = Frames.of(engine.matrix.read(model))
-            val saidFrames = Frames.of(engine.matrix.read(said))
+            val modelReading = engine.matrix.read(model)
+            val saidReading = engine.matrix.read(said)
+            val modelFrames = Frames.of(modelReading)
+            val saidFrames = Frames.of(saidReading)
             val reading = Overlap.sounds(modelFrames, saidFrames, engine.alphabet)
 
             val segments = Grid.decode(modelFrames, engine.alphabet)
@@ -82,23 +85,25 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
             val drawn = Marks.drawn(reading.gaps, sounds)
 
-            // The points, not just the count. The ramp leaves anything under NOISE_BAND
-            // as plain ink, so "13 marks" says nothing about what is painted -- and how
-            // many sounds of a real turn carry something is the open question about the
-            // form of the marking (`../../../../../../../TODO.md`).
+            // Read off the frames rather than declared: a candidate model that halves its
+            // last stride doubles the resolution, and a duration is only worth reading if
+            // it came from the pass that produced it.
+            val step = modelReading.seconds / modelReading.frames
+
             val points = drawn.phonemes.map { it.points }.sorted()
             Trace.add(
                 "analysis: examined",
-                "sounds in the grid" to reading.grid.toString(),
-                "compared" to reading.gaps.size.toString(),
-                "dropped" to reading.dropped.toString(),
-                "gutters" to drawn.gutters.size.toString(),
                 "painted / entries" to
                     "${points.count { it > NOISE_BAND }} / ${points.size} over $NOISE_BAND points",
                 "points low / median / high" to points.takeIf { it.isNotEmpty() }?.let {
                     "%.1f / %.1f / %.1f".format(it.first(), it[it.size / 2], it.last())
                 },
-                "every point" to points.joinToString(" ") { "%.1f".format(it) },
+                "sounds" to Readout.table(
+                    text, reading.gaps, sounds, drawn.phonemes,
+                    reading.grid, reading.dropped, step, NOISE_BAND,
+                ),
+                "spreads: what was actually compared" to
+                    Readout.spreads(reading.gaps, sounds, step),
             )
 
             // Stress and melody stay empty, and that is not an omission to fill in later
