@@ -143,7 +143,22 @@ Le modèle est cru aveuglément, et c'est le maillon le moins vérifié de la ch
 
   **Ce qu'on peut en dire honnêtement** : rien ne permet de chiffrer la fidélité du rendu avec cette référence. Le vrai taux de ratés est quelque part sous 1 %, sans qu'on sache où. Ce qui est établi et ne dépend pas de la référence : **les erreurs ne se concentrent pas** — médiane de 4 opérations par rendu, maximum 11, les dix pires rendus ne portant que 11 % du total, et ce sont les phrases les plus longues. Il n'y a pas de famille de rendus cassés.
 
-  **Pour que l'instrument mesure ce qu'on voulait**, il faudrait soit un rendu par une voix britannique (le lexique et la voix s'accorderaient), soit écarter les mots à R post-vocalique, soit une autre référence. Aucune des trois n'est faite.
+  **Les deux voix confrontées, mêmes 200 prises, mêmes 3 779 sons attendus, seule la voix change** — `azure-gb-sonia` contre `azure-us-jenny` :
+
+  | | PER | substitutions | omissions | insertions |
+  |---|---|---|---|---|
+  | `azure-gb-sonia` | 15,0 % | 10,5 % | 3,8 % | 0,8 % |
+  | `azure-us-jenny` | 20,0 % | 13,2 % | 5,6 % | 1,2 % |
+
+  Cinq points d'écart, mais **pas là où on l'attendait**. La famille rhotique bouge à peine (42 cas contre 54) : le désaccord de dialecte n'était pas le moteur principal, contrairement à ce qui avait été avancé. Ce qui baisse est le battement (`t`→`ɾ`, 39 cas côté us, absent côté gb — le britannique ne bat pas), les omissions de consonnes (4,6 → 3,0 %) et le croisement voyelle/consonne (1,0 → **0,4 %**).
+
+  Ce que la confrontation montre en plus : **le lexique du corpus est incohérent avec lui-même sur la rhoticité.** `CAR = K AA0` est non-rhotique, `SHIRT = SH ER0 T` emploie `ER`, qui est r-coloré. Aucune voix ne peut satisfaire les deux — l'américaine échoue sur les premiers (elle ajoute la coloration : `ə`→`ɝ` 23, `ɑ`→`ɝ` 13), la britannique sur les seconds (elle l'enlève : `ɝ`→`ə`, 31).
+
+  **Ce qui domine des deux côtés est ailleurs** : les mots outils, 5,9 % des sons côté gb et 7,3 % côté us, avec les mêmes paires (`ə`→`ɪ` pour `THE` et `A`, `u`→`ɪ` pour `TO`, `ə`→`ɑ` pour `NOT`). Ni la voix, ni le dialecte, ni le réseau : un dictionnaire qui donne la forme forte de mots qu'aucune bouche ne dit ainsi.
+
+  **Le bornage le moins contestable qu'on ait** : sur la voix britannique, où ni le battement ni la coloration américaine ne polluent, le croisement voyelle/consonne vaut **0,4 %** des sons attendus. C'est un plafond pour ce qu'aucune variante de réalisation ne peut expliquer, pas une mesure du taux de ratés — la référence reste fausse par endroits, et une erreur du réseau qui tombe entre deux voyelles y échappe.
+
+  **Ce qui reste à faire pour mesurer vraiment la fidélité d'un rendu** : une référence fiable. Écarter les mots à R post-vocalique en retirerait une part, sans toucher aux transcriptions franchement fausses. Rien n'est fait.
 
   Un cas franc existe et est documenté : sur `test-1723`, le réseau lit `m ɪ l` là où sa propre voix dit `k n oʊ`, et la prise dit `k` — la marque accuse l'apprenant d'une erreur de la machine. C'est le risque que `docs/reference.md` nomme (« une voix de synthèse que l'analyse lit mal accuserait l'apprenant »), pour la première fois observé et borné.
 
