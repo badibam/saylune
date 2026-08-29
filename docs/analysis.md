@@ -152,6 +152,8 @@ AO..AH : groupe R T -- "rt-" illégal, "t-" légal -> coupe après R
 
 **Les lettres d'une syllabe sont celles de ses sons**, réunies — la brique 4 les a déjà posées, et aucune horloge n'entre ici non plus. La syllabe se **compte** sur les sons et se **peint** sur les lettres.
 
+**Écrite** : `bench/syllables.py`, fonction `cut` — la règle, plus la table des attaques légales (une cinquantaine de groupes, les consonnes seules, et l'attaque vide puisqu'une syllabe peut s'ouvrir sur une voyelle). Ce qui est noté est le **nombre** de syllabes : la coupe en rend exactement une par noyau, et les noyaux par mot sont comparés à l'annotation ci-dessous. **Où tombe la frontière n'est comparé à rien** — la règle ne consulte aucun audio, donc une coupe fausse serait une règle fausse et non une mauvaise lecture, et la prendre en défaut demanderait une annotation que personne n'a écrite.
+
 **Mesuré** (`bench/syllables.py`, quinze phrases, voix `eleven-us-eric`) : **34 mots pleins sur 37 reçoivent le bon nombre de noyaux**, et 48 mots outils sur 49. Des trois désaccords, `chair` est une faute du compteur — `ɛ`+`ɝ` est un seul noyau, et c'est la grille qui a raison ; `comfortable` et `important` perdent chacun une syllabe finale non accentuée.
 
 **Aucun noyau accentué n'est perdu sur tout le jeu.** La raison se dit : la voyelle qui disparaît est la voyelle **réduite**, et une voyelle réduite est par définition non accentuée. Ce qui s'en déduit et n'est pas mesuré : un mot dont la syllabe forte porterait une voyelle brève serait le cas à surveiller — il n'y en a pas dans ce jeu.
