@@ -40,7 +40,10 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
 
             val messages = JSONArray().apply {
                 put(message("system", SYSTEM))
-                history.forEach { put(message(if (it.fromLearner) "user" else "assistant", it.text)) }
+                history.forEachIndexed { at, exchange ->
+                    if (exchange.fromLearner) put(message("user", exchange.text))
+                    else put(message("assistant", answered(history, at)))
+                }
                 put(message("user", transcript))
             }
             val body = JSONObject()
@@ -61,6 +64,10 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
                 ?.optJSONObject("message")?.optString("content")
                 ?: throw ChainFailure("DeepSeek returned no message")
 
+            if (content.isBlank()) {
+                Trace.fail("conversation: answered with nothing at all", "chars" to content.length.toString())
+                throw ChainFailure("DeepSeek answered with nothing at all")
+            }
             val parsed = runCatching { JSONObject(content) }.getOrElse {
                 // The raw answer goes in the trace: a model that breaks its format is only
                 // fixable by someone who can read what it actually wrote.
@@ -84,6 +91,23 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
             )
             Reply(spoken = spoken, intended = intended)
         }
+
+    /**
+     * A past answer of the model, written as the object it actually emitted.
+     *
+     * Measured on the device: replaying these as bare prose makes the third turn come back
+     * as twenty spaces with `finish_reason: stop`. The conversation then shows the model its
+     * own answers in prose while `response_format` only lets it emit JSON, and whitespace is
+     * the one thing legal at the start of a JSON document. It gets worse turn by turn,
+     * because each turn adds one more example pulling the other way.
+     */
+    private fun answered(history: List<Exchange>, at: Int): String {
+        val said = JSONObject().put("spoken", history[at].text)
+        // `intended` belonged to the learner's turn just before, which is where the pipeline
+        // always puts it. Written out only when it really is there.
+        history.getOrNull(at - 1)?.takeIf { it.fromLearner }?.let { said.put("intended", it.text) }
+        return said.toString()
+    }
 
     private fun message(role: String, content: String) =
         JSONObject().put("role", role).put("content", content)
