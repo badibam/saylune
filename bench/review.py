@@ -70,7 +70,22 @@ PLAYERS = (["paplay"], ["aplay", "-q"], ["ffplay", "-nodisp", "-autoexit",
 # nobody said. The unstretched word stays the reference: `--slow 1` gives it.
 STRETCHERS = (["sox", "{in}", "{out}", "tempo", "-s", "{rate}"],
               ["ffmpeg", "-y", "-loglevel", "quiet", "-i", "{in}",
-               "-filter:a", "atempo={rate}", "{out}"])
+               "-filter:a", "{chain}", "{out}"])
+
+
+def chained(rate):
+    """`atempo` refuses anything below half speed, so it is applied twice.
+
+    Stages multiply, so a third of speed is a half followed by two thirds. The
+    same filter run twice, not another one: what is heard is what the tool
+    would have done had it accepted the number.
+    """
+    stages = []
+    while rate < 0.5:
+        stages.append(0.5)
+        rate /= 0.5
+    stages.append(rate)
+    return ",".join(f"atempo={stage:g}" for stage in stages)
 
 
 def stretched(path, rate):
@@ -79,7 +94,8 @@ def stretched(path, rate):
         return path
     out = path.replace(".wav", "-slow.wav")
     for command in STRETCHERS:
-        filled = [part.format(**{"in": path, "out": out, "rate": rate})
+        filled = [part.format(**{"in": path, "out": out, "rate": rate,
+                                 "chain": chained(rate)})
                   for part in command]
         if subprocess.run(filled, capture_output=True,
                           check=False).returncode == 0:
