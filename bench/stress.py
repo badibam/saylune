@@ -33,6 +33,9 @@ import statistics
 import sys
 from pathlib import Path
 
+import numpy as np
+import soundfile as sf
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from train import timit  # noqa: E402  (path has to be set first)
 
@@ -141,7 +144,35 @@ def durations(rows, start, stop):
     edges = [begin for _, begin, _ in nuclei] + [stop]
     spans = [second - first for first, second in zip(edges, edges[1:])]
     own = [end - begin for _, begin, end in nuclei]
-    return spans, own
+    return spans, own, nuclei
+
+
+def audio(wav):
+    """The samples of one utterance. TIMIT's .WAV files are NIST SPHERE."""
+    samples, rate = sf.read(wav, dtype="float64")
+    if rate != SAMPLE_RATE:
+        raise SystemExit(f"{wav} : {rate} Hz, le banc lit du {SAMPLE_RATE} Hz")
+    return samples
+
+
+def loudness(samples, nuclei):
+    """The mean power of each nucleus -- the other thing stress is said to do.
+
+    A stressed syllable is said louder, which no measure of ours has ever
+    looked at. Taken raw: the pick is a maximum *within one word*, so whatever
+    the recording level was cancels on its own and normalising would only
+    invent a step.
+
+    What does not cancel is that vowels are not equally loud to begin with --
+    an open `ɑ` carries more power than a close `i` whatever the stress. That
+    sits in this number and nothing here removes it.
+    """
+    out = []
+    for _, begin, end in nuclei:
+        segment = samples[int(begin * SAMPLE_RATE):int(end * SAMPLE_RATE)]
+        out.append(float(np.sqrt(np.mean(segment ** 2))) if len(segment)
+                   else 0.0)
+    return out
 
 
 def rates(spans, mark):
@@ -166,7 +197,12 @@ def picked(nuclei, spans, reduced):
         return full[0], "seule"
     if not full:
         return None, "aucune"
-    return max(full, key=lambda rank: spans[rank]), "départagée"
+    # A tie between nuclei that are the same vowel is the honest trial of
+    # loudness: whatever an open vowel carries over a close one carries equally
+    # on both sides and cancels, so what is left is stress alone.
+    same = len({nuclei[rank] for rank in full}) == 1
+    return (max(full, key=lambda rank: spans[rank]),
+            "départagée, même voyelle" if same else "départagée")
 
 
 def measured(utterance, table):
@@ -176,6 +212,7 @@ def measured(utterance, table):
     if not (phn.is_file() and wrd.is_file()):
         return [], 0
     rows = phones(phn)
+    samples = audio(Path(utterance))
     found, skipped = [], 0
     for text, start, stop in words(wrd):
         stresses = table.get(text)
@@ -186,7 +223,7 @@ def measured(utterance, table):
         read = durations(rows, start, stop)
         if read is None:
             continue
-        spans, own = read
+        spans, own, nuclei_rows = read
         # The realisation dropped or added a nucleus: nothing lines the two
         # sequences up any more, and guessing which one went missing would be
         # inventing the measurement.
@@ -197,19 +234,109 @@ def measured(utterance, table):
         between, inside = rates(spans, mark), rates(own, mark)
         if between is None or inside is None:
             continue
-        nuclei = [symbol for symbol, _, _ in
-                  [row for row in rows if start <= row[1] and row[2] <= stop
-                   and row[0] in NUCLEI]]
+        nuclei = [symbol for symbol, _, _ in nuclei_rows]
+        power = loudness(samples, nuclei_rows)
+        seen = [spoken_as(symbol) for symbol in nuclei]
         reduction = {
-            "timit": picked(nuclei, own, REDUCED),
-            "en service": picked([spoken_as(s) for s in nuclei], own,
-                                 SPOKEN_REDUCED),
-            "notre repli": picked([folded(s) for s in nuclei], own,
-                                  FOLDED_REDUCED),
+            ("timit", "durée"): picked(nuclei, own, REDUCED),
+            ("en service", "durée"): picked(seen, own, SPOKEN_REDUCED),
+            ("en service", "intensité"): picked(seen, power, SPOKEN_REDUCED),
+            ("notre repli", "durée"): picked([folded(s) for s in nuclei], own,
+                                             FOLDED_REDUCED),
         }
         found.append((between, inside, mark == len(stresses) - 1,
                       mark, reduction))
     return found, skipped
+
+
+def shared(table):
+    """The rule's pick for every reading of the two sentences all speakers read.
+
+    Two families of TIMIT sentences are read by more than one mouth. Every
+    speaker reads `SA1` and `SA2` -- around 630 readings each, but only four
+    content words of two syllables between them. Each of the 450 `SX` sentences
+    is read by seven speakers, which is where the breadth is. The rest of the
+    bench throws the `SA` pair out, since they skew the phone distribution and
+    cross the two halves; nothing is trained here, and "the same words in the
+    same places, by different mouths" is the one thing the corpus gives nowhere
+    else.
+
+    Keyed by sentence, position and spelling, so what is compared is one word
+    against itself.
+    """
+    picks = {}
+    for phn in sorted(list(timit.CORPUS.rglob("SA*.PHN"))
+                      + list(timit.CORPUS.rglob("SX*.PHN"))):
+        wrd = phn.with_suffix(".WRD")
+        if not wrd.is_file():
+            continue
+        rows = phones(phn)
+        samples = audio(phn.with_suffix(".WAV"))
+        for rank, (text, start, stop) in enumerate(words(wrd)):
+            stresses = table.get(text)
+            if stresses is None or len(stresses) < 2 or 1 not in stresses:
+                continue
+            if text in FUNCTION:
+                continue
+            read = durations(rows, start, stop)
+            if read is None:
+                continue
+            spans, own, nuclei_rows = read
+            if len(spans) != len(stresses):
+                continue
+            seen = [spoken_as(symbol) for symbol, _, _ in nuclei_rows]
+            power = loudness(samples, nuclei_rows)
+            for arbitrator, weights in (("la durée", own), ("l'intensité", power)):
+                guess, _ = picked(seen, weights, SPOKEN_REDUCED)
+                if guess is None:
+                    continue
+                picks.setdefault(arbitrator, {}).setdefault(
+                    (phn.stem, rank, text), []).append(guess)
+    return picks
+
+
+def disagreement(picks):
+    """How often two readings of one word land the rule on different syllables.
+
+    Every one of these speakers is a native reading correctly, so a
+    disagreement here is a mark the app would paint on speech that carries no
+    fault -- brick 7's false alarm, measured where nothing is wrong.
+
+    Read on TIMIT's own hand-made transcriptions, so it is what the *rule*
+    costs with a perfect reading of the audio. The network adds its own
+    disagreement on top, and that is not measured here.
+    """
+    print(f"\n    la règle relue : deux lectures du même mot la posent-elles "
+          f"au même endroit")
+    for arbitrator, table in picks.items():
+        rates, pooled_pairs, pooled_clashes = [], 0, 0
+        for (_, _, text), guesses in table.items():
+            pairs = len(guesses) * (len(guesses) - 1) // 2
+            if not pairs:
+                continue
+            counts = {}
+            for guess in guesses:
+                counts[guess] = counts.get(guess, 0) + 1
+            agree = sum(n * (n - 1) // 2 for n in counts.values())
+            pooled_pairs += pairs
+            pooled_clashes += pairs - agree
+            rates.append(((pairs - agree) / pairs, len(guesses), text))
+        if not rates:
+            continue
+        # Averaged over words and not over pairs: the two sentences every
+        # speaker reads carry four words between them and 97% of the pairs, so
+        # a pooled rate would be those four words wearing the corpus as a
+        # disguise.
+        shares = [share for share, _, _ in rates]
+        steady = sum(1 for share in shares if share == 0)
+        solid = [share for share, readings, _ in rates if readings >= 7]
+        print(f"      départagée par {arbitrator} : {len(rates)} mots, "
+              f"**{100 * statistics.mean(shares):.1f} % de désaccord moyen**"
+              f"   —   {100 * steady / len(rates):.0f} % de mots qui ne "
+              f"bougent jamais")
+        if solid:
+            print(f"      {'':<24}sur les {len(solid)} mots lus 7 fois ou "
+                  f"plus : {100 * statistics.mean(solid):.1f} %")
 
 
 def quantile(values, q):
@@ -238,20 +365,27 @@ def report(found, skipped, utterances):
 
     print("\n    la réduction vocalique : la syllabe forte est celle qui "
           "n'est pas réduite")
-    for inventory in ("timit", "en service", "notre repli"):
+    for inventory in (("timit", "durée"), ("en service", "durée"),
+                      ("en service", "intensité"), ("notre repli", "durée")):
         cases = [(row[4][inventory], row[3]) for row in found]
         right = sum(1 for (guess, _), mark in cases if guess == mark)
         alone = [(guess, why, mark) for (guess, why), mark in cases
                  if why == "seule"]
         split = [(guess, why, mark) for (guess, why), mark in cases
-                 if why == "départagée"]
+                 if why.startswith("départagée")]
+        twins = [(guess, why, mark) for (guess, why), mark in cases
+                 if why == "départagée, même voyelle"]
         none = sum(1 for (_, why), _ in cases if why == "aucune")
-        print(f"      {inventory:<13}{100 * right / len(cases):5.1f} % justes"
+        name = f"{inventory[0]} / {inventory[1]}"
+        print(f"      {name:<24}{100 * right / len(cases):5.1f} % justes"
               f"   —   une seule voyelle pleine : {len(alone)} mots, "
               f"{100 * sum(1 for g, _, m in alone if g == m) / max(len(alone), 1):.1f} % justes")
-        print(f"      {'':<13}départagée par la durée : {len(split)} mots, "
+        print(f"      {'':<24}départagée : {len(split)} mots, "
               f"{100 * sum(1 for g, _, m in split if g == m) / max(len(split), 1):.1f} % justes"
               f"   —   aucune voyelle pleine : {none} mots")
+        print(f"      {'':<24}dont la même voyelle des deux côtés : "
+              f"{len(twins)} mots, "
+              f"{100 * sum(1 for g, _, m in twins if g == m) / max(len(twins), 1):.1f} % justes")
 
 
 def main(argv=None):
@@ -279,6 +413,7 @@ def main(argv=None):
     if not found:
         raise SystemExit("aucun mot mesurable — le dictionnaire n'a rien rendu")
     report(found, skipped, len(every))
+    disagreement(shared(table))
     return 0
 
 
