@@ -19,9 +19,13 @@ matter as `expected.py`: written once by hand, regenerable by nothing.
 
 import argparse
 import json
+import os
+import select
 import subprocess
 import sys
 import tempfile
+import termios
+import tty
 from pathlib import Path
 
 import soundfile as sf
@@ -173,12 +177,45 @@ def shown(text, spots):
 
 
 def ask(prompt):
-    """A verdict, or None on Ctrl+C -- never a traceback (cf. `cli-interactif`)."""
+    """A verdict on one key, or None on Ctrl+C -- never a traceback.
+
+    Every answer here is one character, and requiring Enter after each doubles
+    the gesture on a listening pass that is nothing but gestures. Raw mode has
+    to hand back what the cooked terminal gave for free: Ctrl+C and Ctrl+D are
+    bytes rather than exceptions, and the key is echoed, because a session one
+    cannot reread afterwards is a session one cannot check.
+
+    A stdin that is not a terminal -- a pipe, a test -- reads a line instead.
+    """
+    print(prompt, end="", flush=True)
+    if not sys.stdin.isatty():
+        try:
+            return input().strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return None
+    # The descriptor, never `sys.stdin`: a buffered text stream asked for one
+    # character takes a chunk of the descriptor with it, and what it holds back
+    # is then invisible to `select` and answers the next question.
+    handle = sys.stdin.fileno()
+    settings = termios.tcgetattr(handle)
     try:
-        return input(prompt).strip().lower()
-    except (EOFError, KeyboardInterrupt):
+        tty.setraw(handle)
+        key = os.read(handle, 1).decode("utf-8", "replace")
+        if key == "\x1b":
+            # An arrow sends three bytes and the last of them is a letter, so
+            # read as three answers `Escape [ A` casts a vote. Drained whole,
+            # and answered with nothing.
+            while select.select([handle], [], [], 0)[0]:
+                os.read(handle, 1)
+            key = ""
+    finally:
+        termios.tcsetattr(handle, termios.TCSADRAIN, settings)
+    if key in ("\x03", "\x04"):
         print()
         return None
+    print(key)
+    return key.strip().lower()
 
 
 VERDICTS = {"o": "cohérent", "n": "incohérent", "?": "incertain"}
@@ -250,7 +287,7 @@ def main(argv=None):
                 speaker = play(learner, *take_span, speaker, options.pad,
                                options.slow)
             answer = ask("     ? ")
-            if answer != "r":
+            if answer is None or answer == "q" or answer in VERDICTS:
                 break
         if answer is None or answer == "q":
             break
