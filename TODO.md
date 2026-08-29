@@ -75,7 +75,14 @@ Le coût du changement, à peser le moment venu : l'annotation d'`expected.py` e
 
 - `bench/out/renders/` est traité comme un cache régénérable, et il ne l'est pas. **Décidé : on ne sauvegarde pas** — rien ne prévoit de les supprimer. Ce qu'on accepte en le décidant : `git clean -xdf` retire les dossiers gitignorés, `synth.py -f` les remplace, et le disque est unique. Les rendus se refont au prix de tous les chiffres ; les vingt-sept prises étiquetées, elles, ne se refont pas du tout.
 - **Refaire la lecture de l'appareil** (`phone.py`) : `READING=phone-int8` est refusé depuis, ses matrices ayant été calculées sur les anciens rendus.
-- Une mesure devrait porter l'empreinte des audios qu'elle a lus, faute de quoi on compare deux chiffres qui ne parlent pas du même son.
+
+### Qualifier l'étalon — un seul chantier, trois mesures
+
+Le modèle est cru aveuglément, et c'est le maillon le moins vérifié de la chaîne : aucune voix n'est qualifiée, la synthèse n'est pas reproductible (ci-dessus), et les voix divergent entre elles de 11 à 18 % des sons — l'idiosyncrasie de la voix choisie devient la norme qu'on fait imiter. Tous les chiffres du banc reposent dessus ; les trois pièces sont petites et tiennent sur l'outillage existant.
+
+- **L'empreinte des audios dans chaque mesure.** Chaque script du banc écrit, à côté de ses chiffres, le hash des audios qu'il a lus — une fonction utilitaire, une passe sur les scripts, et la clé dans le cache des matrices. Sans elle, la dérive des rendus peut se reproduire sans être vue, et deux chiffres séparés dans le temps ne parlent pas du même son.
+- **Le test de voix, écrit.** Pour une voix, sur un jeu de phrases fixe : la netteté moyenne des pics de la grille, le pire son (répartition écrasée), les zones où la répartition s'effondre, et la divergence aux autres voix — le seul critère extérieur à la voix : 11,5 % des sons pour `eleven-us-sarah`, 13 % pour `azure-us-jenny`, 18 % pour `eleven-gb-daniel` (`tmp/voices.py`, à promouvoir) — la voix modèle étant la source de vérité, son idiosyncrasie devient la norme imitée, donc un étalon devrait être une voix ordinaire. Les seuils de passage se calibrent sur les voix avec lesquelles le banc a été mesuré, connues bonnes ; le test qui existait, lui, jugeait aux notes d'un service dont l'app ne dépend plus. L'oreille ne rend pas ce verdict, et `docs/reference.md` (« L'accent ») dit pourquoi.
+- **La stabilité, mesurée une fois.** Deux rendus du même texte par la même voix : comparer les grilles, et l'écart de marquage entre elles. Que le fichier diffère est mesuré ; de combien la norme bouge ne l'est pas. Grilles quasi identiques → le cache fait le reste ; divergence sensible → critère de choix de fournisseur pour le chantier 2, à connaître avant de choisir.
 
 ### La jointure — ce qu'il lui reste, dans l'ordre
 
@@ -95,8 +102,7 @@ La brique 4 tourne au banc et se lit hors du jeu qui l'a réglée : **311 sons s
 - **Épaissir la matière du seuil avec un corpus L2 annoté** (L2-ARCTIC, SpeechOcean762) : des milliers de fautes de vrais apprenants étiquetées au phonème, y compris la zone grise que le jeu maison n'a pas. Le montage est celui de l'app — synthétiser le modèle pour les prompts du corpus, dérouler le pipeline, regarder si l'écart sépare les phones annotés fautifs des corrects. Ça calibre à grande échelle sans enregistrer une prise, et ça dit si `09-walkin` est un cas isolé ou une famille.
 - **Le taux de fausse alerte de l'accent sur un tour spontané.** Réglé pour le régime d'imitation (bloc F : 2 fautes sur 2, aucune fausse alerte), il reste inconnu là où l'apprenant n'a pas entendu le modèle — et il ne se mesure pas, étiqueter une prise spontanée exigeant ce modèle. Deux garde-fous à tenir au moment de coder : l'emphase de sens divergera toujours d'un modèle neutre, et la parenthèse doit rendre une fausse alerte peu coûteuse.
 - **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
-- **Aucune voix modèle n'est qualifiée.** Le test qui existait jugeait une voix aux notes d'un service dont l'app ne dépend plus ; il est à redéfinir contre la matrice — grille nette, pas de son écrasé, pas de zone où la répartition s'effondre. Un quatrième critère est apparu, et c'est le seul extérieur à la voix : **de combien elle diverge des autres**. Sur les mêmes seize phrases, deux voix s'écartent de 11,5 % des sons pour `eleven-us-sarah`, 13 % pour `azure-us-jenny`, 18 % pour `eleven-gb-daniel` (`tmp/voices.py`). Si la voix modèle est la source de vérité, son idiosyncrasie devient la norme qu'on fait imiter — donc un étalon devrait être une voix ordinaire.
-- **La stabilité de la grille** : deux rendus du même texte par la même voix doivent donner la même suite de sons, sinon la mesure n'est pas reproductible. Le cache de synthèse neutralise en partie la question, jamais entièrement.
+- La qualification des voix modèles et la stabilité de la grille sont regroupées sous « Qualifier l'étalon » ci-dessus.
 
 ### L'appareil
 
