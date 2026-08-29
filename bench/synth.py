@@ -13,6 +13,7 @@ calibration fail, so voice and dialect have to be settable apart.
 import argparse
 import os
 import sys
+import time
 import wave
 from collections import namedtuple
 from pathlib import Path
@@ -61,30 +62,61 @@ def write_wav(path, pcm):
         handle.writeframes(pcm)
 
 
-def azure(text, voice):
-    key, region = env("AZURE_SPEECH_KEY", "AZURE_SPEECH_REGION")
-    issued = requests.post(
+# Azure meters requests per minute, and a batch of a few thousand meets that
+# ceiling whatever its size. A 429 is a wait, not a failure -- but one that
+# outlasts every wait is, and so is any other status.
+RETRY_WAITS = (2, 5, 15, 45, 90)
+
+# The token Azure issues is good for ten minutes. Asking for a fresh one per
+# render doubles the request count, and it is the token endpoint rather than
+# the synthesiser that runs out of patience first.
+TOKEN_SECONDS = 540
+_TOKEN = {"value": None, "until": 0.0}
+
+
+def patient(call):
+    """Run the request, waiting out a rate limit rather than dying on it."""
+    for wait in RETRY_WAITS:
+        response = call()
+        if response.status_code != 429:
+            return response
+        time.sleep(wait)
+    return call()
+
+
+def token(key, region):
+    now = time.monotonic()
+    if _TOKEN["value"] and now < _TOKEN["until"]:
+        return _TOKEN["value"]
+    issued = patient(lambda: requests.post(
         f"https://{region}.api.cognitive.microsoft.com/sts/v1.0/issueToken",
         headers={"Ocp-Apim-Subscription-Key": key},
         timeout=TIMEOUT_SECONDS,
-    )
+    ))
     issued.raise_for_status()
+    _TOKEN.update(value=issued.text, until=now + TOKEN_SECONDS)
+    return _TOKEN["value"]
+
+
+def azure(text, voice):
+    key, region = env("AZURE_SPEECH_KEY", "AZURE_SPEECH_REGION")
+    bearer = token(key, region)
     locale = "-".join(voice.split("-")[:2])
     ssml = (
         f"<speak version='1.0' xml:lang='{locale}'>"
         f"<voice xml:lang='{locale}' name='{voice}'>{text}</voice></speak>"
     )
-    response = requests.post(
+    response = patient(lambda: requests.post(
         f"https://{region}.tts.speech.microsoft.com/cognitiveservices/v1",
         headers={
-            "Authorization": f"Bearer {issued.text}",
+            "Authorization": f"Bearer {bearer}",
             "Content-Type": "application/ssml+xml",
             "X-Microsoft-OutputFormat": AZURE_FORMAT,
             "User-Agent": "speakup-bench",
         },
         data=ssml.encode("utf-8"),
         timeout=TIMEOUT_SECONDS,
-    )
+    ))
     if response.status_code != 200:
         raise SystemExit(f"Azure TTS returned {response.status_code}: {response.text}")
     return response.content, "riff"
@@ -93,13 +125,13 @@ def azure(text, voice):
 def elevenlabs(text, voice):
     """The render, from the bare endpoint: audio is all the bench asks for."""
     (key,) = env("ELEVENLABS_KEY")
-    response = requests.post(
+    response = patient(lambda: requests.post(
         f"https://api.elevenlabs.io/v1/text-to-speech/{voice}",
         params={"output_format": ELEVENLABS_FORMAT},
         headers={"xi-api-key": key, "Content-Type": "application/json"},
         json={"text": text, "model_id": ELEVENLABS_MODEL},
         timeout=TIMEOUT_SECONDS,
-    )
+    ))
     if response.status_code != 200:
         raise SystemExit(
             f"ElevenLabs returned {response.status_code}: {response.text[:300]}"
@@ -113,8 +145,9 @@ PROVIDERS = {"azure": azure, "elevenlabs": elevenlabs}
 def render(text, candidate, path, force=False):
     """Render to `path`, reusing what is already there unless told otherwise.
 
-    Renders are cache, not source: they cost characters against a monthly
-    allowance and regenerate from this script alone.
+    A render already on disk is kept: synthesis is not reproducible, so calling
+    again would hand back a different file and move every number read off the
+    old one (`../TODO.md`). `force` replaces it deliberately, and knowingly.
     """
     if path.is_file() and not force:
         return path

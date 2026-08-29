@@ -101,9 +101,17 @@ def chosen(budget, split="test", seed=0):
     Drawn and not cut, because the file is filed by speaker; and taken in the
     drawn order until one no longer fits rather than stopping at the first
     miss, so the budget is spent rather than left on the table.
+
+    Draws nest: the same seed with a larger budget keeps every take the smaller
+    one held and adds to them, so a run extends instead of starting over and
+    the caches of the first stage all still count. A budget of 0 is the whole
+    split.
     """
     every = catalogue(split)
     order = random.Random(seed).sample(range(len(every)), len(every))
+    if not budget:
+        return sorted(every, key=lambda take: take.uid), sum(
+            len(take.text) for take in every)
     picked, spent = [], 0
     for rank in order:
         cost = len(every[rank].text)

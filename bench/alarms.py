@@ -71,7 +71,7 @@ def confirmed(question):
         return False
 
 
-def render(voices, takes):
+def render(voices, takes, agreed=False):
     todo = {voice: missing(voice, takes) for voice in voices}
     cost = sum(len(take.text) for voice in voices for take in todo[voice])
     if not cost:
@@ -81,7 +81,7 @@ def render(voices, takes):
         print(f"  {voice:<20}{len(todo[voice]):>4} rendus, "
               f"{sum(len(t.text) for t in todo[voice]):>6} caractères")
     print(f"  {'total':<20}{'':>4}        {cost:>6} caractères")
-    if not confirmed("Synthétiser ?"):
+    if not agreed and not confirmed("Synthétiser ?"):
         print("  rien de dépensé")
         return 0
     for voice in voices:
@@ -180,7 +180,7 @@ def report(voice, rows, refused):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-b", "--budget", type=int, default=2500,
-                        help="caractères de synthèse par voix")
+                        help="caractères de synthèse par voix ; 0 = tout le jeu")
     parser.add_argument("-c", "--candidate", action="append", default=None,
                         help="repeatable; défaut : les deux voix de faults.py")
     parser.add_argument("-s", "--split", default="test")
@@ -189,6 +189,8 @@ def main(argv=None):
                         help="ce que ça coûterait, sans rien toucher")
     parser.add_argument("-r", "--render", action="store_true",
                         help="synthétiser les modèles manquants")
+    parser.add_argument("-y", "--yes", action="store_true",
+                        help="la dépense est déjà accordée, ne pas redemander")
     args = parser.parse_args(argv)
 
     voices = args.candidate or list(VOICES)
@@ -211,7 +213,7 @@ def main(argv=None):
         return 0
 
     if args.render:
-        render(voices, takes)
+        render(voices, takes, args.yes)
         return 0
 
     absent = {voice: missing(voice, takes) for voice in voices}
