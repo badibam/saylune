@@ -8,9 +8,9 @@ import app.speakup.embedded.Alphabet
 import app.speakup.embedded.Frames
 import app.speakup.embedded.Grid
 import app.speakup.embedded.Join
+import app.speakup.embedded.Marks
 import app.speakup.embedded.Overlap
 import app.speakup.debug.Trace
-import app.speakup.marking.PhonemeDeviation
 import app.speakup.marking.TurnMarking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -79,28 +79,15 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                 affinity = engine.affinity,
             )
 
-            val phonemes = mutableListOf<PhonemeDeviation>()
-            val gutters = mutableListOf<Gutter>()
-            for (gap in reading.gaps) {
-                val sound = sounds[gap.rank]
-                val points = gap.value * POINTS
-                // A sound that holds no letter borrows a neighbour's; one that can borrow
-                // none marks the gutter, which no character range can express.
-                val where = sound.spots.ifEmpty { sound.borrowed }
-                if (where.isEmpty()) {
-                    gutters.add(Gutter(sound.symbol, sound.spots.maxOrNull() ?: 0, points))
-                } else {
-                    phonemes.add(PhonemeDeviation(where.min(), where.max() + 1, points))
-                }
-            }
+            val drawn = Marks.drawn(reading.gaps, sounds)
 
             Trace.add(
                 "analysis: examined",
                 "sounds in the grid" to reading.grid.toString(),
                 "compared" to reading.gaps.size.toString(),
                 "dropped" to reading.dropped.toString(),
-                "marks" to phonemes.size.toString(),
-                "gutters" to gutters.size.toString(),
+                "marks" to drawn.phonemes.size.toString(),
+                "gutters" to drawn.gutters.size.toString(),
             )
 
             // Stress and melody stay empty, and that is not an omission to fill in later
@@ -108,8 +95,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             // stressed and each side's pitch, all of them bricks 7 and 10. Inventing them
             // would put a false accent on the screen.
             Analysed(
-                marking = TurnMarking(text = text, syllables = emptyList(), phonemes = phonemes),
-                gutters = gutters,
+                marking = TurnMarking(text = text, syllables = emptyList(), phonemes = drawn.phonemes),
+                gutters = drawn.gutters,
                 dropped = reading.dropped,
             )
         }
@@ -157,13 +144,6 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         const val LETTERS = "affinity.json"
         const val GROUPS = "affinity-groups.json"
 
-        /**
-         * A gap is a divergence between two spreads, in [0, 1]; the ramp of
-         * `MarkingColors.kt` reads points, ignores anything under 5 and saturates at 30. A
-         * hundred is the plainest transform there is, and it is deliberately not tuned to
-         * make the picture pretty. The scale, like the marking threshold, is still open.
-         */
-        const val POINTS = 100f
 
         /** Stated rather than left to the machine: the reading has to be reproducible. */
         const val THREADS = 4

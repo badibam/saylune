@@ -1,0 +1,119 @@
+{
+  "text": "The sheep is in the field",
+  "take": "06-ship-sheep",
+  "model": "sheep-field",
+  "voice": "eleven-us-eric",
+  "digests": {
+    "model": "47f35c1c305202c5f530748c0f97a2ba9d7cea2d274aeece09f70d8253f136e6",
+    "take": "ef37a0d68a266955caa9b673df24bbf19cb224170cb2b6e67e17ba5cf3581347"
+  },
+  "syllables": [],
+  "phonemes": [
+    {
+      "start": 0,
+      "end": 2,
+      "points": 42.23,
+      "symbol": "ð",
+      "borrowed": false
+    },
+    {
+      "start": 2,
+      "end": 3,
+      "points": 37.6,
+      "symbol": "ɪ",
+      "borrowed": false
+    },
+    {
+      "start": 4,
+      "end": 6,
+      "points": 0.52,
+      "symbol": "ʃ",
+      "borrowed": false
+    },
+    {
+      "start": 6,
+      "end": 8,
+      "points": 93.75,
+      "symbol": "i",
+      "borrowed": false
+    },
+    {
+      "start": 8,
+      "end": 9,
+      "points": 0.05,
+      "symbol": "p",
+      "borrowed": false
+    },
+    {
+      "start": 10,
+      "end": 11,
+      "points": 6.36,
+      "symbol": "ɪ",
+      "borrowed": false
+    },
+    {
+      "start": 11,
+      "end": 12,
+      "points": 0.06,
+      "symbol": "z",
+      "borrowed": false
+    },
+    {
+      "start": 13,
+      "end": 14,
+      "points": 2.04,
+      "symbol": "ɪ",
+      "borrowed": false
+    },
+    {
+      "start": 14,
+      "end": 15,
+      "points": 0.29,
+      "symbol": "n",
+      "borrowed": false
+    },
+    {
+      "start": 16,
+      "end": 18,
+      "points": 95.85,
+      "symbol": "ð",
+      "borrowed": false
+    },
+    {
+      "start": 18,
+      "end": 19,
+      "points": 20.79,
+      "symbol": "ɪ",
+      "borrowed": false
+    },
+    {
+      "start": 20,
+      "end": 21,
+      "points": 0.01,
+      "symbol": "f",
+      "borrowed": false
+    },
+    {
+      "start": 21,
+      "end": 23,
+      "points": 0.03,
+      "symbol": "i",
+      "borrowed": false
+    },
+    {
+      "start": 23,
+      "end": 24,
+      "points": 0.71,
+      "symbol": "l",
+      "borrowed": false
+    },
+    {
+      "start": 24,
+      "end": 25,
+      "points": 0.05,
+      "symbol": "d",
+      "borrowed": false
+    }
+  ],
+  "gutters": []
+}

@@ -64,6 +64,9 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.7")
 
     testImplementation("junit:junit:4.13.2")
+    // Android ships org.json as a stub that throws in unit tests. The real one, on the
+    // test classpath only, so the port is checked against the same parser it will meet.
+    testImplementation("org.json:json:20240303")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // The embedded analysis is still a proof of concept, and which engine the

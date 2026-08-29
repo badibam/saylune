@@ -1,0 +1,69 @@
+{
+  "text": "He doesn't know",
+  "take": "02-dont-know",
+  "model": "doesnt-know",
+  "voice": "eleven-us-eric",
+  "digests": {
+    "model": "683fd066e2a41717324b37e2f958a024ae44ef848074ce4268c2128d6bd8c7f9",
+    "take": "a72feb5791779af2bedb0c1a86b57d17c061c2d0d90a762755b8dc54b02e112b"
+  },
+  "syllables": [],
+  "phonemes": [
+    {
+      "start": 0,
+      "end": 1,
+      "points": 99.25,
+      "symbol": "h",
+      "borrowed": false
+    },
+    {
+      "start": 1,
+      "end": 2,
+      "points": 0.64,
+      "symbol": "i",
+      "borrowed": false
+    },
+    {
+      "start": 3,
+      "end": 4,
+      "points": 77.3,
+      "symbol": "ɾ",
+      "borrowed": false
+    },
+    {
+      "start": 4,
+      "end": 6,
+      "points": 88.07,
+      "symbol": "ə",
+      "borrowed": false
+    },
+    {
+      "start": 6,
+      "end": 7,
+      "points": 99.35,
+      "symbol": "z",
+      "borrowed": false
+    },
+    {
+      "start": 11,
+      "end": 13,
+      "points": 0.1,
+      "symbol": "n",
+      "borrowed": false
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "points": 0.24,
+      "symbol": "oʊ",
+      "borrowed": false
+    }
+  ],
+  "gutters": [
+    {
+      "symbol": "ɪ",
+      "after": 0,
+      "points": 69.72
+    }
+  ]
+}

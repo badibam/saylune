@@ -23,16 +23,22 @@ class Frames(val count: Int, val width: Int, private val values: FloatArray) {
         return best
     }
 
-    /** The mean of every column over `[from, until)`. */
+    /**
+     * The mean of every column over `[from, until)`.
+     *
+     * Accumulated in double and returned in float: a running float sum over a few hundred
+     * frames drifts enough to move a mark, and the same arithmetic exists in Python beside
+     * this one -- two implementations have to agree about the same numbers, not about
+     * nearly the same ones.
+     */
     fun mean(from: Int, until: Int): FloatArray {
-        val out = FloatArray(width)
+        val total = DoubleArray(width)
         for (frame in from until until) {
             val base = frame * width
-            for (symbol in 0 until width) out[symbol] += values[base + symbol]
+            for (symbol in 0 until width) total[symbol] += values[base + symbol]
         }
-        val span = (until - from).toFloat()
-        for (symbol in 0 until width) out[symbol] /= span
-        return out
+        val span = (until - from).toDouble()
+        return FloatArray(width) { (total[it] / span).toFloat() }
     }
 
     companion object {
