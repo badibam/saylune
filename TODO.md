@@ -22,11 +22,13 @@ Dans l'ordre :
 
 1. ~~Clés et écran de configuration~~ — fait. Reste le **fini que `docs/reference.md` réclame et qui n'est pas facultatif à terme** : le bouton « tester la clé » qui valide sur-le-champ, sans quoi toute panne ultérieure sera imputée à l'app ; l'écran guidé ; et la sonde de capacités, un appel par fonction optionnelle, qui allume ou éteint les briques au lieu de deviner d'après le plan souscrit.
 2. ~~La capture~~ — faite, en **maintien avec reprise** (relâcher pour réfléchir, réappuyer pour continuer le même tour), ce qui remplace l'armement automatique que `design/ui-flow.md` avait retenu — le doc de conception est à élaguer sur ce point. Deux provisoires qui sautent ensemble : le **plafond de 30 s**, qui existe parce que la mémoire d'une passe croît comme le carré du tour et disparaît quand le fenêtrage est tranché ; et le **retrait des plages vides**, dont le seuil de niveau attend des tours spontanés hésitants — que l'app produit désormais.
-3. **La boucle** : reconnaissance → modèle de langue → synthèse → lecture, sur un écran de conversation nu.
+3. ~~La boucle~~ — écrite, jamais lancée contre les fournisseurs. Premier essai à faire sur l'appareil, avec une clé ElevenLabs approvisionnée et un identifiant de voix.
 4. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
 
 **Les provisoires, notés à l'écriture :**
 
+- **La voix de l'apprenant n'est pas purgée.** `docs/reference.md` demande qu'elle le soit à la fermeture de la session — elle n'a aucun consommateur au-delà du tour, et aucun stock de voix ne doit dormir sur l'appareil. Les fichiers s'accumulent aujourd'hui dans `filesDir/turns/`. À écrire avec le cycle de vie de la session, qui n'existe pas encore.
+- **Le cache des synthèses n'a ni plafond ni éviction**, comme convenu — il grossit sans borne dans `cacheDir/renders/`.
 - **Le verdict grammatical n'est pas dans `Reply`.** La couture rend `spoken` et `intended` ; la porte grammaticale a besoin en plus du cran de sévérité et d'un verdict, dont dépend le fait même que l'analyse tourne (`docs/reference.md` : sur un tour fautif elle n'est pas cachée, elle n'est pas calculée). À ajouter quand la porte s'écrit — la forme du type l'admet sans casse.
 
 ## Chantier 1 — l'analyse : ce qu'il reste à écrire
