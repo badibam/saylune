@@ -100,6 +100,8 @@ python3 divergence.py -r timit-ipa -r v3-pw0.1-e29        # les juger, sur les r
 python3 divergence.py -r timit-ipa -r v3-pw0.1-e29 -t     # sur les prises
 ```
 
+Le jugement est **à l'aveugle** : lequel des deux modèles est A se tire au sort à chaque cas, les noms ne sont jamais affichés, et le tirage part dans le verdict. Le mot arrive à mi-vitesse, hauteur conservée ; `5`, `3` et `1` le rejouent à 0,5, 0,33 ou vitesse pleine. Le tableau des désaccords ne sort que sous `-n`, où l'ordre des colonnes dirait qui est qui.
+
 `divergence.py` ne calcule aucune des deux lectures : remplir l'une depuis l'autre comparerait un modèle avec lui-même. Un cache absent ou périmé est fatal, et la commande qui le remplit est nommée. La même commande relancée reprend où elle s'est arrêtée.
 
 `review.py` parcourt les marques d'une prise, joue le mot comme le modèle le dit puis comme la prise le dit, et écrit le verdict dans `reviews/<prise>.json`, versionné. Ce que chaque instrument répond, et ce qu'il ne répond pas, est dans `../docs/qualification.md`.
