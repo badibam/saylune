@@ -12,6 +12,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,6 +42,9 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     val stored by store.values().collectAsState(initial = emptyMap())
     val edits = remember { mutableStateMapOf<Secret, String>() }
+    // Saving has to say so. The only other sign is a warning line going away, which is
+    // no sign at all to someone who never saw it.
+    var saved by remember { mutableStateOf(false) }
 
     // Seed the fields once from what is stored, and never again: re-seeding on every
     // emission would overwrite what the user is in the middle of typing.
@@ -61,7 +66,7 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
         Secret.entries.forEach { secret ->
             OutlinedTextField(
                 value = edits[secret].orEmpty(),
-                onValueChange = { edits[secret] = it },
+                onValueChange = { edits[secret] = it; saved = false },
                 label = { Text(stringResource(secret.label)) },
                 singleLine = true,
                 visualTransformation =
@@ -72,11 +77,22 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
 
         Button(
             onClick = {
-                scope.launch { edits.forEach { (secret, value) -> store.write(secret, value) } }
+                scope.launch {
+                    edits.forEach { (secret, value) -> store.write(secret, value) }
+                    saved = true
+                }
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.settings_save))
+        }
+
+        if (saved) {
+            Text(
+                stringResource(R.string.settings_saved),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
 
         if (!Secret.allPresent(stored)) {

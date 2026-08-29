@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -71,7 +72,9 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
         showingMarks = false
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    // Without this the top row sits under the status bar and its buttons pull the
+    // notification shade instead of being pressed.
+    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
