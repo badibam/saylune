@@ -50,6 +50,13 @@ data class ConversationState(
     val marking: Map<Int, TurnMarking> = emptyMap(),
     /** What the analysis found under those marks, for the readout. Same keys as [marking]. */
     val sounds: Map<Int, List<AnalysedSound>> = emptyMap(),
+    /**
+     * The synthesised model of each analysed turn, kept to be heard again.
+     *
+     * One render serves three times, exactly as the doc says: a yardstick for the measure, a
+     * model to hear, and a model to hear again at every retry.
+     */
+    val models: Map<Int, File> = emptyMap(),
     /** Whether the marks are on at all, settled once for the session. Null until asked. */
     val analysis: Readiness? = null,
     /**
@@ -183,6 +190,7 @@ class TurnPipeline(
             _state.value = _state.value.copy(
                 marking = _state.value.marking + (at to analysed.marking),
                 sounds = _state.value.sounds + (at to analysed.sounds),
+                models = _state.value.models + (at to model),
             )
             Takes.keep(context, said, model, heard, text, false, analysed)
         } catch (failure: ChainFailure) {
@@ -190,6 +198,47 @@ class TurnPipeline(
             // analysis itself does not. The turn stands either way: it was answered and
             // said, and only its marks are missing.
             Trace.fail("analysis: no model to measure against", "why" to failure.message)
+        }
+    }
+
+    /**
+     * Say the model of the turn at [at] again.
+     *
+     * The remedy for a sound fault is to hear the model and say it again, not to be given a
+     * written instruction about the tongue (`docs/reference.md`). This is the hearing half.
+     */
+    suspend fun hear(at: Int) {
+        val model = _state.value.models[at] ?: return
+        _state.value = _state.value.copy(phase = Phase.Speaking)
+        play(model)
+        _state.value = _state.value.copy(phase = Phase.Idle)
+    }
+
+    /**
+     * Measure [audio] against the turn at [at] again -- the saying-again half.
+     *
+     * **It does not go through the conversation.** No recognition, no language model, no
+     * reply: this is pipe B alone, on a sentence whose text is already settled. That is what
+     * makes it cheap and what makes it honest -- the new take is scored against a reference
+     * text known in advance, which is the one thing free conversation cannot offer.
+     *
+     * The marks of the turn are replaced rather than added to. The same fault must produce
+     * the same mark at any moment, so a second take is read exactly like a first, and
+     * nothing of the previous reading survives to weigh on it.
+     */
+    suspend fun redo(at: Int, audio: File) {
+        val model = _state.value.models[at] ?: return
+        val text = _state.value.exchanges.getOrNull(at)?.text ?: return
+        Trace.add("redo: same sentence, same model", "text" to text)
+        try {
+            val analysed = analysis.examine(audio, model, text)
+            _state.value = _state.value.copy(
+                marking = _state.value.marking + (at to analysed.marking),
+                sounds = _state.value.sounds + (at to analysed.sounds),
+            )
+            Takes.keep(context, audio, model, emptyList(), text, false, analysed, redo = true)
+        } catch (failure: ChainFailure) {
+            Trace.fail("redo: could not be measured", "why" to failure.message)
         }
     }
 

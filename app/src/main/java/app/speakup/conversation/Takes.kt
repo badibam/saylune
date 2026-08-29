@@ -43,6 +43,8 @@ object Takes {
         intended: String,
         faulty: Boolean,
         analysed: Analysed?,
+        /** A second take of the same sentence, measured against the same model. */
+        redo: Boolean = false,
     ) {
         if (!Trace.on) return
         runCatching {
@@ -58,6 +60,7 @@ object Takes {
                 .put("heard", heard.joinToString(" ") { it.text })
                 .put("faulty", faulty)
                 .put("analysed", analysed != null)
+                .put("redo", redo)
             if (analysed != null) {
                 // `phonemes` keeps the shape `bench/turn.py` writes, so the bench reads a
                 // turn from the phone the way it reads one of its own.

@@ -81,7 +81,13 @@ Dans l'ordre :
 
   **Ça s'enlève quand les bancs ont leur matière** — sinon la purge du doc devient une règle que le code contredit sans que personne s'en souvienne.
 
-14. **Ce que l'écran fait des marques reste entier.** `MarkedTurn` peint ce que l'analyse rend, mais la forme du marquage est justement la question ouverte : mesuré sur de la parole d'apprenant réelle, **la majorité des mots portent quelque chose**, donc une marque binaire ne transporte plus rien. Le doc a déjà tranché le principe — **graduer plutôt que colorier** — et la forme reste à trouver. C'est maintenant regardable sur de vrais tours, ce qui est exactement ce que le fast-forward cherchait.
+14. **Entendre le modèle et redire, sur le tour lui-même** (2026-08-30) — les deux moitiés du remède, et le premier morceau de la parenthèse qui existe. Un petit rond joue la synthèse du tour ; un second, tenu comme le grand, réenregistre la phrase.
+
+  **Le redire ne passe pas par la chaîne de conversation** : ni reconnaissance, ni modèle de langue, ni réponse. C'est le tuyau B seul, sur une phrase dont le texte est déjà arrêté — ce qui le rend et bon marché et honnête, la nouvelle prise étant notée contre un texte de référence **connu d'avance**, la seule chose que la conversation libre ne peut pas offrir. Les marques du tour sont **remplacées** et non cumulées : la même faute doit produire la même marque à n'importe quel moment, donc une seconde prise se lit exactement comme une première.
+
+  Ce qui manque encore pour que ce soit la parenthèse du doc : le **zoom sur le mot** (parenthèse dans la parenthèse), l'**extrait de la prise au même endroit** à faire entendre juste après le modèle — les plages sont là, `AnalysedSound.saidMs`, rien ne les joue — et les deux temps *corriger puis driller*.
+
+15. **Ce que l'écran fait des marques reste entier.** `MarkedTurn` peint ce que l'analyse rend, mais la forme du marquage est justement la question ouverte : mesuré sur de la parole d'apprenant réelle, **la majorité des mots portent quelque chose**, donc une marque binaire ne transporte plus rien. Le doc a déjà tranché le principe — **graduer plutôt que colorier** — et la forme reste à trouver. C'est maintenant regardable sur de vrais tours, ce qui est exactement ce que le fast-forward cherchait.
 
 **Les provisoires, notés à l'écriture :**
 

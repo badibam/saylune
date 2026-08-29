@@ -4,12 +4,15 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -29,6 +32,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -108,7 +113,16 @@ fun ConversationScreen(
             )
         }
         turn.exchanges.forEachIndexed { at, exchange ->
-            Said(exchange, turn.marking[at], at in turn.faulty, turn.sounds[at])
+            Said(
+                exchange = exchange,
+                marking = turn.marking[at],
+                faulty = at in turn.faulty,
+                sounds = turn.sounds[at],
+                recorder = recorder,
+                busy = turn.phase != Phase.Idle,
+                onHear = { scope.launch { pipeline.hear(at) } },
+                onRedo = { scope.launch { pipeline.redo(at, it) } },
+            )
         }
 
         (turn.analysis as? Readiness.Off)?.let { off ->
@@ -205,12 +219,86 @@ fun ConversationScreen(
     }
 }
 
+/**
+ * Hear the model, and say it again -- the two halves of the remedy, on the turn itself.
+ *
+ * Drawn rather than lettered: a glyph borrowed to stand for a control is the decoration
+ * `dev_base` refuses, and an icon pack is a dependency to rebuild offline for a control that
+ * is a triangle and a circle.
+ *
+ * The small circle is the big one, smaller, and it holds the same way. Saying a sentence
+ * again is not a new turn of conversation: it never reaches the language model, and what
+ * comes back is the same sentence measured again.
+ */
+@Composable
+private fun Redo(
+    recorder: TurnRecorder,
+    busy: Boolean,
+    onHear: () -> Unit,
+    onSaid: (java.io.File) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val capture by recorder.state.collectAsState()
+    var mine by rememberSaveable { mutableStateOf(false) }
+    val recording = mine && capture.recording
+
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.size(34.dp).clickable(enabled = !busy, onClick = onHear),
+        ) {
+            Canvas(Modifier.fillMaxSize()) {
+                val h = size.minDimension * 0.34f
+                val x = size.width * 0.40f
+                drawPath(
+                    Path().apply {
+                        moveTo(x - h * 0.4f, size.height / 2 - h)
+                        lineTo(x + h, size.height / 2)
+                        lineTo(x - h * 0.4f, size.height / 2 + h)
+                        close()
+                    },
+                    color = Color.White,
+                )
+            }
+        }
+        Surface(
+            shape = CircleShape,
+            color = if (recording) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .size(34.dp)
+                .pointerInput(busy) {
+                    detectTapGestures(onPress = {
+                        if (busy) return@detectTapGestures
+                        mine = true
+                        recorder.hold(scope)
+                        tryAwaitRelease()
+                        recorder.release()
+                        scope.launch {
+                            recorder.finish()?.let { onSaid(it) }
+                            mine = false
+                        }
+                    })
+                },
+        ) {
+            Canvas(Modifier.fillMaxSize()) {
+                drawCircle(color = Color.White, radius = size.minDimension * 0.22f)
+            }
+        }
+    }
+}
+
 @Composable
 private fun Said(
     exchange: Exchange,
     marking: TurnMarking?,
     faulty: Boolean,
     sounds: List<AnalysedSound>?,
+    recorder: TurnRecorder,
+    busy: Boolean,
+    onHear: () -> Unit,
+    onRedo: (java.io.File) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -223,6 +311,9 @@ private fun Said(
         )
         if (marking != null) MarkedTurn(marking, modifier = Modifier.fillMaxWidth())
         else Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
+        if (sounds != null) {
+            Redo(recorder, busy, onHear, onRedo)
+        }
         if (sounds != null && Trace.on) {
             var open by rememberSaveable { mutableStateOf(false) }
             TextButton(onClick = { open = !open }) {
