@@ -62,6 +62,34 @@ not no yes if then than as too very just only also even still
 """.split())
 
 
+# The vowels English reduces to. TIMIT tells them apart from their full
+# counterparts, which is what makes this measurable at all; the syllabic
+# consonants carry no vowel and are unstressed by construction.
+REDUCED = frozenset("ax ax-h ix axr".split()) | SYLLABIC
+
+# The same question in two inventories that are ours, and they are not the same
+# one. The vocabulary the model in service writes holds `ə` beside `ʌ` and `ɚ`
+# beside `ɝ`, so it keeps the reduced vowel apart from its full counterpart.
+# Our own fine-tuning targets Lee & Hon's 39 classes, which merge both pairs
+# and leave only the schwa standing. Neither tells `ix` from `ih`, so `ɪ` --
+# reduced in `roses`, full in `sink` -- says nothing either way.
+SPOKEN = {"ah": "ʌ", "ax": "ə", "ax-h": "ə", "er": "ɝ", "axr": "ɚ"}
+SPOKEN_REDUCED = frozenset(["ə", "ɚ"]) | SYLLABIC
+FOLDED_REDUCED = frozenset(["ə"]) | SYLLABIC
+
+
+def folded(symbol):
+    from train.timit import FOLD
+    return FOLD.get(symbol, symbol)
+
+
+def spoken_as(symbol):
+    """The symbol as the vocabulary in service writes it."""
+    if symbol in SPOKEN:
+        return SPOKEN[symbol]
+    return folded(symbol)
+
+
 def dictionary():
     """word -> the stress of each of its nuclei, read from TIMITDIC.
 
@@ -125,6 +153,22 @@ def rates(spans, mark):
     return here / statistics.mean(others), here / max(others)
 
 
+def picked(nuclei, spans, reduced):
+    """Which syllable a rule reading reduction alone would call the strong one.
+
+    Returns the rank it picks, or None when it cannot: no full vowel at all, or
+    several, in which case duration is asked to break the tie -- which is the
+    corroborating role the measure above left it, tried here rather than
+    assumed. The two answers are kept apart so the tie-break can be priced.
+    """
+    full = [rank for rank, symbol in enumerate(nuclei) if symbol not in reduced]
+    if len(full) == 1:
+        return full[0], "seule"
+    if not full:
+        return None, "aucune"
+    return max(full, key=lambda rank: spans[rank]), "départagée"
+
+
 def measured(utterance, table):
     """Per word: the two readings, and whether the stress falls last."""
     phn = Path(utterance).with_suffix(".PHN")
@@ -153,7 +197,18 @@ def measured(utterance, table):
         between, inside = rates(spans, mark), rates(own, mark)
         if between is None or inside is None:
             continue
-        found.append((between, inside, mark == len(stresses) - 1))
+        nuclei = [symbol for symbol, _, _ in
+                  [row for row in rows if start <= row[1] and row[2] <= stop
+                   and row[0] in NUCLEI]]
+        reduction = {
+            "timit": picked(nuclei, own, REDUCED),
+            "en service": picked([spoken_as(s) for s in nuclei], own,
+                                 SPOKEN_REDUCED),
+            "notre repli": picked([folded(s) for s in nuclei], own,
+                                  FOLDED_REDUCED),
+        }
+        found.append((between, inside, mark == len(stresses) - 1,
+                      mark, reduction))
     return found, skipped
 
 
@@ -173,13 +228,30 @@ def report(found, skipped, utterances):
           f"syllabes ou plus")
     print(f"    {skipped} écartés : la réalisation n'a pas le nombre de "
           f"noyaux du dictionnaire")
-    final = sum(1 for _, _, last in found if last)
+    final = sum(1 for row in found if row[2])
     print(f"    accent sur la dernière syllabe dans "
           f"{100 * final / len(found):.1f} % des mots")
     for rank, reading in ((0, "noyau à noyau"), (1, "noyau seul")):
         print(f"\n    {reading}")
         line("contre la moyenne", [row[rank][0] for row in found])
         line("contre la plus longue", [row[rank][1] for row in found])
+
+    print("\n    la réduction vocalique : la syllabe forte est celle qui "
+          "n'est pas réduite")
+    for inventory in ("timit", "en service", "notre repli"):
+        cases = [(row[4][inventory], row[3]) for row in found]
+        right = sum(1 for (guess, _), mark in cases if guess == mark)
+        alone = [(guess, why, mark) for (guess, why), mark in cases
+                 if why == "seule"]
+        split = [(guess, why, mark) for (guess, why), mark in cases
+                 if why == "départagée"]
+        none = sum(1 for (_, why), _ in cases if why == "aucune")
+        print(f"      {inventory:<13}{100 * right / len(cases):5.1f} % justes"
+              f"   —   une seule voyelle pleine : {len(alone)} mots, "
+              f"{100 * sum(1 for g, _, m in alone if g == m) / max(len(alone), 1):.1f} % justes")
+        print(f"      {'':<13}départagée par la durée : {len(split)} mots, "
+              f"{100 * sum(1 for g, _, m in split if g == m) / max(len(split), 1):.1f} % justes"
+              f"   —   aucune voyelle pleine : {none} mots")
 
 
 def main(argv=None):
