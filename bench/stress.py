@@ -149,6 +149,8 @@ def durations(rows, start, stop):
 
 def audio(wav):
     """The samples of one utterance. TIMIT's .WAV files are NIST SPHERE."""
+    import matrix  # imported here: most of this brick runs with no network
+    matrix.heard(wav)
     samples, rate = sf.read(wav, dtype="float64")
     if rate != SAMPLE_RATE:
         raise SystemExit(f"{wav} : {rate} Hz, le banc lit du {SAMPLE_RATE} Hz")
@@ -524,6 +526,13 @@ def report(found, skipped, utterances):
               f"{100 * sum(1 for g, _, m in twins if g == m) / max(len(twins), 1):.1f} % justes")
 
 
+def audios():
+    """The ledger line, asked of the matrix module without importing it above:
+    most of this brick runs on hand-placed boundaries and no network."""
+    import matrix
+    return matrix.audios()
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-n", "--utterances", type=int, default=200,
@@ -536,6 +545,7 @@ def main(argv=None):
 
     if args.matrix:
         centralisation(args.matrix)
+        print(f"\n{audios()}")
         return 0
 
     every = list(timit.utterances(args.split))
@@ -557,6 +567,7 @@ def main(argv=None):
         raise SystemExit("aucun mot mesurable — le dictionnaire n'a rien rendu")
     report(found, skipped, len(every))
     disagreement(shared(table))
+    print(f"\n{audios()}")
     return 0
 
 

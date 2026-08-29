@@ -72,8 +72,9 @@ def compared(reference, candidate, show):
 
     cells, grids, gaps = [], [], []
     for name in shared:
-        first = np.load(here[name])["probabilities"]
-        second = np.load(there[name])["probabilities"]
+        held = np.load(here[name])
+        first, second = held["probabilities"], np.load(there[name])["probabilities"]
+        matrix.recorded(name, held["audio"] if "audio" in held else None)
         if first.shape != second.shape:
             print(f"    {str(name):<44}{'formes différentes':>29}")
             grids.append(False)
@@ -115,6 +116,7 @@ def compared(reference, candidate, show):
     passed = (max(cells) <= SAME_READING and all(grids)
               and max(gaps) <= SAME_VERDICT)
     print(f"\n    {'les deux lectures concordent' if passed else 'ELLES DIVERGENT'}")
+    print(f"\n{matrix.audios()}")
     return 0 if passed else 1
 
 

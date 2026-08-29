@@ -267,6 +267,60 @@ def fingerprint(wav):
     return hashlib.sha256(Path(wav).read_bytes()).hexdigest()
 
 
+_heard = {}
+
+
+def heard(wav):
+    """Record that this run read `wav`, and return its digest.
+
+    Every audio that reaches a bench figure passes through here -- the matrix
+    calls it, and the bricks that read a waveform without the network call it
+    themselves. Synthesis is not reproducible, so a number written today and a
+    number written next month are about the same sounds only if this ledger
+    says so.
+    """
+    wav = Path(wav).resolve()
+    key = str(wav)
+    if key not in _heard:
+        _heard[key] = fingerprint(wav)
+    return _heard[key]
+
+
+def recorded(name, digest):
+    """Record an audio this run never opened, named by a reading that did.
+
+    A brick that confronts two cached matrices reads no waveform, but each
+    matrix carries the digest of the audio it was computed on -- which is what
+    the ledger has to name, or the line would claim the run heard nothing.
+    """
+    _heard.setdefault(str(name), str(digest) if digest is not None else None)
+
+
+def audios():
+    """One line naming what this run listened to: how many, and their joint hash.
+
+    The joint hash covers the names as well as the bytes, so a file swapped for
+    another of the same content moves it too. Paths are taken relative to the
+    project so that two machines reading the same audios agree.
+    """
+    if not _heard:
+        return "audios : aucun"
+    lines, unnamed = [], 0
+    for path, digest in sorted(_heard.items()):
+        if digest is None:
+            unnamed += 1
+            continue
+        name = Path(path)
+        try:
+            name = name.relative_to(ROOT)
+        except ValueError:
+            pass
+        lines.append(f"{name} {digest}")
+    joint = hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+    said = f"audios : {len(lines)} lus, empreinte {joint[:12]}"
+    return said + (f" — {unnamed} sans empreinte" if unnamed else "")
+
+
 def own(held, cache):
     """A cached matrix's columns, refused if they are not this model's sounds.
 
@@ -298,13 +352,14 @@ def stale(wav, held):
     audio's length fixes.
     """
     if "audio" in held:
-        return str(held["audio"]) != fingerprint(wav)
+        return str(held["audio"]) != heard(wav)
     return len(held["probabilities"]) != frames_for(sf.info(wav).frames)
 
 
 def probabilities(wav, cache=None):
     """The matrix of `wav`: one row per 20 ms, one column per sound, summing to 1."""
     wav = Path(wav)
+    heard(wav)
     if cache is not None and Path(cache).is_file():
         held = np.load(cache)
         if not stale(wav, held):
@@ -339,7 +394,7 @@ def probabilities(wav, cache=None):
     if cache is not None:
         Path(cache).parent.mkdir(parents=True, exist_ok=True)
         np.savez_compressed(cache, probabilities=probabilities,
-                            audio=fingerprint(wav))
+                            audio=heard(wav))
     return probabilities
 
 

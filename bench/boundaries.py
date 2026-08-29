@@ -202,6 +202,7 @@ def main(argv=None):
     if not onsets:
         raise SystemExit("aucun son placé — rien à rapporter")
     report(matrix.SLUG, onsets, covered, held, spans, unplaced, failed, len(every))
+    print(f"\n{matrix.audios()}")
     return 0
 
 

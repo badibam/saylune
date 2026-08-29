@@ -210,6 +210,7 @@ def main(argv=None):
     print(f"le poste a lu les mêmes fichiers sous {reference.name}\n")
     print(f"    python3 concord.py -r {reference.name} -a {slug}")
     print(f"    READING={slug} python3 faults.py")
+    print(f"\n{matrix.audios()}")
     return 0
 
 

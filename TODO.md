@@ -2,10 +2,9 @@
 
 ## Ordre acté (2026-08-29) — le fil, pour ne plus le reperdre
 
-1. **Stabiliser le sol** : le hash des audios dans chaque chiffre de banc (cf. « Qualifier l'étalon »). Sans lui, toute mesure est périssable.
-2. **Acheter le chiffre derrière lequel tout fait la queue** : rendre la moitié `test` du corpus L2 et lancer `bench/alarms.py` — le taux de fausse alerte, pour tous les candidats de modèle à la fois.
-3. **La brique 7 est de la recherche, hors du chemin de la v1** : la v1 marque au niveau du son, canaux d'accent vides comme aujourd'hui. Acté durablement dans `docs/reference.md` (portée de « Se taire n'est jamais une issue »).
-4. **Revenir au produit** : chantier 2, deux bancs spécifiés, zéro ligne écrite.
+1. **Acheter le chiffre derrière lequel tout fait la queue** : rendre la moitié `test` du corpus L2 et lancer `bench/alarms.py` — le taux de fausse alerte, pour tous les candidats de modèle à la fois.
+2. **La brique 7 est de la recherche, hors du chemin de la v1** : la v1 marque au niveau du son, canaux d'accent vides comme aujourd'hui. Acté durablement dans `docs/reference.md` (portée de « Se taire n'est jamais une issue »).
+3. **Revenir au produit** : chantier 2, deux bancs spécifiés, zéro ligne écrite.
 
 ## Chantier 1 — l'analyse : ce qu'il reste à écrire
 
@@ -127,11 +126,10 @@ Le coût du changement, à peser le moment venu : l'annotation d'`expected.py` e
 - `bench/out/renders/` est traité comme un cache régénérable, et il ne l'est pas. **Décidé : on ne sauvegarde pas** — rien ne prévoit de les supprimer. Ce qu'on accepte en le décidant : `git clean -xdf` retire les dossiers gitignorés, `synth.py -f` les remplace, et le disque est unique. Les rendus se refont au prix de tous les chiffres ; les vingt-sept prises étiquetées, elles, ne se refont pas du tout.
 - **Refaire la lecture de l'appareil** (`phone.py`) : `READING=phone-int8` est refusé depuis, ses matrices ayant été calculées sur les anciens rendus.
 
-### Qualifier l'étalon — un seul chantier, trois mesures
+### Qualifier l'étalon — un seul chantier, deux mesures
 
-Le modèle est cru aveuglément, et c'est le maillon le moins vérifié de la chaîne : aucune voix n'est qualifiée, la synthèse n'est pas reproductible (ci-dessus), et les voix divergent entre elles de 11 à 18 % des sons — l'idiosyncrasie de la voix choisie devient la norme qu'on fait imiter. Tous les chiffres du banc reposent dessus ; les trois pièces sont petites et tiennent sur l'outillage existant.
+Le modèle est cru aveuglément, et c'est le maillon le moins vérifié de la chaîne : aucune voix n'est qualifiée, la synthèse n'est pas reproductible (ci-dessus), et les voix divergent entre elles de 11 à 18 % des sons — l'idiosyncrasie de la voix choisie devient la norme qu'on fait imiter. Tous les chiffres du banc reposent dessus ; les deux pièces sont petites et tiennent sur l'outillage existant. L'empreinte des audios, elle, est posée : chaque brique termine par la ligne des fichiers qu'elle a lus (`docs/qualification.md`).
 
-- **L'empreinte des audios dans chaque mesure.** Chaque script du banc écrit, à côté de ses chiffres, le hash des audios qu'il a lus — une fonction utilitaire, une passe sur les scripts, et la clé dans le cache des matrices. Sans elle, la dérive des rendus peut se reproduire sans être vue, et deux chiffres séparés dans le temps ne parlent pas du même son.
 - **Le test de voix, écrit.** Pour une voix, sur un jeu de phrases fixe : la netteté moyenne des pics de la grille, le pire son (répartition écrasée), les zones où la répartition s'effondre, et la divergence aux autres voix — le seul critère extérieur à la voix : 11,5 % des sons pour `eleven-us-sarah`, 13 % pour `azure-us-jenny`, 18 % pour `eleven-gb-daniel` (`tmp/voices.py`, à promouvoir) — la voix modèle étant la source de vérité, son idiosyncrasie devient la norme imitée, donc un étalon devrait être une voix ordinaire. Les seuils de passage se calibrent sur les voix avec lesquelles le banc a été mesuré, connues bonnes ; le test qui existait, lui, jugeait aux notes d'un service dont l'app ne dépend plus. L'oreille ne rend pas ce verdict, et `docs/reference.md` (« L'accent ») dit pourquoi.
 - **La stabilité, mesurée une fois.** Deux rendus du même texte par la même voix : comparer les grilles, et l'écart de marquage entre elles. Que le fichier diffère est mesuré ; de combien la norme bouge ne l'est pas. Grilles quasi identiques → le cache fait le reste ; divergence sensible → critère de choix de fournisseur pour le chantier 2, à connaître avant de choisir.
 

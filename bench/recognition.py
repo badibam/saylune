@@ -109,6 +109,7 @@ def main(argv=None):
           f"   ({deleted})   <- la colonne que la peakiness remplit")
     print(f"    insertions               {inserted / expected * 100:6.1f} %"
           f"   ({inserted})")
+    print(f"\n{matrix.audios()}")
     return 0
 
 

@@ -292,6 +292,7 @@ def main(argv=None):
     lost(options.verbose)
     counted(options.verbose)
     sliced(options.verbose)
+    print(f"\n{matrix.audios()}")
     return 0
 
 

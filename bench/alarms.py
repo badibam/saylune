@@ -39,6 +39,7 @@ from pathlib import Path
 
 import faults
 import join
+import matrix
 import learners
 import overlap
 import synth
@@ -239,6 +240,7 @@ def main(argv=None):
                         encoding="utf-8")
         report(voice, rows, refused)
         print(f"\n    les faits : {path}")
+    print(f"\n{matrix.audios()}")
     return 0
 
 

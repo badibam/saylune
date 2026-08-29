@@ -425,6 +425,7 @@ def main(argv=None):
 
     if options.score:
         scored(options.candidate, material)
+        print(f"\n{matrix.audios()}")
         return 0
     if options.slug is None:
         raise SystemExit("nomme une phrase du jeu : "
@@ -451,6 +452,7 @@ def main(argv=None):
         shown = sound.letters or (f"({loan})" if loan else "— intervalle")
         print(f"  {sound.symbol:<8}{sound.low:>8.2f}{sound.high:>8.2f}"
               f"   {sound.word:<14}{shown}")
+    print(f"\n{matrix.audios()}")
     return 0
 
 

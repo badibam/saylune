@@ -297,8 +297,13 @@ def main(argv=None):
         return 0
     REVIEWS.mkdir(exist_ok=True)
     out = REVIEWS / f"{options.take}.json"
+    # The two audios the verdicts were given on, by their bytes: synthesis is
+    # not reproducible, and a judgement filed under a phrase's name would
+    # otherwise outlive the sounds it was about.
     out.write_text(json.dumps({"take": options.take, "model": options.model,
                                "voice": options.candidate, "text": text,
+                               "digests": {"model": matrix.fingerprint(model),
+                                           "take": matrix.fingerprint(learner)},
                                "marks": verdicts},
                               indent=2, ensure_ascii=False) + "\n",
                    encoding="utf-8")

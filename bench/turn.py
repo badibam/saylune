@@ -89,7 +89,12 @@ def read(take, model_slug, voice):
                          "points": round(gap.value * POINTS, 2),
                          "symbol": sound.symbol,
                          "borrowed": bool(sound.borrowed)})
+    # The two audios these points were read off, by their bytes: a fixture
+    # regenerated from a drifted render would otherwise change what the screen
+    # draws without saying so.
     return {"text": text, "take": take, "model": model_slug, "voice": voice,
+            "digests": {"model": matrix.fingerprint(model),
+                        "take": matrix.fingerprint(learner)},
             "syllables": [], "phonemes": phonemes, "gutters": gutters}
 
 

@@ -163,6 +163,7 @@ def main(argv=None):
                   ("à froid", "spontaneous",
                    TAKES / args.which / "spontaneous")]
         run(name, others, labels, chosen, args.which, args.verbose)
+    print(f"\n{matrix.audios()}")
     return 0
 
 

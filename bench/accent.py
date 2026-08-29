@@ -72,6 +72,7 @@ def measured(wav, text, cache):
     """Per word: its syllables' symbols, durations and loudness, from one side."""
     sounds = join.joined(wav, text, cache=cache)
     cuts = syllables.cut(sounds)
+    matrix.heard(wav)
     samples, rate = sf.read(wav, dtype="float64")
     out = {}
     for start, stop in join.runs(sounds):
@@ -175,6 +176,7 @@ def borrowed(model, learner, text, cache, gaps):
     cuts = syllables.cut(sounds)
     step = matrix.seconds_per_frame()
     span_of = {gap.rank: gap.span for gap in gaps}
+    matrix.heard(learner)
     samples, rate = sf.read(learner, dtype="float64")
     out = {}
     for start, stop in join.runs(sounds):
@@ -273,6 +275,7 @@ def main(argv=None):
     report(rows, args.montage)
     print(f"\n    {skipped} prises sans rien de lisible")
     print(f"    les faits : {path}")
+    print(f"\n{matrix.audios()}")
     return 0
 
 

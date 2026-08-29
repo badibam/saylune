@@ -29,6 +29,7 @@ import statistics
 import sys
 from pathlib import Path
 
+import matrix
 import overlap
 import synth
 
@@ -143,6 +144,7 @@ def main(argv=None):
         if name not in synth.BY_NAME:
             raise SystemExit(f"Voix inconnue {name!r}")
         run(name, args.verbose)
+    print(f"\n{matrix.audios()}")
     return 0
 
 
