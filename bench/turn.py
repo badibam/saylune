@@ -14,9 +14,12 @@ The arithmetic stays in Python and the drawing is in Kotlin, which changes
 nothing of what is seen: same audio, same weights, same grid, same marks.
 Porting it to Kotlin is a separate job (`../TODO.md`).
 
-Two channels of `TurnMarking` are left empty on purpose. Stress and melody both
-travel through `syllables`, which needs bricks 7 and 8, and neither is written.
-A turn from here therefore carries phoneme marks and nothing else.
+Two channels of `TurnMarking` are left empty on purpose. Brick 8 now cuts the
+syllables (`syllables.cut`), so their extents exist -- but a syllable the app
+draws carries four more fields, and every one of them is brick 7 or brick 10:
+which syllable the stress sits on, on each side, and the pitch of each. Filling
+the extents and inventing the rest would put made-up stress on the screen, so
+the channel stays empty until there is something true to put in it.
 """
 
 import argparse

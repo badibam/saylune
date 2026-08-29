@@ -158,16 +158,6 @@ def heard(probabilities, span):
                      for i in order if spread[i] >= 0.01)
 
 
-def words(sounds):
-    """Each sound's word, as the run of sounds that share it."""
-    runs, start = [], 0
-    for index in range(1, len(sounds) + 1):
-        if index == len(sounds) or sounds[index].word is not sounds[start].word:
-            runs.append((start, index))
-            start = index
-    return {index: run for run in runs for index in range(*run)}
-
-
 def shown(text, spots):
     """The sentence with the marked letters raised, so the claim has a place."""
     if not spots:
@@ -258,7 +248,8 @@ def main(argv=None):
     grid = matrix.grid(model_spread)
 
     step = matrix.seconds_per_frame()
-    grouped = words(sounds)
+    grouped = {index: run for run in join.runs(sounds)
+               for index in range(*run)}
     marked = [index for index, gap in enumerate(gaps) if gap.value > NOISE]
     print(f"\n{text}\n{len(marked)} marques sur {len(gaps)} sons\n")
     print("  o = cohérent   n = incohérent   ? = incertain   "

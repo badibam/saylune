@@ -320,6 +320,20 @@ def joined(wav, text, cache=None):
                    lent(symbols, held, covered, spots, text))]
 
 
+def runs(sounds):
+    """Each word's stretch of sounds, as (start, stop) into the sound list.
+
+    Told apart by identity and not by spelling: two occurrences of the same
+    word are two different strings, so `that that` stays two runs.
+    """
+    out, start = [], 0
+    for index in range(1, len(sounds) + 1):
+        if index == len(sounds) or sounds[index].word is not sounds[start].word:
+            out.append((start, index))
+            start = index
+    return out
+
+
 def lent(symbols, held, covered, spots, text):
     """For a sound holding no letter, the letter it would light anyway.
 
