@@ -45,7 +45,10 @@ AUDIO = HERE / "out" / "l2"
 
 SAMPLE_RATE = 16000
 
-Word = namedtuple("Word", "text state stress")
+# `phones` : la suite ATTENDUE, telle que le corpus la note — pas ce qui a
+# été dit. Inutilisable pour juger un apprenant, et c'est précisément ce
+# qui la rend bonne pour juger un RENDU du modèle, censé dire le canonique.
+Word = namedtuple("Word", "text state stress phones")
 Take = namedtuple("Take", "uid text speaker words")
 
 LABELS = ("propre", "entre", "fautif")
@@ -88,7 +91,8 @@ def catalogue(split):
                           columns=["text", "words", "speaker"]).to_pylist()
     takes = []
     for rank, row in enumerate(table):
-        words = tuple(Word(word["text"], state(word), word["stress"])
+        words = tuple(Word(word["text"], state(word), word["stress"],
+                           tuple(word["phones"]))
                       for word in row["words"])
         takes.append(Take(f"{split}-{rank:04d}", spoken(row["text"]),
                           row["speaker"], words))

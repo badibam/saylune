@@ -33,6 +33,47 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from train import timit  # noqa: E402  (path has to be set first)
 
 
+def canonical(take):
+    """La suite de sons que le rendu du modèle est censé dire, en IPA.
+
+    Les phonèmes viennent de l'annotation du corpus L2, en ARPAbet : ce sont les
+    sons ATTENDUS, jamais ceux qui ont été dits. C'est ce qui les disqualifie
+    pour juger un apprenant, et c'est ce qui les qualifie ici -- le rendu est
+    une synthèse de ce texte, donc il dit le canonique ou la voix est fautive.
+
+    Le repli de Lee & Hon est celui du vocabulaire lui-même (39 symboles, ni
+    `ɔ` ni `ʌ` ni `ɚ`), donc traduire n'invente aucune distinction que le
+    réseau pourrait rater sans tort.
+    """
+    out = []
+    for word in take.words:
+        for phone in word.phones:
+            plain = phone.lower().rstrip("0123456789")
+            if plain in timit.DROPPED:
+                continue
+            if plain not in timit.FOLD:
+                return None
+            out.append(timit.FOLD[plain])
+    return out
+
+
+def renders(voice, split, count):
+    """Les rendus du modèle sur le corpus L2, et ce qu'ils devraient dire."""
+    import alarms
+    import learners
+
+    every = []
+    for take in learners.catalogue(split):
+        wav = alarms.render_path(voice, take)
+        phones = canonical(take)
+        if wav.is_file() and phones:
+            every.append((take.uid, wav, phones))
+    if count and count < len(every):
+        stride = len(every) / count
+        every = [every[int(i * stride)] for i in range(count)]
+    return every
+
+
 def decoded(probabilities):
     """The greedy CTC decoding: the sounds the network actually put there."""
     table = matrix.symbols()
@@ -81,14 +122,28 @@ def main(argv=None):
     parser.add_argument("-n", "--utterances", type=int, default=200,
                         help="how many of the test split to read; 0 reads all")
     parser.add_argument("-s", "--split", default="TEST")
+    parser.add_argument("--source", default="timit", choices=("timit", "l2"),
+                        help="timit : de la parole lue, vérité terrain à la "
+                             "main. l2 : les RENDUS du modèle sur le corpus "
+                             "L2, contre les phonèmes attendus du corpus — "
+                             "ça juge la voix modèle, pas un apprenant")
+    parser.add_argument("-c", "--candidate", default="azure-us-jenny",
+                        help="la voix modèle, pour --source l2")
     args = parser.parse_args(argv)
 
-    every = list(timit.utterances(args.split))
-    if not every:
-        raise SystemExit(f"aucun énoncé sous {timit.CORPUS / args.split}")
-    if args.utterances and args.utterances < len(every):
-        stride = len(every) / args.utterances
-        every = [every[int(i * stride)] for i in range(args.utterances)]
+    if args.source == "l2":
+        split = "test" if args.split == "TEST" else args.split
+        every = renders(args.candidate, split, args.utterances)
+        if not every:
+            raise SystemExit("aucun rendu — lance d'abord alarms.py --render")
+        print(f"\n=== rendus {args.candidate} sur le corpus L2 ({split})")
+    else:
+        every = list(timit.utterances(args.split))
+        if not every:
+            raise SystemExit(f"aucun énoncé sous {timit.CORPUS / args.split}")
+        if args.utterances and args.utterances < len(every):
+            stride = len(every) / args.utterances
+            every = [every[int(i * stride)] for i in range(args.utterances)]
 
     expected = substituted = deleted = inserted = 0
     for index, (_, wav, phones) in enumerate(every, 1):
