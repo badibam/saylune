@@ -22,18 +22,17 @@ Le script prend une voie que le CLI Kaggle n'offre pas, parce que ses deux voies
 
 Le CLI s'installe dans le venv du projet (`tmp/venv/bin/pip install kaggle`) et s'authentifie par `kaggle auth login`, ou par un jeton déposé en `~/.kaggle/kaggle.json` en mode `600`.
 
-**Côté Kaggle, trois réglages qui ne se voient pas.** Le corpus se charge en **dataset privé** — TIMIT est sous licence LDC, pas librement redistribuable. La persistance de session se met sur « Files only », jamais « Variables » qui restaure l'état Python d'une session précédente ; elle retombe à « aucune » à chaque *Copy & Edit* et se repose à la main. Et `/kaggle/working` survit d'une session à l'autre, d'où un dossier de sortie **par run** — `train.py` refuse d'écrire dans un dossier qui porte déjà des checkpoints — et un ménage entre variantes, à coller en première cellule :
+**Côté Kaggle, trois réglages qui ne se voient pas.** Le corpus se charge en **dataset privé** — TIMIT est sous licence LDC, pas librement redistribuable. La persistance de session se met sur « Files only », jamais « Variables » qui restaure l'état Python d'une session précédente ; elle retombe à « aucune » à chaque *Copy & Edit* et se repose à la main. Et `/kaggle/working` survit d'une session à l'autre, d'où un dossier de sortie **par run** — `train.py` refuse d'écrire dans un dossier qui porte déjà des checkpoints — et un ménage entre variantes. Ce que ce refus vise est **un dossier**, pas le répertoire de travail : la cellule qui débloque se place **juste avant celle qui entraîne**, et ne touche que la sortie du run.
 
 ```python
 import pathlib, shutil
 
-working = pathlib.Path("/kaggle/working")
-for item in sorted(working.iterdir()):
-    print("supprimé :", item)
-    shutil.rmtree(item) if item.is_dir() else item.unlink()
-print("vide." if not any(working.iterdir()) else "reste quelque chose")
+out = pathlib.Path("/kaggle/working/tmp/train/runs-v3/v3-pw0.3")   # le --out du run
+if out.exists():
+    shutil.rmtree(out)
+    print("retiré :", out)
 ```
 
-Une copie fraîche part vide, la persistance retombant à « aucune » au *Copy & Edit* : ce que cette cellule sert vraiment est le **relancement après un plantage**, où le refus d'écrire de `train.py` bloque sur les checkpoints d'un run interrompu.
+Un balayage de `/kaggle/working` entier ne convient pas ici : le notebook y dépose le code qu'il exécute — le dépôt n'est pas sur Kaggle — donc tout ce qui efface le répertoire doit précéder cette écriture, et une cellule rejouée hors d'ordre emporte le script. Une copie fraîche part de toute façon vide, la persistance retombant à « aucune » au *Copy & Edit* ; le cas qui demande vraiment cette cellule est le **relancement après un plantage**, où les checkpoints d'un run mort à l'époque 12 bloquent l'écriture.
 
 Le manifeste et les checkpoints vivent sous `tmp/train/`, régénérables. Les hyperparamètres exposés (`--lr`, `--prior-weight`, `--epochs`, `--warmup`) sont des points de départ à balayer sur GPU, pas des valeurs qualifiées ; ce qui qualifie un checkpoint est la procédure de `../docs/qualification.md`, jamais la loss — et `faults.py` seul n'y suffit pas, un modèle plus pointu séparant mieux les fautes tout en donnant moins de matière à joindre.
