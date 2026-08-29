@@ -4,9 +4,9 @@ L'analyse tourne **sur l'appareil**, et c'est la colonne vertébrale de l'app. C
 
 ## Les deux principes
 
-Toute la forme du pipeline découle des deux décisions de `reference.md` : **le modèle est la source de vérité et on le croit aveuglément** — rien d'extérieur aux deux enregistrements n'est jamais consulté — et **on ne compare jamais deux notes, mais deux formes**, la répartition entière de la ressemblance à chaque instant plutôt que son maximum.
+Toute la forme de la chaîne découle des deux décisions de `reference.md` : **le modèle est la source de vérité et on le croit aveuglément** — rien d'extérieur aux deux enregistrements n'est jamais consulté — et **on ne compare jamais deux notes, mais deux formes**, la répartition entière de la ressemblance à chaque instant plutôt que son maximum.
 
-Le second a une conséquence propre au pipeline, née d'une objection. Tant qu'on comparait deux pics, le pic du modèle était le maximum de sa propre ligne — la grille étant tirée de cette ligne, la « mesure de référence » n'était qu'une relecture d'un argmax, et l'écart se réduisait à la valeur de l'apprenant. Le nombre n'est pas vide pour autant : il porte le **plafond local** — un son que le réseau distingue mal pique bas même sur une synthèse parfaite, et une syllabe floue pique bas parce que la voix était floue. Mais c'est une échelle, pas un terme de comparaison.
+Le second a une conséquence propre à la chaîne, née d'une objection. Tant qu'on comparait deux pics, le pic du modèle était le maximum de sa propre ligne — la grille étant tirée de cette ligne, la « mesure de référence » n'était qu'une relecture de ce maximum, et l'écart se réduisait à la valeur de l'apprenant. Le nombre n'est pas vide pour autant : il porte le **plafond local** — un son que le réseau distingue mal pique bas même sur une synthèse parfaite, et une syllabe floue pique bas parce que la voix était floue. Mais c'est une échelle, pas un terme de comparaison.
 
 ## Ce qui entre, ce qui sort
 
@@ -26,7 +26,7 @@ Cet audio sert trois fois — d'étalon pour la mesure, de modèle à écouter, 
 
 ### 2. La matrice — une passe par audio
 
-Un modèle acoustique phonémique (`wav2vec2` affiné en reconnaissance de phonèmes, entraînement CTC) transforme un enregistrement en un tableau : toutes les 20 ms, la répartition de la ressemblance sur les quelque 45 sons de l'anglais, plus un symbole `∅` qui signifie « rien ne se prononce ici ». Chaque ligne somme à 1.
+Un modèle acoustique phonémique (`wav2vec2` affiné en reconnaissance de phonèmes par un entraînement à la seule suite des sons, sans jamais lui dire à quel instant chacun tombe — c'est ce qu'on appelle CTC) transforme un enregistrement en un tableau : toutes les 20 ms, la répartition de la ressemblance sur les quelque 45 sons de l'anglais, plus un symbole `∅` qui signifie « rien ne se prononce ici ». Chaque ligne somme à 1.
 
 ```
 à 0.22 s :   R 0.94   ER 0.03   W 0.01   ∅ 0.01   reste 0.01
@@ -90,9 +90,9 @@ AO 0.19-0.27 s    R 0.27-0.29 s
 
 Le même symbole désigne maintenant le même endroit chez les deux. C'est la seule chose dont on avait besoin pour comparer, et c'est ce qui remplace toute tentative de coller les deux audios l'un sur l'autre : la correspondance passe par un repère symbolique commun, pas par la ressemblance des signaux — donc la différence de voix n'y entre pas.
 
-**Mesuré contre une vérité terrain** (`bench/boundaries.py`, 200 énoncés du split TEST de TIMIT, 5971 sons, bornes annotées au niveau de l'échantillon) : le départ d'un son tombe à **25 ms** de sa borne réelle en médiane, 71 ms au 9e décile — la trame de 20 ms posant le plancher. Le treillis n'échoue jamais : aucun son sans place, aucun énoncé refusé.
+**Mesuré contre une vérité terrain** (`bench/boundaries.py`, 200 énoncés de la partition de test de TIMIT, 5971 sons, bornes annotées au niveau de l'échantillon) : le départ d'un son tombe à **25 ms** de sa borne réelle en médiane, 71 ms au 9e décile — la trame de 20 ms posant le plancher. Le treillis n'échoue jamais : aucun son sans place, aucun énoncé refusé.
 
-**Mais la durée n'est pas rendue : un son reçoit 26,9 % de son étendue réelle.** C'est la peakiness du CTC — un réseau entraîné en CTC n'est payé que pour rendre la bonne *séquence*, jamais pour couvrir le temps, donc le blank absorbe presque toutes les trames et chaque symbole ne surnage qu'en pic. Elle ne dépend pas des poids : quatre lectures, dont trois checkpoints d'un affinage complet sur un autre dos, tiennent dans 0,2 point. **C'est donc une propriété du régime, pas un défaut des poids retenus.**
+**Mais la durée n'est pas rendue : un son reçoit 26,9 % de son étendue réelle.** C'est le prix de l'entraînement à la seule suite des sons (brique 2) : le réseau n'est payé que pour rendre la bonne *suite*, jamais pour couvrir le temps, donc le `∅` absorbe presque toutes les trames et chaque symbole ne surnage qu'en pic. Elle ne dépend pas des poids : quatre lectures, dont trois états d'un affinage complet sur un autre encodeur, tiennent dans 0,2 point. **C'est donc une propriété du régime, pas un défaut des poids retenus.**
 
 **Et elle ne coûte rien, parce que l'étendue d'un son n'a aucun consommateur.** La jointure n'ouvre pas d'horloge (brique 4) ; l'accent et la mélodie lisent des durées de **syllabes**, qui se prennent entre deux débuts de sons — une soustraction de deux positions, jamais une étendue. La densité a longtemps été tenue pour le grand mal de ce montage ; elle l'était d'un montage qui n'existe plus, celui où un second réseau à sortie caractères devait être marié à celui-ci dans le temps.
 
@@ -201,13 +201,13 @@ Rôle strictement à l'échelle de la phrase : nommer le son produit appartient 
 
 ### 12. Le runtime Android
 
-**ONNX Runtime** (MIT) en inférence CPU — le CPU est déterministe, le GPU ne l'est pas toujours, et le déterminisme est un critère de qualification. **sherpa-onnx** (Apache-2.0) empaquette déjà pour Android le décodage CTC et l'alignement forcé : à regarder avant d'écrire la plomberie soi-même.
+**ONNX Runtime** (MIT) pour faire tourner le réseau sur le processeur — le CPU est déterministe, le GPU ne l'est pas toujours, et le déterminisme est un critère de qualification. **sherpa-onnx** (Apache-2.0) empaquette déjà pour Android le décodage libre et l'alignement forcé : à regarder avant d'écrire la plomberie soi-même.
 
 Poids sous licence libre uniquement — un poids non libre serait un `NonFreeAssets` et tuerait l'intérêt de la brique. Téléchargement en opt-in explicite au premier usage, jamais au premier lancement ni en silence.
 
 **Le changement de moteur d'exécution, lui, est mesuré et ne coûte rien.** Le réseau exporté en ONNX et relu par ONNX Runtime rend, en flottant, la lecture du banc à l'identique : pire cellule à 1,6 pour dix mille sur trente-deux fichiers, grille identique partout, et l'écart dont le marquage est fait qui bouge de 0,008 au pire. Le jeu d'essai étiqueté rejoue **ligne pour ligne**.
 
-**Et le réseau tourne sur un téléphone.** Mesuré sur un appareil de 2019 (Galaxy S10+, huit cœurs, quatre fils d'inférence), sur l'audio du banc :
+**Et le réseau tourne sur un téléphone.** Mesuré sur un appareil de 2019 (Galaxy S10+, huit cœurs, quatre fils de calcul), sur l'audio du banc :
 
 | | flottant | entiers 8 bits |
 |---|---|---|
@@ -264,7 +264,7 @@ L'appareil lit les demi-fautes **plus fort**, donc dans le sens favorable — ma
 
 Portée de tout ceci, à ne pas surestimer : une architecture, un appareil, huit fautes étiquetées et cinq témoins. De quoi dire que le PoC passe, pas que l'accord est acquis sur le parc Android.
 
-Le graphe exporté porte **son softmax à l'intérieur** : le fichier rend la matrice de la brique 2, pas des logits, et il ne reste au côté Android qu'une chose à réimplémenter — la préparation du signal, moyenne nulle et variance unité, que `bench/matrix.py` écrit en clair pour cette raison.
+Le graphe exporté **normalise ses sorties à l'intérieur** : le fichier rend la matrice de la brique 2 — des parts qui somment à 1 — et non les scores bruts du réseau, et il ne reste au côté Android qu'une chose à réimplémenter — la préparation du signal, moyenne nulle et variance unité, que `bench/matrix.py` écrit en clair pour cette raison.
 
 ## Une seule machine, plusieurs lectures
 
@@ -294,7 +294,7 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
 | 12 | Le runtime Android | tout ça sur le téléphone | **mesuré sur l'appareil** (`bench/export.py`, `bench/phone.py`) |
 
-**Deux fichiers extérieurs dans tout le pipeline** (le principe est dans `reference.md`) : les poids du modèle acoustique — 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant — et la table d'affinité de la brique 4, quelques kilo-octets.
+**Deux fichiers extérieurs dans toute la chaîne** (le principe est dans `reference.md`) : les poids du modèle acoustique — 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant — et la table d'affinité de la brique 4, quelques kilo-octets.
 
 Trois briques seulement demandent du travail neuf et non trivial : la jointure (4), l'accent (7), la syllabification (8). Quatre autres sont des lectures d'un calcul déjà fait.
 
@@ -440,11 +440,11 @@ Deux critères de forme, moins profonds mais éliminatoires. L'inventaire doit �
 
 Ce que le classement ne dit pas : `excalibur12` part du **même encodeur pré-entraîné** que le multilingue et se fait battre par lui. La différence tient entièrement à l'affinage, pas à l'architecture.
 
-**L'affinage maison ne se départage pas du sortant sur ce qui se mesure aujourd'hui.** Quatre checkpoints d'un affinage complet sur le dos du sortant, lus contre lui sur ce que l'app consomme : 162 à 164 lettres justes sur 166, contre 164 pour le sortant, et 32 à 34 mots au bon nombre de syllabes sur 37, contre 34. Deux sons d'écart entre le meilleur et le pire. Ce qui ne s'en déduit pas — et c'est l'essentiel : le jeu est de onze à seize phrases d'une seule voix, et rien n'a été lu au-delà. Que rien ne les sépare ici ne dit pas qu'ils se valent, et le chantier n'est pas clos (cf. `../TODO.md`).
+**L'affinage maison ne se départage pas du sortant sur ce qui se mesure aujourd'hui.** Quatre états d'un affinage complet sur l'encodeur du sortant, lus contre lui sur ce que l'app consomme : 162 à 164 lettres justes sur 166, contre 164 pour le sortant, et 32 à 34 mots au bon nombre de syllabes sur 37, contre 34. Deux sons d'écart entre le meilleur et le pire. Ce qui ne s'en déduit pas — et c'est l'essentiel : le jeu est de onze à seize phrases d'une seule voix, et rien n'a été lu au-delà. Que rien ne les sépare ici ne dit pas qu'ils se valent, et le chantier n'est pas clos (cf. `../TODO.md`).
 
 ### Ce qui a été examiné puis écarté
 
-- **Un modèle framewise en troisième réseau, pour la seule grille** (charsiu, `wav2textgrid`). Écarté sur objection juste : ça répare la case, pas la mesure. La répartition du modèle *lue dans la case* viendrait toujours de la matrice CTC, vide à cet endroit — l'apprenant qui prononce bien le son y opposerait une répartition pleine à une répartition vide, donc une divergence forte : **marqué pour avoir eu raison**. S'ajoutent une table de correspondance entre deux inventaires et 190 à 380 Mo.
+- **Un troisième réseau qui étiquette chaque trame, pour la seule grille** (`charsiu` et son outil `wav2textgrid`, des aligneurs qui posent un son sur chaque trame plutôt qu'une suite de sons). Écarté sur objection juste : ça répare la case, pas la mesure. La répartition du modèle *lue dans la case* viendrait toujours de la matrice de la brique 2, vide à cet endroit — l'apprenant qui prononce bien le son y opposerait une répartition pleine à une répartition vide, donc une divergence forte : **marqué pour avoir eu raison**. S'ajoutent une table de correspondance entre deux inventaires et 190 à 380 Mo.
 - **`charsiu` embarqué** : poids publiés nus, sans fiche ni licence — le dépôt de code MIT ne couvre pas un artefact hébergé ailleurs.
 - **MMS_FA embarqué** : licence CC-BY-NC, et alphabet **lettres** (~28 symboles romanisés) — même libre, il ne saurait pas dire « ici un /k/ ». Reste mesurable localement comme témoin d'une recette, jamais comme pièce de l'app.
 - **Un second réseau à sortie caractères**, qui ancrait les mesures au texte : construit, mesuré, **retiré**. Il rendait la même jointure à un son près, pour 191 Mo de poids et une passe de plus.

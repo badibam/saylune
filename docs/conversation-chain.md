@@ -8,7 +8,7 @@ Maillons mesurés : Azure Speech pour la reconnaissance et la synthèse, DeepSee
 
 On mesure des primitives et on dérive les régimes, plutôt que de chronométrer un régime et de ne rien savoir des autres. Chaque maillon est appelé en flux, et on note le premier jeton, la première phrase **achevée**, et la fin.
 
-L'appel au modèle porte la vraie charge, pas un prompt d'essai : il répond **et** reconstruit le texte de référence dans un seul objet json — c'est exactement l'argument qui faisait préférer la chaîne au voix-à-voix. Le champ `reply` est le premier de l'objet à dessein : un lecteur en flux peut donner la phrase d'ouverture au synthétiseur pendant que les champs d'analyse arrivent encore.
+L'appel au modèle porte la vraie charge, pas un appel d'essai : il répond **et** reconstruit le texte de référence dans un seul objet json — c'est exactement l'argument qui faisait préférer la chaîne au voix-à-voix. Le champ `reply` est le premier de l'objet à dessein : un lecteur en flux peut donner la phrase d'ouverture au synthétiseur pendant que les champs d'analyse arrivent encore.
 
 ## Un tour court
 

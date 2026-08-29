@@ -6,7 +6,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 - `analysis.md` — l'analyse, brique par brique : ce qu'elle lit, ce qu'elle rend, ce qui est mesuré et ce qui reste à écrire.
 - `qualification.md` — comment on la vérifie : la procédure, et le jeu d'essai étiqueté qu'elle déroule. Rejouable par un tiers.
-- `conversation-chain.md` — la latence mesurée de la chaîne STT → LLM → TTS.
+- `conversation-chain.md` — la latence mesurée de la chaîne reconnaissance (STT) → modèle de langue (LLM) → synthèse (TTS).
 
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
@@ -171,7 +171,7 @@ La conversation dépend de services distants, et chacun peut manquer — réseau
 
 ## Le texte de référence
 
-L'analyse compare l'audio de l'apprenant au modèle synthétisé pour un **texte donné**. En conversation libre, ce texte n'est pas connu d'avance, et c'est la seule contrainte de la chaîne qu'on ne peut pas contourner : les mesures fines n'existent que sur les endpoints scriptés.
+L'analyse compare l'audio de l'apprenant au modèle synthétisé pour un **texte donné**. En conversation libre, ce texte n'est pas connu d'avance, et c'est la seule contrainte de la chaîne qu'on ne peut pas contourner : les mesures fines n'existent que là où le texte est écrit d'avance.
 
 La porte grammaticale en retire déjà la moitié du problème — sur un tour fautif, il n'y a pas d'analyse, et la phrase corrigée est redite contre un texte certain. Reste le tour grammaticalement propre.
 
@@ -232,11 +232,11 @@ Limite connue et acceptée : le BYOK reste un mur d'adoption — créer une ress
 
 **L'analyse tourne sur l'appareil, et c'est la colonne vertébrale de l'app** (`analysis.md`). **Elle ne consulte aucune norme qui juge** : ni dictionnaire de prononciation, ni lexique de dialecte, ni référentiel de justesse. Ce qui décide si une prise est fautive reste l'écart au modèle, et rien d'autre.
 
-Deux fichiers extérieurs dans tout le pipeline : les poids d'un modèle acoustique libre, et une **table d'affinité graphème↔phonème** de quelques kilo-octets — laquelle ne juge rien. Elle sert à la seule brique du marquage : savoir si `s` participe à /ʃ/, donc sur quelles lettres poser une couleur déjà décidée ailleurs. La distinction porte tout le principe : une norme extérieure qui dirait ce qui est *correct* est refusée ; une table qui dit où *peindre* ne l'est pas, et sans elle la marque tombe à côté près de deux fois sur cinq (`analysis.md`).
+Deux fichiers extérieurs dans toute la chaîne : les poids d'un modèle acoustique libre, et une **table d'affinité graphème↔phonème** de quelques kilo-octets — laquelle ne juge rien. Elle sert à la seule brique du marquage : savoir si `s` participe à /ʃ/, donc sur quelles lettres poser une couleur déjà décidée ailleurs. La distinction porte tout le principe : une norme extérieure qui dirait ce qui est *correct* est refusée ; une table qui dit où *peindre* ne l'est pas, et sans elle la marque tombe à côté près de deux fois sur cinq (`analysis.md`).
 
 Ce montage ne ressemble pas à l'approche habituelle, et pour une raison de situation plus que d'astuce. Qui n'a que l'audio d'un apprenant et un texte a besoin d'un dictionnaire pour se donner une norme. L'app, elle, possède **deux enregistrements du même énoncé** — elle synthétise le modèle de toute façon, puisque c'est lui qu'elle fait entendre. Le modèle est donc la source de vérité, cru aveuglément, et rien d'extérieur aux deux enregistrements ne juge quoi que ce soit.
 
-Mesuré : les fautes du jeu d'essai se trouvent sans qu'aucun témoin ne se déclenche, et le pipeline **tourne sur un téléphone de 2019** (chiffres dans `analysis.md`).
+Mesuré : les fautes du jeu d'essai se trouvent sans qu'aucun témoin ne se déclenche, et la chaîne **tourne sur un téléphone de 2019** (chiffres dans `analysis.md`).
 
 Ce que l'analyse doit rendre, et qui se vérifie brique par brique (`qualification.md`) :
 
