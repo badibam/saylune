@@ -188,9 +188,13 @@ La porte grammaticale en retire déjà la moitié du problème — sur un tour f
 
 Le piège se déclenche moins souvent qu'on le craignait : sur *« I sink »* comme sur *« I am walkin »*, la reconnaissance a rendu `think` et `walking` d'elle-même — le modèle de langue normalise vers le mot plausible, et il n'y avait rien à corriger.
 
-Mais **une reconstruction fausse coûte cher**. *« Turn light at the corner »* reconstruit en `left` au lieu de `right`, le contexte admettant les deux : noté contre `left`, le mot rend quatre sons aberrants d'un coup et entraîne le suivant avec lui. Une reconstruction fausse ne décale pas une marque, elle en produit une **rafale**.
+Mais **une reconstruction fausse coûte**. *« Turn light at the corner »* reconstruit en `left` au lieu de `right`, le contexte admettant les deux : noté contre `left`, le mot rend quatre sons aberrants d'un coup.
 
-D'où un garde-fou, qui est une vérification **interne au tour** : un énoncé où beaucoup de sons s'effondrent en même temps signale plus probablement un mauvais texte qu'un mauvais locuteur... à décider : comment on indique ça ?
+Ce coût avait été écrit plus grand qu'il n'est. Le doc annonçait que le mot fautif « entraîne le suivant avec lui », donc une **rafale** ; mesuré depuis, une faute ne se propage pas — le reste de la phrase reste aussi propre qu'un témoin (`analysis.md`, brique 11). Le cas propre du texte faux n'est pas mesuré pour autant, aucune prise du jeu n'en portant.
+
+**Le garde-fou qui en découlait est à revoir.** Il devait écarter un tour où beaucoup de sons s'effondrent ensemble, au motif que ça signale plus probablement un mauvais texte qu'un mauvais locuteur. Cette inférence ne tient pas : un apprenant très accentué s'écarte lui aussi partout, et rien dans le test ne l'en distingue — mesuré sur une prise du jeu, où sept différences relevées, une seule est la faute voulue et six sont des traits d'accent. Le garde-fou éteint alors l'analyse sur ceux qui en ont le plus besoin, **et sans le dire**, ce que la règle du silence interdit par ailleurs.
+
+Ce qui le remplacera n'est pas décidé. Une piste : **marquer le mot** — un texte faux donne un mot très écarté, l'écran affiche le texte transcrit, donc l'erreur est bornée à un mot et lisible par qui la reçoit. Resterait à contrôler l'**alignement dégénéré** (exigence 1 ci-dessous), qui se lit à des durées absurdes sans rien inférer sur le texte.
 
 ## L'affichage
 
