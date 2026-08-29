@@ -57,7 +57,19 @@ Dans l'ordre :
   - **Le moteur reste au build debug** — l'ONNX Runtime est en `debugImplementation` exprès, pour qu'aucune release ne porte une dépendance native sur un pari, ni ne doive à F-Droid une réponse sur une bibliothèque pré-compilée avant la mesure qui la justifierait.
   - **L'analyse tourne après que la réponse a été dite**, jamais avant : les deux tuyaux sont indépendants et la conversation n'attend pas la mesure. Ce que ça coûte en temps sur l'appareil n'est pas mesuré.
 
-9. **Ce que l'écran fait des marques reste entier.** `MarkedTurn` peint ce que l'analyse rend, mais la forme du marquage est justement la question ouverte : mesuré sur de la parole d'apprenant réelle, **la majorité des mots portent quelque chose**, donc une marque binaire ne transporte plus rien. Le doc a déjà tranché le principe — **graduer plutôt que colorier** — et la forme reste à trouver. C'est maintenant regardable sur de vrais tours, ce qui est exactement ce que le fast-forward cherchait.
+9. **Premier tour analysé de bout en bout sur l'appareil** (2026-08-30, SM-G975F). Deux tours propres : 7 sons dans la grille, 7 comparés, **0 écarté**, 7 marques ; puis 13 / 13 / 0 / 13. Le troisième tour, *« i am being up to nothing right now »*, a fermé la porte — `faulty: true`, aucune analyse sonore. La chaîne fait ce que le doc décrit.
+
+  **Ce que ça coûte sur l'appareil, mesuré pour la première fois** : l'analyse elle-même (deux passes du réseau plus l'arithmétique) tient en **0,9 s et 1,7 s** ; la synthèse du modèle de `intended` ajoute 1,2 s à chaque fois, et le cache ne la rattrapera qu'à la redite. C'est le chiffre que le doc n'avait pas.
+
+  **Ce que ça ne dit pas, et l'instrument est en cause** : la trace compte des *entrées*, pas des marques visibles. La rampe de `MarkingColors.kt` ignore sous 5 points et sature à 30, donc « 13 marques sur 13 sons » ne veut pas dire treize sons peints. **La répartition des points n'est pas lue**, et c'est précisément ce qu'il faut pour la question 10 — à ajouter à la trace avant d'en conclure quoi que ce soit.
+
+10. **La fidélité de `intended` tient sous pro — sur un cas.** Le tour fautif est ressorti **verbatim** : *« I am being up to nothing right now. »*, la tournure non native intacte. Le `reasoning_content` montre le modèle délibérer et trancher juste (« is 'being' clearly a recognizer error? … it's a grammar error, not transcription. So we should not change it »). La fuite mesurée sous flash (item 5) **ne se reproduit pas ici**. Un cas, pas une mesure : le banc de fidélité du chantier 2 reste ce qui tranche.
+
+  À noter comme le genre de jugement que le modèle rend : *« I'm doing good »* a été classé **non fautif**, au motif que c'est familier sans être incorrect. Défendable, et exactement le genre d'arbitrage que le cran de sévérité devra gouverner au lieu de le laisser au goût du modèle.
+
+11. **Le prompt à trois champs coûte cher, et il coûte le plus là où l'app sert.** Jetons de raisonnement par tour : 83, 146, puis **638** sur le tour fautif — le modèle a dépensé l'essentiel à se demander si `being` était une erreur de reconnaissance. Temps jusqu'au premier son : **5,8 / 6,9 / 14,1 s**, le maillon LLM seul à 3,5 / 4,4 / **11,4 s**. Les 2,6 s du doc sont hors de portée, et le pic tombe sur le tour fautif, c'est-à-dire celui qui compte. Rien n'est tranché : ni le modèle, ni le découpage en un appel contre deux, ni le fait de garder un modèle à raisonnement. C'est une mesure, pas une conclusion.
+
+12. **Ce que l'écran fait des marques reste entier.** `MarkedTurn` peint ce que l'analyse rend, mais la forme du marquage est justement la question ouverte : mesuré sur de la parole d'apprenant réelle, **la majorité des mots portent quelque chose**, donc une marque binaire ne transporte plus rien. Le doc a déjà tranché le principe — **graduer plutôt que colorier** — et la forme reste à trouver. C'est maintenant regardable sur de vrais tours, ce qui est exactement ce que le fast-forward cherchait.
 
 **Les provisoires, notés à l'écriture :**
 
