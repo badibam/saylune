@@ -47,6 +47,8 @@
     <string name="debug_brick">%1$s: %2$s</string>
     <string name="debug_open">%1$s (%2$d chars)</string>
     <string name="debug_dialog_close">Close</string>
+    <string name="readout_show">Analysis — %1$d of %2$d sounds marked</string>
+    <string name="readout_hide">Hide the analysis</string>
     <string name="turn_grammar_marked">Something here is not quite English — sound marks are held back until it is redone.</string>
     <string name="analysis_engine_refused">Pronunciation marks are off for this session: the analysis engine could not be loaded.</string>
     <string name="analysis_unshipped">Pronunciation marks are off: this build carries no analysis engine.</string>

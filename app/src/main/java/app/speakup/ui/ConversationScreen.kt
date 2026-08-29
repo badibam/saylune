@@ -40,7 +40,11 @@ import app.speakup.R
 import app.speakup.capture.TurnRecorder
 import app.speakup.chain.Exchange
 import app.speakup.conversation.Phase
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.saveable.rememberSaveable
+import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Readiness
+import app.speakup.debug.Trace
 import app.speakup.conversation.TurnPipeline
 import app.speakup.marking.TurnMarking
 import kotlinx.coroutines.launch
@@ -104,7 +108,7 @@ fun ConversationScreen(
             )
         }
         turn.exchanges.forEachIndexed { at, exchange ->
-            Said(exchange, turn.marking[at], at in turn.faulty)
+            Said(exchange, turn.marking[at], at in turn.faulty, turn.sounds[at])
         }
 
         (turn.analysis as? Readiness.Off)?.let { off ->
@@ -202,7 +206,12 @@ fun ConversationScreen(
 }
 
 @Composable
-private fun Said(exchange: Exchange, marking: TurnMarking?, faulty: Boolean) {
+private fun Said(
+    exchange: Exchange,
+    marking: TurnMarking?,
+    faulty: Boolean,
+    sounds: List<AnalysedSound>?,
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             stringResource(
@@ -214,6 +223,20 @@ private fun Said(exchange: Exchange, marking: TurnMarking?, faulty: Boolean) {
         )
         if (marking != null) MarkedTurn(marking, modifier = Modifier.fillMaxWidth())
         else Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
+        if (sounds != null && Trace.on) {
+            var open by rememberSaveable { mutableStateOf(false) }
+            TextButton(onClick = { open = !open }) {
+                Text(
+                    stringResource(
+                        if (open) R.string.readout_hide else R.string.readout_show,
+                        sounds.count { it.points > NOISE_BAND },
+                        sounds.size,
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+            if (open) AnalysisReadout(sounds)
+        }
         if (faulty) {
             // The whole turn, for want of the span. The doc asks for the portion concerned
             // and the model does not return one yet (`../../../../../../TODO.md`), so this

@@ -8,11 +8,11 @@ import app.speakup.embedded.Alphabet
 import app.speakup.embedded.Frames
 import app.speakup.embedded.Grid
 import app.speakup.embedded.Join
-import app.speakup.embedded.Marks
 import app.speakup.embedded.Overlap
 import app.speakup.embedded.Readout
 import app.speakup.debug.Trace
 import app.speakup.marking.TurnMarking
+import app.speakup.embedded.Marks
 import app.speakup.ui.NOISE_BAND
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -110,12 +110,37 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             // with something plausible: a syllable the screen draws carries which side is
             // stressed and each side's pitch, all of them bricks 7 and 10. Inventing them
             // would put a false accent on the screen.
+            // Widened for the spans the screen and the ear use, raw for what was measured:
+            // the network is peaky, a raw span is a frame or two, and an extract of one
+            // frame is not something anyone can listen to. Nothing in the measure reads
+            // these.
+            val modelAt = Overlap.widened(reading.gaps.map { it.at })
+            val saidAt = Overlap.widened(reading.gaps.map { it.span })
+
             Analysed(
                 marking = TurnMarking(text = text, syllables = emptyList(), phonemes = drawn.phonemes),
                 gutters = drawn.gutters,
                 dropped = reading.dropped,
+                sounds = reading.gaps.mapIndexed { index, gap ->
+                    val sound = sounds[gap.rank]
+                    AnalysedSound(
+                        symbol = gap.symbol,
+                        points = gap.value * Marks.POINTS,
+                        letters = sound.letters.ifEmpty {
+                            sound.borrowed.joinToString("") { text[it].toString() }
+                        },
+                        borrowed = sound.letters.isEmpty() && sound.borrowed.isNotEmpty(),
+                        model = gap.model.map { Share(it.symbol, it.part) },
+                        said = gap.said.map { Share(it.symbol, it.part) },
+                        modelMs = ms(modelAt[index], step),
+                        saidMs = ms(saidAt[index], step),
+                    )
+                },
             )
         }
+
+    private fun ms(span: IntRange, step: Float): IntRange =
+        (span.first * step * 1000).toInt()..((span.last + 1) * step * 1000).toInt()
 
     private fun load(): Engine {
         // The reason names the directory and what is in it. "Nothing found" without saying

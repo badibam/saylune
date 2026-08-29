@@ -8,6 +8,9 @@ import app.speakup.chain.Exchange
 import app.speakup.chain.Recognition
 import app.speakup.chain.Synthesis
 import app.speakup.chain.Voice
+import app.speakup.chain.Word
+import app.speakup.analysis.Analysed
+import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Analysis
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
@@ -45,6 +48,8 @@ data class ConversationState(
      * with nothing to report, and the two must not be drawn alike.
      */
     val marking: Map<Int, TurnMarking> = emptyMap(),
+    /** What the analysis found under those marks, for the readout. Same keys as [marking]. */
+    val sounds: Map<Int, List<AnalysedSound>> = emptyMap(),
     /** Whether the marks are on at all, settled once for the session. Null until asked. */
     val analysis: Readiness? = null,
     /**
@@ -135,8 +140,12 @@ class TurnPipeline(
                 // faulty turn the analysis is not hidden -- it is not computed.
                 _state.value = _state.value.copy(faulty = _state.value.faulty + at)
                 Trace.add("turn: grammar closes the gate, no sound analysis", "said" to reply.intended)
+                // Kept even so, and especially so: a turn the gate held back is a real
+                // learner fault the recognition could not have guessed, which is what the
+                // fidelity bench is short of.
+                Takes.keep(context, turn, null, heard, reply.intended, true, null)
             } else {
-                examine(at = at, said = turn, text = reply.intended)
+                examine(at = at, said = turn, heard = heard, text = reply.intended)
             }
         } catch (failure: ChainFailure) {
             Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
@@ -161,16 +170,21 @@ class TurnPipeline(
      * verdict yet (`../../../../../../TODO.md`), so this analyses every turn, and marks will
      * appear on turns the gate will later hold back.
      */
-    private suspend fun examine(at: Int, said: File, text: String) {
+    private suspend fun examine(at: Int, said: File, heard: List<Word>, text: String) {
         val readiness = _state.value.analysis
             ?: analysis.readiness().also { _state.value = _state.value.copy(analysis = it) }
-        if (readiness !is Readiness.On) return
+        if (readiness !is Readiness.On) {
+            Takes.keep(context, said, null, heard, text, false, null)
+            return
+        }
         try {
             val model = synthesis.speak(text, voice())
             val analysed = analysis.examine(said, model, text)
             _state.value = _state.value.copy(
                 marking = _state.value.marking + (at to analysed.marking),
+                sounds = _state.value.sounds + (at to analysed.sounds),
             )
+            Takes.keep(context, said, model, heard, text, false, analysed)
         } catch (failure: ChainFailure) {
             // The model has to be synthesised, so this branch depends on the network the
             // analysis itself does not. The turn stands either way: it was answered and

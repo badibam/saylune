@@ -83,7 +83,40 @@ data class Analysed(
     val marking: TurnMarking,
     val gutters: List<Gutter>,
     val dropped: Int,
+    /**
+     * What was found, sound by sound -- of which [marking] is the *drawn* view.
+     *
+     * Not a debug extra. The parenthesis needs exactly this to make the model and the
+     * learner's own take heard at the same place, which the doc says falls out of the same
+     * calculation; and a spread is the only way to see what a gap is made of, since two
+     * spreads can share a peak and mean different things.
+     */
+    val sounds: List<AnalysedSound>,
 )
+
+/**
+ * One sound of the model's grid, and what the two recordings did with it.
+ *
+ * [model] and [said] are the heaviest shares of each spread, biggest first, and they do not
+ * sum to one -- what they leave out is the tail. The top symbol of [said] is a hint and
+ * never a verdict: naming the sound produced is the least reliable thing an acoustic machine
+ * renders, and nothing in the mark depends on it.
+ */
+data class AnalysedSound(
+    val symbol: String,
+    val points: Float,
+    /** The letters it covers, or a neighbour's when it holds none, or empty for the gutter. */
+    val letters: String,
+    val borrowed: Boolean,
+    val model: List<Share>,
+    val said: List<Share>,
+    /** Where each side says it, in milliseconds -- the way back to audio to listen to. */
+    val modelMs: IntRange,
+    val saidMs: IntRange,
+)
+
+/** One sound's share of a spread. */
+data class Share(val symbol: String, val part: Float)
 
 /** A sound with no letters of its own, sitting after the character at [after]. */
 data class Gutter(val symbol: String, val after: Int, val points: Float)

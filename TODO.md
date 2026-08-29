@@ -73,7 +73,15 @@ Dans l'ordre :
 
   Deux choses à trancher quand ça se fera, et aucune ne va de soi : ce que le modèle rend comme étendue — des bornes de caractères dans `intended`, ou la sous-chaîne fautive, la seconde étant plus robuste à un décalage d'index mais ambiguë si elle apparaît deux fois ; et le fait qu'il puisse y en avoir **plusieurs** dans un tour, ce que le booléen actuel écrase.
 
-13. **Ce que l'écran fait des marques reste entier.** `MarkedTurn` peint ce que l'analyse rend, mais la forme du marquage est justement la question ouverte : mesuré sur de la parole d'apprenant réelle, **la majorité des mots portent quelque chose**, donc une marque binaire ne transporte plus rien. Le doc a déjà tranché le principe — **graduer plutôt que colorier** — et la forme reste à trouver. C'est maintenant regardable sur de vrais tours, ce qui est exactement ce que le fast-forward cherchait.
+13. **Chaque prise est gardée sur l'appareil — divergence délibérée et temporaire** (actée 2026-08-30). `docs/reference.md` tranche l'inverse : « la voix de l'apprenant est purgée à la fermeture de la session… aucun stock de voix ne dort sur l'appareil », et le raisonnement tient toujours — passé son tour rien ne la consomme, et l'indépendance des tours interdit un usage ultérieur.
+
+  Ce que le doc ne pesait pas : les mesures que le projet doit encore — le taux de fausse alerte sur un tour spontané, la forme du marquage, les deux bancs du chantier 2 — **ne se font que sur des tours réels**, et un tour non gardé est un tour jamais mesuré. Donc la règle **reste vraie pour la release**, qui n'en garde rien, et ce qui garde est **le build debug seul** : `Takes` ne s'exécute que sous `Trace.on`. Le doc n'est pas réécrit, c'est un instrument et non un comportement de l'app.
+
+  Par tour, dans `files/takes/<horodatage>/` (l'app écrit, `adb pull` lit — le sens qui marche) : `said.wav`, `model.wav` quand il existe, et `turn.json` portant le texte, la transcription brute, le verdict, et l'analyse au niveau du son, `phonemes` gardant la forme qu'écrit `bench/turn.py` pour que le banc lise un tour du téléphone comme un des siens. **Un tour retenu par la porte est gardé aussi**, et surtout : c'est une faute réelle que la reconnaissance ne pouvait pas deviner, ce dont le banc de fidélité manque.
+
+  **Ça s'enlève quand les bancs ont leur matière** — sinon la purge du doc devient une règle que le code contredit sans que personne s'en souvienne.
+
+14. **Ce que l'écran fait des marques reste entier.** `MarkedTurn` peint ce que l'analyse rend, mais la forme du marquage est justement la question ouverte : mesuré sur de la parole d'apprenant réelle, **la majorité des mots portent quelque chose**, donc une marque binaire ne transporte plus rien. Le doc a déjà tranché le principe — **graduer plutôt que colorier** — et la forme reste à trouver. C'est maintenant regardable sur de vrais tours, ce qui est exactement ce que le fast-forward cherchait.
 
 **Les provisoires, notés à l'écriture :**
 
