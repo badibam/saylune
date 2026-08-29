@@ -44,6 +44,7 @@ import numpy as np
 import expected
 import join
 import matrix
+import overlap
 import phrases
 import review
 
@@ -170,6 +171,22 @@ def grouped(symbols, text):
     return held
 
 
+def claimed(probabilities, span, one, two):
+    """How far a reading separates the two symbols in dispute, over its span.
+
+    A reading that puts 0.49 on one of them and 0.45 on the other has claimed
+    neither, and crediting it with a win credits a coin toss. Written into the
+    verdict rather than acted on: nothing says where a claim begins, so the bar
+    is drawn afterwards over the verdicts rather than guessed before them. Not
+    shown while judging either -- how sure a reading is would decide for the ear.
+    """
+    spread, _ = overlap.spread(probabilities, span)
+    names = [matrix.symbols()[column] for column in matrix.spoken()]
+    if spread is None or one not in names or two not in names:
+        return None
+    return round(float(spread[names.index(one)] - spread[names.index(two)]), 3)
+
+
 def stretch(grid, words, rank, word):
     """The word's stretch in the audio: its first sound to its last."""
     inside = [index for index, held in enumerate(words) if held is word]
@@ -239,6 +256,7 @@ def main(argv=None):
         if any(spread is None for spread in held):
             absent.append(slug)
             continue
+        spans = [matrix.grid(spread) for spread in held]
         grids = [sounded(spread) for spread in held]
         words = [grouped([symbol for symbol, _, _ in grid], text)
                  for grid in grids]
@@ -285,6 +303,13 @@ def main(argv=None):
                     continue
                 if answer in ANSWERS:
                     given[key] = {"mot": word, first: one, second: two,
+                                  "marge": {
+                                      first: claimed(held[0],
+                                                     spans[0][rank][1:],
+                                                     one, two),
+                                      second: claimed(held[1],
+                                                      spans[1][other][1:],
+                                                      two, one)},
                                   "A": sides[0][0],
                                   "juste": {"a": sides[0][0],
                                             "b": sides[1][0]}.get(
