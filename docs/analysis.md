@@ -131,6 +131,12 @@ Trois traits, et ils n'ont pas le même poids :
 
 Comme tout se compare au modèle et non à une norme, un mot sans relief des deux côtés reste comparable : les deux manquent de pic ensemble.
 
+**Combien de syllabes, et laquelle : deux sources, jamais la même.** Le **nombre** est une propriété du mot et se prend hors de l'audio ; **laquelle** porte l'accent se prend dans l'audio, des deux côtés. Le partage n'est pas une commodité : compter dans l'audio expose la mesure à ce que l'audio escamote, et lire la place dans un lexique ferait juger par une norme extérieure ce que la conception fait juger par le modèle.
+
+D'où la règle du mot escamoté : quand la grille rend moins de noyaux que le mot n'en porte, **le noyau qui survit est l'accentué**. Elle vaut que la réduction soit dans l'audio du modèle ou dans notre seule lecture de lui — ce qui fait disparaître une voyelle est sa faiblesse, et sa faiblesse est l'absence d'accent (brique 8). Un mot que la grille ramène à une syllabe reste donc jugeable : `walking` dit `walKING` est une faute d'accent, nommable comme telle.
+
+Non éprouvé chez nous : que la syllabe résistant à la réduction soit l'accentuée est solide en linguistique et n'a jamais été vérifié sur nos données (cf. `../TODO.md`).
+
 **Ce qui s'affiche : la syllabe.** `design/ui-flow.md` a tranché la forme — graisse sur la syllabe que le modèle accentue, et sur une faute deux réglettes sous la ligne, rouge où l'accent est parti, verte où il devait tomber. Deux réglettes se comparent, deux points non ; et les trois canaux graphiques sont des étendues. Il faut donc une étendue syllabique exacte, pas approchée.
 
 ### 8. La syllabification — sur la grille, pas sur le texte
@@ -319,7 +325,7 @@ Ce qui produirait un comportement inattendu, et où ça se traite.
 
 ### L'accent, spécifiquement
 
-- **Mot d'une syllabe** : rien à comparer, ne jamais marquer. Règle explicite.
+- **Mot d'une seule syllabe — au compte du mot, jamais au compte de la grille** : rien à comparer, ne jamais marquer. Un mot de deux syllabes dont la grille n'en rend qu'une n'est pas ce cas-là (brique 7).
 - **Mot fonctionnel non mis en relief** (`the`, `of`) : les traits sont plats des deux côtés. Correct, mais demande un seuil « le modèle a-t-il un accent net » sous lequel on ne marque pas, sinon on marque du bruit.
 - **Consonne syllabique** (`bottle`, `button`) : le noyau n'est pas une voyelle, le mot est compté à une syllabe, aucune marque d'accent n'y apparaît jamais. Silencieux, pas faux — et sans conséquence, ces noyaux n'apparaissant en anglais que dans des syllabes non accentuées.
 - **Emphase de sens** (« I said it **IS** important ») : l'apprenant met le relief là où le modèle neutre ne l'a pas, et la divergence légitime est marquée comme faute. Connu et accepté (cf. `reference.md`) — la forme de la parenthèse rend la fausse alerte peu coûteuse.
