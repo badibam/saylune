@@ -26,6 +26,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `faults.py` | le jeu d'essai étiqueté : l'écart tombe-t-il sur le son fautif, et reste-t-il à zéro sur le témoin |
 | `boundaries.py` | où le réseau place chaque son dans le temps, contre les bornes de TIMIT — position et durée, la seule mesure adossée à une vérité terrain |
 | `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
+| `stress.py` | de combien l'accent allonge une syllabe — sur les bornes de TIMIT posées à la main, sans réseau : le signal que la brique 7 aurait à lire |
 | `syllables.py` | la grille sait-elle combien de syllabes a un mot — les sons qu'elle perd, et le nombre de noyaux par mot |
 | `join.py` | quelles lettres chaque son couvre — les mots, l'ordre et l'orthographe, notés contre l'annotation (`-s`) |
 | `expected.py` | l'annotation à la main : les lettres que chaque son devrait porter. N'entre jamais dans l'app |

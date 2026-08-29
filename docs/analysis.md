@@ -123,10 +123,10 @@ Trois propriétés tombent gratuitement de cette forme de comparaison :
 
 **Ce qui se mesure : le noyau.** L'accent est une propriété de la **syllabe** — c'est la formulation linguistiquement correcte, et « voyelle accentuée » n'en est pas une. Mais sa réalisation acoustique est concentrée sur le noyau, qui en anglais est une voyelle dans la quasi-totalité des syllabes accentuées. Mesurer sur la voyelle est la pratique standard, pas un raccourci.
 
-Trois traits, et ils n'ont pas le même poids :
+Trois traits, et une mesure a changé leur ordre :
 
-- **La durée du noyau** — marqueur d'accent lexical, robuste. Normalisée dans le mot, faute de quoi un locuteur lent serait marqué partout.
-- **La qualité de la voyelle** — le plus fort en anglais, où une syllabe non accentuée se réduit en schwa. Et il est déjà là : c'est la grille elle-même qui l'écrit. `IH · AO · AH` chez le modèle contre `IH · AH · AH` chez l'apprenant dit que la voyelle qui devait être pleine a été réduite, sans qu'on ait rien mesuré.
+- **La qualité de la voyelle** — le trait premier. En anglais une syllabe non accentuée se réduit en schwa, et il est déjà là : c'est la grille elle-même qui l'écrit. `IH · AO · AH` chez le modèle contre `IH · AH · AH` chez l'apprenant dit que la voyelle qui devait être pleine a été réduite, sans qu'on ait rien mesuré.
+- **La durée du noyau** — en corroboration seulement, et c'est une mesure qui l'y a rangée. Sur les 3 601 mots pleins de deux syllabes ou plus du jeu de test de TIMIT, bornes posées à la main, la syllabe accentuée vaut 1,39 fois la moyenne de ses voisines mais n'est **la plus longue que dans 65,0 % des mots** (`bench/stress.py`). Une règle qui désignerait la plus longue se tromperait donc une fois sur trois. Ce chiffre ne doit rien au réseau — il est lu sur la vérité terrain —, donc la comparaison prévue à l'erreur de l'instrument n'a plus lieu d'être : la durée échoue avant que l'instrument entre en jeu. Normalisée dans le mot quand elle sert, faute de quoi un locuteur lent serait marqué partout.
 - **Le pic de hauteur** — en appoint seulement. Une syllabe accentuée ne reçoit un pic que si le **mot** est mis en relief dans la phrase : dans « that's an important thing » dit vite, l'accent lexical est toujours sur `por` mais il n'y a plus de pic à voir. Peser dessus reviendrait à mesurer le relief de phrase en croyant mesurer l'accent du mot.
 
 Comme tout se compare au modèle et non à une norme, un mot sans relief des deux côtés reste comparable : les deux manquent de pic ensemble.
