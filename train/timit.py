@@ -60,6 +60,11 @@ FOLD = {
 }
 DROPPED = {"q", "pau", "epi", "h#", "bcl", "dcl", "gcl", "pcl", "tcl", "kcl"}
 
+# Those of the dropped symbols that are a break in the speech rather than a
+# part of a sound: the closure of a plosive is silent but belongs to the word,
+# a pause does not. Nothing that measures a duration should step over one.
+PAUSES = {"pau", "epi", "h#"}
+
 ROOT = Path(__file__).resolve().parent.parent
 CORPUS = ROOT / "tmp" / "TIMIT" / "lisa" / "data" / "timit" / "raw" / "TIMIT"
 

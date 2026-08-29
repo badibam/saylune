@@ -94,7 +94,11 @@ Le même symbole désigne maintenant le même endroit chez les deux. C'est la se
 
 **Mais la durée n'est pas rendue : un son reçoit 26,9 % de son étendue réelle.** C'est la peakiness du CTC — un réseau entraîné en CTC n'est payé que pour rendre la bonne *séquence*, jamais pour couvrir le temps, donc le blank absorbe presque toutes les trames et chaque symbole ne surnage qu'en pic. Elle ne dépend pas des poids : quatre lectures, dont trois checkpoints d'un affinage complet sur un autre dos, tiennent dans 0,2 point. **C'est donc une propriété du régime, pas un défaut des poids retenus.**
 
-**Et elle ne coûte rien, parce que l'étendue d'un son n'a aucun consommateur.** La jointure n'ouvre pas d'horloge (brique 4) ; l'accent et la mélodie lisent des durées de **syllabes**, qui se prennent entre deux débuts de sons — une soustraction de deux positions, jamais une étendue. La position, elle, est bonne à 25 ms. La densité a longtemps été tenue pour le grand mal de ce montage ; elle l'était d'un montage qui n'existe plus, celui où un second réseau à sortie caractères devait être marié à celui-ci dans le temps.
+**Et elle ne coûte rien, parce que l'étendue d'un son n'a aucun consommateur.** La jointure n'ouvre pas d'horloge (brique 4) ; l'accent et la mélodie lisent des durées de **syllabes**, qui se prennent entre deux débuts de sons — une soustraction de deux positions, jamais une étendue. La densité a longtemps été tenue pour le grand mal de ce montage ; elle l'était d'un montage qui n'existe plus, celui où un second réseau à sortie caractères devait être marié à celui-ci dans le temps.
+
+**Cette soustraction se mesure à part, et elle ne se déduisait pas de la position** (mêmes 200 énoncés, 2133 syllabes, l'intervalle pris entre deux débuts de voyelle et jamais par-dessus une pause) : la durée d'une syllabe tombe à **29,1 ms** de la vraie en médiane, 71 ms au 9e décile, soit **14,7 % de sa propre durée** — 44 % au 9e décile. L'erreur sur l'intervalle est donc **plus grande** que sur un début, quand elle aurait été plus petite si le réseau glissait en bloc : les deux départs se trompent chacun pour son compte, et rien ne s'annule à la soustraction.
+
+Ce que ce chiffre ne dit pas est ce qui déciderait : de combien deux syllabes d'un même mot diffèrent en durée quand l'accent tombe sur l'une plutôt que sur l'autre. Tant que cet écart n'est pas mesuré, 14,7 % ne se compare à rien.
 
 ### 6. Le son — recouvrement de deux formes
 
