@@ -102,9 +102,16 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         }
 
     private fun load(): Engine {
-        val weights = weights() ?: throw IllegalStateException("no .onnx beside the app")
+        // The reason names the directory and what is in it. "Nothing found" without saying
+        // where it looked is the kind of message that costs an hour.
+        val home = home()
+        val weights = weights() ?: throw IllegalStateException(
+            "no .onnx in $home (it holds: " +
+                (home.list()?.joinToString(", ")?.ifEmpty { "nothing" }
+                    ?: if (home.isDirectory) "unreadable" else "no such directory") + ")"
+        )
         val vocab = File(weights.parentFile, VOCAB)
-        if (!vocab.isFile) throw IllegalStateException("${VOCAB} is missing beside the weights")
+        if (!vocab.isFile) throw IllegalStateException("$VOCAB is missing beside $weights")
 
         val alphabet = Alphabet.read(vocab)
         val affinity = context.assets.let { assets ->
@@ -130,20 +137,29 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
     }
 
     /**
-     * Where the weights sit: a directory of its own, with `vocab.json` beside them.
+     * Where the weights sit, with `vocab.json` beside them.
      *
-     * Pushed with `adb push` for now. The 359 MB opt-in download the doc calls for is not
-     * written, and this stands in its place (`../../../../../../../TODO.md`) -- but the
-     * directory is the analysis's own rather than borrowed from the probe, so the day the
-     * download exists it fills this and nothing else moves.
+     * Not the app's own external directory, and that is measured rather than assumed: the
+     * app cannot list a subdirectory of it whose contents the shell created -- `list()`
+     * returns null while `isDirectory` is true. `/data/local/tmp` is the other way round,
+     * which is the arrangement `ProbeActivity` already runs on: SELinux lets an app read
+     * there and never write, and the shell may write there.
+     *
+     * That asymmetry is the whole reason this is a provisional. The doc calls for a 359 MB
+     * opt-in download, and an app writing its own storage would read it back with no
+     * question of permission at all. The download is not written
+     * (`../../../../../../../TODO.md`); when it is, this returns the app's own directory
+     * and nothing else in the analysis moves.
      */
-    private fun home(): File? =
-        context.getExternalFilesDir(null)?.let { File(it, "analysis") }
+    private fun home(): File = File(HOME)
 
     private fun weights(): File? =
-        home()?.listFiles { file -> file.name.endsWith(".onnx") }?.firstOrNull()
+        home().listFiles { file -> file.name.endsWith(".onnx") }?.firstOrNull()
 
     private companion object {
+        /** Where `adb push` can write and the app can read. Provisional, see [home]. */
+        const val HOME = "/data/local/tmp/speakup-analysis"
+
         const val VOCAB = "vocab.json"
         const val LETTERS = "affinity.json"
         const val GROUPS = "affinity-groups.json"

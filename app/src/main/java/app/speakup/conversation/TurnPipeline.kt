@@ -71,6 +71,19 @@ class TurnPipeline(
     private val _state = MutableStateFlow(ConversationState())
     val state: StateFlow<ConversationState> = _state.asStateFlow()
 
+    /**
+     * Settle whether the marks are on, once, before the first turn.
+     *
+     * At the start of the session and not on the first turn: the doc makes this a
+     * session-level question, and an app that only discovers it has no engine after someone
+     * has spoken has told them too late.
+     */
+    suspend fun prepare() {
+        if (_state.value.analysis == null) {
+            _state.value = _state.value.copy(analysis = analysis.readiness())
+        }
+    }
+
     /** Run [audio] through the chain, or run again what a previous failure left pending. */
     suspend fun submit(audio: File? = null) {
         val turn = audio ?: _state.value.pending ?: return
