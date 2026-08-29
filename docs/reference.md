@@ -113,6 +113,9 @@ Une seule primitive, récursive : conversation → phrase → mot. Même geste �
 
 - **Ouverture** par la marque ou par un seuil. Le genre de la marque tient à la **nature** de la faute, jamais à sa gravité — une faute de prononciation est sévère sans être grammaticale, et confondre les deux ouvre la mauvaise parenthèse.
 - **Prononciation à l'échelle de la phrase.** Un mot peut être zoomé — parenthèse dans la parenthèse, le temps de l'améliorer, puis retour à la phrase.
+- **Le nombre de marques ne multiplie pas le travail.** L'unité de réparation est la phrase, le mot au plus ; jamais le son. Un tour ouvre **une** parenthèse, quel qu'y soit le nombre de marques, et trois sons marqués dans un mot font un seul mot à redire. Les marques n'y sont donc pas des corvées à liquider une à une : elles disent **où porter l'attention** en redisant. C'est ce qui rend tenable de tout marquer sans rien élire.
+
+  Le prix se paie ailleurs, sur l'**affichage** et non sur la charge : mesuré sur de la parole d'apprenant réelle, la majorité des mots portent quelque chose (`../TODO.md`). Une marque binaire ne transporte alors plus rien — tout est colorié, donc rien n'est signalé. La forme du marquage, qui reste à trouver, doit donc **graduer** plutôt que colorier ou non.
 - **Sortie** disponible à tout moment en un appui.
 - L'IA sait que ces tours sont une **parenthèse et non du contenu** : elle reprend le sujet d'avant, elle n'enchaîne pas sur la grammaire.
 
