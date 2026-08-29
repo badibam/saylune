@@ -132,9 +132,18 @@ Le modèle est cru aveuglément, et c'est le maillon le moins vérifié de la ch
 
 - **Une première pièce du test existe : le rendu dit-il ce qu'il devrait ?** `recognition.py --source l2` confronte la grille décodée de chaque rendu du modèle aux phonèmes que le corpus L2 note attendus. Ces phonèmes sont ceux **attendus**, jamais ceux produits — ce qui les disqualifie pour juger un apprenant et les qualifie ici, un rendu étant une synthèse censée dire le canonique. Sur les 2 500 rendus d'`azure-us-jenny` : **20,5 %** de sons faux (13,7 % de substitutions, 5,7 % d'omissions, 1,2 % d'insertions), contre 6,7 % pour le même réseau sur de la parole lue.
 
-  **Ce chiffre est un plafond, et de loin.** L'ARPAbet canonique donne la forme forte : il ne note ni le battement (`better` en `ɾ`), ni la réduction des mots outils, ni la coalescence rhotique. Le vidage brut des opérations d'édition (`tmp/edits.py`, 200 rendus) le montre : les mots les plus touchés sont `TO` (56), `THE` (32), `AND` (29), `NOT` (28), `A` (22) — les mots outils, exactement.
+  **Ce chiffre ne dit pas ce qu'on voulait lui faire dire — la référence est mauvaise.** Deux défauts mesurés sur les 1 869 mots distincts de la moitié `test` :
 
-  Le seul partage qui ne demande aucun jugement est la nature des symboles : une voyelle lue comme une consonne, ou l'inverse, ne peut être aucune variante de réalisation. Ce croisement vaut **0,98 %** des sons attendus (37 sur 3 779), et une bonne moitié en est encore de la coalescence rhotique (`ɹ`→`ɝ`, 12 cas) ou une glissante lue en voyelle (`j`→`i`). **Le plancher dur des vrais ratés est donc de l'ordre de 0,3 à 1 %.**
+  - **Le lexique du corpus est non-rhotique, donc britannique**, alors que la voix modèle est américaine : `CAR = K AA0`, `ARM = AA0 M`, `GARDEN = G AA0 D N`, `HERE = HH IH AH0`, `PORK = P AO0 K`. **7,9 %** des mots distincts portent un R d'orthographe sans `R` ni `ER` dans leurs phonèmes. Chaque R post-vocalique est alors un désaccord garanti, quel que soit le rendu.
+  - **Des transcriptions franchement fausses** : `KATE = K EH0 T`, `SOCKS = S AH0 K S`, `TOM'S = T AH0 M S` (et `S` pour un /z/), `ZERO = Z IH AH1 OW0`. Les accents sont à `0` presque partout. **6 %** des mots de plus de trois lettres n'ont `AH` pour seule voyelle notée.
+
+  S'y ajoute ce que tout dictionnaire ignore et qu'une bouche fait : le battement (`better` en `ɾ`) et la réduction des mots outils. Le vidage brut (`tmp/edits.py`, 200 rendus) le montre — les mots les plus touchés sont `TO` (56), `THE` (32), `AND` (29), `NOT` (28), `A` (22), et **54 %** des substitutions voyelle→voyelle tombent dans un mot outil.
+
+  Le partage qui ne demande aucun jugement — une voyelle lue comme une consonne ou l'inverse, ce qu'aucune variante de réalisation ne produit — vaut **0,98 %** des sons attendus (37 sur 3 779). Mais il est contaminé lui aussi : la moitié en est de la rhoticité (`ɹ`→`ɝ`, 12 cas), donc du désaccord de dialecte, ou une glissante lue en voyelle (`j`→`i`).
+
+  **Ce qu'on peut en dire honnêtement** : rien ne permet de chiffrer la fidélité du rendu avec cette référence. Le vrai taux de ratés est quelque part sous 1 %, sans qu'on sache où. Ce qui est établi et ne dépend pas de la référence : **les erreurs ne se concentrent pas** — médiane de 4 opérations par rendu, maximum 11, les dix pires rendus ne portant que 11 % du total, et ce sont les phrases les plus longues. Il n'y a pas de famille de rendus cassés.
+
+  **Pour que l'instrument mesure ce qu'on voulait**, il faudrait soit un rendu par une voix britannique (le lexique et la voix s'accorderaient), soit écarter les mots à R post-vocalique, soit une autre référence. Aucune des trois n'est faite.
 
   Un cas franc existe et est documenté : sur `test-1723`, le réseau lit `m ɪ l` là où sa propre voix dit `k n oʊ`, et la prise dit `k` — la marque accuse l'apprenant d'une erreur de la machine. C'est le risque que `docs/reference.md` nomme (« une voix de synthèse que l'analyse lit mal accuserait l'apprenant »), pour la première fois observé et borné.
 
