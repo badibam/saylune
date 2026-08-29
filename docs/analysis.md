@@ -204,9 +204,26 @@ modèle    : L EH F T
 apprenant : R AY T
 ```
 
-Ce ne sont pas deux prononciations de la même chose. C'est le garde-fou du texte de référence faux : si le texte a été mal reconstruit, le modèle synthétise autre chose que ce qui a été dit, l'alignement forcé plaque quand même la grille sur la voix de l'apprenant, et on marquerait une rafale de fautes sur quelqu'un d'irréprochable. Ici les deux suites divergent franchement, et on ne marque rien.
+Ce ne sont pas deux prononciations de la même chose. L'idée : si le texte a été mal reconstruit, le modèle synthétise autre chose que ce qui a été dit, l'alignement forcé plaque quand même la grille sur la voix de l'apprenant, et les deux suites divergent franchement — auquel cas on ne marque rien.
 
 Rôle strictement à l'échelle de la phrase : nommer le son produit appartient à la brique 6.
+
+**Deux mesures fragilisent cette brique, et elles ne sont pas de même poids.**
+
+*Sa justification annonçait une rafale ; il n'y en a pas.* L'argument écrit ici était qu'un mot mal reconstruit « entraîne le suivant avec lui ». Mesuré sur le jeu d'essai, à texte égal et modèle égal, en excluant le mot en cause : une prise fautive laisse le reste de la phrase aussi propre qu'un témoin — `01-sink` à 0,002 contre 0,001 pour son témoin, `07-bear-pear` à 0,007 contre 0,018. **Une faute ne se propage pas.** Ce que ça ne mesure pas : le cas visé, un mot *réellement* mal transcrit, qu'aucune prise du jeu ne porte. La rafale n'est donc pas réfutée dans son cas propre — elle n'est plus étayée par les prises qu'on a.
+
+*Le test ne distingue pas un texte faux d'un accent fort.* Sur `08-light-right`, écarté par le seuil du banc, les deux décodages diffèrent en sept endroits :
+
+```
+modèle    : t ɝ n   ɹ aɪ ɾ   ɪ   ð ɪ   k ɑ ɹ n ɝ
+apprenant : t ʊ n   l aɪ t   ə   d ɪ   k ɝ n ə
+```
+
+Le `l` pour `ɹ` est la faute voulue. Les six autres sont des traits d'accent francophone — `d` pour `ð`, voyelles sans coloration r, `t` articulé là où le modèle bat. Le texte est correct ; c'est le locuteur qui s'écarte. Une prise acceptée (`01-sink`) diffère en quatre endroits sur onze : **une différence de degré, pas de nature.** Rien dans ce test ne sépare les deux causes, et la brique éteint alors l'analyse sur les apprenants les plus accentués — ceux à qui elle sert le plus. La lecture du corpus L2 va dans le même sens : des locuteurs y sont écartés en bloc (cf. `../TODO.md`), sans qu'on ait séparé les causes de ces rejets.
+
+**Une piste, non éprouvée.** Marquer le mot suffit peut-être : un texte faux donne un mot très écarté, et l'écran affiche le texte transcrit — donc l'erreur est bornée à un mot et visible par qui la lit, là où éteindre tout le tour est muet. Ce qui resterait à contrôler serait alors autre chose : l'**alignement dégénéré**, que `../docs/reference.md` nomme déjà dans les exigences de l'analyse et qui se lit à des durées absurdes, sans rien inférer sur le texte. Rien de tout ça n'est écrit ni mesuré.
+
+**Ce que le banc fait aujourd'hui n'est d'ailleurs pas cette brique** : `faults.py` écarte une prise sur l'**écart médian** de la phrase (seuil 0,20), pas sur la comparaison des deux décodages. C'est un raccourci, et la confusion entre les deux a déjà égaré une lecture.
 
 ### 12. Le runtime Android
 
@@ -300,7 +317,7 @@ L'alignement forcé et le décodage libre lisent la même matrice, seule la faç
 | 8 | La syllabification | l'étendue en lettres de chaque syllabe | à écrire |
 | 9 | Le découpage en mots | quelles voyelles appartiennent au même mot | tombe de la 4 |
 | 10 | La phrase | la pente de fin d'énoncé | codée |
-| 11 | Le contrôle | texte de référence faux | motif observé, seuil à poser |
+| 11 | Le contrôle | texte de référence faux | **à revoir** — prémisse non étayée, accent fort et texte faux non séparés |
 | 12 | Le runtime Android | tout ça sur le téléphone | **mesuré sur l'appareil** (`bench/export.py`, `bench/phone.py`) |
 
 **Deux fichiers extérieurs dans toute la chaîne** (le principe est dans `reference.md`) : les poids du modèle acoustique — 359 Mo une fois quantifiés en entiers 8 bits sur le périmètre qui préserve la lecture, contre 1,26 Go en flottant — et la table d'affinité de la brique 4, quelques kilo-octets.
