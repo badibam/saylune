@@ -296,6 +296,14 @@ Cas rencontré : le bac à sable des commandes de l'agent neutralise les fichier
 
 `./gradlew` — donc `./run build`, `install`, `release` — va chercher la distribution Gradle, puis les dépendances, sur le réseau. Sous le bac à sable des commandes de l'agent, il échoue en `UnknownHostException: services.gradle.org`, une panne de nom qui ne ressemble en rien à une restriction. **Ces commandes se lancent avec le bac à sable désactivé**, sans passer par la boucle « essayer, lire l'erreur, réessayer ».
 
+## Construire en debug, sauf quand la doublure de release change
+
+`./gradlew :app:assembleDebug` suffit pour tout le travail courant, et `assembleRelease` est long — R8, le rétrécissement des ressources, un APK complet — pour ne rien apprendre la plupart du temps.
+
+La seule raison de toucher au release est que `app/src/release/` existe : la doublure `Analyses` qui répond qu'aucun moteur d'analyse n'est embarqué. **Ce source set n'est jamais compilé par le build debug**, donc une erreur y dort jusqu'à la RC. Il fait vingt lignes et ne bouge quasiment pas.
+
+D'où la règle : debug par défaut ; compiler le release **seulement** quand `app/src/release/` ou la couture `Analysis` change, et avant une RC. Et alors `:app:compileReleaseKotlin` plutôt qu'`assembleRelease` — c'est la compilation qui manque, pas l'APK.
+
 ## Hors périmètre
 
 Écarté délibérément de la première version, non par oubli :

@@ -243,9 +243,9 @@ class TurnPipeline(
     }
 
     private suspend fun voice(): Voice {
-        val id = store.values().first()[Secret.ElevenlabsVoiceId]
-            ?: throw ChainFailure("no ElevenLabs voice has been chosen")
-        return Voice(provider = "elevenlabs", id = id)
+        val id = store.values().first()[Secret.AzureVoice]
+            ?: throw ChainFailure("no voice has been chosen")
+        return Voice(provider = "azure", id = id)
     }
 
     /** Suspends until the reply has finished being said, so the phases mean what they say. */

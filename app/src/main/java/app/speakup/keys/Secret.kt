@@ -25,8 +25,7 @@ enum class Secret(
     AzureSpeechKey("azure.speech.key", R.string.secret_azure_key),
     AzureSpeechRegion("azure.speech.region", R.string.secret_azure_region, masked = false),
     DeepseekApiKey("deepseek.api.key", R.string.secret_deepseek_key),
-    ElevenlabsKey("elevenlabs.key", R.string.secret_elevenlabs_key),
-    ElevenlabsVoiceId("elevenlabs.voice.id", R.string.secret_elevenlabs_voice, masked = false),
+    AzureVoice("azure.voice", R.string.secret_azure_voice, masked = false),
     ;
 
     companion object {

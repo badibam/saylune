@@ -15,7 +15,6 @@
     <string name="secret_azure_key">Azure Speech — clé</string>
     <string name="secret_azure_region">Azure Speech — région</string>
     <string name="secret_deepseek_key">DeepSeek — clé d\'API</string>
-    <string name="secret_elevenlabs_key">ElevenLabs — clé</string>
     <string name="settings_close">Retour</string>
     <string name="capture_hold">Maintenir pour parler</string>
     <string name="capture_recording">Enregistrement — %1$s</string>
@@ -31,7 +30,6 @@
     <string name="mic_unprocessed">micro sans traitement</string>
     <string name="mic_voice_recognition">micro de reconnaissance (cet appareil n\'offre pas de source sans traitement)</string>
     <string name="capture_source">Enregistrement par le %1$s.</string>
-    <string name="secret_elevenlabs_voice">ElevenLabs — identifiant de voix</string>
     <string name="phase_hearing">Écoute de ton tour…</string>
     <string name="phase_thinking">Réflexion…</string>
     <string name="phase_speaking">Réponse…</string>
@@ -40,4 +38,17 @@
     <string name="conversation_empty">Maintiens le bouton et dis quelque chose.</string>
     <string name="speaker_learner">Toi</string>
     <string name="speaker_ai">Speakup</string>
+    <string name="secret_azure_voice">Azure Speech — voix (par ex. en-US-JennyNeural)</string>
+    <string name="analysis_engine_refused">Les marques de prononciation sont éteintes pour cette séance : le moteur d\'analyse n\'a pas pu être chargé.</string>
+    <string name="analysis_unshipped">Les marques de prononciation sont éteintes : cette version ne contient pas de moteur d\'analyse.</string>
+    <string name="turn_grammar_marked">Quelque chose ici n\'est pas tout à fait anglais — les marques de son attendent que ce soit redit.</string>
+    <string name="readout_show">Analyse — %1$d sons marqués sur %2$d</string>
+    <string name="readout_hide">Masquer l\'analyse</string>
+    <string name="debug_steps">Debug — %1$d étape(s)</string>
+    <string name="debug_clear">Vider</string>
+    <string name="debug_nothing">Rien d\'enregistré pour l\'instant.</string>
+    <string name="debug_step">%1$s — %2$.1f s</string>
+    <string name="debug_brick">%1$s : %2$s</string>
+    <string name="debug_open">%1$s (%2$d caractères)</string>
+    <string name="debug_dialog_close">Fermer</string>
 </resources>

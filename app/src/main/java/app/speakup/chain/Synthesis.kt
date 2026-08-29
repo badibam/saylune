@@ -11,8 +11,7 @@ import java.io.File
  *
  * Nothing is asked of the provider but a wav. Anchoring marks to the text is computed
  * entirely on the device, from order and spelling, so every synthesis engine is a candidate
- * -- the free ones included. ElevenLabs is wired in because two of its voices were already
- * read by the bench; it is not chosen.
+ * -- the free ones included. None is chosen.
  *
  * One render serves three times, which is why the caller caches it and this seam does not:
  * a yardstick for the measure, a model to hear, and a model to hear again at every retry.

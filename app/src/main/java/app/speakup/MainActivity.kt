@@ -27,7 +27,7 @@ import app.speakup.capture.TurnRecorder
 import app.speakup.conversation.TurnPipeline
 import app.speakup.providers.AzureRecognition
 import app.speakup.providers.DeepseekConversation
-import app.speakup.providers.ElevenLabsSynthesis
+import app.speakup.providers.AzureSynthesis
 import app.speakup.keys.SecretStore
 import app.speakup.ui.ConversationScreen
 import app.speakup.ui.MarkingPrototypeScreen
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
             store = store,
             recognition = AzureRecognition(store),
             conversation = DeepseekConversation(store),
-            synthesis = ElevenLabsSynthesis(applicationContext, store),
+            synthesis = AzureSynthesis(applicationContext, store),
             analysis = Analyses.onDevice(applicationContext),
         )
         setContent {
