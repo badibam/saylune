@@ -130,6 +130,16 @@ Le coût du changement, à peser le moment venu : l'annotation d'`expected.py` e
 
 Le modèle est cru aveuglément, et c'est le maillon le moins vérifié de la chaîne : aucune voix n'est qualifiée, la synthèse n'est pas reproductible (ci-dessus), et les voix divergent entre elles de 11 à 18 % des sons — l'idiosyncrasie de la voix choisie devient la norme qu'on fait imiter. Tous les chiffres du banc reposent dessus ; les deux pièces sont petites et tiennent sur l'outillage existant. L'empreinte des audios, elle, est posée : chaque brique termine par la ligne des fichiers qu'elle a lus (`docs/qualification.md`).
 
+- **Une première pièce du test existe : le rendu dit-il ce qu'il devrait ?** `recognition.py --source l2` confronte la grille décodée de chaque rendu du modèle aux phonèmes que le corpus L2 note attendus. Ces phonèmes sont ceux **attendus**, jamais ceux produits — ce qui les disqualifie pour juger un apprenant et les qualifie ici, un rendu étant une synthèse censée dire le canonique. Sur les 2 500 rendus d'`azure-us-jenny` : **20,5 %** de sons faux (13,7 % de substitutions, 5,7 % d'omissions, 1,2 % d'insertions), contre 6,7 % pour le même réseau sur de la parole lue.
+
+  **Ce chiffre est un plafond, et de loin.** L'ARPAbet canonique donne la forme forte : il ne note ni le battement (`better` en `ɾ`), ni la réduction des mots outils, ni la coalescence rhotique. Le vidage brut des opérations d'édition (`tmp/edits.py`, 200 rendus) le montre : les mots les plus touchés sont `TO` (56), `THE` (32), `AND` (29), `NOT` (28), `A` (22) — les mots outils, exactement.
+
+  Le seul partage qui ne demande aucun jugement est la nature des symboles : une voyelle lue comme une consonne, ou l'inverse, ne peut être aucune variante de réalisation. Ce croisement vaut **0,98 %** des sons attendus (37 sur 3 779), et une bonne moitié en est encore de la coalescence rhotique (`ɹ`→`ɝ`, 12 cas) ou une glissante lue en voyelle (`j`→`i`). **Le plancher dur des vrais ratés est donc de l'ordre de 0,3 à 1 %.**
+
+  Un cas franc existe et est documenté : sur `test-1723`, le réseau lit `m ɪ l` là où sa propre voix dit `k n oʊ`, et la prise dit `k` — la marque accuse l'apprenant d'une erreur de la machine. C'est le risque que `docs/reference.md` nomme (« une voix de synthèse que l'analyse lit mal accuserait l'apprenant »), pour la première fois observé et borné.
+
+  Ce que ça ne dit pas : combien de marques cela produit. Un ordre de grandeur, non mesuré, à partir d'un mot de trois sons — 1 % de sons faux toucherait environ 3 % des mots, soit trois points des 61 % ci-dessous. Le calcul ignore que les erreurs se groupent, et n'a pas été vérifié.
+
 - **Le test de voix, écrit.** Pour une voix, sur un jeu de phrases fixe : la netteté moyenne des pics de la grille, le pire son (répartition écrasée), les zones où la répartition s'effondre, et la divergence aux autres voix — le seul critère extérieur à la voix : 11,5 % des sons pour `eleven-us-sarah`, 13 % pour `azure-us-jenny`, 18 % pour `eleven-gb-daniel` (`tmp/voices.py`, à promouvoir) — la voix modèle étant la source de vérité, son idiosyncrasie devient la norme imitée, donc un étalon devrait être une voix ordinaire. Les seuils de passage se calibrent sur les voix avec lesquelles le banc a été mesuré, connues bonnes ; le test qui existait, lui, jugeait aux notes d'un service dont l'app ne dépend plus. L'oreille ne rend pas ce verdict, et `docs/reference.md` (« L'accent ») dit pourquoi.
 - **La stabilité, mesurée une fois.** Deux rendus du même texte par la même voix : comparer les grilles, et l'écart de marquage entre elles. Que le fichier diffère est mesuré ; de combien la norme bouge ne l'est pas. Grilles quasi identiques → le cache fait le reste ; divergence sensible → critère de choix de fournisseur pour le chantier 2, à connaître avant de choisir.
 
@@ -153,6 +163,26 @@ La brique 4 tourne au banc et se lit hors du jeu qui l'a réglée : **311 sons s
   Ce que le corpus tient, mesuré : **4 947 textes distincts pour 5 000 prises**, donc un rendu par prise et c'est là toute la facture ; les deux moitiés **ne partagent aucun locuteur** (125 chacune), donc `test` sert d'instrument sans toucher `train` ; les prises sont **rangées par locuteur**, donc un sous-ensemble se tire et ne se tranche jamais. Et le milieu est large : sur un tirage à 2 500 caractères, 528 mots se répartissent en 333 propres, **175 « entre les deux »** — au moins un phonème noté « juste mais fort accent » — et 20 fautifs. Dans ce corpus la zone grise n'est pas une famille rare, c'est un tiers des mots.
 
   La moitié `test` est rendue en `azure-us-jenny` — 2 500 fichiers, 74 855 caractères, dépense faite. Pour une autre voix, `--plan` chiffre et `--render` achète ; l'offre ElevenLabs est à court.
+
+  **Le chiffre, mesuré** (2 500 prises, 125 locuteurs, 13 232 mots lus, 454 prises écartées par la brique 11 ; voix `azure-us-jenny`, lecture `timit-ipa`). Part des mots marqués, par verdict du corpus :
+
+  | seuil | propre | entre | fautif |
+  |---|---|---|---|
+  | 0,02 | 68,2 % | 83,7 % | 98,0 % |
+  | 0,05 | 61,3 % | 79,3 % | 95,8 % |
+  | 0,20 | 49,9 % | 71,1 % | 94,6 % |
+
+  Médianes de l'écart par mot : 0,198 / 0,757 / 0,982. Le seuil ne déplace presque rien — un facteur dix ne fait bouger les propres que de 68,2 à 49,9 %. Sur le jeu maison, les témoins plafonnent à 2,2 points et la plus faible faute vaut 25 : le seuil s'y posait dans un vide franc. Ici le milieu est peuplé, et le seuil devient un arbitrage au lieu d'un endroit vide.
+
+  **Par locuteur** : sur les 121 locuteurs à 20 mots propres ou plus, la médiane s'étale sans trou de 0,015 à 0,877 (quartiles 0,104 / 0,242 / 0,507). Le plus calme a encore 40 % de ses mots propres marqués. Pas deux populations, un continuum. (Une lecture antérieure sur 14 locuteurs annonçait une coupe en deux : bruit d'échantillon, elle ne survit pas aux 121.)
+
+  **Son par son**, le mot mis de côté : la médiane d'un son de mot propre est à **0,004** — le plancher des témoins du jeu maison — contre 0,016 pour « entre » et 0,336 pour « fautif ». 32,0 % des sons des mots propres dépassent 0,05, contre 57,9 % des fautifs.
+
+  **La forme dans le mot** : le plus grand écart d'un mot vaut 13,9 fois la médiane de ses sons quand le mot est propre, 2,1 fois quand il est fautif — un mot propre marqué est calme avec un pic, un mot fautif est haut partout. Et la part du mot couverte par la marque ne sépare pas : 50 / 50 / 60 % aux trois verdicts.
+
+  **Ce que l'oreille en dit, sur dix cas.** Mots propres à pic isolé (pic > 0,90, plus de 8 fois la médiane du mot), jugés à l'écoute avec le modèle puis la prise (`tmp/peaks.py`, verdicts dans `bench/reviews/`) : **9 vraies différences, 1 raté de la machine**. Un seul auditeur, dix cas, la bande la plus facile — c'est un indice, pas une mesure du taux.
+
+  **Ce qui n'est pas tranché.** Le corpus note « propre » ce dont le phonème reste reconnaissable, accent toléré ; le projet a acté que l'écart d'accent est à marquer. Les deux répondent à des questions différentes, et rien ne dit quelle part des 61 % relève de l'une ou de l'autre. Une voix, un modèle acoustique, des locuteurs de langue maternelle chinoise seulement : rien ne dit ce que donnerait un autre triplet.
 - **Le taux de fausse alerte de l'accent sur un tour spontané.** Réglé pour le régime d'imitation (bloc F : 2 fautes sur 2, aucune fausse alerte), il reste inconnu là où l'apprenant n'a pas entendu le modèle — et il ne se mesure pas, étiqueter une prise spontanée exigeant ce modèle. Deux garde-fous à tenir au moment de coder : l'emphase de sens divergera toujours d'un modèle neutre, et la parenthèse doit rendre une fausse alerte peu coûteuse.
 - **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
 - La qualification des voix modèles et la stabilité de la grille sont regroupées sous « Qualifier l'étalon » ci-dessus.
