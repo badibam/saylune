@@ -1,0 +1,225 @@
+{
+  "voice": "azure-us-jenny",
+  "split": "test",
+  "band": "franc",
+  "selection": {
+    "floor": 0.9,
+    "ceiling": 1.01,
+    "ratio": 8.0,
+    "seed": 0
+  },
+  "verdicts": {
+    "test-1269:15": {
+      "take": "test-1269",
+      "speaker": "2327",
+      "text": "My saints have to be better.",
+      "word": "BETTER",
+      "symbol": "ɾ",
+      "gap": 0.9836,
+      "sounds": [
+        0.0004,
+        0.0005,
+        0.9836,
+        0.0011
+      ],
+      "model_says": "ɾ 0.99",
+      "take_says": "t 0.99",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "633ef2c2fa6f4bc4df9426919abf256f1cbf4acf99267532d3435edc5a8013c2",
+        "take": "34483820299ac452876462730942b8d56c10a4fa6443322caa0ec972bf3acf51"
+      }
+    },
+    "test-0024:6": {
+      "take": "test-0024",
+      "speaker": "0024",
+      "text": "Mostly the american community in europe follows the game.",
+      "word": "THE",
+      "symbol": "i",
+      "gap": 0.9702,
+      "sounds": [
+        0.0031,
+        0.9702,
+        0.0004,
+        0.0811
+      ],
+      "model_says": "i 0.99",
+      "take_says": "ɪ 0.61  ə 0.29  ɛ 0.10",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "6c60ac2de628cf8c935d22df8c5f288b18432fa37eb451e66cf1476cd5dcba3a",
+        "take": "73b898114b6b96f7c539c7dc25c94dc7dcc85a2f8495faaa01076af20cc445da"
+      }
+    },
+    "test-1153:7": {
+      "take": "test-1153",
+      "speaker": "2027",
+      "text": "We often play football after class.",
+      "word": "PLAY",
+      "symbol": "l",
+      "gap": 0.9898,
+      "sounds": [
+        0.0003,
+        0.9898,
+        0.0014
+      ],
+      "model_says": "l 1.00",
+      "take_says": "ə 0.92  ɝ 0.02  ɑ 0.02",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "6859e065c4ce759ebe5aee881f10de351de1202f5217214418925293663c40c3",
+        "take": "00cf61ab31415b8a574cb8668609a3707627eae2a505685b017e298dfba74946"
+      }
+    },
+    "test-0073:11": {
+      "take": "test-0073",
+      "speaker": "0049",
+      "text": "Mike like the stir ben.",
+      "word": "BEN",
+      "symbol": "ɛ",
+      "gap": 0.9192,
+      "sounds": [
+        0.0097,
+        0.9192,
+        0.0
+      ],
+      "model_says": "ɛ 0.94  æ 0.04  ɪ 0.01",
+      "take_says": "ə 0.80  ɪ 0.18",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "07a4894130eba683a2df634afdd908452590dff62dd04a304052762f6af0df4a",
+        "take": "e78303d15c791e3d5474f386f1273d467a8e60167c06fd3c2fded33cef3c7a17"
+      }
+    },
+    "test-0705:6": {
+      "take": "test-0705",
+      "speaker": "1109",
+      "text": "Seriously this is getting out of control.",
+      "word": "SERIOUSLY",
+      "symbol": "l",
+      "gap": 0.9948,
+      "sounds": [
+        0.0102,
+        0.8506,
+        0.0555,
+        0.9401,
+        0.0932,
+        0.0015,
+        0.9948,
+        0.0034
+      ],
+      "model_says": "l 1.00",
+      "take_says": "ɾ 0.93  d 0.05",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "dcb038f4282f8c62d5a03ea4497a5dca756bd773d91316b1e2039f092bb38c43",
+        "take": "60b3fb84b1d3ac300db18c8ed9d708772b16b31f78e86d71e7f99230440ac803"
+      }
+    },
+    "test-0854:8": {
+      "take": "test-0854",
+      "speaker": "1293",
+      "text": "We have a lot of same interests.",
+      "word": "LOT",
+      "symbol": "ɾ",
+      "gap": 0.9836,
+      "sounds": [
+        0.0001,
+        0.0268,
+        0.9836
+      ],
+      "model_says": "ɾ 0.99",
+      "take_says": "t 0.99",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "afdcf9bf228366197f8173dd24163bcc22ced0d7d946365f8db4cc12f163324c",
+        "take": "a9e0e765e4dde6c39f0555ff8632deaea0352d053af40d54f1ae201eca976da7"
+      }
+    },
+    "test-1723:3": {
+      "take": "test-1723",
+      "speaker": "5017",
+      "text": "I ask no more than that.",
+      "word": "ASK",
+      "symbol": "m",
+      "gap": 0.9966,
+      "sounds": [
+        0.0077,
+        0.0002,
+        0.9966
+      ],
+      "model_says": "m 1.00",
+      "take_says": "k 1.00",
+      "verdict": "la machine se trompe",
+      "digests": {
+        "model": "2ea308d6c94d58752410c899d655fdc6b72dfd54042894e3d2d9f5150b57dbed",
+        "take": "ad6c8781706845c9e93df2f764a0d965b7e7adb3c29d4e9b394da5792e72ad83"
+      },
+      "note": "grille du modèle fausse : le réseau lit `m ɪ l` là où sa propre voix dit `k n oʊ` (le /k/ de ask, puis no). La prise dit `k` à 1,00 et a raison."
+    },
+    "test-1981:13": {
+      "take": "test-1981",
+      "speaker": "8068",
+      "text": "I'm ready for the march.",
+      "word": "MARCH",
+      "symbol": "ʧ",
+      "gap": 0.925,
+      "sounds": [
+        0.0001,
+        0.0059,
+        0.0035,
+        0.925
+      ],
+      "model_says": "ʧ 0.99",
+      "take_says": "ʃ 0.98  ʧ 0.02",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "091c62dd8f299ceefe0040dabea22dc3c40104ceeb38e00ca043c20120505722",
+        "take": "62393f434a2ce2cbb09410a9c5f6f92273599b419a65dc43642946cba34d8379"
+      }
+    },
+    "test-0109:5": {
+      "take": "test-0109",
+      "speaker": "0093",
+      "text": "Table blacks work.",
+      "word": "BLACKS",
+      "symbol": "l",
+      "gap": 0.9947,
+      "sounds": [
+        0.0756,
+        0.9947,
+        0.0011,
+        0.0009,
+        0.0
+      ],
+      "model_says": "l 1.00",
+      "take_says": "ɹ 0.98  ɝ 0.02",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "783504a4cb23a73ccf483012258fbddd9856928135f8d2bdbbd5a1ded199f7f7",
+        "take": "165bcc252817fac922eecba9447293fa04d79bb215e05c3eb7934061ed501a58"
+      }
+    },
+    "test-0454:12": {
+      "take": "test-0454",
+      "speaker": "0736",
+      "text": "I need to keep a close eye on my son.",
+      "word": "CLOSE",
+      "symbol": "s",
+      "gap": 0.966,
+      "sounds": [
+        0.0,
+        0.0005,
+        0.0044,
+        0.966
+      ],
+      "model_says": "s 1.00",
+      "take_says": "z 0.95  ð 0.03",
+      "verdict": "vraie différence",
+      "digests": {
+        "model": "7bb435c3d50d004e0fb29735797cffedccae86b360fae14325547d2cf69b33a4",
+        "take": "ceba26ac968dfbc14655003a1592eb24d0e186c9be634b55063788ca2e2d10f3"
+      }
+    }
+  }
+}
