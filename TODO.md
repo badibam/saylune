@@ -1,10 +1,33 @@
 # TODO
 
-## Ordre acté (2026-08-29) — le fil, pour ne plus le reperdre
+## Ordre acté (2026-08-29, révisé le soir) — le fil, pour ne plus le reperdre
+
+**On avance sur l'app sans attendre les mesures qui restent.** Ce qui reste au chantier 1 mesure la *qualité* de l'analyse, pas son *existence* : elle tourne sur l'appareil, elle est déterministe, elle trouve les fautes du jeu d'essai. Trois inconnues, en revanche, ne se mesurent **que** par l'usage réel, et le doc le dit lui-même — le taux de fausse alerte sur un tour spontané (`docs/reference.md` : il ne s'étiquette pas), la forme du marquage quand 61 % des mots propres portent quelque chose, et les deux bancs du chantier 2, pour lesquels des tours réels valent mieux que 25 énoncés écrits d'avance.
+
+Ce que le fast-forward n'autorise pas, et qui est la seule vraie parade au regret : **une brique provisoire se note ici à l'instant où on l'écrit**, jamais après — écrite après coup, elle ne s'écrit pas. Et l'usage réel est une source de questions, jamais de chiffres : le banc reste le seul juge, un seuil ne se règle pas parce que l'écran en marque trop.
+
+Le fil du code est au chantier 0. Ce qui suit reste vrai et ne bloque plus :
 
 1. **Acheter le chiffre derrière lequel tout fait la queue** : lancer `bench/alarms.py` sous chaque candidat de modèle (`ACOUSTIC_MODEL=…`) sur les rendus déjà payés — la moitié `test` est rendue en `azure-us-jenny`, il ne reste que du calcul. Deux précisions qui changent la lecture : (a) ce chiffre n'est **pas** le taux de fausse alerte du produit — le corpus note « propre » ce qui reste reconnaissable accent toléré, là où le projet marque l'écart d'accent ; c'est un **comparateur entre candidats**, rien de plus ; (b) les candidats ne se comparent pas à la part de mots marqués à un seuil — un modèle plus piqué marque plus partout sans être pire — mais à la **séparation** : comment l'écart d'un mot ordonne fautif au-dessus de propre (statistique de rang, sans seuil), et la forme dans le mot (pic isolé contre mot haut partout), que les lignes d'`alarms.py` permettent depuis qu'elles gardent tous les sons. Borner l'étape à cette comparaison : le seuil d'écran n'est pas la question qu'elle tranche — l'écran a déjà sa réponse actée (« graduer plutôt que colorier », `docs/reference.md`), ne pas rouvrir ce débat sur ces chiffres-là.
 2. **La brique 7 est de la recherche, hors du chemin de la v1** : la v1 marque au niveau du son, canaux d'accent vides comme aujourd'hui. Acté durablement dans `docs/reference.md` (portée de « Se taire n'est jamais une issue »).
-3. **Revenir au produit** : chantier 2, deux bancs spécifiés, zéro ligne écrite.
+3. **Les deux bancs du chantier 2** restent spécifiés, zéro ligne écrite — mais l'app les nourrit désormais, au lieu de les précéder.
+
+## Chantier 0 — l'app : le chemin le plus court vers des tours qui fonctionnent
+
+Le soin ne baisse pas, il change d'endroit : il quitte le *fini* pour aller aux **coutures** et à ce qui est **irréversible pour l'utilisateur**. Un code se jette sans douleur tant que rien n'a poussé dessus.
+
+**Ce qui ne prend aucun soin maintenant**, et se note pour qu'on ne le redécouvre pas comme un oubli : esthétique, animations, états vides, paysage ; gestion fine des erreurs et réessais ; le cache de synthèses à plafond et éviction (un cache bête suffit) ; Room et la persistance (la trace est en écriture seule en v1, *rien ne la lit* — un fichier par session suffit jusqu'à ce qu'un lecteur existe) ; ViewModel et injection de dépendances, que la facette `android` écarte déjà tant qu'aucun besoin ne les demande. Une exception gardée : **zéro texte en dur**, qui coûte dix secondes à l'écriture et une journée en rattrapage.
+
+Dans l'ordre :
+
+1. **Clés et écran de configuration** (BYOK). Bloquant par construction, et c'est là que le stockage au Keystore, `allowBackup="false"` et l'absence de clé dans les logs se décident une fois pour toutes — la sécurité rétrofitée est le regret classique. Le bouton « tester la clé » et l'écran guidé que `docs/reference.md` demande sont du fini : plus tard.
+2. **La capture** : micro → fichier PCM 16 kHz mono conservé. Le mode retenu par `design/ui-flow.md` (armement automatique, un tap pour clore) ne borne pas la durée par lui-même, or la mémoire d'une passe croît comme le **carré** du tour — 4316 Mo sur une minute. Il faut donc un plafond franc et visible, tant que le fenêtrage n'est pas tranché.
+3. **La boucle** : reconnaissance → modèle de langue → synthèse → lecture, sur un écran de conversation nu.
+4. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
+
+**Les provisoires, notés à l'écriture :**
+
+- **Le verdict grammatical n'est pas dans `Reply`.** La couture rend `spoken` et `intended` ; la porte grammaticale a besoin en plus du cran de sévérité et d'un verdict, dont dépend le fait même que l'analyse tourne (`docs/reference.md` : sur un tour fautif elle n'est pas cachée, elle n'est pas calculée). À ajouter quand la porte s'écrit — la forme du type l'admet sans casse.
 
 ## Chantier 1 — l'analyse : ce qu'il reste à écrire
 
