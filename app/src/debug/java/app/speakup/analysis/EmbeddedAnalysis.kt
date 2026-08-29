@@ -130,14 +130,18 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
     }
 
     /**
-     * Where the weights sit. Pushed with `adb push` for now: the 359 MB opt-in download the
-     * doc calls for is not written, and this is the provisional that stands in its place
-     * (`../../../../../../../TODO.md`).
+     * Where the weights sit: a directory of its own, with `vocab.json` beside them.
+     *
+     * Pushed with `adb push` for now. The 359 MB opt-in download the doc calls for is not
+     * written, and this stands in its place (`../../../../../../../TODO.md`) -- but the
+     * directory is the analysis's own rather than borrowed from the probe, so the day the
+     * download exists it fills this and nothing else moves.
      */
+    private fun home(): File? =
+        context.getExternalFilesDir(null)?.let { File(it, "analysis") }
+
     private fun weights(): File? =
-        context.getExternalFilesDir(null)
-            ?.listFiles { file -> file.name.endsWith(".onnx") }
-            ?.firstOrNull()
+        home()?.listFiles { file -> file.name.endsWith(".onnx") }?.firstOrNull()
 
     private companion object {
         const val VOCAB = "vocab.json"

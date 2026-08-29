@@ -43,7 +43,19 @@ Dans l'ordre :
 
 7. **La fidélité de `intended` n'est pas retestée sous pro.** Les trois tours du 2026-08-29 étaient de l'anglais correct — le modèle n'avait rien à réparer, donc ce passage ne dit **rien** sur la fuite de l'item 5. Il faut un tour non natif dit exprès, du genre de *« how are you going yours »*, avant de croire la fuite refermée par le changement de modèle.
 
-8. **Brancher l'analyse** sur le tour et rendre les marques dans `MarkingPrototypeScreen`, qui attend un vrai tour à peindre au lieu d'échantillons.
+8. ~~**Brancher l'analyse** sur le tour~~ — **fait**, et derrière une couture. `app.speakup.analysis.Analysis` prend **deux enregistrements du même énoncé** et le texte, et rend des marques ; ce qui en est absent est ce qui doit durer — ni poids ni moteur (le modèle acoustique n'est pas choisi), ni clé ni fournisseur (c'est le seul maillon qui ne part jamais), ni accent ni dialecte (le modèle est l'unique norme), ni sévérité ni seuil (le curseur bouge la barre, jamais la mesure). Deux implémentations plutôt qu'un drapeau : le build debug porte le moteur, la release répond qu'elle n'en embarque aucun — le jour où le moteur est choisi, on supprime la doublure et l'autre passe en `main`, sans que rien de ce qui appelle `Analysis` ne change.
+
+  L'arithmétique au-dessus de la matrice est **écrite en Kotlin et tenue contre le Python** dont elle est portée : `bench/fixture.py` gèle un tour analysé — les deux matrices, le vocabulaire, et ce que `turn.py` en fait — et le test rejoue le Kotlin sur ces mêmes matrices. Les lire au lieu de les recalculer isole le port du moteur, que `concord.py` couvre déjà. Trois tours gelés, dont *« He doesn't know »* pour sa **gouttière** — un schwa que l'anglais n'écrit avec rien, le seul chemin où un son ne tient aucune lettre. Marques, gouttières, bornes : tout concorde. Le test a trouvé deux vraies choses au passage — `org.json` d'Android est un bouchon qui lève en test unitaire, et la moyenne d'une colonne s'accumulait en `float`, ce qui dérive assez sur quelques centaines de trames pour déplacer une marque.
+
+  **Les provisoires, notés à l'écriture :**
+
+  - **La porte grammaticale n'existe pas, et ça se voit ici.** Le doc est explicite : sur un tour marqué fautif l'analyse sonore **ne tourne pas du tout** — ni cachée, ni calculée — parce que la phrase va être réécrite. Rien ne porte encore le verdict, donc **tous** les tours sont analysés et des marques apparaîtront sur des tours que la porte retiendra plus tard.
+  - **Un appel de synthèse de plus par tour**, pour le modèle de `intended`. Le cache le rattrape à la redite, pas au premier passage. Le coût réel n'est pas mesuré.
+  - **Les poids arrivent par `adb push`** dans `files/analysis/`, avec `vocab.json` à côté ; le téléchargement en opt-in de 359 Mo que le doc réclame n'est pas écrit. Le dossier appartient à l'analyse et non à la sonde, donc le jour où le téléchargement existe il remplit celui-là et rien d'autre ne bouge.
+  - **Le moteur reste au build debug** — l'ONNX Runtime est en `debugImplementation` exprès, pour qu'aucune release ne porte une dépendance native sur un pari, ni ne doive à F-Droid une réponse sur une bibliothèque pré-compilée avant la mesure qui la justifierait.
+  - **L'analyse tourne après que la réponse a été dite**, jamais avant : les deux tuyaux sont indépendants et la conversation n'attend pas la mesure. Ce que ça coûte en temps sur l'appareil n'est pas mesuré.
+
+9. **Ce que l'écran fait des marques reste entier.** `MarkedTurn` peint ce que l'analyse rend, mais la forme du marquage est justement la question ouverte : mesuré sur de la parole d'apprenant réelle, **la majorité des mots portent quelque chose**, donc une marque binaire ne transporte plus rien. Le doc a déjà tranché le principe — **graduer plutôt que colorier** — et la forme reste à trouver. C'est maintenant regardable sur de vrais tours, ce qui est exactement ce que le fast-forward cherchait.
 
 **Les provisoires, notés à l'écriture :**
 

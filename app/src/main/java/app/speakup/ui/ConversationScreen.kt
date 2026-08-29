@@ -39,15 +39,22 @@ import app.speakup.R
 import app.speakup.capture.TurnRecorder
 import app.speakup.chain.Exchange
 import app.speakup.conversation.Phase
+import app.speakup.analysis.Readiness
 import app.speakup.conversation.TurnPipeline
+import app.speakup.marking.TurnMarking
 import kotlinx.coroutines.launch
 
 /**
  * The turn, end to end: hold to speak, release to think, press again to carry on, send.
  *
- * The marks are not here yet -- the analysis is step 4, and this is where it will land. The
- * screen is bare on purpose; its shape is what the real use of these turns is meant to
- * decide (`../../../../../../TODO.md`, chantier 0).
+ * A turn of the learner is drawn with its marks once the analysis has read it, and plainly
+ * until then -- the two are told apart on purpose, since a turn not yet analysed is not a
+ * turn with nothing to report.
+ *
+ * The screen is bare otherwise, and that is deliberate: what shape the marking should take
+ * is what the real use of these turns is meant to decide, and the doc already knows the
+ * binary paint will not do -- most words of real learner speech carry something
+ * (`../../../../../../TODO.md`, chantier 0).
  */
 @Composable
 fun ConversationScreen(
@@ -93,7 +100,18 @@ fun ConversationScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        turn.exchanges.forEach { Said(it) }
+        turn.exchanges.forEachIndexed { at, exchange -> Said(exchange, turn.marking[at]) }
+
+        (turn.analysis as? Readiness.Off)?.let { off ->
+            // An option that is off carries its reason, or it reads as a bug in the app
+            // rather than as something the app has not been given.
+            Text(
+                stringResource(off.reason) + (off.detail?.let { " ($it)" } ?: ""),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
 
         turn.failure?.let { said ->
             Text(
@@ -179,7 +197,7 @@ fun ConversationScreen(
 }
 
 @Composable
-private fun Said(exchange: Exchange) {
+private fun Said(exchange: Exchange, marking: TurnMarking?) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             stringResource(
@@ -189,7 +207,8 @@ private fun Said(exchange: Exchange) {
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
+        if (marking != null) MarkedTurn(marking, modifier = Modifier.fillMaxWidth())
+        else Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

@@ -22,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import app.speakup.analysis.Analyses
 import app.speakup.capture.TurnRecorder
 import app.speakup.conversation.TurnPipeline
 import app.speakup.providers.AzureRecognition
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
             recognition = AzureRecognition(store),
             conversation = DeepseekConversation(store),
             synthesis = ElevenLabsSynthesis(applicationContext, store),
+            analysis = Analyses.onDevice(applicationContext),
         )
         setContent {
             MaterialTheme {
