@@ -261,6 +261,27 @@ def fingerprint(wav):
     return hashlib.sha256(Path(wav).read_bytes()).hexdigest()
 
 
+def own(held, cache):
+    """A cached matrix's columns, refused if they are not this model's sounds.
+
+    A cache holds a width, never an alphabet, and `symbols()` comes from
+    whichever model `ACOUSTIC_MODEL` names. Read a reading under another
+    model's table and every sound is renamed by its index: the output stays
+    plausible and says something nobody computed.
+
+    What settles it is a table *wider* than the matrix, since the network
+    would have emitted those columns. The reverse -- more columns than names --
+    is a checkpoint's own slack, `timit-ipa` declaring 44 outputs for a
+    vocabulary of 42, and its two spare columns are never decoded.
+    """
+    width = held["probabilities"].shape[1]
+    if len(symbols()) > width:
+        raise SystemExit(f"{cache} porte {width} sons quand {CHOSEN} en nomme "
+                         f"{len(symbols())} — ACOUSTIC_MODEL désigne un autre "
+                         f"alphabet que celui de cette lecture")
+    return held["probabilities"]
+
+
 def stale(wav, held):
     """Whether a cached matrix was computed on some other audio than `wav`.
 
@@ -281,7 +302,7 @@ def probabilities(wav, cache=None):
     if cache is not None and Path(cache).is_file():
         held = np.load(cache)
         if not stale(wav, held):
-            return held["probabilities"]
+            return own(held, cache)
         if BORROWED:
             # The borrowed reading was computed elsewhere, on an audio that is
             # no longer this one. Reading it would compare two recordings.

@@ -72,7 +72,7 @@ def reading(wav, name, tag, slug):
     if matrix.stale(wav, held):
         raise SystemExit(f"{cache} a été calculé sur un autre audio que {wav} "
                          f"— la lecture {name} est périmée")
-    return held["probabilities"]
+    return matrix.own(held, cache)
 
 
 def sounded(probabilities):
