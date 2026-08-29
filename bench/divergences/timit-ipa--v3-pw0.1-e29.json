@@ -1,0 +1,112 @@
+{
+  "sink-broken:3": {
+    "mot": "sink",
+    "timit-ipa": "ɪ",
+    "v3-pw0.1-e29": "i",
+    "marge": {
+      "timit-ipa": 0.083,
+      "v3-pw0.1-e29": 0.838
+    },
+    "A": "v3-pw0.1-e29",
+    "juste": "timit-ipa"
+  },
+  "pear-tree:7": {
+    "mot": "pear",
+    "timit-ipa": "ɹ",
+    "v3-pw0.1-e29": "ɝ",
+    "marge": {
+      "timit-ipa": 0.826,
+      "v3-pw0.1-e29": 0.619
+    },
+    "A": "v3-pw0.1-e29",
+    "juste": "v3-pw0.1-e29"
+  },
+  "turn-right:4": {
+    "mot": "right",
+    "timit-ipa": "aɪ",
+    "v3-pw0.1-e29": "eɪ",
+    "marge": {
+      "timit-ipa": 0.992,
+      "v3-pw0.1-e29": 0.879
+    },
+    "A": "v3-pw0.1-e29",
+    "juste": "timit-ipa"
+  },
+  "walking-office:6": {
+    "mot": "walking",
+    "timit-ipa": "i",
+    "v3-pw0.1-e29": "ɪ",
+    "marge": {
+      "timit-ipa": 0.325,
+      "v3-pw0.1-e29": 0.998
+    },
+    "A": "timit-ipa",
+    "juste": "v3-pw0.1-e29"
+  },
+  "comfortable:4": {
+    "mot": "is",
+    "timit-ipa": "ɝ",
+    "v3-pw0.1-e29": "ɪ",
+    "marge": {
+      "timit-ipa": 0.586,
+      "v3-pw0.1-e29": 0.966
+    },
+    "A": "timit-ipa",
+    "juste": "v3-pw0.1-e29"
+  },
+  "comfortable:8": {
+    "mot": "very",
+    "timit-ipa": "i",
+    "v3-pw0.1-e29": "ɪ",
+    "marge": {
+      "timit-ipa": 0.086,
+      "v3-pw0.1-e29": 0.681
+    },
+    "A": "timit-ipa",
+    "juste": "v3-pw0.1-e29"
+  },
+  "comfortable:14": {
+    "mot": "comfortable",
+    "timit-ipa": "ɝ",
+    "v3-pw0.1-e29": "ə",
+    "marge": {
+      "timit-ipa": 0.638,
+      "v3-pw0.1-e29": 0.611
+    },
+    "A": "v3-pw0.1-e29",
+    "juste": "timit-ipa"
+  },
+  "market:9": {
+    "mot": "went",
+    "timit-ipa": "ɛ",
+    "v3-pw0.1-e29": "ɪ",
+    "marge": {
+      "timit-ipa": 0.49,
+      "v3-pw0.1-e29": 0.974
+    },
+    "A": "timit-ipa",
+    "juste": "timit-ipa"
+  },
+  "market:14": {
+    "mot": "the",
+    "timit-ipa": "ə",
+    "v3-pw0.1-e29": "ɪ",
+    "marge": {
+      "timit-ipa": 0.911,
+      "v3-pw0.1-e29": 0.984
+    },
+    "A": "v3-pw0.1-e29",
+    "juste": "timit-ipa"
+  },
+  "interesting:13": {
+    "mot": "interesting",
+    "timit-ipa": "ɪ",
+    "v3-pw0.1-e29": "ɝ",
+    "marge": {
+      "timit-ipa": 0.039,
+      "v3-pw0.1-e29": 0.304
+    },
+    "A": "timit-ipa",
+    "juste": "v3-pw0.1-e29"
+  }
+}
