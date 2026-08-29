@@ -26,9 +26,11 @@ L'analyse tourne sur l'appareil ; ce qu'elle fait et ce qui a été mesuré sont
 
 ### Le modèle de sons — le choix reste ouvert
 
-**Rien ne sépare les candidats, ni sur ce que l'app consomme ni à l'oreille, et ce n'est pas une clôture.** Réentraîner reste une option ouverte ; ce qui suit dit seulement que les instruments actuels ne départagent pas, pas qu'il n'y a rien à gagner. **Discussion à reprendre en début de session.**
+**Le seul instrument qui mesure la marque sépare les candidats, et il donne le candidat.** `faults.py` — l'écart sur un son étiqueté fautif contre le même son étiqueté propre — n'avait jamais été lancé sur les checkpoints. Lancé, il montre que ce qui sépare n'est pas le réentraînement mais **le poids de prior**, et que le pas de 0,0 à 0,1 est raide (voir plus bas). Les autres instruments — la jointure, le compte de syllabes, l'oreille à l'aveugle — ne les distinguent toujours pas.
 
-On tourne donc sur `timit-ipa` en attendant. Les cinq lectures — le sortant et les quatre checkpoints de l'affinage complet — sont **indiscernables** sur ce qui se mesure aujourd'hui.
+Rien n'est tranché pour autant : la séparation tient à **un cas sur sept**, et le taux de fausse alerte hors des sons étiquetés n'est pas mesuré — le jeu d'essai ne peut pas le dire, il n'étiquette qu'un son par prise. On tourne sur `timit-ipa` en attendant. **Discussion à reprendre en début de session.**
+
+Sur ce qui se mesurait avant `faults.py`, les cinq lectures — le sortant et les quatre checkpoints de l'affinage complet — restent **indiscernables** :
 
 | lecture | lettres justes (`join`) | mots au bon nombre de syllabes |
 |---|---|---|
@@ -40,7 +42,24 @@ On tourne donc sur `timit-ipa` en attendant. Les cinq lectures — le sortant et
 
 Lettres justes lues sur les onze phrases de calibration où les cinq rendent la même forme de grille que l'annotation. Deux sons d'écart sur 166 entre le meilleur et le pire.
 
-**Ce que ça ne dit pas, et qui est l'essentiel** : les candidats n'ont été lus que sur onze à seize phrases d'une seule voix, avec des instruments dont on vient de voir qu'ils mesurent mal (l'étiquette n'est pas consommée, l'étendue non plus). Que rien ne les sépare **ici** ne dit pas qu'ils se valent. Trois choses rouvriraient franchement : un matériel plus large, un instrument qui mesure ce que l'app consomme vraiment, et le corpus L2. Et le poids de prior `0,3` n'a jamais tourné.
+**Ce que `faults.py` voit, lui**, à backbone et données identiques — le poids de prior est alors la seule variable, sur les deux voix modèles :
+
+| lecture | `09-walkin` (zone grise) | `01-sink` | `18-walkin-full` | bande vide | fautes vues |
+|---|---|---|---|---|---|
+| `timit-ipa` — voix us | 0,020 | 0,247 | 0,122 | 0,018 | 7 / 7 |
+| `timit-ipa` — voix gb | **0,001 manquée** | 0,246 | 0,236 | 0,234 | 6 / 7 |
+| `v3-pw0.0-e29` — us | **0,000 manquée** | 0,059 | 0,113 | 0,058 | 6 / 7 |
+| `v3-pw0.0-e29` — gb | **0,000 manquée** | 0,059 | 0,114 | 0,058 | 6 / 7 |
+| `v3-pw0.1-e29` — us | 0,123 | 0,979 | 0,875 | 0,123 | 7 / 7 |
+| `v3-pw0.1-e29` — gb | 0,126 | 0,980 | 0,880 | 0,126 | 7 / 7 |
+
+Six des sept fautes étiquetées sont vues fort partout (au-dessus de 0,9) ; ce qui sépare est `09-walkin`. Sans prior elle est à 0,000 et manquée, avec prior à 0,1 elle est à 0,123 — donc **au-dessus du seuil d'écran de 0,05**, dessinée. Les témoins restent à 0,000 des deux côtés. `08-light-right` est hors comparaison partout (décodage divergent, brique 11).
+
+Deux réserves qui empêchent d'en faire une décision. Les répartitions du candidat sont plus piquées — sa « pire phrase » est à 0,99 presque partout contre 0,9 chez le sortant — et **un modèle plus tranchant sépare mieux et marque plus** ; ce que ça donne en fausses alertes hors des sons étiquetés n'est pas mesuré. Et le prior a un coût déjà visible à 0,1, qui va dans l'autre sens : mots au bon nombre de syllabes 34 → 32 sur 37, lettres justes à la jointure 164 → 163 sur 166. Une grille plus dense sur-segmente (`pear` prend deux noyaux pour un). **Le prior achète la détection et vend la jointure**, donc un checkpoint se juge sur le triplet `faults.py` + `syllables.py` + `join.py`, jamais sur un seul.
+
+**Ce que ça ne dit pas, et qui est l'essentiel** : les candidats n'ont été lus que sur onze à seize phrases d'une seule voix, avec des instruments dont on vient de voir qu'ils mesurent mal (l'étiquette n'est pas consommée, l'étendue non plus). Que rien ne les sépare **ici** ne dit pas qu'ils se valent. Deux choses rouvriraient franchement : un matériel plus large et le corpus L2 — l'instrument qui mesure ce que l'app consomme existait déjà, c'était `faults.py`, et il n'avait pas été lancé.
+
+- **Entraîner `v3-pw0.3`.** Deux points font une direction, pas une courbe : rien ne dit que le gain continue au-delà de 0,1, et la pénalité soustraite a forcément un point de rupture où la grille s'écrase. Un pas intermédiaire à **0,2** dirait s'il y a pente ou plateau avant de payer un run de plus. À juger sur le triplet, jamais sur `faults.py` seul.
 
 Le coût du changement, à peser le moment venu : l'annotation d'`expected.py` est indexée sur les sons du sortant, donc en changer demande de la réécrire.
 
@@ -78,7 +97,7 @@ La brique 4 tourne au banc et se lit hors du jeu qui l'a réglée : **311 sons s
 ### Le marquage et son seuil
 
 - **Toutes les fautes se marquent, aucune ne s'élit.** Le tour entier peint des fautes que le jeu d'essai n'avait jamais notées — quatre des cinq relevées sur une prise dite témoin sont de la **réduction** que le modèle fait et que la prise ne fait pas (`have to` dévoisé, `to` et `at` non réduits, le `t` battu de `right` articulé), jugées cohérentes à l'écoute par leur auteur (`bench/review.py`). Rien ne hiérarchise ça sous une faute segmentale : le but est de dire pareil, et un anglais qui ne réduit jamais sonne étranger d'un bout à l'autre là où un `th` dit `z` se comprend aussitôt.
-- **Le seuil tient mieux qu'annoncé** — les sons calmes valent 0,01 à 2,2 points et la plus faible marque en vaut 25, donc la bande de bruit à 5 tombe au milieu d'un vide franc. Ce qui reste ouvert est **la zone grise** : `09-walkin` (/ŋ/ à mi-chemin) est manqué par toutes les lectures, et cette zone bouge de 0,1 entre poste et appareil, donc elle se calibre sur la lecture de l'appareil et pas seulement sur les poids.
+- **Le seuil tient mieux qu'annoncé** — les sons calmes valent 0,01 à 2,2 points et la plus faible marque en vaut 25, donc la bande de bruit à 5 tombe au milieu d'un vide franc. Ce qui reste ouvert est **la zone grise** : `09-walkin` (/ŋ/ à mi-chemin) est manqué par le sortant et par `v3-pw0.0`, mais **vu à 0,123 par `v3-pw0.1`** — donc elle dépend d'abord des poids, et le poids de prior la déplace. Elle bouge en outre de 0,1 entre poste et appareil, donc elle se calibre aussi sur la lecture de l'appareil.
 - **Épaissir la matière du seuil avec un corpus L2 annoté** (L2-ARCTIC, SpeechOcean762) : des milliers de fautes de vrais apprenants étiquetées au phonème, y compris la zone grise que le jeu maison n'a pas. Le montage est celui de l'app — synthétiser le modèle pour les prompts du corpus, dérouler le pipeline, regarder si l'écart sépare les phones annotés fautifs des corrects. Ça calibre à grande échelle sans enregistrer une prise, et ça dit si `09-walkin` est un cas isolé ou une famille.
 - **Le taux de fausse alerte de l'accent sur un tour spontané.** Réglé pour le régime d'imitation (bloc F : 2 fautes sur 2, aucune fausse alerte), il reste inconnu là où l'apprenant n'a pas entendu le modèle — et il ne se mesure pas, étiqueter une prise spontanée exigeant ce modèle. Deux garde-fous à tenir au moment de coder : l'emphase de sens divergera toujours d'un modèle neutre, et la parenthèse doit rendre une fausse alerte peu coûteuse.
 - **Le seuil de la brique 11**, à exprimer relativement à la prise plutôt qu'en constante.
