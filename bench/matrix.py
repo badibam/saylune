@@ -120,6 +120,12 @@ PAD = ("[SIL]", "<pad>", "[PAD]")
 # it had been spoken.
 NOT_A_SOUND = ("|", "h#", "pau", "epi", " ")
 
+# The vowels of the vocabulary, which is what a syllable is counted on: one
+# nucleus, one syllable. Belongs beside the alphabet rather than beside any one
+# reading, since every brick that cuts syllables needs the same list -- and a
+# candidate model with another alphabet needs its own.
+VOWELS = frozenset("ɑ æ ə ɚ ɛ ɝ ɪ i ɔ ʊ u ʌ aɪ aʊ eɪ oʊ ɔɪ".split())
+
 _loaded = None
 _configured = None
 _symbols = None

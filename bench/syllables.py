@@ -16,8 +16,7 @@ Two questions, and the second is the one that decides:
     consulting the clock, so the same cut is applied to both sequences.
 
 Both read `expected.SOUNDS`, written by hand, so this runs on the calibration
-set alone. The vowel inventory below is the one of `timit-ipa`; a candidate
-with another alphabet needs its own.
+set alone.
 
     python3 syllables.py            # les deux comptages
     python3 syllables.py -v         # avec le détail par phrase
@@ -37,8 +36,6 @@ HERE = Path(__file__).resolve().parent
 VOICE = "eleven-us-eric"
 RENDERS = HERE / "out" / "renders" / VOICE / "sentences"
 MATRICES = HERE / "out" / "matrices" / matrix.SLUG / f"sentences-{VOICE}"
-
-VOWELS = set("ɑ æ ə ɚ ɛ ɝ ɪ i ɔ ʊ u ʌ aɪ aʊ eɪ oʊ ɔɪ".split())
 
 # Words that carry no lexical stress worth marking. A reduced `to` or `at` is
 # what connected speech does, so its vowel going missing costs nothing; the
@@ -71,7 +68,7 @@ def matched(one, two):
 
 
 def nuclei(symbols):
-    return sum(1 for symbol in symbols if symbol in VOWELS)
+    return sum(1 for symbol in symbols if symbol in matrix.VOWELS)
 
 
 def readings():
@@ -100,11 +97,11 @@ def lost(verbose):
         kept = matched([expected.alike(s) for s in wanted],
                        [expected.alike(s) for s in got])
         vowels = [s for i, s in enumerate(wanted)
-                  if i not in kept and s in VOWELS]
+                  if i not in kept and s in matrix.VOWELS]
         consonants = [s for i, s in enumerate(wanted)
-                      if i not in kept and s not in VOWELS]
-        kept_vowel += sum(1 for s in wanted if s in VOWELS)
-        kept_consonant += sum(1 for s in wanted if s not in VOWELS)
+                      if i not in kept and s not in matrix.VOWELS]
+        kept_vowel += sum(1 for s in wanted if s in matrix.VOWELS)
+        kept_consonant += sum(1 for s in wanted if s not in matrix.VOWELS)
         gone_vowel += vowels
         gone_consonant += consonants
         if verbose:
