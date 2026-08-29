@@ -270,6 +270,10 @@ Deux points de montage réglés par la même mesure. La synthèse **n'est pas pi
 
 **Les fournisseurs de conversation et de synthèse restent à choisir** (cf. `../TODO.md`, chantier 2). Ceux du banc — Azure Speech, DeepSeek — ont servi à mesurer, pas à décider.
 
+**La reconnaissance a une destination préférée : l'appareil.** Elle est distante comme les deux autres, mais c'est le seul des trois maillons qui puisse cesser de l'être — `sherpa-onnx` fait tourner un modèle de reconnaissance par l'ONNX Runtime que l'app embarque déjà pour l'analyse, donc sans runtime nouveau. Y arriver retirerait un fournisseur du mur BYOK, un motif au `NonFreeNet`, et ferait que l'audio d'un tour **ne quitte plus jamais l'appareil** — seul le texte partirait. Sa justesse sur de la parole d'apprenant accentuée n'est pas mesurée, et elle décide seule.
+
+**Ce qui est acté sans attendre cette mesure, c'est la forme de la couture** : l'interface de reconnaissance prend un fichier et rend des mots avec leurs bornes — ni clé dans sa signature, ni panne réseau dans son contrat, ni latence supposée. Une couture qui présume le distant se paie en réécriture le jour où le local gagne, et elle ne coûte rien à poser aujourd'hui.
+
 ### Capacités déclarées, pas plus petit dénominateur commun
 
 Il y a deux manières d'être agnostique et elles sont opposées. La première n'expose que ce que *tous* les fournisseurs savent faire : on n'exploite alors jamais ce que le meilleur a de mieux, et le progrès de l'un ne profite à personne. La seconde, retenue : **chaque fournisseur déclare ce qu'il sait faire, et l'app allume ou éteint les briques en conséquence.**
