@@ -23,16 +23,21 @@ import org.json.JSONObject
  * would erase the very thing the grammatical gate exists to catch, one link before anything
  * had judged it.
  */
-class DeepseekConversation(private val store: SecretStore) : Conversation {
+class DeepseekConversation(
+    private val store: SecretStore,
+    private val model: String,
+) : Conversation {
 
     override suspend fun reply(history: List<Exchange>, heard: List<Word>): Reply =
         withContext(Dispatchers.IO) {
-            val key = store.values().first()[Secret.DeepseekApiKey]
+            val values = store.values().first()
+            val key = values[Secret.DeepseekApiKey]
                 ?: throw ChainFailure("no DeepSeek key has been entered")
+            val base = (values[Secret.DeepseekEndpoint] ?: DEFAULT_BASE).trimEnd('/')
 
             val transcript = heard.joinToString(" ") { it.text }
             Trace.add(
-                "conversation: asking $MODEL",
+                "conversation: asking $model",
                 "system prompt" to SYSTEM,
                 "turns of history" to history.size.toString(),
                 "transcript" to transcript,
@@ -47,13 +52,13 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
                 put(message("user", transcript))
             }
             val body = JSONObject()
-                .put("model", MODEL)
+                .put("model", model)
                 .put("messages", messages)
                 .put("response_format", JSONObject().put("type", "json_object"))
                 .toString()
 
             val answer = Http.post(
-                url = "https://api.deepseek.com/chat/completions",
+                url = "$base/chat/completions",
                 headers = mapOf("Authorization" to "Bearer $key"),
                 contentType = "application/json",
                 body = body.toByteArray(),
@@ -128,12 +133,11 @@ class DeepseekConversation(private val store: SecretStore) : Conversation {
 
     private companion object {
         /**
-         * Provisional, like the provider -- but named outright rather than left to the
-         * alias: `deepseek-chat` was being served by `deepseek-v4-flash`, which the trace
-         * showed and nothing else would have. A measure is worth what the model behind it
-         * is known to be.
+         * The host, with the user's override in front of it -- depending on a protocol
+         * rather than on one hostname is what the wisdom asks of any service the app talks
+         * to.
          */
-        const val MODEL = "deepseek-v4-pro"
+        const val DEFAULT_BASE = "https://api.deepseek.com"
 
         val SYSTEM = """
             You are a warm, curious English conversation partner for someone practising

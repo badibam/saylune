@@ -25,9 +25,9 @@ import androidx.compose.ui.res.stringResource
 import app.speakup.analysis.Analyses
 import app.speakup.capture.TurnRecorder
 import app.speakup.conversation.TurnPipeline
-import app.speakup.providers.AzureRecognition
-import app.speakup.providers.DeepseekConversation
-import app.speakup.providers.AzureSynthesis
+import app.speakup.providers.ChosenConversation
+import app.speakup.providers.ChosenRecognition
+import app.speakup.providers.ChosenSynthesis
 import app.speakup.keys.SecretStore
 import app.speakup.ui.ConversationScreen
 import app.speakup.ui.MarkingPrototypeScreen
@@ -38,12 +38,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val store = SecretStore(applicationContext)
         val recorder = TurnRecorder(applicationContext)
+        // The three links are resolved at the moment they are used, not here: the user
+        // picks a provider per link in the settings, and the next turn uses it.
         val pipeline = TurnPipeline(
             context = applicationContext,
-            store = store,
-            recognition = AzureRecognition(store),
-            conversation = DeepseekConversation(store),
-            synthesis = AzureSynthesis(applicationContext, store),
+            recognition = ChosenRecognition(store),
+            conversation = ChosenConversation(store),
+            synthesis = ChosenSynthesis(applicationContext, store),
             analysis = Analyses.onDevice(applicationContext),
         )
         setContent {

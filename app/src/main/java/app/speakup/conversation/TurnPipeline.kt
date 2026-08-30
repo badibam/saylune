@@ -6,8 +6,6 @@ import app.speakup.chain.ChainFailure
 import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
 import app.speakup.chain.Recognition
-import app.speakup.chain.Synthesis
-import app.speakup.chain.Voice
 import app.speakup.chain.Word
 import app.speakup.analysis.Analysed
 import app.speakup.analysis.AnalysedSound
@@ -15,13 +13,11 @@ import app.speakup.analysis.Analysis
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
 import app.speakup.marking.TurnMarking
-import app.speakup.keys.Secret
-import app.speakup.keys.SecretStore
+import app.speakup.providers.ChosenSynthesis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -103,10 +99,9 @@ data class ConversationState(
  */
 class TurnPipeline(
     private val context: Context,
-    private val store: SecretStore,
     private val recognition: Recognition,
     private val conversation: Conversation,
-    private val synthesis: Synthesis,
+    private val synthesis: ChosenSynthesis,
     private val analysis: Analysis,
 ) {
     private val _state = MutableStateFlow(ConversationState())
@@ -155,7 +150,7 @@ class TurnPipeline(
                 pending = null,
             )
 
-            play(synthesis.speak(reply.spoken, voice()))
+            play(synthesis.speak(reply.spoken, synthesis.voice()))
             _state.value = _state.value.copy(phase = Phase.Idle)
             Trace.add("turn: said, and done")
 
@@ -207,7 +202,7 @@ class TurnPipeline(
             return
         }
         try {
-            val model = synthesis.speak(text, voice())
+            val model = synthesis.speak(text, synthesis.voice())
             val analysed = analysis.examine(said, model, text)
             _state.value = _state.value.copy(
                 attempts = _state.value.attempts +
@@ -282,12 +277,6 @@ class TurnPipeline(
         _state.value = _state.value.copy(
             takes = _state.value.takes + (at to _state.value.takes[at].orEmpty() + stamp),
         )
-    }
-
-    private suspend fun voice(): Voice {
-        val id = store.values().first()[Secret.AzureVoice]
-            ?: throw ChainFailure("no voice has been chosen")
-        return Voice(provider = "azure", id = id)
     }
 
     /** Suspends until the reply has finished being said, so the phases mean what they say. */
