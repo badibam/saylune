@@ -77,14 +77,43 @@ def words_of(text, sounds):
     return spans, grouped
 
 
-def common(one, two):
-    """Length of the longest common subsequence -- how much two runs agree."""
-    best = [[0] * (len(two) + 1) for _ in range(len(one) + 1)]
-    for i in range(1, len(one) + 1):
-        for j in range(1, len(two) + 1):
-            best[i][j] = (best[i - 1][j - 1] + 1 if one[i - 1] == two[j - 1]
-                          else max(best[i - 1][j], best[i][j - 1]))
-    return best[len(one)][len(two)]
+# What two sounds facing each other are worth to the cut: the full mark when they
+# are the same symbol, half when one letter of the model's word writes both.
+#
+# Half and not a tenth, and not a match either. `right` said with a `t` where the
+# model flaps a `ɾ` is the same slot of the word, spelt by the same `t` -- the
+# comparison of symbols alone made that sound extra to whichever word took it,
+# so `right` and `at` tied exactly and the cut was decided by the order of the
+# walk. And not a full mark, because the two are not the same sound: the model
+# stays the norm, and the divergence is still there to be marked.
+SAME = 2
+AKIN = 1
+
+
+def agreement(word, spelling, block):
+    """How much a word and a run of the learner's sounds agree, and on how many.
+
+    A longest common subsequence that grades its pairs rather than counting them,
+    so that a sound written by the same letter as the model's counts for
+    something. Returns what they are worth together and how many sounds were
+    paired at all -- the second is what placement is rewarded on, a pair being
+    where the two recordings say the same thing whatever it is worth.
+    """
+    rows, columns = len(word) + 1, len(block) + 1
+    best = [[(0, 0)] * columns for _ in range(rows)]
+    for i in range(1, rows):
+        for j in range(1, columns):
+            if word[i - 1] == block[j - 1]:
+                pair = SAME
+            elif payable(block[j - 1], spelling[i - 1]):
+                pair = AKIN
+            else:
+                pair = 0
+            best[i][j] = max(best[i - 1][j], best[i][j - 1])
+            if pair:
+                held, count = best[i - 1][j - 1]
+                best[i][j] = max(best[i][j], (held + pair, count + 1))
+    return best[len(word)][len(block)]
 
 
 # What one of the learner's sounds is worth to a word whose aligned window holds
@@ -105,33 +134,30 @@ PLACE = 1
 BETWEEN = float("inf")
 
 
-def score(word, block, times, window):
+def score(word, spelling, block, times, window):
     """How well a block of the learner's sounds renders a word of the model.
 
-    Twice what they share, less what each brings alone: nought when they agree
-    exactly, negative for every sound one has and the other has not. A word may
-    be given no block at all -- that is what a word not said looks like.
+    What they are worth together, less what each brings alone: nought when they
+    agree exactly, negative for every sound one has and the other has not. A word
+    may be given no block at all -- that is what a word not said looks like.
 
     Plus where the sounds were said. A block whose sounds fall inside the word's
     own stretch of the recording belongs to it; one fetched from elsewhere in the
     sentence does not, whatever it sounds like.
     """
     low, high = window
-    # Placement rewards a sound that **matched** and was said in the word's own
-    # stretch. Rewarding any sound inside the window paid a word for swallowing
-    # material that had nothing to do with it -- measured, `very` came free.
-    matched = common(word, block)
+    held, paired = agreement(word, spelling, block)
     inside = sum(1 for at in times if low <= at < high)
-    # Rewarded only for a sound that matched **and** was said in the word's own
+    # Rewarded only for a sound that was paired **and** said in the word's own
     # stretch; charged for every sound fetched from outside it. Rewarding any
     # sound inside the window paid a word for swallowing material that had
     # nothing to do with it, and dropping the charge let a word swallow material
     # from the far end of the sentence for free. Both were measured.
-    return (2 * matched - len(word) - len(block)
-            + PLACE * min(matched, inside) - PLACE * (len(times) - inside))
+    return (held - len(word) - len(block)
+            + PLACE * min(paired, inside) - PLACE * (len(times) - inside))
 
 
-def partition(model_words, said, when, windows, between=BETWEEN):
+def partition(model_words, spellings, said, when, windows, between=BETWEEN):
     """The learner's sounds cut between the model's words, best agreement wins.
 
     A run may be given to **no word**, which is what an inserted word looks like:
@@ -158,7 +184,8 @@ def partition(model_words, said, when, windows, between=BETWEEN):
                 spare = best[rank][start] - loose
                 for stop in range(gap, count + 1):
                     value = spare + score(
-                        word, said[gap:stop], when[gap:stop], windows[rank])
+                        word, spellings[rank], said[gap:stop], when[gap:stop],
+                        windows[rank])
                     if value > best[rank + 1][stop]:
                         best[rank + 1][stop] = value
                         back[rank + 1][stop] = (start, gap)
@@ -278,13 +305,18 @@ def report(path, between=BETWEEN):
     when = [h["at"][0] for h in take["freely"]]
     spans, grouped = words_of(text, sounds)
     model_words = [[sounds[r]["symbol"] for r in ranks] for ranks in grouped]
+    # The letters each sound of the model is written with, kept beside it: they
+    # are what says the learner's `t` and the model's flapped `ɾ` are one slot of
+    # `right`, which the symbols alone cannot say.
+    spellings = [[sounds[r]["letters"] for r in ranks] for ranks in grouped]
     # Where each word was said, read off the alignment: from the start of its
     # first sound to the end of its last. A word the join gave no sound gets an
     # empty window and can hold nothing.
     windows = [(min(sounds[r]["saidMs"][0] for r in ranks),
                 max(sounds[r]["saidMs"][1] for r in ranks)) if ranks else (0, 0)
                for ranks in grouped]
-    blocks, spare, tail = partition(model_words, said, when, windows, between)
+    blocks, spare, tail = partition(
+        model_words, spellings, said, when, windows, between)
 
     red = {(w["start"], w["end"]) for w in take.get("words", [])}
     print(f"== attempt {take.get('attempt')}  {text!r}")
