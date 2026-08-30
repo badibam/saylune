@@ -13,6 +13,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -33,7 +35,11 @@ import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.providers.Provider
 import app.speakup.providers.Task
+import app.speakup.providers.VoiceOption
 import app.speakup.providers.modelFor
+import app.speakup.chain.Voice
+import app.speakup.providers.ChosenSynthesis
+import app.speakup.capture.Playback
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -61,7 +67,6 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
     // no sign at all to someone who never saw it.
     var saved by remember { mutableStateOf(false) }
     var seeded by remember { mutableStateOf(false) }
-
     // Seeded from the store's own first emission, and never again: re-seeding on every
     // emission would overwrite what the user is in the middle of typing.
     //
@@ -153,11 +158,14 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
 @Composable
 private fun TaskSection(task: Task, store: SecretStore, stored: Map<Secret, String>) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val sample = stringResource(R.string.setting_sample)
     val offered = task.offered(stored)
     val chosen = task.chosen(stored)
     val model = chosen?.let { modelFor(task, it, stored) }
 
-    var voices by remember { mutableStateOf<List<String>>(emptyList()) }
+    var voices by remember { mutableStateOf<List<VoiceOption>>(emptyList()) }
+    var previewing by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
     var refused by remember { mutableStateOf<String?>(null) }
 
@@ -224,22 +232,49 @@ private fun TaskSection(task: Task, store: SecretStore, stored: Map<Secret, Stri
                 )
                 else -> Picker(
                     label = stringResource(R.string.setting_voice),
-                    options = voices.map { it to it },
+                    options = voices.map { it.id to it.label },
                     selected = stored[task.voice],
                     onPick = { id -> scope.launch { store.write(task.voice, id) } },
+                    // Chatterbox publishes nothing but a first name, so hearing the voice is
+                    // the only way to know what it sounds like -- and it is the criterion
+                    // that matters anyway: the ear judges a voice as a model to imitate.
+                    onHear = { id ->
+                        scope.launch {
+                            previewing = id
+                            runCatching {
+                                Playback.play(
+                                    ChosenSynthesis(context, store).speak(
+                                        sample,
+                                        Voice(provider = chosen!!.id, id = id),
+                                    )
+                                )
+                            }.onFailure { refused = it.message }
+                            previewing = null
+                        }
+                    },
+                    busy = previewing,
                 )
             }
         }
     }
 }
 
-/** A menu of [options], each an id and what to show for it. */
+/**
+ * A menu of [options], each an id and what to show for it.
+ *
+ * [onHear] adds a button beside every entry that plays the option rather than picking it --
+ * the menu stays open, because trying three voices in a row is the point. [busy] is the id
+ * currently being fetched and said, so that one entry says it is working and the others do
+ * not.
+ */
 @Composable
 private fun Picker(
     label: String,
     options: List<Pair<String, String>>,
     selected: String?,
     onPick: (String) -> Unit,
+    onHear: ((String) -> Unit)? = null,
+    busy: String? = null,
 ) {
     var open by remember { mutableStateOf(false) }
     val shown = options.firstOrNull { it.first == selected }?.second
@@ -255,6 +290,25 @@ private fun Picker(
             DropdownMenuItem(
                 text = { Text(text) },
                 onClick = { open = false; onPick(id) },
+                trailingIcon = onHear?.let {
+                    {
+                        // A word and not a glyph: an icon would cost a dependency to
+                        // rebuild offline, for one triangle.
+                        TextButton(
+                            onClick = { it(id) },
+                            // One preview at a time. Two voices over each other tell
+                            // nothing about either.
+                            enabled = busy == null,
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (busy == id) R.string.setting_hearing
+                                    else R.string.setting_hear
+                                )
+                            )
+                        }
+                    }
+                },
             )
         }
     }

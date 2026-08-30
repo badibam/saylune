@@ -66,4 +66,7 @@
     <string name="debug_brick">%1$s : %2$s</string>
     <string name="debug_open">%1$s (%2$d caractères)</string>
     <string name="debug_dialog_close">Fermer</string>
+    <string name="setting_hear">Écouter</string>
+    <string name="setting_hearing">Lecture…</string>
+    <string name="setting_sample">The car park is rather far from the water.</string>
 </resources>

@@ -66,4 +66,7 @@
     <string name="turn_grammar_marked">Something here is not quite English — sound marks are held back until it is redone.</string>
     <string name="analysis_engine_refused">Pronunciation marks are off for this session: the analysis engine could not be loaded.</string>
     <string name="analysis_unshipped">Pronunciation marks are off: this build carries no analysis engine.</string>
+    <string name="setting_hear">Hear</string>
+    <string name="setting_hearing">Playing…</string>
+    <string name="setting_sample">The car park is rather far from the water.</string>
 </resources>

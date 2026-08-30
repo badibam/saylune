@@ -116,15 +116,24 @@ enum class Provider(
      * This is the doc's probe made concrete, and the reason nothing here is cached: a
      * cached catalogue dies in silence, and what a provider advertises is not what a
      * particular key unlocks. A list that comes back is a key that works.
+     *
+     * **What each voice is labelled with is whatever the provider publishes, and no more.**
+     * Azure publishes the locale, so its voices say `en-GB` or `en-US` outright. Chatterbox
+     * publishes an enumeration of twenty first names and nothing else -- no locale, no
+     * gender, not a word of description -- so its voices carry their name alone. Inventing a
+     * name-to-accent table here would be putting a norm on screen that nobody publishes, and
+     * the screen would state it with the same confidence as Azure's real one. The accent of
+     * `Abigail` is knowable by listening, which is what the preview button is for.
      */
-    suspend fun voices(store: SecretStore, model: String): List<String> = when (this) {
+    suspend fun voices(store: SecretStore, model: String): List<VoiceOption> = when (this) {
         Replicate -> ReplicateClient.choicesFor(ReplicateClient(store).schema(model), "voice")
+            .map { VoiceOption(id = it, label = it) }
         Azure -> azureVoices(store)
         Deepseek -> throw ChainFailure("DeepSeek has no voices")
     }
 
     /** Azure publishes the whole voice list for a region, so it is read whole and filtered. */
-    private suspend fun azureVoices(store: SecretStore): List<String> {
+    private suspend fun azureVoices(store: SecretStore): List<VoiceOption> {
         val values = store.values().first()
         val key = values[Secret.AzureSpeechKey]
             ?: throw ChainFailure("no Azure Speech key has been entered")
@@ -138,11 +147,19 @@ enum class Provider(
         }
         val listed = org.json.JSONArray(answer)
         return (0 until listed.length()).mapNotNull { at ->
-            listed.optJSONObject(at)
-                ?.takeIf { it.optString("Locale").startsWith("en-") }
-                ?.optString("ShortName")
-                ?.takeIf { it.isNotBlank() }
-        }.sorted()
+            val voice = listed.optJSONObject(at) ?: return@mapNotNull null
+            val locale = voice.optString("Locale")
+            val id = voice.optString("ShortName")
+            if (!locale.startsWith("en-") || id.isBlank()) return@mapNotNull null
+            // The id already holds the locale, but buried in `en-GB-SoniaNeural`. Said in
+            // front, it answers the only question anyone asks of a voice list.
+            val named = voice.optString("DisplayName").ifBlank { id }
+            val gender = voice.optString("Gender")
+            VoiceOption(
+                id = id,
+                label = "$locale · $named" + if (gender.isBlank()) "" else " ($gender)",
+            )
+        }.sortedBy { it.label }
     }
 
     private companion object {
@@ -150,6 +167,16 @@ enum class Provider(
         val ENDPOINTS = setOf(Secret.ReplicateEndpoint, Secret.DeepseekEndpoint)
     }
 }
+
+/**
+ * A voice to offer: what to store, and what to show for it.
+ *
+ * The two are separate because they come from different places. [id] is the provider's own
+ * name for the voice and is all the app ever sends back; [label] is whatever that provider
+ * saw fit to publish about it, which is a great deal at Azure and nothing at all at
+ * chatterbox.
+ */
+data class VoiceOption(val id: String, val label: String)
 
 /**
  * What [Task.model] holds, or the first model the provider offers when nothing was chosen.
