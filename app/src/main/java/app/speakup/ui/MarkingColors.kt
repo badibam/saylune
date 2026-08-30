@@ -28,6 +28,13 @@ data class MarkingColors(
      * a second hue would read as a different kind of fault.
      */
     val wordFault: Color,
+    /**
+     * A sound the learner added. The same saturated end of the ramp as a wholly wrong word,
+     * because the alarm is the same: this is not a degree of wrong, it is a thing that is
+     * there and should not be. The channel is the *form* -- a letter that carries no sound,
+     * or a wedge between two letters -- never a colour of its own.
+     */
+    val added: Color,
     /** Where the stress landed and had no business being. */
     val stressStray: Color,
     /** Where it belonged. Never shown on a correct turn, so it marks a destination, not a pass. */
@@ -45,6 +52,7 @@ fun markingColors(): MarkingColors {
             ink = Color.hsl(220f, 0.06f, 0.92f),
             phonemeLightness = 0.68f,
             wordFault = Color.hsl(8f, 0.90f, 0.68f),
+            added = Color.hsl(8f, 0.90f, 0.68f),
             modelContour = Color.hsl(212f, 0.18f, 0.52f),
             learnerContour = Color.hsl(199f, 0.86f, 0.62f),
             stressStray = Color.hsl(8f, 0.86f, 0.60f),
@@ -56,6 +64,7 @@ fun markingColors(): MarkingColors {
             ink = Color.hsl(220f, 0.06f, 0.14f),
             phonemeLightness = 0.44f,
             wordFault = Color.hsl(8f, 0.90f, 0.44f),
+            added = Color.hsl(8f, 0.90f, 0.44f),
             modelContour = Color.hsl(212f, 0.26f, 0.66f),
             learnerContour = Color.hsl(212f, 0.74f, 0.44f),
             stressStray = Color.hsl(8f, 0.82f, 0.46f),

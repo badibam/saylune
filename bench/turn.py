@@ -27,6 +27,7 @@ import json
 import sys
 from pathlib import Path
 
+import insertions
 import join
 import matrix
 import overlap
@@ -103,6 +104,17 @@ def read(take, model_slug, voice):
         return None
 
     words = faulty(gaps, sounds)
+    # The one thing the grid cannot hold: it is the model's, so a sound the
+    # learner added has no slot in it. Free decoding of the learner is the argmax
+    # of a matrix already computed, and the edit distance between the two symbol
+    # sequences drops the insertions out. `Added.kt` is the same in Kotlin.
+    added = insertions.found(
+        text, sounds,
+        [sound.symbol for sound in sounds],
+        [matrix.symbols()[index] for index, _, _ in
+         matrix.grid(matrix.probabilities(
+             learner, cache=overlap.MATRICES / take / f"{model_slug}.npz"))],
+        gaps)
     phonemes, gutters = [], []
     # Where the last letter anyone claimed was. A gutter has none of its own, so
     # this running position is the only thing that says where in the phrase it
@@ -132,7 +144,7 @@ def read(take, model_slug, voice):
             "digests": {"model": matrix.fingerprint(model),
                         "take": matrix.fingerprint(learner)},
             "syllables": [], "phonemes": phonemes, "gutters": gutters,
-            "words": words}
+            "words": words, "added": added}
 
 
 def main(argv=None):

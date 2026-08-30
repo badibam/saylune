@@ -326,7 +326,7 @@ private fun Said(
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
-            if (open) AnalysisReadout(exchange.text, sounds)
+            if (open) AnalysisReadout(exchange.text, sounds, marking?.added.orEmpty())
         }
         if (faulty) {
             // The whole turn, for want of the span. The doc asks for the portion concerned

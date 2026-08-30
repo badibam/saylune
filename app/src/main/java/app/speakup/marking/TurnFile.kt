@@ -63,8 +63,19 @@ object TurnFile {
                 WordFault(start = entry.getInt("start"), end = entry.getInt("end"))
             }
         }
+        val added = json.getJSONArray("added").let { array ->
+            (0 until array.length()).map { index ->
+                val entry = array.getJSONObject(index)
+                AddedSound(
+                    symbol = entry.getString("symbol"),
+                    at = if (entry.isNull("at")) null else entry.getInt("at"),
+                    after = entry.getInt("after"),
+                    afterSound = entry.getInt("afterSound"),
+                )
+            }
+        }
         return Turn(
-            marking = TurnMarking(json.getString("text"), syllables, phonemes, words),
+            marking = TurnMarking(json.getString("text"), syllables, phonemes, words, added),
             take = json.optString("take"),
             model = json.optString("model"),
             // Sounds that no letter can carry: the screen owes them a mark in the gutter

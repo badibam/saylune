@@ -3,6 +3,7 @@ package app.speakup.analysis
 import android.content.Context
 import app.speakup.R
 import app.speakup.embedded.AcousticMatrix
+import app.speakup.embedded.Added
 import app.speakup.embedded.Affinity
 import app.speakup.embedded.Alphabet
 import app.speakup.embedded.Frames
@@ -77,13 +78,33 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             val reading = Overlap.sounds(modelFrames, saidFrames, engine.alphabet)
 
             val segments = Grid.decode(modelFrames, engine.alphabet)
+            val grid = segments.map { engine.alphabet[it.symbol] }
             val sounds = Join.joined(
-                symbols = segments.map { engine.alphabet[it.symbol] },
+                symbols = grid,
                 text = text,
                 affinity = engine.affinity,
             )
 
             val drawn = Marks.drawn(reading.gaps, sounds, NOISE_BAND)
+
+            // The one thing the grid cannot hold: the grid is the model's, so a sound the
+            // learner added has no slot in it. Free decoding of the learner is the argmax of
+            // a matrix already computed -- no second pass -- and the edit distance between
+            // the two symbol sequences drops the insertions out.
+            val added = Added.found(
+                model = grid,
+                said = Grid.decode(saidFrames, engine.alphabet)
+                    .map { engine.alphabet[it.symbol] },
+                sounds = sounds,
+                gaps = reading.gaps,
+                text = text,
+                affinity = engine.affinity,
+            )
+            Trace.add(
+                "analysis: added sounds",
+                "added" to added.size.toString(),
+                "on a letter" to added.count { it.at != null }.toString(),
+            )
 
             // Read off the frames rather than declared: a candidate model that halves its
             // last stride doubles the resolution, and a duration is only worth reading if
@@ -104,7 +125,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             Trace.wide(
                 "analysis: the whole table, times included",
                 "sounds" to Readout.table(
-                    text, reading.gaps, sounds, drawn.phonemes,
+                    text, reading.gaps, sounds, drawn.phonemes, added,
                     reading.grid, reading.dropped, step, NOISE_BAND,
                 ),
                 "spreads" to Readout.spreads(reading.gaps, sounds, step),
@@ -127,6 +148,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     syllables = emptyList(),
                     phonemes = drawn.phonemes,
                     words = drawn.words,
+                    added = added,
                 ),
                 gutters = drawn.gutters,
                 dropped = reading.dropped,
@@ -150,6 +172,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                         saidMs = ms(saidAt[index], step),
                     )
                 },
+                added = added,
             )
         }
 

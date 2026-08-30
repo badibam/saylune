@@ -88,6 +88,31 @@ class PortTest {
             assertEquals("${turn.name}: word $index end", row.getInt("end"), got.end)
         }
 
+        val added = Added.found(
+            model = segments.map { alphabet[it.symbol] },
+            said = Grid.decode(said, alphabet).map { alphabet[it.symbol] },
+            sounds = sounds,
+            gaps = reading.gaps,
+            text = expected.getString("text"),
+            affinity = affinity,
+        )
+        assertTrue(
+            "${turn.name}: frozen before added sounds -- re-freeze it with bench/fixture.py",
+            expected.has("added"),
+        )
+        val insertions = expected.getJSONArray("added")
+        assertEquals("${turn.name}: number of added sounds", insertions.length(), added.size)
+        for (index in 0 until insertions.length()) {
+            val row = insertions.getJSONObject(index)
+            val got = added[index]
+            assertEquals("${turn.name}: added $index symbol", row.getString("symbol"), got.symbol)
+            assertEquals("${turn.name}: added $index letter",
+                         if (row.isNull("at")) null else row.getInt("at"), got.at)
+            assertEquals("${turn.name}: added $index after", row.getInt("after"), got.after)
+            assertEquals("${turn.name}: added $index line",
+                         row.getInt("afterSound"), got.afterSound)
+        }
+
         val gutters = expected.getJSONArray("gutters")
         assertEquals("${turn.name}: number of gutters", gutters.length(), drawn.gutters.size)
         for (index in 0 until gutters.length()) {

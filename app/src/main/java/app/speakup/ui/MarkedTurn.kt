@@ -41,7 +41,9 @@ import app.speakup.marking.TurnMarking
  * the melody line runs *behind* the glyphs and the halo has to sit between the two. A `Text`
  * fills its glyphs once and offers no seam to slide the halo into.
  *
- * Order, back to front: stress rules, model contour, learner contour, halo pass, glyph pass.
+ * Order, back to front: stress rules, model contour, learner contour, halo pass, glyph pass,
+ * then the wedges of the sounds that were added, which sit between glyphs and so cannot be
+ * part of any of them.
  */
 @Composable
 fun MarkedTurn(
@@ -92,6 +94,7 @@ fun MarkedTurn(
             drawContours(layouts.filled, marking, colors, density)
             drawText(layouts.outline, color = colors.surface, drawStyle = haloStroke(density))
             drawText(layouts.filled)
+            drawAdded(layouts.filled, marking, colors, density)
         }
     }
 }
@@ -119,6 +122,12 @@ private fun annotate(marking: TurnMarking, colors: MarkingColors, tinted: Boolea
             // otherwise stay in neutral ink inside a word that is wholly wrong.
             marking.words.forEach {
                 addStyle(SpanStyle(color = colors.wordFault), it.start, it.end)
+            }
+            // A silent letter the learner voiced. It carries no sound, so no ramp reaches
+            // it and it would otherwise stay in neutral ink -- which is the whole reason
+            // the fault was invisible before this channel existed.
+            marking.added.forEach { added ->
+                added.at?.let { addStyle(SpanStyle(color = colors.added), it, it + 1) }
             }
         } else {
             addStyle(SpanStyle(color = Color.Black), 0, marking.text.length)
@@ -153,6 +162,42 @@ private fun DrawScope.drawStressRules(
             color = color,
             topLeft = Offset(left, layout.getLineBottom(line) - height - gap),
             size = Size(right - left, height),
+        )
+    }
+}
+
+/**
+ * A wedge under the seam between two letters, for a sound the learner added that no letter
+ * of the word can carry -- an inserted word, or a vowel the spelling does not write.
+ *
+ * Between the glyphs and not on one, because that is where the sound is: putting it on a
+ * neighbouring letter would accuse a letter that was said correctly. It is the shape the
+ * gutter has been owed since it was first measured, and nothing drew until now.
+ */
+private fun DrawScope.drawAdded(
+    layout: TextLayoutResult,
+    marking: TurnMarking,
+    colors: MarkingColors,
+    density: Density,
+) {
+    val half = with(density) { 3.dp.toPx() }
+    val height = with(density) { 4.dp.toPx() }
+    val gap = with(density) { 1.dp.toPx() }
+    marking.added.filter { it.at == null }.forEach { added ->
+        // Just after the last letter anyone claimed; at the very start when none was.
+        val anchor = added.after.coerceIn(0, marking.text.length - 1)
+        val line = layout.getLineForOffset(anchor)
+        val box = layout.getBoundingBox(anchor)
+        val x = if (added.after < 0) box.left else box.right
+        val bottom = layout.getLineBottom(line) - gap
+        drawPath(
+            Path().apply {
+                moveTo(x - half, bottom)
+                lineTo(x + half, bottom)
+                lineTo(x, bottom - height)
+                close()
+            },
+            colors.added,
         )
     }
 }

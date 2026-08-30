@@ -34,7 +34,6 @@ import argparse
 import sys
 from pathlib import Path
 
-import faults
 import join
 import matrix
 import phrases
@@ -57,6 +56,10 @@ def pairs(voice):
     by construction. Takes the labelled set does not name are paired with the one
     phrase they hold, which is theirs.
     """
+    # Imported here and not at the top: `faults` pulls the synthesiser, which the
+    # measurement never needs, and `turn.py` consumes the two functions below.
+    import faults
+
     canonical = {take: slug for take, slug, *_ in faults.CASES}
     found = set()
     for folder in sorted(MATRICES.iterdir()):
@@ -115,6 +118,28 @@ def lined(model, said):
             continue
         row -= 1
     return list(reversed(added))
+
+
+def found(text, sounds, model_syms, said_syms, gaps):
+    """Every insertion, anchored where it can be -- what `turn.json` carries.
+
+    `gaps` says which sounds of the grid were compared, so an insertion can name
+    the readout line it follows. `Added.kt` is the same thing in Kotlin, and the
+    port test holds the two against each other.
+    """
+    claimed = {position for sound in sounds for position in sound.spots}
+    out = []
+    for rank, symbol in lined(model_syms, said_syms):
+        before = [position for sound in sounds[:rank + 1]
+                  for position in sound.spots]
+        out.append({
+            "symbol": symbol,
+            "at": carrier(text, sounds, claimed, rank, symbol),
+            "after": max(before) if before else -1,
+            "afterSound": max((index for index, gap in enumerate(gaps)
+                               if gap.rank <= rank), default=-1),
+        })
+    return out
 
 
 def carrier(text, sounds, claimed, rank, symbol, anywhere=False):

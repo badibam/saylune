@@ -1,6 +1,7 @@
 package app.speakup.analysis
 
 import androidx.annotation.StringRes
+import app.speakup.marking.AddedSound
 import app.speakup.marking.TurnMarking
 import java.io.File
 
@@ -92,6 +93,11 @@ data class Analysed(
      * spreads can share a peak and mean different things.
      */
     val sounds: List<AnalysedSound>,
+    /**
+     * Sounds the learner made that the model did not -- the one thing the grid cannot hold,
+     * since it has exactly as many slots as the model has sounds.
+     */
+    val added: List<AddedSound>,
 )
 
 /**

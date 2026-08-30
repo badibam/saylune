@@ -12,6 +12,11 @@ package app.speakup.marking
  * `book` is the other kind of fault entirely: every one of its sounds is over the band, so
  * it carries a word mark and not three letter marks. That is the shape a swapped word takes,
  * and the fixture has to hold one or the channel is never looked at.
+ *
+ * And two added sounds, one of each kind: the `k` of `book` voiced where the model glides
+ * straight on, which a silent letter can carry; and one between `a` and `table`, which no
+ * letter of either word can, so it falls in the seam. Both are binary -- an insertion has no
+ * model side, so there is no degree to give one.
  */
 private const val SENTENCE = "I think we should book a table before they arrive"
 
@@ -44,6 +49,10 @@ val MULTI_FAULT_TURN = TurnMarking(
         PhonemeDeviation(45, 46, 12f),  // r of rive
     ),
     words = listOf(WordFault(18, 22)),  // book: not one sound of it came through
+    added = listOf(
+        AddedSound("k", at = 21, after = 20, afterSound = 5),
+        AddedSound("ə", at = null, after = 23, afterSound = 6),
+    ),
 )
 
 val CLEAN_TURN = TurnMarking(
@@ -65,4 +74,5 @@ val CLEAN_TURN = TurnMarking(
     ),
     phonemes = emptyList(),
     words = emptyList(),
+    added = emptyList(),
 )

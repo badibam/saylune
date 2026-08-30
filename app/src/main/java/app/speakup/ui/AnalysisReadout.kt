@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Share
+import app.speakup.marking.AddedSound
 import app.speakup.marking.readoutRows
 import java.util.Locale
 
@@ -43,27 +44,102 @@ import java.util.Locale
  * would be. Without them this is a list of sounds and not a sentence, and there is no way to
  * tell where in the phrase a line sits; with them the phrase reads down the column.
  *
+ * A sound the learner **added** gets a line too, in its place, with a dash on the model's
+ * side: there was nothing there to compare it to, which is exactly what it says. No points
+ * and no bar on that line -- an insertion has no model side, so it has no degree.
+ *
  * No times here. They are in logcat, where width costs nothing, together with the widened
  * durations that are how a degenerate alignment gives itself away.
  */
 @Composable
-fun AnalysisReadout(text: String, sounds: List<AnalysedSound>, modifier: Modifier = Modifier) {
+fun AnalysisReadout(
+    text: String,
+    sounds: List<AnalysedSound>,
+    added: List<AddedSound>,
+    modifier: Modifier = Modifier,
+) {
     if (sounds.isEmpty()) return
     var open by remember { mutableStateOf<Int?>(null) }
-    val rows = remember(text, sounds) { readoutRows(text, sounds) { it.at } }
+    val rows = remember(text, sounds, added) {
+        readoutRows(text, interleaved(sounds, added)) { entry ->
+            when (entry) {
+                is Entry.Heard -> entry.sound.at
+                is Entry.Added -> entry.sound.at?.let { it..it } ?: IntRange.EMPTY
+            }
+        }
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         rows.forEachIndexed { index, row ->
-            val sound = row.of
-            if (sound == null) {
-                Unheard(text.substring(row.at.first, row.at.last + 1))
-                return@forEachIndexed
+            when (val entry = row.of) {
+                null -> Unheard(text.substring(row.at.first, row.at.last + 1))
+                is Entry.Added -> Inserted(entry.sound, text)
+                is Entry.Heard -> {
+                    Line(entry.sound, marked = entry.sound.points > NOISE_BAND) {
+                        open = if (open == index) null else index
+                    }
+                    if (open == index) Spreads(entry.sound)
+                }
             }
-            Line(sound, marked = sound.points > NOISE_BAND) {
-                open = if (open == index) null else index
-            }
-            if (open == index) Spreads(sound)
         }
+    }
+}
+
+/** What one line is about: a sound of the model's grid, or one the learner added to it. */
+private sealed interface Entry {
+    class Heard(val sound: AnalysedSound) : Entry
+    class Added(val sound: AddedSound) : Entry
+}
+
+/**
+ * The two kinds of line in one list, in the order of the phrase.
+ *
+ * An added sound names the compared sound it follows, so the merge asks nothing of
+ * positions: it walks the sounds and drops each insertion in behind the one it came after.
+ * An insertion before the first sound carries -1 and goes at the head.
+ */
+private fun interleaved(sounds: List<AnalysedSound>, added: List<AddedSound>): List<Entry> {
+    val out = mutableListOf<Entry>()
+    added.filter { it.afterSound < 0 }.forEach { out.add(Entry.Added(it)) }
+    sounds.forEachIndexed { index, sound ->
+        out.add(Entry.Heard(sound))
+        added.filter { it.afterSound == index }.forEach { out.add(Entry.Added(it)) }
+    }
+    return out
+}
+
+/**
+ * A sound the learner made that the model did not.
+ *
+ * A dash where the model's symbol would be, because there was nothing there -- that is the
+ * whole content of the line. No points and no bar: every other reading is two spreads
+ * compared, and this one has a single side, so there is no degree to report and inventing
+ * one would put it on a scale it does not belong to.
+ */
+@Composable
+private fun Inserted(added: AddedSound, text: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            added.at?.let { text[it].toString() } ?: "\u25b2",
+            modifier = Modifier.weight(1.1f),
+            style = mono,
+            color = markingColors().added,
+        )
+        Text(
+            "-\u2192${added.symbol}",
+            modifier = Modifier.weight(1.2f),
+            style = mono,
+            color = markingColors().added,
+        )
+        Text(
+            "add",
+            modifier = Modifier.weight(2.2f),
+            style = mono,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

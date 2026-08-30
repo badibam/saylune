@@ -10,6 +10,7 @@ data class TurnMarking(
     val syllables: List<Syllable>,
     val phonemes: List<PhonemeDeviation>,
     val words: List<WordFault>,
+    val added: List<AddedSound>,
 ) {
     /** Pitch bounds across both contours, with a little air so neither hugs the band edge. */
     fun pitchBounds(): ClosedFloatingPointRange<Float> {
@@ -65,6 +66,29 @@ data class PhonemeDeviation(val start: Int, val end: Int, val points: Float)
  * the same bar the sounds already answer to. One bar, no second number to tune.
  */
 data class WordFault(val start: Int, val end: Int)
+
+/**
+ * A sound the learner made that the model did not.
+ *
+ * **Binary, and that is structural rather than a choice.** Every other mark is born of two
+ * spreads compared; an insertion has no model side at all, so there is nothing to compare
+ * and no degree to report. The mass the network puts on the added symbol exists, but it is a
+ * reading of one recording, which is the one thing the measure never does.
+ *
+ * [at] is the silent letter it lights -- a letter of its word that no sound claimed, which
+ * the affinity table pays for this symbol -- or null when the word offers none. Then the
+ * mark belongs **between two letters**, just after [after], the way a gutter's does: a fault
+ * that is found must not vanish for want of somewhere to paint it.
+ *
+ * [after] is the last character any sound claimed before it, -1 before the first.
+ * [afterSound] is the readout line it follows, an index into the compared sounds.
+ */
+data class AddedSound(
+    val symbol: String,
+    val at: Int?,
+    val after: Int,
+    val afterSound: Int,
+)
 
 /**
  * The pitch contour, sampled in character coordinates. Control points sit at syllable
