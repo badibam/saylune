@@ -30,9 +30,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
 | `syllables.py` | la grille sait-elle combien de syllabes a un mot — les sons qu'elle perd, et le nombre de noyaux par mot |
 | `learners.py` | le corpus d'apprenants étiqueté (SpeechOcean762) : ses mots et leur verdict, et le tirage sous budget de caractères |
-| `anchor.py` | **exploration close, hors app** : les sons de l'apprenant découpés contre les *sons* du modèle — ce que ça règle et pourquoi ça ne peut pas aboutir (`../docs/design/added-sounds.md`, chapitres 7 et 8) |
-| `placed.py` | **la voie retenue, pas encore en Kotlin** : les sons de l'apprenant posés sur les *lettres* du texte, par `join` pointé vers `said.wav` — ce qui ne trouve aucune lettre est de la matière ajoutée, sans qu'aucune durée soit lue |
-| `insertions.py` | le décodage libre de l'apprenant contre la grille du modèle : les sons qu'il ajoute, et si une lettre muette peut les porter |
+| `placed.py` | les sons de l'apprenant posés sur les *lettres* du texte, par `join` pointé vers sa prise — ce qui ne trouve aucune lettre est de la matière ajoutée, sans qu'aucune durée soit lue. Rend aussi le canal que `turn.py` écrit et que `Added.kt` reproduit |
 | `alarms.py` | à quelle fréquence une marque tombe sur un mot que rien n'accusait — la jointure se fait au mot, aucun seuil n'est posé |
 | `stress.py` | ce que l'accent fait à une syllabe — durée, réduction, intensité, sur les bornes de TIMIT posées à la main, sans réseau |
 | `accent.py` | la brique 7 confrontée au corpus qui note l'accent : fausse alerte et détection, dans les deux montages |

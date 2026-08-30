@@ -87,5 +87,242 @@
       "borrowed": false
     }
   ],
-  "gutters": []
+  "gutters": [],
+  "words": [
+    {
+      "start": 12,
+      "end": 15
+    }
+  ],
+  "added": [
+    {
+      "symbol": "s",
+      "after": 0,
+      "afterSound": 0
+    }
+  ],
+  "freely": [
+    {
+      "symbol": "aɪ",
+      "at": [
+        4060,
+        4080
+      ]
+    },
+    {
+      "symbol": "s",
+      "at": [
+        4220,
+        4240
+      ]
+    },
+    {
+      "symbol": "θ",
+      "at": [
+        4300,
+        4320
+      ]
+    },
+    {
+      "symbol": "i",
+      "at": [
+        4400,
+        4420
+      ]
+    },
+    {
+      "symbol": "ŋ",
+      "at": [
+        4440,
+        4460
+      ]
+    },
+    {
+      "symbol": "k",
+      "at": [
+        4540,
+        4580
+      ]
+    },
+    {
+      "symbol": "j",
+      "at": [
+        4640,
+        4660
+      ]
+    },
+    {
+      "symbol": "ʊ",
+      "at": [
+        4740,
+        4760
+      ]
+    },
+    {
+      "symbol": "ɹ",
+      "at": [
+        4960,
+        4980
+      ]
+    },
+    {
+      "symbol": "aɪ",
+      "at": [
+        5120,
+        5140
+      ]
+    },
+    {
+      "symbol": "t",
+      "at": [
+        5320,
+        5340
+      ]
+    }
+  ],
+  "sounds": [
+    {
+      "symbol": "aɪ",
+      "letters": "I",
+      "borrowed": false,
+      "modelMs": [
+        80,
+        100
+      ],
+      "saidMs": [
+        4060,
+        4080
+      ]
+    },
+    {
+      "symbol": "θ",
+      "letters": "th",
+      "borrowed": false,
+      "modelMs": [
+        160,
+        180
+      ],
+      "saidMs": [
+        4300,
+        4320
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "letters": "i",
+      "borrowed": false,
+      "modelMs": [
+        200,
+        220
+      ],
+      "saidMs": [
+        4400,
+        4420
+      ]
+    },
+    {
+      "symbol": "ŋ",
+      "letters": "n",
+      "borrowed": false,
+      "modelMs": [
+        220,
+        240
+      ],
+      "saidMs": [
+        4440,
+        4460
+      ]
+    },
+    {
+      "symbol": "k",
+      "letters": "k",
+      "borrowed": false,
+      "modelMs": [
+        260,
+        280
+      ],
+      "saidMs": [
+        4540,
+        4580
+      ]
+    },
+    {
+      "symbol": "j",
+      "letters": "y",
+      "borrowed": false,
+      "modelMs": [
+        320,
+        340
+      ],
+      "saidMs": [
+        4640,
+        4660
+      ]
+    },
+    {
+      "symbol": "u",
+      "letters": "ou",
+      "borrowed": false,
+      "modelMs": [
+        340,
+        360
+      ],
+      "saidMs": [
+        4740,
+        4760
+      ]
+    },
+    {
+      "symbol": "ɝ",
+      "letters": "are",
+      "borrowed": false,
+      "modelMs": [
+        440,
+        460
+      ],
+      "saidMs": [
+        4820,
+        4840
+      ]
+    },
+    {
+      "symbol": "ɹ",
+      "letters": "r",
+      "borrowed": false,
+      "modelMs": [
+        520,
+        560
+      ],
+      "saidMs": [
+        4960,
+        4980
+      ]
+    },
+    {
+      "symbol": "aɪ",
+      "letters": "igh",
+      "borrowed": false,
+      "modelMs": [
+        640,
+        660
+      ],
+      "saidMs": [
+        5120,
+        5140
+      ]
+    },
+    {
+      "symbol": "t",
+      "letters": "t",
+      "borrowed": false,
+      "modelMs": [
+        760,
+        800
+      ],
+      "saidMs": [
+        5320,
+        5340
+      ]
+    }
+  ]
 }

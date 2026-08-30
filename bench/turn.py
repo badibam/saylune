@@ -16,9 +16,9 @@ Porting it to Kotlin is a separate job (`../TODO.md`).
 
 Two channels beside the marks go to no screen: where the learner freely said each
 sound, and where each sound of the grid sits in each of the two recordings. They
-are what `anchor.py` cuts a take on, and they are the shape the app already
-writes beside its own turns -- without them the labelled set cannot be put
-through the same reading as a take recorded on the phone.
+are the shape the app already writes beside its own turns -- without them the
+labelled set cannot be put through the same reading as a take recorded on the
+phone, and a take read back wrong cannot be told from a take read back right.
 
 Two channels of `TurnMarking` are left empty on purpose. Brick 8 now cuts the
 syllables (`syllables.cut`), so their extents exist -- but a syllable the app
@@ -33,11 +33,11 @@ import json
 import sys
 from pathlib import Path
 
-import insertions
 import join
 import matrix
 import overlap
 import phrases
+import placed
 
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes" / "set"
@@ -111,20 +111,20 @@ def read(take, model_slug, voice):
 
     words = faulty(gaps, sounds)
     # The one thing the grid cannot hold: it is the model's, so a sound the
-    # learner added has no slot in it. Free decoding of the learner is the argmax
-    # of a matrix already computed, and the edit distance between the two symbol
-    # sequences drops the insertions out. `Added.kt` is the same in Kotlin.
-    heard = matrix.grid(matrix.probabilities(
-        learner, cache=overlap.MATRICES / take / f"{model_slug}.npz"))
-    added = insertions.found(
-        text, sounds, [sound.symbol for sound in sounds],
-        [matrix.symbols()[index] for index, _, _ in heard], gaps)
+    # learner added has no slot in it. The learner's own recording gets the same
+    # reading the model's did -- which letters does each sound you produced
+    # write -- and a sound no letter of any word can write belongs to no word.
+    # `Added.kt` is the same in Kotlin.
+    learner_cache = overlap.MATRICES / take / f"{model_slug}.npz"
+    heard = matrix.grid(matrix.probabilities(learner, cache=learner_cache))
+    added = placed.found(
+        sounds, join.joined(learner, text, cache=learner_cache), gaps)
 
     # The same two readings again, but kept as times rather than spent on the
     # marks: where the learner freely said each sound, and where each sound of
     # the grid sits in both recordings. Nothing here feeds the screen -- it is
-    # what `anchor.py` needs to cut the learner's sounds between the words, and
-    # the shape the app already writes beside its own turns.
+    # the shape the app already writes beside its own turns, and what says which
+    # sound a line of the readout is talking about.
     scale = matrix.seconds_per_frame() * 1000
     stamp = lambda pair: [round(pair[0] * scale), round(pair[1] * scale)]
     model_grid = matrix.grid(matrix.probabilities(

@@ -2,9 +2,9 @@
 """Where does the network put each sound in time, against a truth we own?
 
 Requirement 1 of the analysis -- locate each sound, position and duration --
-has never been measured for the acoustic model. `anchor.py` does not measure
-it: that brick reads the letters network, which the choice of acoustic model
-does not touch.
+has never been measured for the acoustic model. Nothing else measures it either:
+the marks are read off the spreads and the letters, neither of which consults a
+clock, so a boundary can be wrong without any other brick noticing.
 
 TIMIT is annotated phone by phone with sample-accurate boundaries; the corpus
 was bought for its phone sequences and its timings were never read. This forces

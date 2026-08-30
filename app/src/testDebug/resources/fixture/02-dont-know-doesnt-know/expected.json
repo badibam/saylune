@@ -62,8 +62,172 @@
   "gutters": [
     {
       "symbol": "ɪ",
-      "after": 0,
+      "after": 6,
       "points": 69.72
+    }
+  ],
+  "words": [
+    {
+      "start": 3,
+      "end": 10
+    }
+  ],
+  "added": [],
+  "freely": [
+    {
+      "symbol": "ʃ",
+      "at": [
+        760,
+        780
+      ]
+    },
+    {
+      "symbol": "i",
+      "at": [
+        840,
+        860
+      ]
+    },
+    {
+      "symbol": "d",
+      "at": [
+        940,
+        960
+      ]
+    },
+    {
+      "symbol": "oʊ",
+      "at": [
+        1020,
+        1040
+      ]
+    },
+    {
+      "symbol": "n",
+      "at": [
+        1060,
+        1080
+      ]
+    },
+    {
+      "symbol": "n",
+      "at": [
+        1240,
+        1260
+      ]
+    },
+    {
+      "symbol": "oʊ",
+      "at": [
+        1380,
+        1400
+      ]
+    }
+  ],
+  "sounds": [
+    {
+      "symbol": "h",
+      "letters": "H",
+      "borrowed": false,
+      "modelMs": [
+        60,
+        80
+      ],
+      "saidMs": [
+        760,
+        780
+      ]
+    },
+    {
+      "symbol": "i",
+      "letters": "e",
+      "borrowed": false,
+      "modelMs": [
+        120,
+        140
+      ],
+      "saidMs": [
+        840,
+        860
+      ]
+    },
+    {
+      "symbol": "ɾ",
+      "letters": "d",
+      "borrowed": false,
+      "modelMs": [
+        180,
+        200
+      ],
+      "saidMs": [
+        940,
+        960
+      ]
+    },
+    {
+      "symbol": "ə",
+      "letters": "oe",
+      "borrowed": false,
+      "modelMs": [
+        240,
+        260
+      ],
+      "saidMs": [
+        1020,
+        1040
+      ]
+    },
+    {
+      "symbol": "z",
+      "letters": "s",
+      "borrowed": false,
+      "modelMs": [
+        300,
+        340
+      ],
+      "saidMs": [
+        1060,
+        1080
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "letters": "",
+      "borrowed": false,
+      "modelMs": [
+        360,
+        380
+      ],
+      "saidMs": [
+        1120,
+        1140
+      ]
+    },
+    {
+      "symbol": "n",
+      "letters": "kn",
+      "borrowed": false,
+      "modelMs": [
+        380,
+        460
+      ],
+      "saidMs": [
+        1240,
+        1260
+      ]
+    },
+    {
+      "symbol": "oʊ",
+      "letters": "ow",
+      "borrowed": false,
+      "modelMs": [
+        560,
+        580
+      ],
+      "saidMs": [
+        1380,
+        1400
+      ]
     }
   ]
 }

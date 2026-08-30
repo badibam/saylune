@@ -115,5 +115,319 @@
       "borrowed": false
     }
   ],
-  "gutters": []
+  "gutters": [],
+  "words": [
+    {
+      "start": 0,
+      "end": 3
+    },
+    {
+      "start": 16,
+      "end": 19
+    }
+  ],
+  "added": [
+    {
+      "symbol": "b",
+      "after": -1,
+      "afterSound": -1
+    }
+  ],
+  "freely": [
+    {
+      "symbol": "b",
+      "at": [
+        1480,
+        1500
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "at": [
+        1560,
+        1580
+      ]
+    },
+    {
+      "symbol": "ʃ",
+      "at": [
+        1740,
+        1760
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "at": [
+        1880,
+        1900
+      ]
+    },
+    {
+      "symbol": "p",
+      "at": [
+        2020,
+        2040
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "at": [
+        2940,
+        2960
+      ]
+    },
+    {
+      "symbol": "z",
+      "at": [
+        3040,
+        3080
+      ]
+    },
+    {
+      "symbol": "n",
+      "at": [
+        3160,
+        3180
+      ]
+    },
+    {
+      "symbol": "d",
+      "at": [
+        3240,
+        3260
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "at": [
+        3300,
+        3320
+      ]
+    },
+    {
+      "symbol": "f",
+      "at": [
+        3420,
+        3440
+      ]
+    },
+    {
+      "symbol": "i",
+      "at": [
+        3560,
+        3580
+      ]
+    },
+    {
+      "symbol": "l",
+      "at": [
+        3640,
+        3680
+      ]
+    },
+    {
+      "symbol": "d",
+      "at": [
+        3740,
+        3760
+      ]
+    }
+  ],
+  "sounds": [
+    {
+      "symbol": "ð",
+      "letters": "Th",
+      "borrowed": false,
+      "modelMs": [
+        60,
+        80
+      ],
+      "saidMs": [
+        1480,
+        1500
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "letters": "e",
+      "borrowed": false,
+      "modelMs": [
+        100,
+        120
+      ],
+      "saidMs": [
+        1560,
+        1580
+      ]
+    },
+    {
+      "symbol": "ʃ",
+      "letters": "sh",
+      "borrowed": false,
+      "modelMs": [
+        180,
+        200
+      ],
+      "saidMs": [
+        1740,
+        1760
+      ]
+    },
+    {
+      "symbol": "i",
+      "letters": "ee",
+      "borrowed": false,
+      "modelMs": [
+        260,
+        280
+      ],
+      "saidMs": [
+        1880,
+        1900
+      ]
+    },
+    {
+      "symbol": "p",
+      "letters": "p",
+      "borrowed": false,
+      "modelMs": [
+        320,
+        340
+      ],
+      "saidMs": [
+        2020,
+        2040
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "letters": "i",
+      "borrowed": false,
+      "modelMs": [
+        380,
+        400
+      ],
+      "saidMs": [
+        2940,
+        2960
+      ]
+    },
+    {
+      "symbol": "z",
+      "letters": "s",
+      "borrowed": false,
+      "modelMs": [
+        420,
+        440
+      ],
+      "saidMs": [
+        3040,
+        3080
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "letters": "i",
+      "borrowed": false,
+      "modelMs": [
+        480,
+        500
+      ],
+      "saidMs": [
+        3120,
+        3140
+      ]
+    },
+    {
+      "symbol": "n",
+      "letters": "n",
+      "borrowed": false,
+      "modelMs": [
+        500,
+        540
+      ],
+      "saidMs": [
+        3160,
+        3180
+      ]
+    },
+    {
+      "symbol": "ð",
+      "letters": "th",
+      "borrowed": false,
+      "modelMs": [
+        560,
+        580
+      ],
+      "saidMs": [
+        3240,
+        3260
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "letters": "e",
+      "borrowed": false,
+      "modelMs": [
+        600,
+        620
+      ],
+      "saidMs": [
+        3300,
+        3320
+      ]
+    },
+    {
+      "symbol": "f",
+      "letters": "f",
+      "borrowed": false,
+      "modelMs": [
+        680,
+        700
+      ],
+      "saidMs": [
+        3420,
+        3440
+      ]
+    },
+    {
+      "symbol": "i",
+      "letters": "ie",
+      "borrowed": false,
+      "modelMs": [
+        800,
+        820
+      ],
+      "saidMs": [
+        3560,
+        3580
+      ]
+    },
+    {
+      "symbol": "l",
+      "letters": "l",
+      "borrowed": false,
+      "modelMs": [
+        900,
+        940
+      ],
+      "saidMs": [
+        3640,
+        3680
+      ]
+    },
+    {
+      "symbol": "d",
+      "letters": "d",
+      "borrowed": false,
+      "modelMs": [
+        960,
+        980
+      ],
+      "saidMs": [
+        3740,
+        3760
+      ]
+    }
+  ]
 }
