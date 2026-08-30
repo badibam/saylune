@@ -42,6 +42,17 @@ La boucle tourne de bout en bout sur l'appareil (SM-G975F, LineageOS) : capture,
 
    Conséquence à accepter quand ce sera écrit : le son inséré gonfle **déjà** l'écart du voisin, donc la même faute apparaîtra deux fois — au bon endroit, et en surplus sur le voisin.
 
+   **Mesuré (2026-08-30, `bench/insertions.py`, 17 prises du jeu étiqueté, `timit-ipa`, voix `eleven-us-eric`) — le canal ne déborde pas, et il ne sépare pas.**
+
+   - **Le décodage libre ne crache pas d'insertions en continu : 1,3 par prise** sur 251 sons de grille. C'était la crainte qui pouvait tuer la piste d'emblée, et elle ne se réalise pas.
+   - **Le filtre par la lettre est sévère : 4 insertions sur 22 s'ancrent** (18 %). Les 18 autres n'ont aucune lettre muette où atterrir et iraient entre deux lettres. Une réserve sur ce chiffre : il faut borner l'ancre aux lettres **situées entre les deux sons voisins**, comme `Join.lent` le fait déjà pour une lettre empruntée — sans cette borne on monte à 5, la cinquième étant un `ʊ` inséré au milieu de `comfortable` qui allait éclairer une lettre de l'autre bout du mot.
+   - **Les quatre ancrages tombent tous dans le même mot**, `comfortable`, sur le `o` et le `r` — exactement les lettres de la syllabe que l'orthographe écrit et que le modèle réduit. Le filtre concentre donc sur un endroit linguistiquement réel, ce qui est encourageant.
+   - **Mais il ne sépare pas la faute de ses témoins** : `10-comfortable` (la syllabe insérée étiquetée) rend **1** ancrage, `19-comfortable-com` **1**, `20-comfortable-for` **2**. C'est le même défaut que le compte de noyaux avait déjà montré sur ce mot — la grille du modèle sous-compte `comfortable`, donc les témoins divergent aussi. Sur ce matériau, un ancrage dit « ce mot s'écrit avec une syllabe que le modèle réduit », pas « ce locuteur en a ajouté une ».
+
+   **Ce que la mesure ne couvre pas, et c'est le plus important** : le cas pour lequel B1 a été conçu — prononcer une lettre muette, le `b` de `comb`, le `k` de `know`, le `t` de `listen` — **n'est dans aucune de ces 17 prises**. Le jeu ne contient pas un seul mot de cette famille. Rien ici ne dit ce que le canal ferait dessus. S'y ajoute qu'aucune vérité terrain ne dit quels sons une prise a ajoutés : une « insertion » est ce que le décodage revendique, jamais une faute confirmée.
+
+   **La suite, si on la veut** : le corpus L2 (2 500 énoncés, beaucoup de locuteurs) est déjà rendu et ses matrices sont en cache — `insertions.py` s'y étendrait sans nouveau calcul. Il faut `pyarrow` pour lire les textes du parquet, absent de la machine de session. Et il faudrait des prises portant une lettre muette prononcée, qui n'existent pas encore : c'est une session d'enregistrement (`take.py`), pas un calcul.
+
 8. **Les trois tours gelés du test de port sont périmés** : `PortTest` vérifie désormais le canal des mots et échoue franchement dessus, plutôt que de sauter la vérification. Ils se regèlent avec `bench/fixture.py`, dans un environnement qui a les dépendances Python du banc :
 
    ```
