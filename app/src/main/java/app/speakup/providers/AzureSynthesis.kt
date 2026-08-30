@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.URLEncoder
-import java.security.MessageDigest
 
 /**
  * Azure Speech, the long-form REST endpoint. Not chosen either -- but it is already the
@@ -26,9 +25,9 @@ import java.security.MessageDigest
  * acoustic model consumes on both sides -- the entry contract the measure rests on. Only the
  * wav header has to be put back on.
  *
- * The cache lives here because one render serves three times: a yardstick for the measure, a
- * model to hear, and a model to hear again at every retry. It has no size ceiling and no
- * eviction yet, deliberately (`../../../../../../TODO.md`, chantier 0).
+ * The cache is [Renders], shared with the other synthesis implementations: one render serves
+ * three times -- a yardstick for the measure, a model to hear, and a model to hear again at
+ * every retry -- and which provider made it is part of what identifies it.
  */
 class AzureSynthesis(
     private val context: Context,
@@ -36,7 +35,7 @@ class AzureSynthesis(
 ) : Synthesis {
 
     override suspend fun speak(text: String, voice: Voice): File = withContext(Dispatchers.IO) {
-        val cached = cacheFile(text, voice)
+        val cached = Renders.file(context, text, voice, model = MODEL)
         if (cached.isFile && cached.length() > 0) return@withContext cached
 
         val secrets = store.values().first()
@@ -81,13 +80,12 @@ class AzureSynthesis(
         .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         .replace("\"", "&quot;").replace("'", "&apos;")
 
-    /** Keyed by what was said and by whom, exactly as `docs/reference.md` asks. */
-    private fun cacheFile(text: String, voice: Voice): File {
-        val dir = File(context.cacheDir, "renders").apply { mkdirs() }
-        val digest = MessageDigest.getInstance("SHA-256")
-            .digest("${voice.provider}/${voice.id}/$text".toByteArray())
-            .joinToString("") { "%02x".format(it) }
-            .take(32)
-        return File(dir, "$digest.wav")
+    private companion object {
+        /**
+         * Azure exposes one synthesis behind the region, so there is no model to choose --
+         * but the cache key holds one for every provider, and a name that never varies is
+         * the honest thing to put there.
+         */
+        const val MODEL = "cognitiveservices-v1"
     }
 }
