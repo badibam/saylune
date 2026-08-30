@@ -88,16 +88,12 @@ class PortTest {
             assertEquals("${turn.name}: word $index end", row.getInt("end"), got.end)
         }
 
-        val added = Added.found(
-            said = Grid.decode(said, alphabet),
-            spans = Overlap.widened(reading.gaps.map { it.span }),
-            model = segments.map { alphabet[it.symbol] },
-            sounds = sounds,
-            gaps = reading.gaps,
-            alphabet = alphabet,
-            text = expected.getString("text"),
-            affinity = affinity,
+        val theirs = Join.joined(
+            Grid.decode(said, alphabet).map { alphabet[it.symbol] },
+            expected.getString("text"),
+            affinity,
         )
+        val added = Added.found(said = theirs, sounds = sounds, gaps = reading.gaps)
         assertTrue(
             "${turn.name}: frozen before added sounds -- re-freeze it with bench/fixture.py",
             expected.has("added"),
@@ -108,8 +104,6 @@ class PortTest {
             val row = insertions.getJSONObject(index)
             val got = added[index]
             assertEquals("${turn.name}: added $index symbol", row.getString("symbol"), got.symbol)
-            assertEquals("${turn.name}: added $index letter",
-                         if (row.isNull("at")) null else row.getInt("at"), got.at)
             assertEquals("${turn.name}: added $index after", row.getInt("after"), got.after)
             assertEquals("${turn.name}: added $index line",
                          row.getInt("afterSound"), got.afterSound)

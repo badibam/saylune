@@ -68,24 +68,28 @@ data class PhonemeDeviation(val start: Int, val end: Int, val points: Float)
 data class WordFault(val start: Int, val end: Int)
 
 /**
- * A sound the learner made that the model did not.
+ * A stretch the learner said that belongs to no word of the text.
  *
  * **Binary, and that is structural rather than a choice.** Every other mark is born of two
- * spreads compared; an insertion has no model side at all, so there is nothing to compare
+ * spreads compared; added matter has no model side at all, so there is nothing to compare
  * and no degree to report. The mass the network puts on the added symbol exists, but it is a
  * reading of one recording, which is the one thing the measure never does.
  *
- * [at] is the silent letter it lights -- a letter of its word that no sound claimed, which
- * the affinity table pays for this symbol -- or null when the word offers none. Then the
- * mark belongs **between two letters**, just after [after], the way a gutter's does: a fault
- * that is found must not vanish for want of somewhere to paint it.
+ * **It never sits on a letter, and that too is structural.** A sound that lands on a letter
+ * belongs to the word that letter spells, and the sound marks already speak for it; what is
+ * left over is exactly what no letter could write. So the mark belongs **between two
+ * letters**, just after [after], the way a gutter's does: a fault that is found must not
+ * vanish for want of somewhere to paint it.
  *
- * [after] is the last character any sound claimed before it, -1 before the first.
- * [afterSound] is the readout line it follows, an index into the compared sounds.
+ * [symbol] holds every sound of one stretch, space-separated -- a whole word said in
+ * addition is a burst of loose sounds at one word boundary, and it is one thing that
+ * happened rather than four.
+ *
+ * [after] is the last character the learner's own sounds claimed before it, -1 before the
+ * first. [afterSound] is the readout line it follows, an index into the compared sounds.
  */
 data class AddedSound(
     val symbol: String,
-    val at: Int?,
     val after: Int,
     val afterSound: Int,
 )

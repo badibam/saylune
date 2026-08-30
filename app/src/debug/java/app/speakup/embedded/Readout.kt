@@ -17,8 +17,8 @@ import java.util.Locale
  * gets a line with a dash, so the phrase can be read down the column and a line can be
  * placed in it. A list of sounds alone gives no way to tell where in the turn one sits.
  *
- * A sound the learner **added** gets a line in its place, dashed on the model's side because
- * nothing was there. No points and no duration: an insertion has one side only.
+ * A stretch the learner said that belongs to no word gets a line in its place, dashed on the
+ * model's side because nothing was there. No points and no duration: it has one side only.
  *
  * The durations are the widened spans, not the raw ones: the network is peaky, so every raw
  * span is a frame or two and a column of `0.02` everywhere says nothing -- least of all the
@@ -53,7 +53,7 @@ object Readout {
         out.append(" #  model -> you    pts   letters   dur m/y\n")
         out.append("  (the two peaks are a hint, never the verdict)\n")
         out.append("-".repeat(46)).append('\n')
-        inserted(out, text, added, -1)
+        inserted(out, added, -1)
         readoutRows(text, gaps.indices.toList()) { index ->
             sounds[gaps[index].rank].spots.let { spots ->
                 if (spots.isEmpty()) 0 until 0 else spots.min()..spots.max()
@@ -72,7 +72,7 @@ object Readout {
             }
             val gap = gaps[index]
             val sound = sounds[gap.rank]
-            inserted(out, text, added, index - 1)
+            inserted(out, added, index - 1)
             val heard = gap.said.firstOrNull()?.symbol ?: "?"
             val letters = sound.letters.ifEmpty {
                 if (sound.borrowed.isEmpty()) "(gutter)"
@@ -92,7 +92,7 @@ object Readout {
                 )
             )
         }
-        inserted(out, text, added, gaps.size - 1)
+        inserted(out, added, gaps.size - 1)
         out.append("-".repeat(46)).append('\n')
         val painted = phonemes.count { it.points > band }
         out.append(
@@ -103,17 +103,17 @@ object Readout {
     }
 
     /**
-     * The insertions that follow the line at [afterSound], written before the next one.
+     * The added stretches that follow the line at [afterSound], written before the next one.
      *
      * Dashes where the model's columns would be, because there was nothing there -- and no
-     * points, since an insertion has no second side to be compared to. A wedge stands for
-     * one no letter could carry: the mark then belongs in the seam between two letters.
+     * points, since added matter has no second side to be compared to. The letters column
+     * says `seam`: the stretch belongs to no word, so it sits between two letters and there
+     * is no letter of its own to quote.
      */
-    private fun inserted(out: StringBuilder, text: String, added: List<AddedSound>, after: Int) {
+    private fun inserted(out: StringBuilder, added: List<AddedSound>, after: Int) {
         added.filter { it.afterSound == after }.forEach { one ->
             out.append("    %-5s   %-5s %5s  %-9s\n".format(
-                Locale.ROOT, "-", one.symbol, "add",
-                one.at?.let { "\"" + text[it] + "\"" } ?: "^ seam"))
+                Locale.ROOT, "-", one.symbol, "add", "^ seam"))
         }
     }
 

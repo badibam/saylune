@@ -89,30 +89,27 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
             // Widened, and raw for what was measured: the network is peaky, a raw span is a
             // frame or two, and an extract of one frame is not something anyone can listen
-            // to. Nothing in the measure reads these -- the screen, the ear and the swelling
-            // below do.
+            // to. Nothing in the measure reads these -- the screen and the ear do.
             val modelAt = Overlap.widened(reading.gaps.map { it.at })
             val saidAt = Overlap.widened(reading.gaps.map { it.span })
 
             // The one thing the grid cannot hold: the grid is the model's, so a sound the
-            // learner added has no slot in it. Two signals, each blind where the other sees
-            // -- a swelling of the learner's spans for the long ones, the edit distance
-            // between the two decodings for the short ones.
+            // learner added has no slot in it. What finds them is this same join, pointed at
+            // the learner's own decoding instead of the model's -- the letters then hold
+            // both readings, and what lands on none of them belongs to no word.
             val freely = Grid.decode(saidFrames, engine.alphabet)
-            val added = Added.found(
-                said = freely,
-                spans = saidAt,
-                model = grid,
-                sounds = sounds,
-                gaps = reading.gaps,
-                alphabet = engine.alphabet,
+            val theirs = if (freely.isEmpty()) emptyList() else Join.joined(
+                symbols = freely.map { engine.alphabet[it.symbol] },
                 text = text,
                 affinity = engine.affinity,
             )
+            val added = Added.found(said = theirs, sounds = sounds, gaps = reading.gaps)
             Trace.add(
                 "analysis: added sounds",
-                "added" to added.size.toString(),
-                "on a letter" to added.count { it.at != null }.toString(),
+                "stretches" to added.size.toString(),
+                "of their sounds placed" to
+                    "${theirs.count { it.spots.isNotEmpty() || it.borrowed.isNotEmpty() }}" +
+                        " / ${theirs.size}",
             )
 
 

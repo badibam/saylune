@@ -68,7 +68,6 @@ object TurnFile {
                 val entry = array.getJSONObject(index)
                 AddedSound(
                     symbol = entry.getString("symbol"),
-                    at = if (entry.isNull("at")) null else entry.getInt("at"),
                     after = entry.getInt("after"),
                     afterSound = entry.getInt("afterSound"),
                 )

@@ -105,7 +105,6 @@ object Takes {
                 kept.put("added", JSONArray().apply {
                     analysed.added.forEach {
                         put(JSONObject().put("symbol", it.symbol)
-                            .put("at", it.at ?: JSONObject.NULL)
                             .put("after", it.after)
                             .put("afterSound", it.afterSound))
                     }

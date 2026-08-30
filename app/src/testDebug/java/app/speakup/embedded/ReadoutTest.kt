@@ -39,18 +39,11 @@ class ReadoutTest {
             // The fixture does not carry the stride, and the readout only needs it to turn
             // frames into seconds. This model's is 20 ms.
             val step = 0.02f
+            val theirs = Join.joined(
+                Grid.decode(said, alphabet).map { alphabet[it.symbol] }, text, affinity)
+            val added = Added.found(said = theirs, sounds = sounds, gaps = reading.gaps)
             out.append("=== ").append(turn.name).append(" ===\n")
-                .append(Readout.table(text, reading.gaps, sounds, drawn.phonemes,
-                                      Added.found(
-                                          said = Grid.decode(said, alphabet),
-                                          spans = Overlap.widened(
-                                              reading.gaps.map { it.span }),
-                                          model = segments.map { alphabet[it.symbol] },
-                                          sounds = sounds,
-                                          gaps = reading.gaps,
-                                          alphabet = alphabet,
-                                          text = text,
-                                          affinity = affinity),
+                .append(Readout.table(text, reading.gaps, sounds, drawn.phonemes, added,
                                       reading.grid, reading.dropped, step, 5f))
                 .append('\n')
                 .append(Readout.spreads(reading.gaps, sounds, step))

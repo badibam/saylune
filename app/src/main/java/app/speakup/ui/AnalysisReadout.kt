@@ -64,7 +64,9 @@ fun AnalysisReadout(
         readoutRows(text, interleaved(sounds, added)) { entry ->
             when (entry) {
                 is Entry.Heard -> entry.sound.at
-                is Entry.Added -> entry.sound.at?.let { it..it } ?: IntRange.EMPTY
+                // Claims no text: it belongs to no word, so it sits in the seam after the
+                // sound it follows rather than over any character.
+                is Entry.Added -> IntRange.EMPTY
             }
         }
     }
@@ -109,10 +111,10 @@ private fun interleaved(sounds: List<AnalysedSound>, added: List<AddedSound>): L
 }
 
 /**
- * A sound the learner made that the model did not.
+ * A stretch the learner said that belongs to no word.
  *
- * A dash where the model's symbol would be, because there was nothing there -- that is the
- * whole content of the line. No points and no bar: every other reading is two spreads
+ * A wedge where a letter would be and a dash where the model's symbol would be, because
+ * there was neither -- that is the whole content of the line. No points and no bar: every other reading is two spreads
  * compared, and this one has a single side, so there is no degree to report and inventing
  * one would put it on a scale it does not belong to.
  */
@@ -123,7 +125,7 @@ private fun Inserted(added: AddedSound, text: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            added.at?.let { text[it].toString() } ?: "\u25b2",
+            "\u25b2",
             modifier = Modifier.weight(1.1f),
             style = mono,
             color = markingColors().added,

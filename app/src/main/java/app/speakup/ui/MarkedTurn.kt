@@ -123,12 +123,6 @@ private fun annotate(marking: TurnMarking, colors: MarkingColors, tinted: Boolea
             marking.words.forEach {
                 addStyle(SpanStyle(color = colors.wordFault), it.start, it.end)
             }
-            // A silent letter the learner voiced. It carries no sound, so no ramp reaches
-            // it and it would otherwise stay in neutral ink -- which is the whole reason
-            // the fault was invisible before this channel existed.
-            marking.added.forEach { added ->
-                added.at?.let { addStyle(SpanStyle(color = colors.added), it, it + 1) }
-            }
         } else {
             addStyle(SpanStyle(color = Color.Black), 0, marking.text.length)
         }
@@ -167,12 +161,14 @@ private fun DrawScope.drawStressRules(
 }
 
 /**
- * A wedge under the seam between two letters, for a sound the learner added that no letter
- * of the word can carry -- an inserted word, or a vowel the spelling does not write.
+ * A wedge under the seam between two letters, for a stretch the learner said that belongs to
+ * no word -- an inserted word, a filler, a sound the spelling of neither neighbour writes.
  *
- * Between the glyphs and not on one, because that is where the sound is: putting it on a
- * neighbouring letter would accuse a letter that was said correctly. It is the shape the
- * gutter has been owed since it was first measured, and nothing drew until now.
+ * Between the glyphs and not on one, because that is where the sound is, and because there
+ * is no letter it could go on: a sound that lands on a letter belongs to that letter's word
+ * and is spoken for by the sound marks. Putting it on a neighbouring letter would accuse a
+ * letter that was said correctly. It is the shape the gutter has been owed since it was
+ * first measured, and nothing drew until now.
  */
 private fun DrawScope.drawAdded(
     layout: TextLayoutResult,
@@ -183,7 +179,7 @@ private fun DrawScope.drawAdded(
     val half = with(density) { 3.dp.toPx() }
     val height = with(density) { 4.dp.toPx() }
     val gap = with(density) { 1.dp.toPx() }
-    marking.added.filter { it.at == null }.forEach { added ->
+    marking.added.forEach { added ->
         // Just after the last letter anyone claimed; at the very start when none was.
         val anchor = added.after.coerceIn(0, marking.text.length - 1)
         val line = layout.getLineForOffset(anchor)
