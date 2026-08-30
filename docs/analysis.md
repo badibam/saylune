@@ -225,7 +225,30 @@ Le `l` pour `ɹ` est la faute voulue. Les six autres sont des traits d'accent fr
 
 **Ce que le banc fait aujourd'hui n'est d'ailleurs pas cette brique** : `faults.py` écarte une prise sur l'**écart médian** de la phrase (seuil 0,20), pas sur la comparaison des deux décodages. C'est un raccourci, et la confusion entre les deux a déjà égaré une lecture.
 
-### 12. Le runtime Android
+### 12. La matière ajoutée — la jointure pointée vers l'apprenant
+
+La grille est décodée du **modèle seul** et l'apprenant y est aligné de force : il y a autant de cases que le modèle a de sons, pas une de plus. Un son que l'apprenant ajoute n'est donc pas mal noté, il **n'est pas vu**.
+
+Ce qui le trouve n'est pas une seconde comparaison au modèle, mais la lecture que le modèle reçoit déjà : la brique 4 prend une suite de sons et un texte, et dit quelles lettres chaque son écrit. Pointée vers le décodage libre de l'apprenant (brique 11), elle place l'apprenant. **Un son qu'aucune lettre d'aucun mot ne sait écrire, à sa place dans l'ordre, n'appartient à aucun mot** — et c'est toute la détection.
+
+Les lettres portent alors les deux lectures à la fois, ce qui les fait se regarder **sans horloge** : le `ɝ` contracté du modèle couvre `ou're` d'un seul son, et l'apprenant qui ne contracte pas pose un `ʊ` sur le `o` et un `ɹ` sur le `r`, dans le même mot. Une prononciation plus pleine reste donc *dans* le mot, où les marques de son parlent déjà pour elle.
+
+**Aucune durée n'est lue, et ce n'est pas une économie.** Mesuré : le décodage libre rend des étiquettes et des positions de pic, jamais des durées ; l'alignement forcé répartit toutes les trames entre les sons du modèle et n'a aucune case où loger un son ajouté. Aucun des deux ne dit combien de temps la matière ajoutée a duré, et les combiner ne l'invente pas — trois dénominateurs de temps ont été mesurés faux avant qu'on renonce à en chercher un quatrième.
+
+La marque est **binaire, structurellement** : la matière ajoutée n'a pas de côté modèle, donc aucune répartition à comparer. Elle se pose **entre deux lettres**, comme la gouttière, et une rafale de sons voisins hors mot fait **une** marque — un mot entier dit en plus est une seule chose qui s'est produite.
+
+**Mesuré** (2026-08-30, `bench/placed.py`, `timit-ipa`, voix `eleven-us-eric`) :
+
+- **La jointure survit à la suite bruitée de l'apprenant** : 250 sons sur 267 trouvent une lettre sur les dix-sept prises du jeu étiqueté, **94 %**, contre 95 % pour la même brique côté modèle. C'était la crainte qui pouvait tuer la piste d'emblée.
+- Sur `I think you're right` dit cinq fois : `very` ajouté **sort** des mots, un `you're` dit sans contraction **reste dedans**, un `I'm` mis pour `you're` laisse son `m` dehors. `I`, `think` et `right` sont propres sur les cinq.
+- Les trois prises `comfortable` posent leur syllabe insérée **dans** le mot, et rien ne sort. **Trois des cinq témoins ne lèvent plus rien du tout.**
+- Environ **une marque par prise** — dix-sept sons hors mot sur dix-sept prises.
+
+**Ce qu'elle rate, et qui est accepté.** Une substitution dont aucune lettre du mot ne sait écrire le son **sort du mot** et se lit comme de la matière ajoutée : `have` dit `h æ f`, la lettre `v` n'écrivant pas `f` ; le `s` de `I sink` pour `I think`. Le mot porte une marque de toute façon et l'analyse détaillée nomme le son en cause, donc la faute est vue — elle est seulement nommée deux fois. Et un « hmm » qui se décode en un `ə` se glisse dans une lettre qui sait écrire un `ə` ; quand il se décode en rien, aucune règle ne peut l'inventer.
+
+**Deux bornes de lecture**, qui valent pour tous les chiffres ci-dessus. Les étiquettes du corpus L2 notent **chaque mot**, propre ou fautif ; elles ne disent rien de ce qui se passe **entre** deux mots, donc elles ne peuvent ni confirmer ni infirmer une de ces marques. Et marquer une hésitation est le comportement **voulu** — tout écart au modèle se marque —, donc une marque entre deux mots bien dits n'est pas une erreur par défaut. Aucune vérité terrain ne dit quels sons une prise a ajoutés : ce qui est compté ici est ce que le décodage revendique, jamais une faute confirmée.
+
+### 13. Le runtime Android
 
 **ONNX Runtime** (MIT) pour faire tourner le réseau sur le processeur — le CPU est déterministe, le GPU ne l'est pas toujours, et le déterminisme est un critère de qualification. **sherpa-onnx** (Apache-2.0) empaquette déjà pour Android le décodage libre et l'alignement forcé : à regarder avant d'écrire la plomberie soi-même.
 
