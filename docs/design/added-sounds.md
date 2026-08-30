@@ -2,7 +2,7 @@
 
 Le fil entier d'une journée : ce qui a été mesuré, ce qui est passé dans l'app, ce qui en a été retiré, et ce qui a été exploré puis laissé de côté. Les faux pas y sont, parce qu'ils ont chacun coûté une livraison et que les refaire coûterait autant.
 
-Instruments : `../../bench/insertions.py` (la mesure préalable) et `../../bench/anchor.py` (l'exploration finale). Tous deux lisent des fichiers déjà écrits — pas de modèle acoustique, pas d'audio.
+Instruments, dans l'ordre où ils sont venus : `../../bench/insertions.py` (la mesure préalable) et `../../bench/anchor.py` (la découpe contre les sons du modèle, explorée et abandonnée), qui lisent tous deux des fichiers déjà écrits ; puis `../../bench/placed.py`, **la voie retenue**, qui relit l'audio de l'apprenant pour poser ses sons sur les lettres du texte.
 
 ## Le problème
 
@@ -179,12 +179,98 @@ Symétrique de `join.partition`, où un mot peut ne recevoir aucun son. Chaque s
 
 La cause première est en amont : **le modèle prononce `you're` en un seul son `ɝ`, très contracté, et le locuteur en deux ou trois.** Surplus permanent dans ce mot, et tout ce qui s'y ajoute vraiment s'y cache. Que ce surplus soit marqué est correct — le modèle est la source de vérité, cf. `../reference.md`, « la règle vaut aux trois échelles ». Ce qui ne l'est pas, c'est d'en déduire « un son a été ajouté ».
 
+## 8. Le troisième signal — l'orthographe et le temps
+
+Ce que « Pour reprendre » cherchait a été trouvé, écrit, mesuré, et **écarté**. Le fil entier tient ici, parce que chaque impasse a coûté une demi-journée.
+
+L'idée : deux signaux que les symboles ne portent pas.
+
+- **L'orthographe.** Un mot dit plus pleinement est fait de sons que ses propres lettres écrivent — le `ʊ` payé par le `o`/`u` de `you're`, le `ɹ` par son `r`. Un mot inséré apporte au moins un son qu'aucune lettre voisine n'écrit : le `v` de `very` réclame une lettre `v`, absente de `you're` comme de `right`. La table d'affinité (`../../bench/affinity.json`) répond, dans la licence qu'elle a déjà — dire où un son peut s'écrire, jamais s'il est faux.
+- **Le temps.** Le trou que la série de sons en trop occupe dans le **décodage libre**, jamais dans l'alignement forcé, comparé au mot du modèle mis à l'échelle du débit de l'apprenant.
+
+Trois branches : un son étranger → matière intercalée ; un run payable et un trou court → le mot dit plus pleinement ; un run payable et un trou plus long que le mot entier → matière intercalée quand même, ce qui attrape le « hmm ».
+
+**Sur les cinq prises, ça sépare.** `very` est seul à lever un son étranger ; les deux « hmm » se partagent sur le temps, 464 ms contre un mot de 276, et 141 contre 308.
+
+**Sur dix-sept prises, ça se déclenche partout.** 20 séries de sons en trop, dont 9 lues « matière intercalée » — et trois des cinq témoins en portent une.
+
+**Sur 2500 prises d'apprenants réels** (1690 lisibles) : **1704 « matière intercalée » pour 1690 prises**, environ une par prise, 80 % des prises portant au moins une série. Les mots qui les reçoivent sont toujours les mêmes : to, was, the, is, you, one, will, be, a, of.
+
+### Pourquoi, et les trois réparations qui ont échoué
+
+La cause tient au dénominateur. La branche temps demande « le trou est-il plus long que le mot ? », et le mot est celui que la découpe a donné au run, mesuré côté modèle. Sur un petit mot outil que la synthèse réduit, la barre est nulle — `at` fait un seul son de 20 ms, `to` 66 ms au débit de l'apprenant. N'importe quel trou la franchit, et le corpus dit que c'est le cas général.
+
+Trois dénominateurs de rechange, tous mesurés faux :
+
+1. **Ce que le modèle passe sur le même intervalle**, d'un son concordant à l'autre. Se déclenche sur 16 séries sur 18. C'est circulaire : le trou existe *parce qu'*il y a des sons en plus dedans, donc l'intervalle du modèle entre les deux mêmes sons est court par construction.
+2. **De vraies durées, en alignant l'apprenant sur sa propre suite de sons.** Tautologie : le chemin de l'argmax *est* l'optimum quand la cible est la suite que l'argmax a produite. Mesuré, 12 sons sur 12 rendent exactement le pic de départ. Le décodage libre ne donne pas de durées et n'en donnera pas.
+3. **Les durées de l'alignement forcé**, lues comme un écart entre deux sons concordants. Rend **0** sur les deux prises au « hmm ». L'alignement forcé n'a pas de trous : il répartit toutes les trames entre les sons du modèle, bord à bord. La matière ajoutée ne se loge jamais *entre* deux fenêtres, elle est avalée *dans* les fenêtres voisines — c'est le gonflement de l'état 4, déjà mesuré inutilisable.
+
+**Ce que ces trois échecs disent ensemble**, et qui vaut au-delà de ce chantier : le décodage libre donne les étiquettes et la position des pics, sans aucune durée ; l'alignement forcé donne les durées et n'a aucune case pour un son ajouté. Aucun des deux ne dit combien de temps la matière ajoutée a duré, et les combiner ne l'invente pas.
+
+### Une réparation qui, elle, tient
+
+Ta question sur le `t` a trouvé un vrai défaut de la découpe, indépendant du reste. `right` dit `ɹ aɪ t` là où le modèle bat un `ɾ` : le `t` partait dans le mot suivant. Mesuré, les trois coupes valaient **exactement −5** — égalité à trois, tranchée par l'ordre du parcours. Le terme de placement, écrit pour fermer ce genre d'égalité, ne l'atteint pas ici : le `t` est un son en trop pour qui que ce soit qui le prenne, et il ne tombe dans la fenêtre d'aucun mot.
+
+La table apparente pourtant les deux : la lettre `t` écrit `t` **et** `ɾ`. Une paire dont un même caractère du mot sait écrire les deux sons vaut donc **une demi-concordance** — pas une concordance, le modèle restant la norme et l'écart restant à marquer ; pas rien, puisque c'est une case d'un mot dite de deux façons. Les cinq prises sont inchangées, les neuf « intercalé » des dix-sept deviennent huit, et les deux coupes réparées sont ce `t` et le `f` de `from` qui était tiré dans `pear`.
+
+C'est acquis, et ça ne sauve pas la branche temps : le corpus la déclenche une fois par prise.
+
+## 9. Les lettres découpent — retenu
+
+**Changer le cadre.** Tout ce qui précède découpe la suite de l'apprenant en la confrontant aux **sons** du modèle, et n'appelle les lettres qu'après coup. On fait l'inverse : on pose les sons de l'apprenant sur les **lettres du texte**, et les mots tombent de là. Instrument : `../../bench/placed.py`.
+
+Rien de neuf n'est écrit. `join.joined` prend un audio et un texte et fait exactement ça ; le banc ne l'a jamais pointé que vers `model.wav`. Pointé vers `said.wav`, il place l'apprenant.
+
+Les lettres portent alors les deux lectures à la fois, et c'est ce qui les fait se regarder **sans horloge** : le `ɝ` contracté du modèle couvre `ou're` d'un seul son, et l'apprenant qui ne contracte pas pose un `ʊ` sur le `o` et un `ɹ` sur le `r`, dans le même mot. Un son qu'aucune lettre d'aucun mot ne sait écrire, à sa place dans l'ordre, n'appartient à aucun mot — **et c'est toute la détection.**
+
+Deux raisons de fond, qui ne sont pas de commodité. `../reference.md` pose déjà les lettres comme coordonnée commune du marquage — les trois échelles « s'ancrent aux mêmes caractères du texte affiché », ce sont « trois propriétés d'une seule chaîne ». Les faire porter la découpe n'ajoute pas une idée, ça en retire une. Et ça rend les deux lectures symétriques : l'ancrage aux lettres était fait d'un seul côté, alors que le projet refuse partout de traiter un seul des deux audios.
+
+Le modèle reste la source de vérité sans changement. Les lettres ne jugent rien ; elles disent seulement où les deux lectures se rencontrent.
+
+### Mesuré
+
+**`join` survit à la suite bruitée de l'apprenant** — la crainte qui pouvait tuer la piste d'emblée. **250 sons sur 267 trouvent une lettre sur les dix-sept prises, 94 %**, contre les 95 % que la même brique obtient côté modèle.
+
+Sur `I think you're right.` dit cinq fois :
+
+| | apprenant sur les lettres de `you're` | hors mot |
+|---|---|---|
+| att1 (sans ajout) | `j ɑ` | — |
+| att2 (hmm → `ə`) | `j ʊ ɹ ə` | — |
+| att3 (hmm muet) | `j ʊ ɹ` | — |
+| att4 (`very`) | `j ʊ ɹ i` | **`ɹ v ɛ`** |
+| att5 (`I'm`) | `aɪ` | **`m`** |
+
+Et les mots ne fuient plus : `I`, `think`, `right` sont propres sur les cinq.
+
+**Les trois prises `comfortable` sont réglées, gratuitement** — le verdict qui échappait à tous les états précédents :
+
+```
+modèle       comfortable = k ə m f   t ɝ b l
+apprenant    comfortable = k ə m f ə t ɪ b l      <- la syllabe insérée, dans le mot
+```
+
+Rien ne sort, et les deux pires fausses alertes de l'état 8 — le `i` de `is` sur les prises 19 et 20, aux rapports 4,1 et 4,4 — disparaissent : `is` se lit `i z` contre `ɝ z`, une substitution propre. **Trois des cinq témoins ne lèvent plus rien du tout.**
+
+Dix-sept sons tombent hors mot sur les dix-sept prises, environ un par prise.
+
+### Ce qu'elle rate, et pourquoi ça ne bloque pas
+
+**Une substitution dont aucune lettre du mot ne sait écrire le son sort du mot** et se lit comme de la matière ajoutée. `have` dit `h æ f` : le `f` sort, parce que la lettre `v` n'écrit pas `f`. Le `m` de `I'm` sort pour la même raison.
+
+Décidé, et non bloquant : **le mot porte une marque de toute façon**, et l'analyse détaillée nomme le `f` comme le son en cause. La personne qui la lit fait le reste. Un chevron de plus à côté d'un mot déjà signalé ne demande rien — l'unité de réparation est la phrase, le mot au plus, jamais le son (`../reference.md`). Le raffinement possible est noté dans `../../TODO.md` et rien ne presse.
+
+**Et le « hmm » d'att2 se glisse dans le `e` de `you're`**, qui sait écrire un `ə`. Cas raté, accepté d'avance : on ne l'attrape pas, et att3 dit pourquoi il ne faut pas essayer plus fort — quand le « hmm » se décode en rien, aucune règle ne peut inventer un son.
+
+**Deux bornes de lecture**, qui valent pour tous les chiffres ci-dessus. Les étiquettes du corpus L2 notent **chaque mot**, propre ou fautif ; elles ne disent rien de ce qui se passe **entre** deux mots, donc elles ne peuvent ni confirmer ni infirmer un chevron. Et marquer une hésitation est le comportement **voulu** — tout écart au modèle se marque —, donc un chevron entre deux mots bien dits n'est pas une erreur par défaut.
+
 ## Ce qui est dans l'app à la fin de la journée
 
-Le canal de l'état 2 plus les corrections des états 4 et 5 : gonflement pour les insertions longues, distance d'édition pour ce qu'une lettre muette peut porter, filtre pause. Rien de l'ancrage.
+Le canal des états 1 à 5 : gonflement pour les insertions longues, distance d'édition pour ce qu'une lettre muette peut porter, filtre pause. **Ni l'ancrage par mot, ni la découpe par les lettres** — la voie retenue n'est pas écrite en Kotlin.
 
 ## Pour reprendre
 
-- `cd bench && python3 anchor.py <turn.json>...` ; `-1.5` rallume le bloc intercalé à ce prix.
-- Ce qu'il faut n'est pas un nombre mieux réglé, c'est **un troisième signal** distinguant un mot en plus d'une réalisation plus longue. Deux pistes non éprouvées : un mot inséré occupe un temps comparable à un mot du modèle, là où une syllabe non contractée est plus courte ; et la matière intercalée est encadrée de mots qui, eux, concordent exactement.
-- Et du matériau. **Cinq prises d'une phrase par un locuteur, dix-sept du jeu étiqueté : c'est un banc d'essai pour une idée, pas une mesure.** Aucun nombre de ce document n'est réglé, et aucun ne doit l'être sur ce matériau.
+- La voie retenue est le chapitre 9. `cd bench && python3 placed.py <said.wav> <turn.json>...`, par paires. Ce qui reste à faire est de l'écrire en Kotlin ; côté banc, il n'y a rien à inventer, `join.joined` fait déjà tout et il suffit de le pointer vers l'audio de l'apprenant.
+- Les chapitres 7 et 8 sont **fermés** : la découpe contre les sons du modèle, avec ou sans prix du bloc intercalé, avec ou sans signal d'orthographe et de temps. Trois dénominateurs y ont été mesurés faux, et le chapitre 8 dit pourquoi aucun quatrième ne viendra — le décodage libre n'a pas de durées, l'alignement forcé n'a pas de cases pour un son ajouté.
+- **Cinq prises d'une phrase par un locuteur, dix-sept du jeu étiqueté, 2500 du corpus L2 : le matériau situe une ampleur, il ne juge aucun cas.** Aucun nombre de ce document n'est réglé, et aucun ne doit l'être sur ce matériau. Ce qui tranche un chevron donné est l'oreille de qui a parlé.
