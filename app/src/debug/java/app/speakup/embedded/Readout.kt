@@ -53,7 +53,7 @@ object Readout {
         out.append(" #  model -> you    pts   letters   dur m/y\n")
         out.append("  (the two peaks are a hint, never the verdict)\n")
         out.append("-".repeat(46)).append('\n')
-        inserted(out, added, -1)
+        val pending = added.sortedBy { it.after }.toMutableList()
         readoutRows(text, gaps.indices.toList()) { index ->
             sounds[gaps[index].rank].spots.let { spots ->
                 if (spots.isEmpty()) 0 until 0 else spots.min()..spots.max()
@@ -72,7 +72,14 @@ object Readout {
             }
             val gap = gaps[index]
             val sound = sounds[gap.rank]
-            inserted(out, added, index - 1)
+            // Before the first sound claiming a character past it, which is the rule the
+            // screen draws by. A sound holding none is transparent to the test and keeps its
+            // own place, so the table shows it without moving anything.
+            sound.spots.maxOrNull()?.let { claims ->
+                while (pending.isNotEmpty() && pending.first().after < claims) {
+                    inserted(out, pending.removeAt(0))
+                }
+            }
             val heard = gap.said.firstOrNull()?.symbol ?: "?"
             val letters = sound.letters.ifEmpty {
                 if (sound.borrowed.isEmpty()) "(gutter)"
@@ -92,7 +99,7 @@ object Readout {
                 )
             )
         }
-        inserted(out, added, gaps.size - 1)
+        pending.forEach { inserted(out, it) }
         out.append("-".repeat(46)).append('\n')
         val painted = phonemes.count { it.points > band }
         out.append(
@@ -103,18 +110,16 @@ object Readout {
     }
 
     /**
-     * The added stretches that follow the line at [afterSound], written before the next one.
+     * One added stretch, written in the seam it belongs to.
      *
      * Dashes where the model's columns would be, because there was nothing there -- and no
      * points, since added matter has no second side to be compared to. The letters column
      * says `seam`: the stretch belongs to no word, so it sits between two letters and there
      * is no letter of its own to quote.
      */
-    private fun inserted(out: StringBuilder, added: List<AddedSound>, after: Int) {
-        added.filter { it.afterSound == after }.forEach { one ->
-            out.append("    %-5s   %-5s %5s  %-9s\n".format(
-                Locale.ROOT, "-", one.symbol, "add", "^ seam"))
-        }
+    private fun inserted(out: StringBuilder, one: AddedSound) {
+        out.append("    %-5s   %-5s %5s  %-9s\n".format(
+            Locale.ROOT, "-", one.symbol, "add", "^ seam"))
     }
 
     /** For each sound, the two spreads side by side -- what was really compared. */

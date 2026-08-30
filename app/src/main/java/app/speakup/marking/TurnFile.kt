@@ -69,7 +69,6 @@ object TurnFile {
                 AddedSound(
                     symbol = entry.getString("symbol"),
                     after = entry.getInt("after"),
-                    afterSound = entry.getInt("afterSound"),
                 )
             }
         }

@@ -31,15 +31,28 @@ import app.speakup.marking.AddedSound
 object Added {
 
     /**
-     * [said] is the learner's own sounds put on the letters, [sounds] the model's, and
-     * [gaps] the sounds that were compared -- the last only so a mark can name the readout
-     * line it follows.
+     * [said] is the learner's own sounds put on the letters, [model] the model's own -- read
+     * only for what it too left unwritten.
+     *
+     * A mark comes out with **one** position, the character it sits just after. Where each
+     * view draws it is that view's business, and both read the same number: carrying a
+     * readout line beside it made two coordinates for one place, and they drifted.
      */
-    fun found(
-        said: List<Sound>,
-        sounds: List<Sound>,
-        gaps: List<Overlap.Gap>,
-    ): List<AddedSound> {
+    fun found(said: List<Sound>, model: List<Sound>): List<AddedSound> {
+        // What the model itself left unwritten, word by word. This is the one place the
+        // channel would otherwise read a single recording, and the one that consumes the
+        // **label** -- the least reliable thing the network renders. A reduced `I'm` comes
+        // back as `ɑ n`, which neither `i` nor `m` can write, so a learner saying exactly
+        // what the model said raised a mark. Cancelling against the model does not ask the
+        // label to be right, only to be the same on both sides, which is the argument the
+        // whole measure rests on.
+        val unwritten = mutableMapOf<IntRange, Int>()
+        for (sound in model) {
+            if (sound.spots.isEmpty() && sound.borrowed.isEmpty() && sound.wordAt != null) {
+                unwritten[sound.wordAt] = (unwritten[sound.wordAt] ?: 0) + 1
+            }
+        }
+
         val marks = mutableListOf<AddedSound>()
         val run = mutableListOf<String>()
         // The last letter the learner claimed, and the word it was in. A borrowed letter
@@ -67,12 +80,17 @@ object Added {
             check(ahead == null || after < ahead) {
                 "the mark ${run.joinToString(" ")} passes letter $ahead, which was said after it"
             }
-            marks.add(mark(sounds, gaps, after, run))
+            marks.add(AddedSound(symbol = run.joinToString(" "), after = after))
             run.clear()
         }
 
         for (sound in said) {
             if (sound.spots.isEmpty() && sound.borrowed.isEmpty()) {
+                val spare = sound.wordAt?.let { unwritten[it] } ?: 0
+                if (spare > 0) {
+                    unwritten[sound.wordAt!!] = spare - 1
+                    continue
+                }
                 run.add(sound.symbol)
                 continue
             }
@@ -86,31 +104,4 @@ object Added {
         return marks
     }
 
-    /**
-     * One stretch of loose sounds, placed on the text and on the readout.
-     *
-     * A run of neighbouring loose sounds is **one** mark and not one each: a whole word said
-     * in addition is a burst of them at a single word boundary, and it is one thing that
-     * happened. Its place is the seam just after [after], the way a gutter's is -- the mark
-     * belongs between two letters, and a fault that is found must not vanish for want of
-     * somewhere to paint it. Which letter [after] is, and why, is settled by the caller.
-     *
-     * The readout line is the last compared sound whose own letters end at or before the
-     * seam, and -1 before the first of them. Sounds holding no letter are stepped over
-     * rather than counted: they say nothing about where in the text they sit, so a mark
-     * lands before them.
-     */
-    private fun mark(
-        sounds: List<Sound>,
-        gaps: List<Overlap.Gap>,
-        after: Int,
-        run: List<String>,
-    ): AddedSound {
-        var line = -1
-        gaps.forEachIndexed { index, gap ->
-            val spots = sounds[gap.rank].spots
-            if (spots.isNotEmpty() && spots.max() <= after) line = index
-        }
-        return AddedSound(symbol = run.joinToString(" "), after = after, afterSound = line)
-    }
 }

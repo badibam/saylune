@@ -103,7 +103,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                 text = text,
                 affinity = engine.affinity,
             )
-            val added = Added.found(said = theirs, sounds = sounds, gaps = reading.gaps)
+            val added = Added.found(said = theirs, model = sounds)
             Trace.add(
                 "analysis: added sounds",
                 "stretches" to added.size.toString(),

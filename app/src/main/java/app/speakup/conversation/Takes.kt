@@ -105,8 +105,7 @@ object Takes {
                 kept.put("added", JSONArray().apply {
                     analysed.added.forEach {
                         put(JSONObject().put("symbol", it.symbol)
-                            .put("after", it.after)
-                            .put("afterSound", it.afterSound))
+                            .put("after", it.after))
                     }
                 })
                 // What the network heard of the learner, in order. No mark reads it; a

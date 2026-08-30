@@ -85,13 +85,18 @@ data class WordFault(val start: Int, val end: Int)
  * addition is a burst of loose sounds at one word boundary, and it is one thing that
  * happened rather than four.
  *
- * [after] is the last character the learner's own sounds claimed before it, -1 before the
- * first. [afterSound] is the readout line it follows, an index into the compared sounds.
+ * [after] is the seam it sits in: the offset of the character it comes just after, -1 before
+ * the first of them.
+ *
+ * **One position and no second one.** It used to carry the readout line it followed as well,
+ * which is derivable from [after] and drifted from it: the line was counted over the sounds
+ * that hold letters, while the readout draws a row for every sound, so a mark drawn after
+ * `I'm` under the phrase was written at the very top of the table. Both views place it from
+ * this one number now -- immediately before the first sound that claims a character past it.
  */
 data class AddedSound(
     val symbol: String,
     val after: Int,
-    val afterSound: Int,
 )
 
 /**

@@ -32,7 +32,7 @@ from pathlib import Path
 import join
 
 
-def found(sounds, said, gaps):
+def found(model, said):
     """Every stretch the learner said that belongs to no word -- what `turn.json`
     carries and what the screen draws a wedge for.
 
@@ -59,10 +59,24 @@ def found(sounds, said, gaps):
     that can borrow none from a neighbour is then loose in the middle of a word.
     Measured on 95 renders of the bench, four words are spelt that way.
 
-    `gaps` says which sounds of the model's grid were compared, so a mark can
-    name the readout line it follows. `Added.kt` is the same thing in Kotlin, and
-    the port test holds the two against each other.
+    A mark comes out with **one** position, the character it sits just after.
+    Where each view draws it is that view's business, and both read the same
+    number: carrying a readout line beside it made two coordinates for one place,
+    and they drifted. `Added.kt` is the same thing in Kotlin, and the port test
+    holds the two against each other.
     """
+    # What the model itself left unwritten, word by word. This is the one place
+    # the channel would otherwise read a single recording, and it is the one that
+    # consumes the **label** -- the least reliable thing the network renders. A
+    # reduced `I'm` comes back as `ɑ n`, which neither `i` nor `m` can write, so
+    # the learner saying exactly what the model said raised a mark. Cancelling
+    # against the model does not ask the label to be right, only to be the same
+    # on both sides, which is the argument the whole measure rests on.
+    unwritten = {}
+    for sound in model:
+        if not (sound.spots or sound.borrowed) and sound.word_at is not None:
+            unwritten[sound.word_at] = unwritten.get(sound.word_at, 0) + 1
+
     out, run, claimed, word = [], [], -1, None
 
     def close(nextwords, nextclaim):
@@ -72,11 +86,14 @@ def found(sounds, said, gaps):
             f"la marque {' '.join(run)} recule : {after} avant la lettre {claimed}")
         assert nextclaim is None or after < nextclaim, (
             f"la marque {' '.join(run)} passe la lettre {nextclaim}, dite après elle")
-        out.append(mark(sounds, gaps, after, list(run)))
+        out.append({"symbol": " ".join(run), "after": after})
         run.clear()
 
     for sound in said:
         if not (sound.spots or sound.borrowed):
+            if unwritten.get(sound.word_at):
+                unwritten[sound.word_at] -= 1
+                continue
             run.append(sound.symbol)
             continue
         if run:
@@ -86,22 +103,6 @@ def found(sounds, said, gaps):
     if run:
         close(None, None)
     return out
-
-
-def mark(sounds, gaps, after, run):
-    """One loose stretch, placed on the text and on the readout.
-
-    `afterSound` is the last compared sound whose own letters end at or before
-    the seam, and -1 before the first of them. Sounds holding no letter are
-    stepped over rather than counted: they say nothing about where in the text
-    they sit, so a mark lands before them.
-    """
-    line = -1
-    for index, gap in enumerate(gaps):
-        spots = sounds[gap.rank].spots
-        if spots and max(spots) <= after:
-            line = index
-    return {"symbol": " ".join(run), "after": after, "afterSound": line}
 
 
 def words_of(text, sounds):

@@ -96,17 +96,28 @@ private sealed interface Entry {
 /**
  * The two kinds of line in one list, in the order of the phrase.
  *
- * An added sound names the compared sound it follows, so the merge asks nothing of
- * positions: it walks the sounds and drops each insertion in behind the one it came after.
- * An insertion before the first sound carries -1 and goes at the head.
+ * Both are placed from the same number, the offset of the character they come after, which
+ * is the one the wedge under the phrase is drawn from too. A mark goes immediately before
+ * the first sound that claims a character past it; a sound holding none is transparent to
+ * that test and keeps its own place, so the table can show it without moving anything.
+ *
+ * It used to be merged on a line number carried beside the offset, and the two drifted --
+ * the number was counted over the sounds that hold letters while the table draws a row for
+ * every sound. One position, read twice, cannot disagree with itself.
  */
 private fun interleaved(sounds: List<AnalysedSound>, added: List<AddedSound>): List<Entry> {
     val out = mutableListOf<Entry>()
-    added.filter { it.afterSound < 0 }.forEach { out.add(Entry.Added(it)) }
-    sounds.forEachIndexed { index, sound ->
+    val pending = added.sortedBy { it.after }.toMutableList()
+    for (sound in sounds) {
+        val claims = sound.at.lastOrNull()
+        if (claims != null) {
+            while (pending.isNotEmpty() && pending.first().after < claims) {
+                out.add(Entry.Added(pending.removeAt(0)))
+            }
+        }
         out.add(Entry.Heard(sound))
-        added.filter { it.afterSound == index }.forEach { out.add(Entry.Added(it)) }
     }
+    pending.forEach { out.add(Entry.Added(it)) }
     return out
 }
 

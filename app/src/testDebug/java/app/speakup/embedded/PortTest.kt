@@ -93,7 +93,7 @@ class PortTest {
             expected.getString("text"),
             affinity,
         )
-        val added = Added.found(said = theirs, sounds = sounds, gaps = reading.gaps)
+        val added = Added.found(said = theirs, model = sounds)
         assertTrue(
             "${turn.name}: frozen before added sounds -- re-freeze it with bench/fixture.py",
             expected.has("added"),
@@ -105,8 +105,6 @@ class PortTest {
             val got = added[index]
             assertEquals("${turn.name}: added $index symbol", row.getString("symbol"), got.symbol)
             assertEquals("${turn.name}: added $index after", row.getInt("after"), got.after)
-            assertEquals("${turn.name}: added $index line",
-                         row.getInt("afterSound"), got.afterSound)
         }
 
         val gutters = expected.getJSONArray("gutters")

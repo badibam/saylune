@@ -50,8 +50,8 @@ val MULTI_FAULT_TURN = TurnMarking(
     ),
     words = listOf(WordFault(18, 22)),  // book: not one sound of it came through
     added = listOf(
-        AddedSound("k", after = 20, afterSound = 5),
-        AddedSound("ə", after = 23, afterSound = 6),
+        AddedSound("k", after = 20),
+        AddedSound("ə", after = 23),
     ),
 )
 

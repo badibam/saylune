@@ -21,12 +21,6 @@ class AddedTest {
     private val trying = 4..9
     private val to = 11..12
 
-    /** Only [Overlap.Gap.rank] is read here -- the rest is what the mark never consults. */
-    private fun gap(rank: Int) = Overlap.Gap(
-        value = 0f, symbol = "", rank = rank, at = 0 until 0, span = 0 until 0,
-        model = emptyList(), said = emptyList(),
-    )
-
     /** A sound of a join: what it took of the text, and the word it sat in. */
     private fun sound(symbol: String, spots: List<Int>, word: IntRange?) =
         Sound(symbol, word?.let { text.substring(it) }, word, "", spots, emptyList())
@@ -46,12 +40,11 @@ class AddedTest {
         )
         val model = listOf(sound("ŋ", listOf(8, 9), trying))
 
-        val added = Added.found(said = said, sounds = model, gaps = listOf(gap(0)))
+        val added = Added.found(said = said, model = model)
         assertEquals(1, added.size)
         // One mark for the whole of it: an added word is one thing that happened.
         assertEquals("h aʊ", added[0].symbol)
         assertEquals("the seam sits after `trying`, not inside `ng`", 9, added[0].after)
-        assertEquals("it follows the sound that spells `ng`", 0, added[0].afterSound)
     }
 
     /**
@@ -72,7 +65,7 @@ class AddedTest {
         )
         val model = listOf(sound("ɹ", listOf(5), trying))
 
-        val added = Added.found(said = said, sounds = model, gaps = listOf(gap(0)))
+        val added = Added.found(said = said, model = model)
         assertEquals(1, added.size)
         assertEquals("it may not pass the letters said after it", 5, added[0].after)
     }
@@ -84,9 +77,8 @@ class AddedTest {
             sound("b", emptyList(), null),
             sound("aɪ", listOf(0), 0..2),
         )
-        val added = Added.found(said, emptyList(), emptyList())
+        val added = Added.found(said, emptyList())
         assertEquals(1, added.size)
         assertEquals(-1, added[0].after)
-        assertEquals(-1, added[0].afterSound)
     }
 }

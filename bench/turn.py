@@ -117,8 +117,7 @@ def read(take, model_slug, voice):
     # `Added.kt` is the same in Kotlin.
     learner_cache = overlap.MATRICES / take / f"{model_slug}.npz"
     heard = matrix.grid(matrix.probabilities(learner, cache=learner_cache))
-    added = placed.found(
-        sounds, join.joined(learner, text, cache=learner_cache), gaps)
+    added = placed.found(sounds, join.joined(learner, text, cache=learner_cache))
 
     # The same two readings again, but kept as times rather than spent on the
     # marks: where the learner freely said each sound, and where each sound of
