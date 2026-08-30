@@ -307,6 +307,14 @@ Ces deux formes indexent ce qui **se trouve** dans l'arbre, y compris ce que per
 
 Cas rencontré : le bac à sable des commandes de l'agent neutralise les fichiers de configuration qu'il refuse de laisser lire — `.bash_profile`, `.gitconfig`, `.mcp.json`, `.vscode` et d'autres — en montant `/dev/null` par-dessus, **dans le dossier courant**. Ils apparaissent donc à la racine du projet comme périphériques caractère, et `git status` les voit non suivis. Ils n'existent que dans la vue du bac à sable : le dépôt sur le disque est propre, et il ne faut donc **pas** les gitignorer — ce serait mettre dans le projet une ligne qui parle d'un outil, pas de lui.
 
+## Une recherche aveuglée par le bac à sable rend zéro résultat, pas la preuve d'une absence
+
+Le bac à sable des commandes de l'agent **interdit la lecture de `/home/simon`**. Un `find / -name adb` y rend donc une liste vide alors que `adb` est dans `~/adb/platform-tools/`, en PATH — et `which adb` échoue pour la même raison. Le vide ne dit pas « ça n'existe pas », il dit « je n'ai pas pu regarder là », et les deux se ressemblent exactement.
+
+C'est la même forme que la règle de `dev_base` sur les tâches de fond, où un `pgrep` rend une liste vide que la tâche tourne ou non. La conséquence est ici : **ce qui vit dans le home ne se cherche jamais depuis le bac à sable** — `adb` et le SDK Android, et tout ce que l'utilisateur y installe. On relance avec le bac à sable désactivé avant de conclure quoi que ce soit.
+
+Les outils du projet lui-même, eux, vivent dans le dépôt et se cherchent normalement — avec une exception à connaître : le venv du banc est dans `tmp/`, gitignoré, donc absent de tout parcours de l'arbre versionné (`../bench/README.md`).
+
 ## Le build a besoin du réseau, le bac à sable le lui refuse
 
 `./gradlew` — donc `./run build`, `install`, `release` — va chercher la distribution Gradle, puis les dépendances, sur le réseau. Sous le bac à sable des commandes de l'agent, il échoue en `UnknownHostException: services.gradle.org`, une panne de nom qui ne ressemble en rien à une restriction. **Ces commandes se lancent avec le bac à sable désactivé**, sans passer par la boucle « essayer, lire l'erreur, réessayer ».
