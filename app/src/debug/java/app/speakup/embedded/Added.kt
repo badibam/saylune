@@ -42,24 +42,47 @@ object Added {
     ): List<AddedSound> {
         val marks = mutableListOf<AddedSound>()
         val run = mutableListOf<String>()
-        var opened = -1
-        // The end of the last word the learner actually landed in. A borrowed letter belongs
-        // to the neighbour that took it, so it does not move this -- the same rule the
-        // gutters already keep on the model's side, in `Marks.drawn`.
-        var boundary = -1
+        // The last letter the learner claimed, and the word it was in. A borrowed letter
+        // belongs to the neighbour that took it, so neither moves for one -- the same rule
+        // the gutters already keep on the model's side, in `Marks.drawn`.
+        var claimed = -1
+        var word: IntRange? = null
+
+        fun close(next: Sound?) {
+            // Between two words the run sat between them, so the mark goes to the end of the
+            // word before it -- which is what keeps a wedge from splitting `ng` in two. Inside
+            // one word it sat inside that word, and the mark stays on the last letter
+            // claimed: pushing it to the word's end would put it after letters said before
+            // it. The second case is real, not hypothetical -- `Join.trimmed` empties a sound
+            // after the walk when its letters turn out to be worth nothing on it, and one
+            // that can borrow none from a neighbour is then loose in the middle of a word.
+            val after =
+                if (word != null && next?.wordAt != word) word!!.last else claimed
+            val ahead = next?.spots?.minOrNull()
+            // The order, stated rather than hoped for: a mark never reaches back past the
+            // letter said before it, and never past the letter said after it.
+            check(after >= claimed) {
+                "the mark ${run.joinToString(" ")} walks back: $after before letter $claimed"
+            }
+            check(ahead == null || after < ahead) {
+                "the mark ${run.joinToString(" ")} passes letter $ahead, which was said after it"
+            }
+            marks.add(mark(sounds, gaps, after, run))
+            run.clear()
+        }
+
         for (sound in said) {
             if (sound.spots.isEmpty() && sound.borrowed.isEmpty()) {
-                if (run.isEmpty()) opened = boundary
                 run.add(sound.symbol)
                 continue
             }
-            if (run.isNotEmpty()) {
-                marks.add(mark(sounds, gaps, opened, run))
-                run.clear()
+            if (run.isNotEmpty()) close(sound)
+            if (sound.spots.isNotEmpty()) {
+                claimed = sound.spots.max()
+                word = sound.wordAt
             }
-            if (sound.spots.isNotEmpty()) sound.wordAt?.let { boundary = it.last }
         }
-        if (run.isNotEmpty()) marks.add(mark(sounds, gaps, opened, run))
+        if (run.isNotEmpty()) close(null)
         return marks
     }
 
@@ -70,15 +93,7 @@ object Added {
      * in addition is a burst of them at a single word boundary, and it is one thing that
      * happened. Its place is the seam just after [after], the way a gutter's is -- the mark
      * belongs between two letters, and a fault that is found must not vanish for want of
-     * somewhere to paint it.
-     *
-     * [after] is the **end of a word**, never a letter inside one. Measured on a real turn:
-     * `I'm trying how to learn english` against `I'm trying to learn English.` -- the `aʊ` of
-     * `how` was paid for by the `g` of `trying`, which left the `ŋ` holding the `n` alone, so
-     * the loose `h` anchored on the last letter claimed landed between the `n` and the `g`
-     * and was written before the `ŋ`. Anchoring on that letter is not wrong there, it is
-     * incoherent: a stretch that belongs to no word cannot sit inside one, and the reader
-     * sees a mark placed before a letter that was said before it.
+     * somewhere to paint it. Which letter [after] is, and why, is settled by the caller.
      *
      * The readout line is the last compared sound whose own letters end at or before the
      * seam, and -1 before the first of them. Sounds holding no letter are stepped over

@@ -117,6 +117,7 @@ object Join {
             }
             behind = sound.spots.max()
         }
+
         return sounds
     }
 
@@ -156,32 +157,28 @@ object Join {
         for (index in 0 until count) {
             if (index > 0 && best[index].all { it == Double.NEGATIVE_INFINITY }) continue
 
-            // Stepping from one sound to a later one costs a hunger per sound skipped, so
-            // the best predecessor maximises `best[sound] + HUNGER * sound` -- a running
-            // maximum, the skipped stretch being the same for all of them.
+            // Only ever from the neighbouring sound. A sound left with no letter in the
+            // *middle* of a word claims the speaker broke the word off to say something
+            // else and then went back to finish it, which nothing here ever has evidence
+            // for -- and it is what put a mark for added matter inside a word said before
+            // it. Skipping stays possible at either end of the word, where it only means
+            // the word started or stopped being spelt.
             val reachedScore = DoubleArray(symbols.size)
             val reachedFrom = IntArray(symbols.size)
-            var running = Double.NEGATIVE_INFINITY
-            var argmax = 0
             for (sound in symbols.indices) {
                 if (index > 0) {
                     if (sound > 0) {
-                        val stepped = running - HUNGER * (sound - 1)
+                        val stepped = best[index][sound - 1]
                         if (best[index][sound] > stepped) {
                             reachedScore[sound] = best[index][sound]
                             reachedFrom[sound] = sound
                         } else {
                             reachedScore[sound] = stepped
-                            reachedFrom[sound] = argmax
+                            reachedFrom[sound] = sound - 1
                         }
                     } else {
                         reachedScore[0] = best[index][0]
                         reachedFrom[0] = 0
-                    }
-                    val candidate = best[index][sound] + HUNGER * sound
-                    if (candidate > running) {
-                        running = candidate
-                        argmax = sound
                     }
                 } else {
                     reachedScore[sound] = -HUNGER * sound

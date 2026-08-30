@@ -40,37 +40,51 @@ def found(sounds, said, gaps):
     word said in addition is a burst of them at one word boundary, and it is one
     thing that happened.
 
-    Its place is the **end of the word** the last placed sound sat in, never a
-    letter inside that word. Measured on a real turn: `I'm trying how to learn
-    english` against `I'm trying to learn English.` -- the `aʊ` of `how` was paid
-    for by the `g` of `trying`, so the `ŋ` was left holding the `n` alone and the
-    loose `h` anchored between the two, splitting `ng`. Anchoring on the last
-    letter claimed is not wrong there, it is incoherent: a stretch that belongs to
-    no word cannot sit inside one, and the reader sees a mark before a letter that
-    was said before it.
+    **Where it sits is settled by the order, and by nothing else.** A mark falls
+    strictly between the last letter claimed before it and the first letter
+    claimed after it -- so it can never be drawn beside a letter that was said on
+    the other side of it. Inside that window it goes as late as it may:
+
+    - when the next placed sound is in **another word**, the run sat between two
+      words, and the mark goes to the **end of the word before it**. That is the
+      ordinary case of matter said in addition, and it is what keeps a wedge from
+      splitting `ng` in two.
+    - when the next placed sound is in the **same word**, the run sat inside that
+      word, and the mark stays on the last letter claimed. There is no boundary
+      to push it to: pushing it to the end of the word would put it after letters
+      that were said before it.
+
+    The second case is not hypothetical: `trimmed` empties a sound after the walk
+    when the letters it was given turn out to be worth nothing on it, and a sound
+    that can borrow none from a neighbour is then loose in the middle of a word.
+    Measured on 95 renders of the bench, four words are spelt that way.
 
     `gaps` says which sounds of the model's grid were compared, so a mark can
     name the readout line it follows. `Added.kt` is the same thing in Kotlin, and
     the port test holds the two against each other.
     """
-    out, run, opened = [], [], -1
-    # The end of the last word the learner actually landed in. A borrowed letter
-    # belongs to the neighbour that took it, so it does not move this -- the same
-    # rule the gutters already keep on the model's side.
-    boundary = -1
+    out, run, claimed, word = [], [], -1, None
+
+    def close(nextwords, nextclaim):
+        """The seam for the open run, and the proof that it is in order."""
+        after = word[1] - 1 if word is not None and nextwords != word else claimed
+        assert claimed <= after, (
+            f"la marque {' '.join(run)} recule : {after} avant la lettre {claimed}")
+        assert nextclaim is None or after < nextclaim, (
+            f"la marque {' '.join(run)} passe la lettre {nextclaim}, dite après elle")
+        out.append(mark(sounds, gaps, after, list(run)))
+        run.clear()
+
     for sound in said:
         if not (sound.spots or sound.borrowed):
-            if not run:
-                opened = boundary
             run.append(sound.symbol)
             continue
         if run:
-            out.append(mark(sounds, gaps, opened, run))
-            run = []
-        if sound.spots and sound.word_at is not None:
-            boundary = sound.word_at[1] - 1
+            close(sound.word_at, min(sound.spots) if sound.spots else None)
+        if sound.spots:
+            claimed, word = max(sound.spots), sound.word_at
     if run:
-        out.append(mark(sounds, gaps, opened, run))
+        close(None, None)
     return out
 
 

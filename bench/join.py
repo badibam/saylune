@@ -74,6 +74,7 @@ LONGEST = 4
 HUNGER = 1.0
 
 
+
 def widened(spans):
     """Peaks turned into a covering of the time, the gaps split down the middle.
 
@@ -140,25 +141,23 @@ def inner(characters, symbols):
     for index in range(count):
         if index and all(score == float("-inf") for score in best[index]):
             continue
-        # Stepping from `sound` to a later one costs one hunger per sound
-        # skipped, so the best predecessor maximises `best[sound] + HUNGER *
-        # sound` -- a running maximum, the skipped stretch being the same for
-        # all of them.
-        running, argmax = float("-inf"), 0
         reached = []
         for sound in range(len(symbols)):
             if index:
                 if sound:
-                    stepped = running - HUNGER * (sound - 1)
+                    # Only from the neighbour. A sound left with no letter in the
+                    # *middle* of a word claims the speaker broke the word off to
+                    # say something else and then went back to finish it, which
+                    # nothing here ever has evidence for. Skipping stays possible
+                    # at either end of the word, where it means the word simply
+                    # started or stopped being spelt.
+                    stepped = best[index][sound - 1]
                     if best[index][sound] > stepped:
                         reached.append((best[index][sound], sound))
                     else:
-                        reached.append((stepped, argmax))
+                        reached.append((stepped, sound - 1))
                 else:
                     reached.append((best[index][0], 0))
-                candidate = best[index][sound] + HUNGER * sound
-                if candidate > running:
-                    running, argmax = candidate, sound
             else:
                 reached.append((-HUNGER * sound, None))
         for length in range(1, min(LONGEST, count - index) + 1):
@@ -353,6 +352,7 @@ def ordered(sounds):
                 f"la jointure recule : /{sound.symbol}/ prend {sorted(sound.spots)} "
                 f"après la lettre {behind}")
         behind = max(sound.spots)
+
     return sounds
 
 
