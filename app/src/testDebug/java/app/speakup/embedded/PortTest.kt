@@ -31,6 +31,13 @@ class PortTest {
      */
     private val tolerance = 0.005
 
+    /**
+     * The bar a word verdict reads, which is the one the screen already draws to --
+     * `NOISE_BAND` in `MarkingColors.kt`, and `BAND` in `turn.py`. Named here rather than
+     * imported from the UI so the port test depends on nothing drawable.
+     */
+    private val BAND = 5f
+
     @Test
     fun `the marks match what the bench writes`() {
         val frozen = File("src/testDebug/resources/fixture").listFiles()
@@ -53,7 +60,7 @@ class PortTest {
         val segments = Grid.decode(model, alphabet)
         val sounds = Join.joined(segments.map { alphabet[it.symbol] },
                                  expected.getString("text"), affinity)
-        val drawn = Marks.drawn(reading.gaps, sounds)
+        val drawn = Marks.drawn(reading.gaps, sounds, BAND)
 
         val wanted = expected.getJSONArray("phonemes")
         assertEquals("${turn.name}: number of marks", wanted.length(), drawn.phonemes.size)
@@ -64,6 +71,21 @@ class PortTest {
             assertEquals("${turn.name}: mark $index end", row.getInt("end"), got.end)
             assertEquals("${turn.name}: mark $index points",
                          row.getDouble("points"), got.points.toDouble(), tolerance)
+        }
+
+        // Fails rather than skips on a fixture frozen before the channel existed: a
+        // silently unchecked half of the port is what this test exists to prevent.
+        assertTrue(
+            "${turn.name}: frozen before word marks -- re-freeze it with bench/fixture.py",
+            expected.has("words"),
+        )
+        val words = expected.getJSONArray("words")
+        assertEquals("${turn.name}: number of word marks", words.length(), drawn.words.size)
+        for (index in 0 until words.length()) {
+            val row = words.getJSONObject(index)
+            val got = drawn.words[index]
+            assertEquals("${turn.name}: word $index start", row.getInt("start"), got.start)
+            assertEquals("${turn.name}: word $index end", row.getInt("end"), got.end)
         }
 
         val gutters = expected.getJSONArray("gutters")

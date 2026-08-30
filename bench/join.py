@@ -41,7 +41,8 @@ SETS = {"calibration": phrases.CALIBRATION, "heldout": phrases.HELDOUT}
 # reads; `spots` is what a mark is actually drawn on, offsets into the text, and
 # `borrowed` the offsets of a neighbour's letter when this sound holds none of
 # its own. Empty `spots` and empty `borrowed` together mean the gutter.
-Sound = namedtuple("Sound", "symbol low high word letters spots borrowed")
+Sound = namedtuple("Sound",
+                   "symbol low high word word_at letters spots borrowed")
 
 AFFINITY = json.loads((HERE / "affinity.json").read_text(encoding="utf-8"))
 
@@ -256,13 +257,19 @@ def partition(words, symbols):
 
 
 def spoken(text):
-    """The words of `text`, each with its spelling and its writable letters."""
+    """The words of `text`: spelling, whole span, and writable letters.
+
+    The span covers the word entire, silent letters and punctuation included,
+    where `positions` holds only the letters the table can write. A verdict
+    about the word is painted over the span; the letters are what the sounds
+    are matched against.
+    """
     words = []
     for match in re.finditer(r"\S+", text):
         positions = [position for position in range(*match.span())
                      if text[position].lower() in AFFINITY]
         if positions:
-            words.append((match.group(), positions))
+            words.append((match.group(), match.span(), positions))
     return words
 
 
@@ -297,15 +304,17 @@ def joined(wav, text, cache=None):
 
     words = spoken(text)
     cuts = partition([(word, [text[position] for position in positions])
-                      for word, positions in words], symbols)
+                      for word, _, positions in words], symbols)
 
     covered = ["" for _ in sounds]
     spots = [[] for _ in sounds]
     held = [None] * len(sounds)
-    for rank, (word, positions) in enumerate(words):
+    spans = [None] * len(sounds)
+    for rank, (word, at, positions) in enumerate(words):
         start, stop = cuts[rank], cuts[rank + 1]
         for index in range(start, stop):
             held[index] = word
+            spans[index] = at
         _, chosen = inner([text[position] for position in positions],
                           symbols[start:stop])
         for position, sound in zip(positions, chosen):
@@ -313,10 +322,10 @@ def joined(wav, text, cache=None):
                 covered[start + sound] += text[position]
                 spots[start + sound].append(position)
 
-    return [Sound(symbol, low, high, word or "—", letters_held,
+    return [Sound(symbol, low, high, word or "—", at, letters_held,
                   tuple(where), borrowed)
-            for symbol, (low, high), word, letters_held, where, borrowed
-            in zip(symbols, stretches, held, covered, spots,
+            for symbol, (low, high), word, at, letters_held, where, borrowed
+            in zip(symbols, stretches, held, spans, covered, spots,
                    lent(symbols, held, covered, spots, text))]
 
 

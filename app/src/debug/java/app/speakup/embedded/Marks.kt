@@ -2,6 +2,7 @@ package app.speakup.embedded
 
 import app.speakup.analysis.Gutter
 import app.speakup.marking.PhonemeDeviation
+import app.speakup.marking.WordFault
 
 /**
  * The gaps and the letters, turned into what the screen draws.
@@ -22,9 +23,13 @@ object Marks {
      */
     const val POINTS = 100f
 
-    class Drawn(val phonemes: List<PhonemeDeviation>, val gutters: List<Gutter>)
+    class Drawn(
+        val phonemes: List<PhonemeDeviation>,
+        val gutters: List<Gutter>,
+        val words: List<WordFault>,
+    )
 
-    fun drawn(gaps: List<Overlap.Gap>, sounds: List<Sound>): Drawn {
+    fun drawn(gaps: List<Overlap.Gap>, sounds: List<Sound>, band: Float): Drawn {
         val phonemes = mutableListOf<PhonemeDeviation>()
         val gutters = mutableListOf<Gutter>()
         for (gap in gaps) {
@@ -39,6 +44,21 @@ object Marks {
                 phonemes.add(PhonemeDeviation(where.min(), where.max() + 1, points))
             }
         }
-        return Drawn(phonemes, gutters)
+        return Drawn(phonemes, gutters, faulty(gaps, sounds, band))
     }
+
+    /**
+     * The words no sound of which came through.
+     *
+     * Only sounds that were **compared** count: a dropped one says nothing either way, and
+     * treating it as clean would clear a word on the strength of a reading that never
+     * happened. A word all of whose sounds were dropped has no verdict at all.
+     */
+    private fun faulty(gaps: List<Overlap.Gap>, sounds: List<Sound>, band: Float): List<WordFault> =
+        gaps.groupBy { sounds[it.rank].wordAt }
+            .mapNotNull { (word, its) ->
+                if (word == null || its.any { it.value * POINTS <= band }) null
+                else WordFault(word.first, word.last + 1)
+            }
+            .sortedBy { it.start }
 }

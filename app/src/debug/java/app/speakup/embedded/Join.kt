@@ -10,6 +10,12 @@ package app.speakup.embedded
 data class Sound(
     val symbol: String,
     val word: String?,
+    /**
+     * The whole word in the text, silent letters and all -- not just the letters this sound
+     * took. A verdict about the word is painted over every character of it, and the letters
+     * a sound holds are by construction the ones that carry a sound.
+     */
+    val wordAt: IntRange?,
     val letters: String,
     val spots: List<Int>,
     val borrowed: List<Int>,
@@ -47,8 +53,8 @@ object Join {
 
     private const val NONE = -1
 
-    /** A word of the text: what it reads, and the offsets of the letters the table writes. */
-    private data class Spoken(val text: String, val positions: List<Int>)
+    /** A word of the text: where it sits, and the offsets of the letters the table writes. */
+    private class Spoken(val text: String, val at: IntRange, val positions: List<Int>)
 
     fun joined(symbols: List<String>, text: String, affinity: Affinity): List<Sound> {
         require(symbols.isNotEmpty()) { "free decoding produced no sound" }
@@ -58,12 +64,12 @@ object Join {
 
         val covered = Array(symbols.size) { StringBuilder() }
         val spots = Array(symbols.size) { mutableListOf<Int>() }
-        val held = arrayOfNulls<String>(symbols.size)
+        val held = arrayOfNulls<Spoken>(symbols.size)
 
         words.forEachIndexed { rank, word ->
             val start = cuts[rank]
             val stop = cuts[rank + 1]
-            for (index in start until stop) held[index] = word.text
+            for (index in start until stop) held[index] = word
             val characters = word.positions.map { text[it] }
             val chosen = inner(characters, symbols.subList(start, stop), affinity).chosen
             word.positions.forEachIndexed { at, position ->
@@ -79,7 +85,8 @@ object Join {
         return symbols.indices.map { index ->
             Sound(
                 symbol = symbols[index],
-                word = held[index],
+                word = held[index]?.text,
+                wordAt = held[index]?.at,
                 letters = covered[index].toString(),
                 spots = spots[index].toList(),
                 borrowed = borrowed[index],
@@ -92,7 +99,7 @@ object Join {
         val words = mutableListOf<Spoken>()
         Regex("\\S+").findAll(text).forEach { match ->
             val positions = match.range.filter { affinity.writes(text[it]) }
-            if (positions.isNotEmpty()) words.add(Spoken(match.value, positions))
+            if (positions.isNotEmpty()) words.add(Spoken(match.value, match.range, positions))
         }
         return words
     }
@@ -293,7 +300,7 @@ object Join {
      */
     private fun lent(
         symbols: List<String>,
-        held: Array<String?>,
+        held: Array<Spoken?>,
         covered: Array<StringBuilder>,
         spots: Array<MutableList<Int>>,
         text: String,

@@ -83,7 +83,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                 affinity = engine.affinity,
             )
 
-            val drawn = Marks.drawn(reading.gaps, sounds)
+            val drawn = Marks.drawn(reading.gaps, sounds, NOISE_BAND)
 
             // Read off the frames rather than declared: a candidate model that halves its
             // last stride doubles the resolution, and a duration is only worth reading if
@@ -122,7 +122,12 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             val saidAt = Overlap.widened(reading.gaps.map { it.span })
 
             Analysed(
-                marking = TurnMarking(text = text, syllables = emptyList(), phonemes = drawn.phonemes),
+                marking = TurnMarking(
+                    text = text,
+                    syllables = emptyList(),
+                    phonemes = drawn.phonemes,
+                    words = drawn.words,
+                ),
                 gutters = drawn.gutters,
                 dropped = reading.dropped,
                 sounds = reading.gaps.mapIndexed { index, gap ->

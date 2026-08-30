@@ -9,6 +9,7 @@ data class TurnMarking(
     val text: String,
     val syllables: List<Syllable>,
     val phonemes: List<PhonemeDeviation>,
+    val words: List<WordFault>,
 ) {
     /** Pitch bounds across both contours, with a little air so neither hugs the band edge. */
     fun pitchBounds(): ClosedFloatingPointRange<Float> {
@@ -50,6 +51,20 @@ data class Syllable(
 
 /** How far below the model one phoneme fell, in engine points, over the letters it covers. */
 data class PhonemeDeviation(val start: Int, val end: Int, val points: Float)
+
+/**
+ * A word not one sound of which came through: `[start, end)` covers the whole of it.
+ *
+ * Binary, and deliberately so. The per-sound ramp grades because a sound can be a little
+ * off; a word every sound of which is at fault is not a little off, and the reader needs to
+ * see one thing rather than five. It is also the only mark that reaches a word's **silent
+ * letters**, which carry no sound and so can never be tinted by the ramp -- without it, a
+ * word swapped for another lights up in patches and reads as a pronunciation slip.
+ *
+ * No threshold of its own: a word is at fault when every one of its compared sounds is over
+ * the same bar the sounds already answer to. One bar, no second number to tune.
+ */
+data class WordFault(val start: Int, val end: Int)
 
 /**
  * The pitch contour, sampled in character coordinates. Control points sit at syllable

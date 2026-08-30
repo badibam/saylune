@@ -218,10 +218,10 @@ def counted(verbose):
     for slug, text, wanted, got in readings():
         words = join.spoken(text)
         spelled = [(word, [text[position] for position in positions])
-                   for word, positions in words]
+                   for word, _, positions in words]
         want_cuts = join.partition(spelled, wanted)
         got_cuts = join.partition(spelled, got)
-        for rank, (word, _) in enumerate(words):
+        for rank, (word, _, _) in enumerate(words):
             ought = nuclei(wanted[want_cuts[rank]:want_cuts[rank + 1]])
             has = nuclei(got[got_cuts[rank]:got_cuts[rank + 1]])
             outil = word.strip(".,!?'").lower() in FUNCTION

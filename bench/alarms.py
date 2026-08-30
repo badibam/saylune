@@ -120,7 +120,7 @@ def read(voice, take):
     if len(spoken) != len(take.words):
         return None
 
-    order = [word for word, _ in spoken]
+    order = [word for word, _, _ in spoken]
     spread = {}
     for gap in gaps:
         spread.setdefault(sounds[gap.rank].word, []).append(gap.value)

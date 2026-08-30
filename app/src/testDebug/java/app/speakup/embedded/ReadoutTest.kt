@@ -35,7 +35,7 @@ class ReadoutTest {
             val segments = Grid.decode(model, alphabet)
             val text = expected.getString("text")
             val sounds = Join.joined(segments.map { alphabet[it.symbol] }, text, affinity)
-            val drawn = Marks.drawn(reading.gaps, sounds)
+            val drawn = Marks.drawn(reading.gaps, sounds, 5f)
             // The fixture does not carry the stride, and the readout only needs it to turn
             // frames into seconds. This model's is 20 ms.
             val step = 0.02f

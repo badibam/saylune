@@ -57,8 +57,14 @@ object TurnFile {
                 )
             }
         }
+        val words = json.getJSONArray("words").let { array ->
+            (0 until array.length()).map { index ->
+                val entry = array.getJSONObject(index)
+                WordFault(start = entry.getInt("start"), end = entry.getInt("end"))
+            }
+        }
         return Turn(
-            marking = TurnMarking(json.getString("text"), syllables, phonemes),
+            marking = TurnMarking(json.getString("text"), syllables, phonemes, words),
             take = json.optString("take"),
             model = json.optString("model"),
             // Sounds that no letter can carry: the screen owes them a mark in the gutter

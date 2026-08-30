@@ -162,10 +162,10 @@ def grouped(symbols, text):
     """Each sound's word, cut by spelling alone -- no clock, like the join."""
     spoken = join.spoken(text)
     spelled = [(word, [text[position] for position in positions])
-               for word, positions in spoken]
+               for word, _, positions in spoken]
     cuts = join.partition(spelled, symbols)
     held = ["—"] * len(symbols)
-    for rank, (word, _) in enumerate(spoken):
+    for rank, (word, _, _) in enumerate(spoken):
         for index in range(cuts[rank], cuts[rank + 1]):
             held[index] = word
     return held

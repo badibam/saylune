@@ -22,6 +22,12 @@ data class MarkingColors(
     val phonemeLightness: Float,
     val modelContour: Color,
     val learnerContour: Color,
+    /**
+     * A word not one sound of which came through. The saturated end of the phoneme ramp
+     * rather than a colour of its own: it is the same alarm, said about a bigger thing, and
+     * a second hue would read as a different kind of fault.
+     */
+    val wordFault: Color,
     /** Where the stress landed and had no business being. */
     val stressStray: Color,
     /** Where it belonged. Never shown on a correct turn, so it marks a destination, not a pass. */
@@ -38,6 +44,7 @@ fun markingColors(): MarkingColors {
         MarkingColors(
             ink = Color.hsl(220f, 0.06f, 0.92f),
             phonemeLightness = 0.68f,
+            wordFault = Color.hsl(8f, 0.90f, 0.68f),
             modelContour = Color.hsl(212f, 0.18f, 0.52f),
             learnerContour = Color.hsl(199f, 0.86f, 0.62f),
             stressStray = Color.hsl(8f, 0.86f, 0.60f),
@@ -48,6 +55,7 @@ fun markingColors(): MarkingColors {
         MarkingColors(
             ink = Color.hsl(220f, 0.06f, 0.14f),
             phonemeLightness = 0.44f,
+            wordFault = Color.hsl(8f, 0.90f, 0.44f),
             modelContour = Color.hsl(212f, 0.26f, 0.66f),
             learnerContour = Color.hsl(212f, 0.74f, 0.44f),
             stressStray = Color.hsl(8f, 0.82f, 0.46f),

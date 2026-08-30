@@ -44,6 +44,11 @@ RENDERS = HERE / "out" / "renders"
 # not to hide. The scale, like the marking threshold itself, is still open.
 POINTS = 100
 
+# Points of deviation below which the engine's own spread cannot be told from a
+# fault -- `NOISE_BAND` in `MarkingColors.kt`, the bar the screen already draws
+# to. A word verdict reuses it rather than bringing a second number to tune.
+BAND = 5
+
 
 def spans(text, sound):
     """The stretch of text a mark covers, or None when it covers none.
@@ -54,6 +59,27 @@ def spans(text, sound):
     """
     where = sound.spots or sound.borrowed
     return (min(where), max(where) + 1) if where else None
+
+
+def faulty(gaps, sounds):
+    """The words no sound of which came through, each as its whole span.
+
+    Binary where the per-sound ramp grades, because a word every sound of which
+    is at fault is not a little off. It is also the only mark that reaches a
+    word's silent letters, which carry no sound and so can never be tinted.
+
+    No threshold of its own: the same band the sounds already answer to. Only
+    sounds that were compared count, which here is all of them -- `read` gives
+    up on a take whose two lists do not face each other one for one.
+    """
+    verdicts = {}
+    for gap, sound in zip(gaps, sounds):
+        if sound.word_at is None:
+            continue
+        clean = gap.value * POINTS <= BAND
+        verdicts[sound.word_at] = verdicts.get(sound.word_at, True) and not clean
+    return [{"start": start, "end": end}
+            for (start, end), wrong in sorted(verdicts.items()) if wrong]
 
 
 def read(take, model_slug, voice):
@@ -76,6 +102,7 @@ def read(take, model_slug, voice):
               "l'écart n'est pas lisible sur cette prise", file=sys.stderr)
         return None
 
+    words = faulty(gaps, sounds)
     phonemes, gutters = [], []
     for gap, sound in zip(gaps, sounds):
         stretch = spans(text, sound)
@@ -95,7 +122,8 @@ def read(take, model_slug, voice):
     return {"text": text, "take": take, "model": model_slug, "voice": voice,
             "digests": {"model": matrix.fingerprint(model),
                         "take": matrix.fingerprint(learner)},
-            "syllables": [], "phonemes": phonemes, "gutters": gutters}
+            "syllables": [], "phonemes": phonemes, "gutters": gutters,
+            "words": words}
 
 
 def main(argv=None):

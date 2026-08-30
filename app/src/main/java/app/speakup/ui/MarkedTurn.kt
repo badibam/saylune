@@ -113,6 +113,13 @@ private fun annotate(marking: TurnMarking, colors: MarkingColors, tinted: Boolea
             marking.phonemes.forEach {
                 addStyle(SpanStyle(color = phonemeColor(it.points, colors)), it.start, it.end)
             }
+            // Last, so it covers the ramp underneath rather than sitting beside it: a word
+            // no sound of which came through says one thing, not five. It is also the only
+            // pass that reaches the word's silent letters, which carry no sound and would
+            // otherwise stay in neutral ink inside a word that is wholly wrong.
+            marking.words.forEach {
+                addStyle(SpanStyle(color = colors.wordFault), it.start, it.end)
+            }
         } else {
             addStyle(SpanStyle(color = Color.Black), 0, marking.text.length)
         }
