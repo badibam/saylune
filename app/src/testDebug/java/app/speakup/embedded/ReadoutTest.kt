@@ -41,10 +41,16 @@ class ReadoutTest {
             val step = 0.02f
             out.append("=== ").append(turn.name).append(" ===\n")
                 .append(Readout.table(text, reading.gaps, sounds, drawn.phonemes,
-                                      Added.found(segments.map { alphabet[it.symbol] },
-                                                  Grid.decode(said, alphabet)
-                                                      .map { alphabet[it.symbol] },
-                                                  sounds, reading.gaps, text, affinity),
+                                      Added.found(
+                                          said = Grid.decode(said, alphabet),
+                                          spans = Overlap.widened(
+                                              reading.gaps.map { it.span }),
+                                          model = segments.map { alphabet[it.symbol] },
+                                          sounds = sounds,
+                                          gaps = reading.gaps,
+                                          alphabet = alphabet,
+                                          text = text,
+                                          affinity = affinity),
                                       reading.grid, reading.dropped, step, 5f))
                 .append('\n')
                 .append(Readout.spreads(reading.gaps, sounds, step))

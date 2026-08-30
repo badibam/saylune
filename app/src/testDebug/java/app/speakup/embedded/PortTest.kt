@@ -89,10 +89,12 @@ class PortTest {
         }
 
         val added = Added.found(
+            said = Grid.decode(said, alphabet),
+            spans = Overlap.widened(reading.gaps.map { it.span }),
             model = segments.map { alphabet[it.symbol] },
-            said = Grid.decode(said, alphabet).map { alphabet[it.symbol] },
             sounds = sounds,
             gaps = reading.gaps,
+            alphabet = alphabet,
             text = expected.getString("text"),
             affinity = affinity,
         )

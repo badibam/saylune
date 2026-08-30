@@ -110,6 +110,15 @@ object Takes {
                             .put("afterSound", it.afterSound))
                     }
                 })
+                // What the network heard of the learner, in order. No mark reads it; a
+                // take read back does, and without it a take cannot be told apart from a
+                // take read back wrongly.
+                kept.put("freely", JSONArray().apply {
+                    analysed.freely.forEach {
+                        put(JSONObject().put("symbol", it.symbol)
+                            .put("at", JSONArray(listOf(it.at.first, it.at.last))))
+                    }
+                })
                 kept.put("dropped", analysed.dropped)
                 kept.put("sounds", JSONArray().apply {
                     analysed.sounds.forEach { sound ->

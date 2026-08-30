@@ -99,21 +99,18 @@ data class Analysed(
      */
     val added: List<AddedSound>,
     /**
-     * Whether the alignment slid, in which case **nothing here is worth showing**.
+     * The learner's own free decoding, with times -- what the network heard, in order.
      *
-     * The forced alignment must visit every sound of the model in order, so when the learner
-     * says something substantially different it has slack, and it spends the slack putting
-     * each sound wherever that sound fits best. The comparison then finds an agreement it
-     * manufactured itself: measured on a take saying `I said you are, hum, right` against
-     * `I think you're right.`, the /θ/ of `think` scored a perfect zero on audio that was
-     * /s/.
-     *
-     * This is exigence 1 of the analysis (`docs/reference.md`) -- see when it could not place
-     * the sounds -- and the doc names its signature outright: absurd durations. An aberration
-     * nobody sees passes for a fault of the learner's, which is the worst thing this can do.
+     * Not used by any mark: the label is the least reliable thing the network renders, and
+     * nothing here depends on it. It is kept because a take read back without it cannot be
+     * told apart from a take read back wrongly -- twice in one session a kept take was read
+     * as one fault when it was another, for want of this line.
      */
-    val slid: Boolean,
+    val freely: List<Heard>,
 )
+
+/** One sound of the learner's free decoding, and when it was said. */
+data class Heard(val symbol: String, val at: IntRange)
 
 /**
  * One sound of the model's grid, and what the two recordings did with it.

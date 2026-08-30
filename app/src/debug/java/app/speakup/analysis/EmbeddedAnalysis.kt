@@ -87,16 +87,25 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
             val drawn = Marks.drawn(reading.gaps, sounds, NOISE_BAND)
 
+            // Widened, and raw for what was measured: the network is peaky, a raw span is a
+            // frame or two, and an extract of one frame is not something anyone can listen
+            // to. Nothing in the measure reads these -- the screen, the ear and the swelling
+            // below do.
+            val modelAt = Overlap.widened(reading.gaps.map { it.at })
+            val saidAt = Overlap.widened(reading.gaps.map { it.span })
+
             // The one thing the grid cannot hold: the grid is the model's, so a sound the
-            // learner added has no slot in it. Free decoding of the learner is the argmax of
-            // a matrix already computed -- no second pass -- and the edit distance between
-            // the two symbol sequences drops the insertions out.
+            // learner added has no slot in it. Two signals, each blind where the other sees
+            // -- a swelling of the learner's spans for the long ones, the edit distance
+            // between the two decodings for the short ones.
+            val freely = Grid.decode(saidFrames, engine.alphabet)
             val added = Added.found(
+                said = freely,
+                spans = saidAt,
                 model = grid,
-                said = Grid.decode(saidFrames, engine.alphabet)
-                    .map { engine.alphabet[it.symbol] },
                 sounds = sounds,
                 gaps = reading.gaps,
+                alphabet = engine.alphabet,
                 text = text,
                 affinity = engine.affinity,
             )
@@ -105,6 +114,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                 "added" to added.size.toString(),
                 "on a letter" to added.count { it.at != null }.toString(),
             )
+
 
             // Read off the frames rather than declared: a candidate model that halves its
             // last stride doubles the resolution, and a duration is only worth reading if
@@ -135,27 +145,6 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             // with something plausible: a syllable the screen draws carries which side is
             // stressed and each side's pitch, all of them bricks 7 and 10. Inventing them
             // would put a false accent on the screen.
-            // Widened for the spans the screen and the ear use, raw for what was measured:
-            // the network is peaky, a raw span is a frame or two, and an extract of one
-            // frame is not something anyone can listen to. Nothing in the measure reads
-            // these.
-            val modelAt = Overlap.widened(reading.gaps.map { it.at })
-            val saidAt = Overlap.widened(reading.gaps.map { it.span })
-
-            // Did the alignment slide? One sound far longer than the take's own sounds is
-            // the signature the doc names, and comparing a sound to its neighbours rather
-            // than to the model is what makes it hold for a slow speaker: speaking slowly
-            // moves the median with it, sliding moves one sound and leaves the rest.
-            val spans = saidAt.map { it.last + 1 - it.first }.sorted()
-            val middle = spans.getOrNull(spans.size / 2) ?: 0
-            val worst = spans.lastOrNull() ?: 0
-            val slid = middle > 0 && worst > SLIDE * middle
-            Trace.add(
-                "analysis: alignment",
-                "longest / median sound" to "$worst / $middle frames",
-                "verdict" to if (slid) "slid, marks withheld" else "held",
-            )
-
             Analysed(
                 marking = TurnMarking(
                     text = text,
@@ -187,19 +176,11 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     )
                 },
                 added = added,
-                slid = slid,
+                freely = freely.map {
+                    Heard(engine.alphabet[it.symbol], ms(it.start..it.stop - 1, step))
+                },
             )
         }
-
-    /**
-     * How many times the take's median sound one sound may last before the reading is
-     * refused.
-     *
-     * A line drawn between two observations, not a measured threshold: on four real takes
-     * the one said faithfully sat at 1.8 and the two saying a different sentence at 4.5 and
-     * 5.5. It wants a bench, and there is none for it yet.
-     */
-    private val SLIDE = 3
 
     private fun ms(span: IntRange, step: Float): IntRange =
         (span.first * step * 1000).toInt()..((span.last + 1) * step * 1000).toInt()
