@@ -10,12 +10,21 @@ inside a word stays inside that word. Same shape as `join.partition`, one level
 up and on the learner's side.
 
 What it settles and what it does not is written out, table by table, in
-`../docs/design/word-anchoring.md`. Short version: it stops the leakage between
-words, and it does **not** separate a word said differently from a word said in
-addition.
+`../docs/design/added-sounds.md`. Short version: it stops the leakage between
+words, and each run of sounds a word did not ask for is then read as one of two
+things -- the word said more fully than the model says it, or foreign matter
+sitting between two words.
+
+That reading is the last state, and it rests on two signals the symbols alone do
+not carry. **Spelling** first: a fuller reading of a word is made of sounds its
+own letters write, so a sound no letter of the word can pay for came from
+somewhere else. **Time** second, from the free decoding and never from the forced
+alignment: the hole the run occupies, against the model's word stretched to the
+learner's own pace.
 
 Reads take files alone -- no acoustic model, no audio. Everything it needs the
-phone already wrote into `files/takes/<stamp>/turn.json`.
+phone already wrote into `files/takes/<stamp>/turn.json`, plus the letter-to-sound
+table `affinity.json`.
 
     python3 anchor.py <turn.json>...          la version retenue
     python3 anchor.py <turn.json>... -1.5     avec un bloc intercalé à ce prix
@@ -25,6 +34,25 @@ import json
 import re
 import sys
 from pathlib import Path
+
+# Letter -> {sound: strength}, the same table the marking uses to know which
+# letters to paint. It says where a sound may be written, never whether it is
+# right, which is the whole reason it is allowed in this chain at all.
+AFFINITY = json.loads(
+    (Path(__file__).resolve().parent / "affinity.json").read_text(encoding="utf-8"))
+
+
+def payable(symbol, letters):
+    """Can any of these letters write this sound?
+
+    A word said more fully is made of sounds its own spelling accounts for: the
+    `ʊ` and the `ɹ` of an uncontracted `you're` are paid by its `o`/`u` and its
+    `r`. An inserted word brings at least one sound no neighbouring letter pays
+    for -- the `v` of `very` wants a letter `v`, which neither `you're` nor
+    `right` has. Any strength above nought counts; the table's grades rank
+    candidates elsewhere, and here there is nothing to rank.
+    """
+    return any(symbol in AFFINITY.get(letter.lower(), {}) for letter in letters)
 
 
 def words_of(text, sounds):
@@ -151,12 +179,18 @@ def partition(model_words, said, when, windows, between=BETWEEN):
     return blocks[::-1], spare[::-1], (end, count)
 
 
-def leftover(word, block):
-    """Inside one word: what was added, what was dropped, what was said otherwise.
+def align(word, block):
+    """One edit distance between a word of the model and the block said for it.
 
     A proper edit distance and not a walk: a walk cannot tell a sound said
     differently from a sound said in addition, and calls both extra. `you're` said
     /jɑ/ where the model says /jɝ/ adds nothing -- it substitutes.
+
+    Returns a verdict for **each sound of the block**, in order -- `match`,
+    `added`, or the `model>said` label of a substitution -- and the model sounds
+    nothing rendered. Per-sound rather than three heaps, because the runs of added
+    sounds have to be found back in the recording, and a heap has lost where each
+    sound was.
     """
     rows, columns = len(word) + 1, len(block) + 1
     cost = [[0] * columns for _ in range(rows)]
@@ -169,22 +203,71 @@ def leftover(word, block):
             same = word[r - 1] == block[c - 1]
             cost[r][c] = min(cost[r - 1][c - 1] + (0 if same else 1),
                              cost[r - 1][c] + 1, cost[r][c - 1] + 1)
-    added, gone, other, r, c = [], [], [], len(word), len(block)
+    kind, gone, r, c = [None] * len(block), [], len(word), len(block)
     while r > 0 or c > 0:
         if r > 0 and c > 0:
             same = word[r - 1] == block[c - 1]
             if cost[r][c] == cost[r - 1][c - 1] + (0 if same else 1):
-                if not same:
-                    other.append(f"{word[r - 1]}>{block[c - 1]}")
+                kind[c - 1] = "match" if same else f"{word[r - 1]}>{block[c - 1]}"
                 r, c = r - 1, c - 1
                 continue
         if c > 0 and cost[r][c] == cost[r][c - 1] + 1:
-            added.append(block[c - 1])
+            kind[c - 1] = "added"
             c -= 1
             continue
         gone.append(word[r - 1])
         r -= 1
-    return added[::-1], gone[::-1], other[::-1]
+    return kind, gone[::-1]
+
+
+def leftover(word, block):
+    """The same alignment as three heaps: added, dropped, said otherwise."""
+    kind, gone = align(word, block)
+    return ([sound for sound, k in zip(block, kind) if k == "added"], gone,
+            [k for k in kind if k not in ("match", "added")])
+
+
+def runs_of(kind):
+    """The stretches of added sounds, closed only by a sound that matched.
+
+    Two stretches parted by a substitution alone are **one** event: `very` said
+    inside `you're right` comes out as `ʊ ɹ v` and `ɹ i` around a substituted `ɛ`,
+    and one word was inserted once. A word boundary does not close a run either --
+    the partition chose where to cut, the speaker did not.
+    """
+    runs, first, last = [], None, None
+    for at, k in enumerate(list(kind) + ["match"]):
+        if k == "added":
+            first = at if first is None else first
+            last = at
+        elif k == "match" and first is not None:
+            runs.append((first, last + 1))
+            first = last = None
+    return runs
+
+
+def verdict(symbols, letters, hole, word_ms):
+    """What a run of added sounds is: matter between the words, or the word itself
+    said more fully than the model says it.
+
+    Three branches, in order. A sound no letter can write is foreign, whatever the
+    clock says. Otherwise the clock decides: a run that took longer than the whole
+    word it sits in is not that word being drawn out, it is something else said
+    inside it -- which is what catches a `hmm` made of sounds the spelling happens
+    to pay for.
+
+    **The bar is the word's own length, and that is not a tuned number.** It is
+    the one value that is not a knob, taken because five takes of one sentence
+    cannot say where a bar belongs. Those five sit far either side of it -- 464 ms
+    against a 276 ms word, 141 against 308 -- so they say the branches separate,
+    not where the boundary really runs.
+    """
+    foreign = [s for s in symbols if not payable(s, letters)]
+    if foreign:
+        return "intercalé", f"étranger: {' '.join(foreign)}"
+    if hole > word_ms:
+        return "intercalé", f"trou {hole} ms > mot {word_ms} ms"
+    return "réalisation", f"trou {hole} ms ≤ mot {word_ms} ms"
 
 
 def report(path, between=BETWEEN):
@@ -222,7 +305,51 @@ def report(path, between=BETWEEN):
         print("   %-10s %-14s %-16s %-9s" % (
             "(fin)", "—", " ".join(said[tail[0]:tail[1]]),
             " ".join(said[tail[0]:tail[1]])))
+
+    for lo, hi, held, hole, kind, why in readings(take, spans, grouped, blocks):
+        print("   %-10s %-14s %-16s %-9s %s" % (
+            "run", "+".join(spans[r][2] for r in held), " ".join(said[lo:hi]),
+            kind, why))
     print()
+
+
+def readings(take, spans, grouped, blocks):
+    """Every run of added sounds in the take, and what each one is.
+
+    The times are read off the **free decoding**, never off the forced alignment:
+    the alignment has only as many slots as the model has sounds, so it stretched
+    the model's single `ɝ` over an inserted word and put it inside `you're`. The
+    hole runs from the end of the last sound that matched to the start of the
+    first that matches again, and the run of added sounds is what is in it.
+    """
+    sounds, freely = take["sounds"], take["freely"]
+    said = [h["symbol"] for h in freely]
+    model_words = [[sounds[r]["symbol"] for r in ranks] for ranks in grouped]
+
+    kind = ["loose"] * len(said)
+    owner = [None] * len(said)
+    for rank, (lo, hi) in enumerate(blocks):
+        inside, _ = align(model_words[rank], said[lo:hi])
+        for at, verdicted in enumerate(inside):
+            kind[lo + at], owner[lo + at] = verdicted, rank
+
+    # The model's words at the learner's own pace: everything else would compare a
+    # slow speaker's hole to a brisk synthesis and call every one of them foreign.
+    stretch = ((max(s["saidMs"][1] for s in sounds) - min(s["saidMs"][0] for s in sounds))
+               / (max(s["modelMs"][1] for s in sounds) - min(s["modelMs"][0] for s in sounds)))
+    word_ms = [int(stretch * (max(sounds[r]["modelMs"][1] for r in ranks)
+                              - min(sounds[r]["modelMs"][0] for r in ranks)))
+               if ranks else 0 for ranks in grouped]
+
+    out = []
+    for lo, hi in runs_of(kind):
+        held = sorted({owner[at] for at in range(lo, hi) if owner[at] is not None})
+        before = freely[lo - 1]["at"][1] if lo > 0 else freely[lo]["at"][0]
+        after = freely[hi]["at"][0] if hi < len(said) else freely[hi - 1]["at"][1]
+        told, why = verdict(said[lo:hi], "".join(spans[r][2] for r in held),
+                            after - before, sum(word_ms[r] for r in held))
+        out.append((lo, hi, held, after - before, told, why))
+    return out
 
 
 if __name__ == "__main__":
