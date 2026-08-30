@@ -12,7 +12,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
-- `design/word-anchoring.md` — l'ancrage par mot, exploré sur des prises réelles : ce qu'il règle, le mur sur lequel il bute, et l'instrument pour le reprendre.
+- `design/added-sounds.md` — voir un son que l'apprenant ajoute : le fil entier d'une journée, ce qui est mesuré, ce qui est passé dans l'app, ce qui en a été retiré, et l'ancrage par mot exploré puis laissé de côté.
 
 ## Le geste
 

@@ -57,6 +57,8 @@ La boucle tourne de bout en bout sur l'appareil (SM-G975F, LineageOS) : capture,
 
    **Ce qui n'est toujours pas fait, et que le code ne remplace pas** : les gouttières ne sont **toujours pas dessinées**, alors que le chevron qui leur manquait existe maintenant — c'est le même trait, et une gouttière porte des points là où une insertion n'en a pas. Trois lignes, à faire quand la forme du chevron aura été vue à l'écran.
 
+   **L'ancrage par mot a été exploré et n'est pas retenu en l'état** (2026-08-30, `docs/design/added-sounds.md`, instrument `bench/anchor.py`). Il règle ce pour quoi il était fait — plus aucune fuite d'un mot à l'autre, et un mot dit autrement se distingue d'un mot dit en plus — mais il bute sur un mur qu'aucun réglage ne passe : une prononciation que le modèle contracte et pas l'apprenant a exactement la même forme qu'un mot inséré. Rien n'en est passé dans l'app. À reprendre depuis le document, qui porte chaque état et son tableau.
+
    **La suite, si on la veut** : le corpus L2 (2 500 énoncés, beaucoup de locuteurs) est déjà rendu et ses matrices sont en cache — `insertions.py` s'y étendrait sans nouveau calcul. Il faut `pyarrow` pour lire les textes du parquet, absent de la machine de session. Et il faudrait des prises portant une lettre muette prononcée, qui n'existent pas encore : c'est une session d'enregistrement (`take.py`), pas un calcul.
 
 8. **Les trois tours gelés du test de port sont périmés** : `PortTest` vérifie désormais le canal des mots et échoue franchement dessus, plutôt que de sauter la vérification. Ils se regèlent avec `bench/fixture.py`, dans un environnement qui a les dépendances Python du banc :
