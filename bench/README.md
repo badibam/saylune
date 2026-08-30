@@ -13,6 +13,8 @@ Les clés de synthèse, en variables d'environnement — absentes, les scripts �
 
 L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique jusqu'au verdict.
 
+**L'interpréteur est celui du venv, `../tmp/venv/bin/python3`** — jamais le `python3` du système, qui n'a ni `soundfile` ni `onnxruntime` et échoue à l'import. Les `python3` nus des blocs ci-dessous supposent le venv activé (`source ../tmp/venv/bin/activate`). Et il est monté `--system-site-packages` : `numpy` vient du système et n'est pas dedans, donc un venv recréé sans ce drapeau casse le banc sans rien dire d'autre que `No module named 'numpy'`. Il vit dans `tmp/`, gitignoré, donc invisible à qui parcourt l'arbre versionné.
+
 ## Les briques
 
 | Fichier | Rôle |
