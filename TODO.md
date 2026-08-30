@@ -32,6 +32,28 @@ La boucle tourne de bout en bout sur l'appareil (SM-G975F, LineageOS) : capture,
 
 5. **Le fini du BYOK que le doc réclame** : le bouton « tester la clé » qui valide sur-le-champ, sans quoi toute panne ultérieure sera imputée à l'app ; l'écran guidé ; et la sonde de capacités, un appel par fonction optionnelle, qui allume ou éteint les briques au lieu de deviner d'après le plan souscrit.
 
+7. **Le son que l'apprenant ajoute, et la lettre muette qui le porte** (demandé le 2026-08-30). Aujourd'hui la grille est décodée **du modèle seul** et l'apprenant y est aligné de force : il y a autant de cases que le modèle a de sons, pas une de plus. Un son ajouté n'est donc pas mal noté, il **n'est pas vu** — sa seule trace est qu'il occupe du temps dans la plage d'un son voisin, dont il gonfle l'écart, si bien que la marche tombe sur la mauvaise lettre. Et une lettre muette n'a aucun repère (`Join.trimmed` retire aux extrémités ce qui ne rapporte rien), donc rien ne peut la teindre.
+
+   **Le canal, s'il se fait** : décoder librement l'apprenant (`Grid.decode(saidFrames)` — la matrice est déjà calculée, c'est l'argmax de chaque ligne), aligner les deux suites de symboles par une distance d'édition, et ancrer chaque insertion par la table d'affinité sur une lettre du même mot qu'aucun son ne réclame — `affinity.paid`, la fonction que `Join.lent` appelle déjà. Sans lettre où atterrir, la marque va **entre deux lettres**, exactement comme `Gutter` traite le cas symétrique ; un mot entier inséré est une rafale d'insertions à une frontière de mot, donc un seul repère entre deux mots. Jamais l'invisibilité.
+
+   **Pas de points, et c'est structurel** : une insertion n'a pas de côté modèle, donc aucune répartition à comparer. La marque est **binaire**, et sa ligne dans l'analyse n'a ni note ni barre. La masse que le réseau met sur le son inséré est une lecture d'un seul côté — filtre possible, graduation jamais.
+
+   **La mesure passe avant l'écran, et elle ne coûte aucune donnée neuve.** Le décodage libre sur voix d'apprenant n'est mesuré nulle part (les 95 % de la brique 4 sont lus sur des rendus de synthèse) et il consomme l'**étiquette**, la sortie la moins fiable du réseau, que le doc tient à l'écart de toute marque. Ce que la fiabilité constatée de l'app en usage recouvre est l'autre lecture — alignement forcé plus comparaison de répartitions — et ne se transporte pas à celle-ci. À faire d'abord : décoder librement les `said.wav` déjà dans `files/takes/`, compter les insertions par tour, et combien s'ancrent sur une lettre muette. Si le filtre par la lettre porte tout le poids, ça se saura là.
+
+   Conséquence à accepter quand ce sera écrit : le son inséré gonfle **déjà** l'écart du voisin, donc la même faute apparaîtra deux fois — au bon endroit, et en surplus sur le voisin.
+
+8. **Les trois tours gelés du test de port sont périmés** : `PortTest` vérifie désormais le canal des mots et échoue franchement dessus, plutôt que de sauter la vérification. Ils se regèlent avec `bench/fixture.py`, dans un environnement qui a les dépendances Python du banc :
+
+   ```
+   cd bench && ACOUSTIC_MODEL=timit-ipa python3 fixture.py 01-sink --model think
+   cd bench && ACOUSTIC_MODEL=timit-ipa python3 fixture.py 02-dont-know --model doesnt-know
+   cd bench && ACOUSTIC_MODEL=timit-ipa python3 fixture.py 06-ship-sheep --model sheep-field
+   ```
+
+   Le regel change aussi l'ancrage des gouttières, que les deux implémentations posaient à zéro et posent maintenant à la dernière lettre réclamée.
+
+7. **Le contrôle d'alignement dégénéré** (observé en usage le 2026-08-30, **pas prioritaire**). Environ un tour sur cinquante sort complètement faux, et ça ne gêne pas à l'usage — ça se voit, on recommence. C'est l'exigence 1 du doc, la seule pièce qu'il retient du garde-fou supprimé : une aberration se lit à des durées absurdes, sans rien inférer sur le texte. Non écrite. Ce qu'il faut d'abord est un cas : le build debug garde chaque tour dans `files/takes/<horodatage>/`, donc l'artefact est déjà sur le disque — noter l'heure quand ça arrive, et la grille de `turn.json` dira si c'est l'alignement ou un texte de référence faux, qui sont deux signatures différentes.
+
 6. **La suite de la parenthèse**, dont entendre-et-redire est le premier morceau : le **zoom sur le mot** (parenthèse dans la parenthèse), l'**extrait de la prise de l'apprenant au même endroit** à faire entendre juste après le modèle — les plages existent, `AnalysedSound.saidMs`, rien ne les joue — et les deux temps *corriger puis driller*.
 
 ### Les provisoires, notés à l'écriture
@@ -108,6 +130,11 @@ Deux causes se cumulent — et le diagnostic de la première, tel qu'il avait d'
 - **L'écran nomme encore une syllabe, et ce n'est pas une contradiction.** `design/ui-flow.md` met la graisse sur la syllabe que le modèle accentue et pose la réglette verte sur une destination : c'est de l'**affichage**, pas de la marque. La marque — décider s'il y a faute — naît de la divergence des profils et ne désigne rien ; l'affichage, lui, peut lire la syllabe forte du **modèle seul** (une désignation d'un seul côté, sans le plafond du double désignateur, et sur une voix de synthèse, plus contrastée que la parole du banc). Ne jamais faire remonter cette désignation d'affichage dans le calcul de la marque.
 
 ### Le modèle de sons — le choix reste ouvert
+
+**Le juge final n'est aucun de ces instruments : c'est une session de prononciation menée à son terme** (décidé le 2026-08-30). Le banc porte sur ce que l'app *fait*, là où `faults.py` et `alarms.py` portent sur ce qu'elle *voit* : un locuteur natif tient une session avec un candidat, poursuit jusqu'à ce que l'app le déclare quasi parfait, et l'énoncé final est noté. Deux notes distinctes, et les confondre casse le banc — **la note de l'app est la condition d'arrêt, la note qui classe est celle d'une oreille native en aveugle sur le candidat.** Laisser le modèle évalué produire son propre verdict ferait gagner le plus indulgent : il atteint le quasi-parfait en trois essais sans avoir rien appris à personne. Il lui faut donc des juges en plus des locuteurs.
+
+Le coût du banc n'est pas un argument contre lui : le temps qu'il prend est du temps d'apprentissage, pas du temps perdu. Ce qui reste vrai est qu'il ne classe pas cinq candidats — il départage les derniers. Les comparateurs bon marché gardent ce seul rôle : écarter en dix minutes ce qui ne mérite pas une session.
+
 
 **Le seul instrument qui mesure la marque sépare les candidats, et il donne le candidat.** `faults.py` — l'écart sur un son étiqueté fautif contre le même son étiqueté propre — n'avait jamais été lancé sur les états de l'affinage. Lancé, il montre que ce qui sépare n'est pas le réentraînement mais **le poids de la pénalité de fréquence** — l'affinage retranche à chaque son sa fréquence moyenne, ce qui retire au `∅` sa gratuité et étale chaque son sur sa durée, le poids disant de combien —, et que le pas de 0,0 à 0,1 est raide (voir plus bas). Les autres instruments — la jointure, le compte de syllabes, l'oreille à l'aveugle — ne les distinguent toujours pas.
 
