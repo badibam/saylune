@@ -14,6 +14,12 @@ The arithmetic stays in Python and the drawing is in Kotlin, which changes
 nothing of what is seen: same audio, same weights, same grid, same marks.
 Porting it to Kotlin is a separate job (`../TODO.md`).
 
+Two channels beside the marks go to no screen: where the learner freely said each
+sound, and where each sound of the grid sits in each of the two recordings. They
+are what `anchor.py` cuts a take on, and they are the shape the app already
+writes beside its own turns -- without them the labelled set cannot be put
+through the same reading as a take recorded on the phone.
+
 Two channels of `TurnMarking` are left empty on purpose. Brick 8 now cuts the
 syllables (`syllables.cut`), so their extents exist -- but a syllable the app
 draws carries four more fields, and every one of them is brick 7 or brick 10:
@@ -108,13 +114,28 @@ def read(take, model_slug, voice):
     # learner added has no slot in it. Free decoding of the learner is the argmax
     # of a matrix already computed, and the edit distance between the two symbol
     # sequences drops the insertions out. `Added.kt` is the same in Kotlin.
+    heard = matrix.grid(matrix.probabilities(
+        learner, cache=overlap.MATRICES / take / f"{model_slug}.npz"))
     added = insertions.found(
-        text, sounds,
-        [sound.symbol for sound in sounds],
-        [matrix.symbols()[index] for index, _, _ in
-         matrix.grid(matrix.probabilities(
-             learner, cache=overlap.MATRICES / take / f"{model_slug}.npz"))],
-        gaps)
+        text, sounds, [sound.symbol for sound in sounds],
+        [matrix.symbols()[index] for index, _, _ in heard], gaps)
+
+    # The same two readings again, but kept as times rather than spent on the
+    # marks: where the learner freely said each sound, and where each sound of
+    # the grid sits in both recordings. Nothing here feeds the screen -- it is
+    # what `anchor.py` needs to cut the learner's sounds between the words, and
+    # the shape the app already writes beside its own turns.
+    scale = matrix.seconds_per_frame() * 1000
+    stamp = lambda pair: [round(pair[0] * scale), round(pair[1] * scale)]
+    model_grid = matrix.grid(matrix.probabilities(
+        model, cache=overlap.MATRICES / f"sentences-{voice}" / f"{model_slug}.npz"))
+    freely = [{"symbol": matrix.symbols()[index], "at": stamp((start, stop))}
+              for index, start, stop in heard]
+    grid = [{"symbol": sound.symbol, "letters": sound.letters,
+             "borrowed": bool(sound.borrowed),
+             "modelMs": stamp(model_grid[gap.rank][1:]),
+             "saidMs": stamp(gap.span)}
+            for gap, sound in zip(gaps, sounds)]
     phonemes, gutters = [], []
     # Where the last letter anyone claimed was. A gutter has none of its own, so
     # this running position is the only thing that says where in the phrase it
@@ -144,7 +165,7 @@ def read(take, model_slug, voice):
             "digests": {"model": matrix.fingerprint(model),
                         "take": matrix.fingerprint(learner)},
             "syllables": [], "phonemes": phonemes, "gutters": gutters,
-            "words": words, "added": added}
+            "words": words, "added": added, "freely": freely, "sounds": grid}
 
 
 def main(argv=None):
