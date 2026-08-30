@@ -136,30 +136,49 @@ def inner(characters, symbols):
     count = len(characters)
     if not symbols:
         return 0.0, [None] * count
+
+    # Which sounds this word's spelling is allowed to leave without a letter.
+    #
+    # A sound may hold nothing when some letter of the word writes it anyway: the
+    # `x` of `boxes` writes the /k/ and then the /s/, one of the two takes the
+    # letter and the other borrows it, so the second must be steppable over. A
+    # sound **no letter of the word can write at all** is a different thing -- it
+    # does not belong to this word's spelling, which is what matter said in
+    # addition looks like -- and stepping over it lets a later sound reach back
+    # for a letter across it. Measured on a real turn: the `aʊ` of an added `how`
+    # took the `g` of `trying` over a loose `h`, so the `ŋ` kept the `n` alone and
+    # the mark for the `h` landed inside the word.
+    spare = [any(AFFINITY.get(character.lower(), {}).get(symbol, 0)
+                 for character in characters)
+             for symbol in symbols]
+
     best = [[float("-inf")] * len(symbols) for _ in range(count + 1)]
     back = [[None] * len(symbols) for _ in range(count + 1)]
     for index in range(count):
         if index and all(score == float("-inf") for score in best[index]):
             continue
+        # Stepping from `sound` to a later one costs one hunger per sound skipped,
+        # so the best predecessor maximises `best[sound] + HUNGER * sound` -- a
+        # running maximum, the skipped stretch being the same for all of them. It
+        # resets past a sound the word cannot spell, which no step may cross.
+        running, argmax = float("-inf"), 0
         reached = []
         for sound in range(len(symbols)):
             if index:
                 if sound:
-                    # Only from the neighbour. A sound left with no letter in the
-                    # *middle* of a word claims the speaker broke the word off to
-                    # say something else and then went back to finish it, which
-                    # nothing here ever has evidence for. Skipping stays possible
-                    # at either end of the word, where it means the word simply
-                    # started or stopped being spelt.
-                    stepped = best[index][sound - 1]
+                    stepped = running - HUNGER * (sound - 1)
                     if best[index][sound] > stepped:
                         reached.append((best[index][sound], sound))
                     else:
-                        reached.append((stepped, sound - 1))
+                        reached.append((stepped, argmax))
                 else:
                     reached.append((best[index][0], 0))
+                candidate = best[index][sound] + HUNGER * sound
+                if not spare[sound] or candidate > running:
+                    running, argmax = candidate, sound
             else:
-                reached.append((-HUNGER * sound, None))
+                reached.append((-HUNGER * sound if all(spare[:sound])
+                                else float("-inf"), None))
         for length in range(1, min(LONGEST, count - index) + 1):
             group = "".join(characters[index:index + length]).lower()
             weights = GROUPS.get(group) if length > 1 else AFFINITY.get(group)
@@ -171,10 +190,15 @@ def inner(characters, symbols):
                 if score > best[index + length][sound]:
                     best[index + length][sound] = score
                     back[index + length][sound] = (length, chosen)
-    last = max(range(len(symbols)),
-               key=lambda sound: best[count][sound]
-               - HUNGER * (len(symbols) - sound - 1))
-    total = best[count][last] - HUNGER * (len(symbols) - last - 1)
+    def tail(sound):
+        # The same rule at the end of the word: the sounds left over may be
+        # stepped over only if the spelling could have written them.
+        if not all(spare[sound + 1:]):
+            return float("-inf")
+        return best[count][sound] - HUNGER * (len(symbols) - sound - 1)
+
+    last = max(range(len(symbols)), key=tail)
+    total = tail(last)
     if total == float("-inf"):
         # Not one letter of the word is in the table: it takes no sound rather
         # than taking them all for nothing.

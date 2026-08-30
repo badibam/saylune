@@ -150,6 +150,20 @@ object Join {
         val count = characters.size
         if (symbols.isEmpty()) return Matched(0.0, IntArray(count) { NONE })
 
+        // Which sounds this word's spelling is allowed to leave without a letter.
+        //
+        // A sound may hold nothing when some letter of the word writes it anyway: the `x`
+        // of `boxes` writes the /k/ and then the /s/, one of the two takes the letter and
+        // the other borrows it, so the second has to be steppable over. A sound **no letter
+        // of the word can write at all** is a different thing -- it does not belong to this
+        // word's spelling, which is what matter said in addition looks like -- and stepping
+        // over it lets a later sound reach back for a letter across it. Measured on a real
+        // turn: the `aʊ` of an added `how` took the `g` of `trying` over a loose `h`, so
+        // the `ŋ` kept the `n` alone and the mark for the `h` landed inside the word.
+        val spare = BooleanArray(symbols.size) { sound ->
+            characters.any { affinity.paid(it, symbols[sound]) > 0 }
+        }
+
         val best = Array(count + 1) { DoubleArray(symbols.size) { Double.NEGATIVE_INFINITY } }
         val backLength = Array(count + 1) { IntArray(symbols.size) }
         val backFrom = Array(count + 1) { IntArray(symbols.size) { NONE } }
@@ -157,31 +171,38 @@ object Join {
         for (index in 0 until count) {
             if (index > 0 && best[index].all { it == Double.NEGATIVE_INFINITY }) continue
 
-            // Only ever from the neighbouring sound. A sound left with no letter in the
-            // *middle* of a word claims the speaker broke the word off to say something
-            // else and then went back to finish it, which nothing here ever has evidence
-            // for -- and it is what put a mark for added matter inside a word said before
-            // it. Skipping stays possible at either end of the word, where it only means
-            // the word started or stopped being spelt.
+            // Stepping from one sound to a later one costs a hunger per sound skipped, so
+            // the best predecessor maximises `best[sound] + HUNGER * sound` -- a running
+            // maximum, the skipped stretch being the same for all of them. It resets past a
+            // sound the word cannot spell, which no step may cross.
             val reachedScore = DoubleArray(symbols.size)
             val reachedFrom = IntArray(symbols.size)
+            var running = Double.NEGATIVE_INFINITY
+            var argmax = 0
             for (sound in symbols.indices) {
                 if (index > 0) {
                     if (sound > 0) {
-                        val stepped = best[index][sound - 1]
+                        val stepped = running - HUNGER * (sound - 1)
                         if (best[index][sound] > stepped) {
                             reachedScore[sound] = best[index][sound]
                             reachedFrom[sound] = sound
                         } else {
                             reachedScore[sound] = stepped
-                            reachedFrom[sound] = sound - 1
+                            reachedFrom[sound] = argmax
                         }
                     } else {
                         reachedScore[0] = best[index][0]
                         reachedFrom[0] = 0
                     }
+                    val candidate = best[index][sound] + HUNGER * sound
+                    if (!spare[sound] || candidate > running) {
+                        running = candidate
+                        argmax = sound
+                    }
                 } else {
-                    reachedScore[sound] = -HUNGER * sound
+                    reachedScore[sound] =
+                        if ((0 until sound).all { spare[it] }) -HUNGER * sound
+                        else Double.NEGATIVE_INFINITY
                     reachedFrom[sound] = NONE
                 }
             }
@@ -205,6 +226,9 @@ object Join {
         var last = 0
         var total = Double.NEGATIVE_INFINITY
         for (sound in symbols.indices) {
+            // The same rule at the end of the word: what is left over may be stepped over
+            // only if the spelling could have written it.
+            if (!(sound + 1 until symbols.size).all { spare[it] }) continue
             val value = best[count][sound] - HUNGER * (symbols.size - sound - 1)
             if (value > total) {
                 total = value

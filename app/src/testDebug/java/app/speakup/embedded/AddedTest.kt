@@ -52,8 +52,8 @@ class AddedTest {
      *
      * `Join.trimmed` empties a sound after the walk when the letters it was given turn out to
      * be worth nothing on it, and one that can borrow none from a neighbour is loose inside
-     * its word -- measured on four of the bench's 95 renders. Pushing that mark to the end of
-     * the word would put it after letters that were said before it.
+     * its word -- measured on two words of the 549 the bench's renders spell. Pushing that
+     * mark to the end of the word would put it after letters said before it.
      */
     @Test
     fun `a stretch inside a word stays on the last letter claimed`() {

@@ -160,7 +160,10 @@ class DeepseekConversation(
             answering. Never repair their grammar, their word choice or their style: a wrong
             tense, a missing article, a clumsy turn of phrase must survive here exactly as
             they said it. If nothing was misheard, return the transcript with punctuation and
-            capitals only.
+            capitals only. Write every number, date and amount in **words**, never in digits:
+            "twenty five", not "25". The analysis places each sound on the letters that write
+            it, and digits have none -- a number in figures loses its sounds to the word
+            beside it and puts that word's marks on the wrong letters.
 
             "faulty": true when the turn you wrote into "intended" is not correct English --
             a wrong tense, a missing or wrong article, a wrong preposition, a word order or a

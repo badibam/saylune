@@ -20,7 +20,7 @@ CALIBRATION = (
     ("walking-office", "I am walking to the office"),
     ("comfortable", "The chair is very comfortable"),
     ("doesnt-know", "He doesn't know"),
-    ("years-old", "I am 25 years old"),
+    ("years-old", "I am twenty five years old"),
     ("school", "I go to school every day"),
     ("market", "Yesterday I went to the market"),
     ("think-sheep", "I think the sheep are in the field"),
