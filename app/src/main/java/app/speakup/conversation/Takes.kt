@@ -29,6 +29,13 @@ import java.util.Locale
  * A turn is kept whether or not it was analysed. A turn the grammatical gate held back is
  * not analysed, and it is exactly the material the fidelity bench is short of: a real
  * learner fault the recognition could not have guessed.
+ *
+ * **Every take names the turn it belongs to and its rank among that turn's attempts.** Saying
+ * a sentence again writes another folder, and without those two fields the only way back to
+ * which turn it repeated was the identical `text` and the order of the timestamps -- so two
+ * turns carrying the same sentence were indistinguishable, and a session of retries was a
+ * pile to reassemble by hand. A learner saying one sentence three times against one model is
+ * material no bench has; it is only material if the three stay tied together.
  */
 object Takes {
 
@@ -45,17 +52,31 @@ object Takes {
         analysed: Analysed?,
         /** A second take of the same sentence, measured against the same model. */
         redo: Boolean = false,
-    ) {
-        if (!Trace.on) return
-        runCatching {
-            val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).format(Date())
-            val into = File(context.getExternalFilesDir(null), "$DIR/$stamp").apply { mkdirs() }
+        /** The turn this repeats, or null when this take is the turn's first. */
+        turn: String? = null,
+        /** Its rank among that turn's takes, the first being 1. */
+        attempt: Int = 1,
+    ): String? {
+        if (!Trace.on) return null
+        return runCatching {
+            // Saying a sentence again lands inside the same second easily, and two takes
+            // in one folder is one take lost with nothing to say so.
+            val home = File(context.getExternalFilesDir(null), DIR)
+            val clock = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).format(Date())
+            var stamp = clock
+            var again = 2
+            while (File(home, stamp).exists()) stamp = "$clock-${again++}"
+            val into = File(home, stamp).apply { mkdirs() }
 
             said.copyTo(File(into, "said.wav"), overwrite = true)
             model?.copyTo(File(into, "model.wav"), overwrite = true)
 
-            val turn = JSONObject()
+            val kept = JSONObject()
                 .put("at", stamp)
+                // Its own stamp when it is the first: a turn is named by its first take, so
+                // the name exists before there is anything to compare it to.
+                .put("turn", turn ?: stamp)
+                .put("attempt", attempt)
                 .put("text", intended)
                 .put("heard", heard.joinToString(" ") { it.text })
                 .put("faulty", faulty)
@@ -64,20 +85,33 @@ object Takes {
             if (analysed != null) {
                 // `phonemes` keeps the shape `bench/turn.py` writes, so the bench reads a
                 // turn from the phone the way it reads one of its own.
-                turn.put("phonemes", JSONArray().apply {
+                kept.put("phonemes", JSONArray().apply {
                     analysed.marking.phonemes.forEach {
                         put(JSONObject().put("start", it.start).put("end", it.end)
                             .put("points", it.points))
                     }
                 })
-                turn.put("gutters", JSONArray().apply {
+                kept.put("gutters", JSONArray().apply {
                     analysed.gutters.forEach {
                         put(JSONObject().put("symbol", it.symbol).put("after", it.after)
                             .put("points", it.points))
                     }
                 })
-                turn.put("dropped", analysed.dropped)
-                turn.put("sounds", JSONArray().apply {
+                kept.put("words", JSONArray().apply {
+                    analysed.marking.words.forEach {
+                        put(JSONObject().put("start", it.start).put("end", it.end))
+                    }
+                })
+                kept.put("added", JSONArray().apply {
+                    analysed.added.forEach {
+                        put(JSONObject().put("symbol", it.symbol)
+                            .put("at", it.at ?: JSONObject.NULL)
+                            .put("after", it.after)
+                            .put("afterSound", it.afterSound))
+                    }
+                })
+                kept.put("dropped", analysed.dropped)
+                kept.put("sounds", JSONArray().apply {
                     analysed.sounds.forEach { sound ->
                         put(JSONObject()
                             .put("symbol", sound.symbol)
@@ -94,16 +128,18 @@ object Takes {
             // Written aside then renamed: a turn interrupted mid-write would otherwise leave
             // a truncated JSON beside two good wavs, and the bench would read it as a turn.
             val part = File(into, "turn.json.part")
-            part.writeText(turn.toString(2) + "\n", Charsets.UTF_8)
+            part.writeText(kept.toString(2) + "\n", Charsets.UTF_8)
             part.renameTo(File(into, "turn.json"))
 
-            Trace.add("take kept", "where" to into.path)
+            Trace.add("take kept", "where" to into.path,
+                      "turn" to (turn ?: stamp), "attempt" to attempt.toString())
+            stamp
         }.onFailure {
             // Keeping a take is bench material, never the turn. It failing must not cost the
             // learner the conversation -- but it says so rather than passing for a turn that
             // was kept.
             Trace.fail("take not kept", "why" to it.message)
-        }
+        }.getOrNull()
     }
 
     private fun shares(shares: List<app.speakup.analysis.Share>) = JSONArray().apply {

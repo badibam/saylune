@@ -30,6 +30,14 @@ import kotlin.coroutines.resume
 /** Where a turn has got to. The screen shows it; nothing else depends on it. */
 enum class Phase { Idle, Hearing, Thinking, Speaking }
 
+/**
+ * One reading of one turn: what the screen draws, and what it lays out underneath.
+ *
+ * The two travel together because they are one reading -- a marking whose readout came from
+ * another take would put the numbers of one attempt under the colours of another.
+ */
+data class Attempt(val marking: TurnMarking, val sounds: List<AnalysedSound>)
+
 data class ConversationState(
     val exchanges: List<Exchange> = emptyList(),
     val phase: Phase = Phase.Idle,
@@ -38,7 +46,7 @@ data class ConversationState(
     /** Kept so a failed send is retried without saying the sentence again. */
     val pending: File? = null,
     /**
-     * Marks by the position of the learner's turn in [exchanges].
+     * Every reading of each learner turn, oldest first, by its position in [exchanges].
      *
      * Keyed by index because the list only ever grows, and kept beside [exchanges] rather
      * than inside them: an [Exchange] is what the language model is told, and marks are no
@@ -46,10 +54,22 @@ data class ConversationState(
      *
      * A turn absent from here has not been analysed -- which is not the same as a turn
      * with nothing to report, and the two must not be drawn alike.
+     *
+     * **A list and not one reading, because saying the sentence again used to overwrite it.**
+     * Each attempt keeps the analysis it was given, so the earlier ones can still be looked
+     * at. Nothing of an earlier one ever enters a later reading: the same fault must produce
+     * the same mark at any moment, and that is a rule about how a take is *read*, not about
+     * what may be remembered afterwards.
      */
-    val marking: Map<Int, TurnMarking> = emptyMap(),
-    /** What the analysis found under those marks, for the readout. Same keys as [marking]. */
-    val sounds: Map<Int, List<AnalysedSound>> = emptyMap(),
+    val attempts: Map<Int, List<Attempt>> = emptyMap(),
+    /**
+     * The takes written to disk for each turn, oldest first, by their folder name.
+     *
+     * The first names the turn, so every later take can say which turn it repeats. Kept as
+     * the list rather than as a counter: the rank derives from it, and a fact outlives a
+     * status that has to be maintained beside it.
+     */
+    val takes: Map<Int, List<String>> = emptyMap(),
     /**
      * The synthesised model of each analysed turn, kept to be heard again.
      *
@@ -150,7 +170,8 @@ class TurnPipeline(
                 // Kept even so, and especially so: a turn the gate held back is a real
                 // learner fault the recognition could not have guessed, which is what the
                 // fidelity bench is short of.
-                Takes.keep(context, turn, null, heard, reply.intended, true, null)
+                kept(at, Takes.keep(context, turn, null, heard, reply.intended, true, null,
+                                    turn = turnOf(at), attempt = attemptOf(at)))
             } else {
                 examine(at = at, said = turn, heard = heard, text = reply.intended)
             }
@@ -181,18 +202,21 @@ class TurnPipeline(
         val readiness = _state.value.analysis
             ?: analysis.readiness().also { _state.value = _state.value.copy(analysis = it) }
         if (readiness !is Readiness.On) {
-            Takes.keep(context, said, null, heard, text, false, null)
+            kept(at, Takes.keep(context, said, null, heard, text, false, null,
+                                turn = turnOf(at), attempt = attemptOf(at)))
             return
         }
         try {
             val model = synthesis.speak(text, voice())
             val analysed = analysis.examine(said, model, text)
             _state.value = _state.value.copy(
-                marking = _state.value.marking + (at to analysed.marking),
-                sounds = _state.value.sounds + (at to analysed.sounds),
+                attempts = _state.value.attempts +
+                    (at to _state.value.attempts[at].orEmpty() +
+                        Attempt(analysed.marking, analysed.sounds)),
                 models = _state.value.models + (at to model),
             )
-            Takes.keep(context, said, model, heard, text, false, analysed)
+            kept(at, Takes.keep(context, said, model, heard, text, false, analysed,
+                                turn = turnOf(at), attempt = attemptOf(at)))
         } catch (failure: ChainFailure) {
             // The model has to be synthesised, so this branch depends on the network the
             // analysis itself does not. The turn stands either way: it was answered and
@@ -222,9 +246,11 @@ class TurnPipeline(
      * makes it cheap and what makes it honest -- the new take is scored against a reference
      * text known in advance, which is the one thing free conversation cannot offer.
      *
-     * The marks of the turn are replaced rather than added to. The same fault must produce
-     * the same mark at any moment, so a second take is read exactly like a first, and
-     * nothing of the previous reading survives to weigh on it.
+     * The new reading is **added** to the turn's attempts, never merged into the last one.
+     * Nothing of an earlier reading enters this one -- the same fault must produce the same
+     * mark at any moment, so a second take is read exactly like a first -- but the earlier
+     * reading is kept beside it rather than overwritten. The rule is about how a take is
+     * read; it never said the reading had to be thrown away afterwards.
      */
     suspend fun redo(at: Int, audio: File) {
         val model = _state.value.models[at] ?: return
@@ -233,13 +259,29 @@ class TurnPipeline(
         try {
             val analysed = analysis.examine(audio, model, text)
             _state.value = _state.value.copy(
-                marking = _state.value.marking + (at to analysed.marking),
-                sounds = _state.value.sounds + (at to analysed.sounds),
+                attempts = _state.value.attempts +
+                    (at to _state.value.attempts[at].orEmpty() +
+                        Attempt(analysed.marking, analysed.sounds)),
             )
-            Takes.keep(context, audio, model, emptyList(), text, false, analysed, redo = true)
+            kept(at, Takes.keep(context, audio, model, emptyList(), text, false, analysed,
+                                redo = true, turn = turnOf(at), attempt = attemptOf(at)))
         } catch (failure: ChainFailure) {
             Trace.fail("redo: could not be measured", "why" to failure.message)
         }
+    }
+
+    /** The turn's name on disk: its first take, or null while it has none. */
+    private fun turnOf(at: Int): String? = _state.value.takes[at]?.firstOrNull()
+
+    /** Which take of this turn is about to be written, the first being 1. */
+    private fun attemptOf(at: Int): Int = (_state.value.takes[at]?.size ?: 0) + 1
+
+    /** Remember a take that was written, so the next one can name the turn and its rank. */
+    private fun kept(at: Int, stamp: String?) {
+        if (stamp == null) return
+        _state.value = _state.value.copy(
+            takes = _state.value.takes + (at to _state.value.takes[at].orEmpty() + stamp),
+        )
     }
 
     private suspend fun voice(): Voice {
