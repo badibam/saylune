@@ -237,12 +237,21 @@ Les lettres portent alors les deux lectures à la fois, ce qui les fait se regar
 
 La marque est **binaire, structurellement** : la matière ajoutée n'a pas de côté modèle, donc aucune répartition à comparer. Elle se pose **entre deux lettres**, comme la gouttière, et une rafale de sons voisins hors mot fait **une** marque — un mot entier dit en plus est une seule chose qui s'est produite.
 
+**Où elle se pose est réglé par l'ordre, et par rien d'autre.** Une marque tombe strictement entre la dernière lettre réclamée avant elle et la première réclamée après elle, donc elle ne peut jamais se dessiner à côté d'une lettre dite de l'autre côté d'elle. Dans cette fenêtre elle va le plus tard possible, et le test est unique — le son placé qui suit est-il dans le même mot ?
+
+- **Autre mot** : la rafale était entre deux mots, la marque va à la **fin du mot précédent**. C'est le cas ordinaire de la matière ajoutée, et c'est ce qui empêche un chevron de couper `ng` en deux.
+- **Même mot** : la rafale était *dans* le mot, la marque reste sur la **dernière lettre réclamée**. Il n'y a pas de frontière où la pousser — l'y pousser la mettrait après des lettres dites avant elle.
+
+Le second cas n'est pas hypothétique : la jointure vide un son *après* sa marche, quand les lettres qu'il avait reçues ne valent rien sur lui, et un son qui ne peut en emprunter aucune à un voisin est alors hors mot au milieu de son mot. Mesuré : **quatre des 95 rendus du banc** écrivent un mot ainsi.
+
+Deux règles portent cet ordre, et elles se contrôlent au lieu de se supposer. Dans un mot, la marche ne passe **que d'un son à son voisin** — sauter un son au milieu reviendrait à dire que le locuteur a interrompu le mot pour dire autre chose puis l'a repris, ce dont rien ici n'a jamais la preuve ; le saut reste possible aux deux bords, où il dit seulement que le mot a commencé ou cessé d'être écrit. Et la fenêtre ci-dessus est **vérifiée à la fabrication de chaque marque**. Sans la première règle, mesuré sur un tour réel : le `aʊ` d'un `how` ajouté prenait le `g` de `trying` par-dessus le `ŋ`, et le `h` de la même syllabe se retrouvait de l'autre côté. La règle **ne coûte rien** contre l'annotation à la main — 231 sons sur 236 portent les bonnes lettres avec ou sans elle, aux mêmes cinq erreurs près.
+
 **Mesuré** (2026-08-30, `bench/placed.py`, `timit-ipa`, voix `eleven-us-eric`) :
 
 - **La jointure survit à la suite bruitée de l'apprenant** : 250 sons sur 267 trouvent une lettre sur les dix-sept prises du jeu étiqueté, **94 %**, contre 95 % pour la même brique côté modèle. C'était la crainte qui pouvait tuer la piste d'emblée.
 - Sur `I think you're right` dit cinq fois : `very` ajouté **sort** des mots, un `you're` dit sans contraction **reste dedans**, un `I'm` mis pour `you're` laisse son `m` dehors. `I`, `think` et `right` sont propres sur les cinq.
 - Les trois prises `comfortable` posent leur syllabe insérée **dans** le mot, et rien ne sort. **Trois des cinq témoins ne lèvent plus rien du tout.**
-- Environ **une marque par prise** — dix-sept sons hors mot sur dix-sept prises.
+- Environ **une marque par prise** — dix-sept sons hors mot sur dix-sept prises. Le contrôle d'ordre passe sur **110 lectures** (15 prises d'apprenant, 95 rendus, 36 marques) sans une violation.
 
 **Ce qu'elle rate, et qui est accepté.** Une substitution dont aucune lettre du mot ne sait écrire le son **sort du mot** et se lit comme de la matière ajoutée : `have` dit `h æ f`, la lettre `v` n'écrivant pas `f` ; le `s` de `I sink` pour `I think`. Le mot porte une marque de toute façon et l'analyse détaillée nomme le son en cause, donc la faute est vue — elle est seulement nommée deux fois. Et un « hmm » qui se décode en un `ə` se glisse dans une lettre qui sait écrire un `ə` ; quand il se décode en rien, aucune règle ne peut l'inventer.
 
