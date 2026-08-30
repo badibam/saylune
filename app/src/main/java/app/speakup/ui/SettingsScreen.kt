@@ -67,6 +67,12 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
     // no sign at all to someone who never saw it.
     var saved by remember { mutableStateOf(false) }
     var seeded by remember { mutableStateOf(false) }
+
+    // Only the fields this form owns. The rest of the store -- who does which link, with
+    // which model and voice -- belongs to the selectors below, which write it as it is
+    // picked. Seeding those here as empty and writing them back on Save erased every choice
+    // the user had just made, and did it under a button that says "Saved".
+    val typed = remember { Provider.entries.flatMap { it.needs } }
     // Seeded from the store's own first emission, and never again: re-seeding on every
     // emission would overwrite what the user is in the middle of typing.
     //
@@ -76,7 +82,7 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
     // keys -- and saving wrote the blanks back, which removes them.
     LaunchedEffect(Unit) {
         val held = store.values().first()
-        Secret.entries.forEach { secret ->
+        typed.forEach { secret ->
             if (secret !in edits) edits[secret] = held[secret].orEmpty()
         }
         seeded = true
