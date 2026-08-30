@@ -1,27 +1,23 @@
 package app.speakup.conversation
 
 import android.content.Context
-import android.media.MediaPlayer
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
 import app.speakup.chain.Recognition
 import app.speakup.chain.Word
 import app.speakup.analysis.Analysed
+import app.speakup.capture.Playback
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Analysis
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import java.io.File
-import kotlin.coroutines.resume
 
 /** Where a turn has got to. The screen shows it; nothing else depends on it. */
 enum class Phase { Idle, Hearing, Thinking, Speaking }
@@ -150,7 +146,7 @@ class TurnPipeline(
                 pending = null,
             )
 
-            play(synthesis.speak(reply.spoken, synthesis.voice()))
+            Playback.play(synthesis.speak(reply.spoken, synthesis.voice()))
             _state.value = _state.value.copy(phase = Phase.Idle)
             Trace.add("turn: said, and done")
 
@@ -229,7 +225,7 @@ class TurnPipeline(
     suspend fun hear(at: Int) {
         val model = _state.value.models[at] ?: return
         _state.value = _state.value.copy(phase = Phase.Speaking)
-        play(model)
+        Playback.play(model)
         _state.value = _state.value.copy(phase = Phase.Idle)
     }
 
@@ -279,23 +275,4 @@ class TurnPipeline(
         )
     }
 
-    /** Suspends until the reply has finished being said, so the phases mean what they say. */
-    private suspend fun play(wav: File) = withContext(Dispatchers.Main) {
-        suspendCancellableCoroutine { continuation ->
-            val player = MediaPlayer()
-            player.setOnCompletionListener {
-                it.release()
-                if (continuation.isActive) continuation.resume(Unit)
-            }
-            player.setOnErrorListener { p, _, _ ->
-                p.release()
-                if (continuation.isActive) continuation.resume(Unit)
-                true
-            }
-            continuation.invokeOnCancellation { runCatching { player.release() } }
-            player.setDataSource(wav.path)
-            player.prepare()
-            player.start()
-        }
-    }
 }
