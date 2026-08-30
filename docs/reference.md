@@ -6,14 +6,14 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 - `analysis.md` — l'analyse, brique par brique : ce qu'elle lit, ce qu'elle rend, ce qui est mesuré et ce qui reste à écrire.
 - `qualification.md` — comment on la vérifie : la procédure, et le jeu d'essai étiqueté qu'elle déroule. Rejouable par un tiers.
-- `conversation-chain.md` — la latence mesurée de la chaîne reconnaissance (STT) → modèle de langue (LLM) → synthèse (TTS).
+- `conversation-chain.md` — la latence mesurée de la chaîne reconnaissance (STT) → modèle de langue (LLM) → synthèse (TTS), chez Azure comme chez Replicate.
+- `chatterbox-parameters.md` — ce que les modèles chatterbox acceptent et ce qu'ils font sans le demander : les paramètres de chaque variante, les balises entre crochets, la normalisation de ponctuation.
 
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : le fil entier d'une journée, ce qui est mesuré, ce qui est passé dans l'app, ce qui en a été retiré, les deux découpes contre les sons du modèle abandonnées, et la découpe par les lettres retenue et non encore écrite.
-- `design/provider-settings.md` — le réglage des fournisseurs : une clé Replicate peut servir la reconnaissance et la synthèse, le LLM reste chez DeepSeek, chaque brique choisit son fournisseur, le catalogue se récupère à l'ouverture de l'écran.
 
 ## Le geste
 
@@ -232,7 +232,7 @@ Réglage **global unique**, exposé à l'utilisateur. Il gouverne deux choses, q
 
 **Il n'y a pas de troisième chose à aligner.** L'analyse ne consulte aucun référentiel de dialecte : elle compare l'apprenant au modèle, et le modèle est la seule norme. Si le modèle est britannique, tout ce qui en dérive l'est — mécaniquement, sans lexique à choisir ni accord à vérifier. L'accent cesse donc d'être un paramètre de mesure pour n'être plus qu'un choix de voix, et le désaccord d'accent, qui inversait la mesure quand un référentiel extérieur existait, n'a plus de lieu où se produire.
 
-**La voix se choisit.** Deux sélecteurs — le fournisseur de synthèse, puis la voix chez ce fournisseur — et un **étalonnage à la demande** qui avertit si elle échoue. Rien n'est imposé et rien n'est deviné : une voix qui ne s'étalonne pas reste utilisable pour parler, mais elle est signalée comme impropre à servir de modèle. **Ce que l'étalonnage vérifie est à redéfinir**, et **aucune voix n'est aujourd'hui qualifiée** : le test qui existait jugeait une voix aux notes d'un service dont l'app ne dépend plus. Ce qui le remplacera se lit de la matrice — une grille nette, pas de son écrasé, pas de zone où la répartition s'effondre (cf. `../TODO.md`). L'oreille ne peut pas rendre ce verdict : elle juge la voix comme modèle à imiter, pas comme étalon de mesure — une voix naturellement relâchée sonne d'autant mieux qu'elle étalonne mal, et le même modèle acoustique voit une faute sur une voix et la manque sur une autre (`../TODO.md`, tableau de `faults.py`). Les deux aptitudes se vérifient chacune par son juge.
+**La voix se choisit.** Une cascade — le fournisseur de synthèse, puis son modèle quand il en expose plusieurs, puis la voix — et un **étalonnage à la demande** qui avertit si elle échoue. Le modèle est dans la cascade et pas seulement le fournisseur : `chatterbox` et `chatterbox-turbo` offrent les mêmes noms de voix et ne rendent pas la même voix. Rien n'est imposé et rien n'est deviné : une voix qui ne s'étalonne pas reste utilisable pour parler, mais elle est signalée comme impropre à servir de modèle. **Ce que l'étalonnage vérifie est à redéfinir**, et **aucune voix n'est aujourd'hui qualifiée** : le test qui existait jugeait une voix aux notes d'un service dont l'app ne dépend plus. Ce qui le remplacera se lit de la matrice — une grille nette, pas de son écrasé, pas de zone où la répartition s'effondre (cf. `../TODO.md`). L'oreille ne peut pas rendre ce verdict : elle juge la voix comme modèle à imiter, pas comme étalon de mesure — une voix naturellement relâchée sonne d'autant mieux qu'elle étalonne mal, et le même modèle acoustique voit une faute sur une voix et la manque sur une autre (`../TODO.md`, tableau de `faults.py`). Les deux aptitudes se vérifient chacune par son juge.
 
 Par défaut, **le modèle à imiter est la voix de la conversation** — c'est celle qu'on entend déjà, et rien ne justifie d'en présenter une autre. Les dissocier reste possible pour qui le veut : les briques *conversation* et *synthèse* sont indépendantes, unifiées par le seul paramètre d'accent.
 
@@ -249,6 +249,7 @@ Ce qui en découle et se décide au premier commit :
 - Anti-feature **`NonFreeNet`** à déclarer à la soumission.
 - Écran de configuration guidé, avec un bouton **« tester la clé »** qui valide immédiatement. C'est le vrai coût du BYOK : créer une ressource chez un fournisseur est pénible, et sans validation immédiate toute panne ultérieure sera imputée à l'app.
 - **La sonde de capacités se fait là aussi**, une fois : un appel par fonction optionnelle, et l'app allume ou éteint les briques selon les réponses. Elle n'a pas à deviner d'après le plan souscrit, dont on a mesuré qu'il ne correspond pas à ce que le fournisseur annonce.
+- **Le catalogue se récupère à chaque ouverture de l'écran, sans cache — et c'est lui, la sonde.** Demander à un fournisseur les voix qu'il propose valide la clé du même geste : une liste qui revient est une clé qui marche, et la liste revenue est ce que *cette* clé débloque vraiment, non ce que le fournisseur annonce. Un catalogue mis en cache, lui, périt en silence. Le fetch ne bloque pas : seul le sélecteur qui attend dit qu'il attend.
 - L'utilisateur paie sa consommation : l'app doit pouvoir dire ce qu'elle consomme. Restent au compteur la reconnaissance, le modèle de langue et la synthèse, qui se paient aux centimes.
 
 Limite connue et acceptée : le BYOK reste un mur d'adoption — créer une ressource chez trois fournisseurs demande de la patience. Le mur est tenable parce que **l'app est d'abord pour son auteur** : la publication F-Droid est une générosité et une discipline, pas une stratégie d'adoption.
@@ -283,6 +284,12 @@ Deux points de montage réglés par la même mesure. La synthèse **n'est pas pi
 **La synthèse ne doit rendre qu'un audio.** L'exigence 2 ci-dessus — ancrer les marques au texte — se calcule entièrement sur l'appareil, par l'ordre et l'orthographe : la suite de sons est partitionnée entre les mots, et dans chaque mot les lettres se posent sur les sons qu'elles participent à écrire. Rien n'est demandé au fournisseur qu'un wav. **Tout moteur de synthèse est donc candidat**, les libres compris, et le montage n'a plus d'attache étroite nulle part.
 
 **Les fournisseurs de conversation et de synthèse restent à choisir** (cf. `../TODO.md`, chantier 2). Ceux du banc — Azure Speech, DeepSeek — ont servi à mesurer, pas à décider.
+
+**Ce qui est tranché, c'est que le choix appartient à l'utilisateur, brique par brique.** Chaque maillon a son sélecteur de fournisseur, et les mélanger est l'état normal plutôt qu'un cas limite. Une même clé peut servir deux maillons — Replicate porte la reconnaissance et la synthèse — et le mur du BYOK baisse d'autant : un compte au lieu de deux. Un fournisseur n'est offert à un maillon que si sa clé est saisie ; c'est un filtre local, sans aucun appel, ce qui laisse l'écran se dessiner avant que le réseau ait répondu.
+
+Deux conséquences qui se paient dans le code. Le **modèle est un paramètre par maillon**, jamais un attribut de la clé, puisque la même clé sert deux tâches. Et **la disponibilité se demande par maillon** : la clé Azure est indispensable à qui reconnaît chez Azure et sans objet à qui reconnaît chez Replicate — une question posée pour toute la chaîne d'un coup n'a plus de réponse juste.
+
+**Ce qu'un fournisseur rend en plus ne peut jamais devenir une condition.** La reconnaissance en est le cas concret : whisperx rend les bornes de chaque mot, whisper et Azure ne les rendent pas, et l'app ne les exige nulle part — elle répartit les sons entre les mots par l'ordre et l'orthographe, à 95 % (`analysis.md`). Les bornes enrichissent. Elles ne conditionnent pas, et ne le peuvent pas : une brique qui les exigerait s'éteindrait le jour où la reconnaissance devient locale, ce qui est sa destination.
 
 **La reconnaissance a une destination préférée : l'appareil.** Elle est distante comme les deux autres, mais c'est le seul des trois maillons qui puisse cesser de l'être — `sherpa-onnx` fait tourner un modèle de reconnaissance par l'ONNX Runtime que l'app embarque déjà pour l'analyse, donc sans runtime nouveau. Y arriver retirerait un fournisseur du mur BYOK, un motif au `NonFreeNet`, et ferait que l'audio d'un tour **ne quitte plus jamais l'appareil** — seul le texte partirait. Sa justesse sur de la parole d'apprenant accentuée n'est pas mesurée, et elle décide seule.
 

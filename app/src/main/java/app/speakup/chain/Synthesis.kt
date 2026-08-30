@@ -27,7 +27,7 @@ interface Synthesis {
 }
 
 /**
- * A voice at a provider. Two selectors, exactly as the settings screen exposes them.
+ * A voice at a provider, which is the pair the settings screen ends its cascade on.
  *
  * A voice promoted to model passes a test, and a voice that fails it stays usable for
  * talking while being flagged unfit to measure against -- what that test checks is still to
