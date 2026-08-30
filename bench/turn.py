@@ -104,11 +104,16 @@ def read(take, model_slug, voice):
 
     words = faulty(gaps, sounds)
     phonemes, gutters = [], []
+    # Where the last letter anyone claimed was. A gutter has none of its own, so
+    # this running position is the only thing that says where in the phrase it
+    # falls -- reading its own spots gave every gutter the front of the sentence.
+    # Negative before the first letter: a gutter can precede all of them.
+    claimed = -1
     for gap, sound in zip(gaps, sounds):
         stretch = spans(text, sound)
         if stretch is None:
             gutters.append({"symbol": sound.symbol,
-                            "after": max(sound.spots or [0], default=0),
+                            "after": claimed,
                             "points": round(gap.value * POINTS, 2)})
             continue
         start, end = stretch
@@ -116,6 +121,10 @@ def read(take, model_slug, voice):
                          "points": round(gap.value * POINTS, 2),
                          "symbol": sound.symbol,
                          "borrowed": bool(sound.borrowed)})
+        # A borrowed letter belongs to the neighbour that took it, so it does not
+        # move the anchor: the sound itself claimed nothing.
+        if sound.spots:
+            claimed = max(sound.spots)
     # The two audios these points were read off, by their bytes: a fixture
     # regenerated from a drifted render would otherwise change what the screen
     # draws without saying so.

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Share
+import app.speakup.marking.readoutRows
 import java.util.Locale
 
 /**
@@ -37,21 +38,64 @@ import java.util.Locale
  * the two halves are each a weight of the row, so they face each other whatever the width --
  * which is the whole point, since what has to be compared is two spreads side by side.
  *
+ * Every character of the turn is here, sound or no sound. A letter no sound carries -- a
+ * silent one, a space, punctuation -- gets a line of its own with a dash where the verdict
+ * would be. Without them this is a list of sounds and not a sentence, and there is no way to
+ * tell where in the phrase a line sits; with them the phrase reads down the column.
+ *
  * No times here. They are in logcat, where width costs nothing, together with the widened
  * durations that are how a degenerate alignment gives itself away.
  */
 @Composable
-fun AnalysisReadout(sounds: List<AnalysedSound>, modifier: Modifier = Modifier) {
+fun AnalysisReadout(text: String, sounds: List<AnalysedSound>, modifier: Modifier = Modifier) {
     if (sounds.isEmpty()) return
     var open by remember { mutableStateOf<Int?>(null) }
+    val rows = remember(text, sounds) { readoutRows(text, sounds) { it.at } }
 
     Column(modifier = modifier.fillMaxWidth()) {
-        sounds.forEachIndexed { index, sound ->
+        rows.forEachIndexed { index, row ->
+            val sound = row.of
+            if (sound == null) {
+                Unheard(text.substring(row.at.first, row.at.last + 1))
+                return@forEachIndexed
+            }
             Line(sound, marked = sound.points > NOISE_BAND) {
                 open = if (open == index) null else index
             }
             if (open == index) Spreads(sound)
         }
+    }
+}
+
+/**
+ * A stretch of the turn no sound claims. Its letters, and a dash: there is nothing to say
+ * about it, and the line exists so that nothing is missing from the phrase.
+ *
+ * Not tappable, and no bar. A dash is not a good score -- it is the absence of a reading --
+ * and drawing an empty bar for it would put it on the same scale as a sound that came
+ * through clean.
+ *
+ * Quoted, because such a stretch is often nothing but the space between two words, and an
+ * unquoted space is an empty line that looks like a bug.
+ */
+@Composable
+private fun Unheard(letters: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "\"$letters\"",
+            modifier = Modifier.weight(1.1f),
+            style = mono,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            "-",
+            modifier = Modifier.weight(3.4f),
+            style = mono,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

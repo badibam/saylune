@@ -139,6 +139,11 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                             sound.borrowed.joinToString("") { text[it].toString() }
                         },
                         borrowed = sound.letters.isEmpty() && sound.borrowed.isNotEmpty(),
+                        // What it owns, never what it borrowed: a borrowed letter belongs to
+                        // the neighbour that took it, and claiming it here would show it
+                        // twice in a readout laid out on the text.
+                        at = sound.spots.minOrNull()?.let { it..sound.spots.max() }
+                            ?: (0 until 0),
                         model = gap.model.map { Share(it.symbol, it.part) },
                         said = gap.said.map { Share(it.symbol, it.part) },
                         modelMs = ms(modelAt[index], step),

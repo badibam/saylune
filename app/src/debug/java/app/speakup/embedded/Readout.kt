@@ -1,6 +1,7 @@
 package app.speakup.embedded
 
 import app.speakup.marking.PhonemeDeviation
+import app.speakup.marking.readoutRows
 import java.util.Locale
 
 /**
@@ -10,6 +11,10 @@ import java.util.Locale
  * readable. The table gives every sound a line; the spreads give each one the shapes the
  * measure actually compared -- `R .90 / W .10` and `R .90 / ER .10` share a peak and do not
  * say the same thing, and no divergence quoted alone will ever show that.
+ *
+ * The table holds every character of the turn, sound or no sound: a stretch no sound claims
+ * gets a line with a dash, so the phrase can be read down the column and a line can be
+ * placed in it. A list of sounds alone gives no way to tell where in the turn one sits.
  *
  * The durations are the widened spans, not the raw ones: the network is peaky, so every raw
  * span is a frame or two and a column of `0.02` everywhere says nothing -- least of all the
@@ -43,7 +48,23 @@ object Readout {
         out.append(" #  model -> you    pts   letters   dur m/y\n")
         out.append("  (the two peaks are a hint, never the verdict)\n")
         out.append("-".repeat(46)).append('\n')
-        gaps.forEachIndexed { index, gap ->
+        readoutRows(text, gaps.indices.toList()) { index ->
+            sounds[gaps[index].rank].spots.let { spots ->
+                if (spots.isEmpty()) 0 until 0 else spots.min()..spots.max()
+            }
+        }.forEach { row ->
+            val index = row.of
+            if (index == null) {
+                // Columns of the sound line, all dashed but the letters: nothing was read
+                // here, and a blank would read as a zero. Quoted, because a stretch of
+                // text nobody claimed is often nothing but a space, and an unquoted space
+                // is an empty line that looks like a bug.
+                out.append("    %-5s   %-5s %5s  %-9s\n".format(
+                    Locale.ROOT, "-", "-", "-",
+                    "\"" + text.substring(row.at.first, row.at.last + 1) + "\""))
+                return@forEach
+            }
+            val gap = gaps[index]
             val sound = sounds[gap.rank]
             val heard = gap.said.firstOrNull()?.symbol ?: "?"
             val letters = sound.letters.ifEmpty {

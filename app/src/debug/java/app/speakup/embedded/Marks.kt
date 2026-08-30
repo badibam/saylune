@@ -32,6 +32,11 @@ object Marks {
     fun drawn(gaps: List<Overlap.Gap>, sounds: List<Sound>, band: Float): Drawn {
         val phonemes = mutableListOf<PhonemeDeviation>()
         val gutters = mutableListOf<Gutter>()
+        // Where the last letter anyone claimed was. A gutter has no letters of its own, so
+        // this running position is the only thing that says where in the phrase it falls --
+        // its own `spots` are empty, and reading them gave every gutter the front of the
+        // sentence. Negative before the first letter: a gutter can precede all of them.
+        var claimed = -1
         for (gap in gaps) {
             val sound = sounds[gap.rank]
             val points = gap.value * POINTS
@@ -39,10 +44,11 @@ object Marks {
             // marks the gutter, which no character range can express.
             val where = sound.spots.ifEmpty { sound.borrowed }
             if (where.isEmpty()) {
-                gutters.add(Gutter(sound.symbol, sound.spots.maxOrNull() ?: 0, points))
+                gutters.add(Gutter(sound.symbol, claimed, points))
             } else {
                 phonemes.add(PhonemeDeviation(where.min(), where.max() + 1, points))
             }
+            if (sound.spots.isNotEmpty()) claimed = sound.spots.max()
         }
         return Drawn(phonemes, gutters, faulty(gaps, sounds, band))
     }

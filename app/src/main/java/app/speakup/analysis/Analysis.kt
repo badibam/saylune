@@ -108,6 +108,14 @@ data class AnalysedSound(
     /** The letters it covers, or a neighbour's when it holds none, or empty for the gutter. */
     val letters: String,
     val borrowed: Boolean,
+    /**
+     * The characters it **owns**, as offsets into the text; empty when it owns none, its
+     * place in the phrase then coming from its rank among the sounds rather than from here.
+     *
+     * A borrowed letter is not owned: it belongs to the neighbour that took it, and counting
+     * it here would show it twice in a readout laid out on the text.
+     */
+    val at: IntRange,
     val model: List<Share>,
     val said: List<Share>,
     /** Where each side says it, in milliseconds -- the way back to audio to listen to. */
@@ -118,5 +126,11 @@ data class AnalysedSound(
 /** One sound's share of a spread. */
 data class Share(val symbol: String, val part: Float)
 
-/** A sound with no letters of its own, sitting after the character at [after]. */
+/**
+ * A sound with no letters of its own, sitting after the character at [after].
+ *
+ * [after] is -1 when the sound precedes every letter of the turn. It is the position of the
+ * last letter any sound claimed, not of this one: a gutter has no letters, so its own spots
+ * say nothing, and reading them put every gutter at the front of the sentence.
+ */
 data class Gutter(val symbol: String, val after: Int, val points: Float)
