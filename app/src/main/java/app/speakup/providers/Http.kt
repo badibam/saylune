@@ -19,6 +19,39 @@ import java.net.URL
  */
 internal object Http {
 
+    /**
+     * A GET, for the two things a POST cannot do: ask a provider what it offers, and fetch
+     * what a prediction left at a URL.
+     *
+     * Same rule as [post] on headers -- none of them ever reaches a message or the trace.
+     */
+    fun get(url: String, headers: Map<String, String> = emptyMap()): ByteArray {
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 15_000
+            readTimeout = 60_000
+            headers.forEach { (name, value) -> setRequestProperty(name, value) }
+        }
+        try {
+            val status = connection.responseCode
+            if (status !in 200..299) {
+                val said = connection.errorStream?.readBytes()?.decodeToString().orEmpty().take(400)
+                Trace.fail("$status from $url", "said" to said)
+                throw ChainFailure("$url answered $status: $said")
+            }
+            val answer = connection.inputStream.use { it.readBytes() }
+            if (Trace.on) {
+                Trace.add("$status from $url", "back" to sent(connection.contentType.orEmpty(), answer))
+            }
+            return answer
+        } catch (e: IOException) {
+            Trace.fail("unreachable: $url", "why" to e.message)
+            throw ChainFailure("$url could not be reached", e)
+        } finally {
+            connection.disconnect()
+        }
+    }
+
     fun post(
         url: String,
         headers: Map<String, String>,
