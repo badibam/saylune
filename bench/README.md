@@ -28,7 +28,8 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
 | `syllables.py` | la grille sait-elle combien de syllabes a un mot — les sons qu'elle perd, et le nombre de noyaux par mot |
 | `learners.py` | le corpus d'apprenants étiqueté (SpeechOcean762) : ses mots et leur verdict, et le tirage sous budget de caractères |
-| `anchor.py` | **exploration, hors app** : les sons de l'apprenant partagés entre les mots du modèle — ce qu'un ancrage par mot règle et ce qu'il ne règle pas (`../docs/design/word-anchoring.md`) |
+| `anchor.py` | **exploration close, hors app** : les sons de l'apprenant découpés contre les *sons* du modèle — ce que ça règle et pourquoi ça ne peut pas aboutir (`../docs/design/added-sounds.md`, chapitres 7 et 8) |
+| `placed.py` | **la voie retenue, pas encore en Kotlin** : les sons de l'apprenant posés sur les *lettres* du texte, par `join` pointé vers `said.wav` — ce qui ne trouve aucune lettre est de la matière ajoutée, sans qu'aucune durée soit lue |
 | `insertions.py` | le décodage libre de l'apprenant contre la grille du modèle : les sons qu'il ajoute, et si une lettre muette peut les porter |
 | `alarms.py` | à quelle fréquence une marque tombe sur un mot que rien n'accusait — la jointure se fait au mot, aucun seuil n'est posé |
 | `stress.py` | ce que l'accent fait à une syllabe — durée, réduction, intensité, sur les bornes de TIMIT posées à la main, sans réseau |
@@ -86,7 +87,7 @@ ACOUSTIC_MODEL=<nom> python3 syllables.py      # les syllabes se comptent-elles 
 python3 turn.py 01-sink -m think -o ../tmp/turn.json
 ```
 
-`turn.py` rend **un tour analysé** au format que l'écran de marquage consomme : le texte, et pour chaque son de la grille l'écart au modèle et les caractères qu'il couvre. C'est le tuyau entre le banc et l'app, dont l'écran est sinon alimenté par des données en dur (`SampleTurns.kt`). L'arithmétique reste en Python et le dessin en Kotlin.
+`turn.py` rend **un tour analysé** au format que l'écran de marquage consomme : le texte, et pour chaque son de la grille l'écart au modèle et les caractères qu'il couvre. Deux champs de plus ne vont à aucun écran — où l'apprenant a librement dit chaque son, et où chaque son de la grille tombe dans les deux enregistrements — sans quoi le jeu étiqueté ne peut pas passer dans la même lecture qu'un tour enregistré au téléphone. C'est le tuyau entre le banc et l'app, dont l'écran est sinon alimenté par des données en dur (`SampleTurns.kt`). L'arithmétique reste en Python et le dessin en Kotlin.
 
 Deux canaux sortent vides et le resteront jusqu'aux briques 7 et 8 : l'accent et la mélodie passent tous deux par `syllables`, qu'aucun code ne calcule encore.
 
