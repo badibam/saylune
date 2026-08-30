@@ -82,7 +82,7 @@ object Join {
         }
 
         val borrowed = lent(symbols, held, covered, spots, text, affinity)
-        return symbols.indices.map { index ->
+        return ordered(symbols.indices.map { index ->
             Sound(
                 symbol = symbols[index],
                 word = held[index]?.text,
@@ -91,7 +91,33 @@ object Join {
                 spots = spots[index].toList(),
                 borrowed = borrowed[index],
             )
+        })
+    }
+
+    /**
+     * The sounds, once it is established that they walk the text forward.
+     *
+     * Checked rather than assumed, and checked here rather than trusted downstream. Every
+     * consumer reads the order off this list: `readoutRows` lays its lines on the text in it,
+     * and [Added] takes a mark's place in the phrase from the word the sound before it sat
+     * in. A single sound claiming a letter behind its predecessor puts one of those in the
+     * wrong place, silently and only sometimes -- the kind of defect a person finds reading a
+     * screen months later, never anything in here.
+     *
+     * Nothing legitimate produces it: [partition] hands out the words in text order and
+     * [inner] never walks back inside a word. So a failure is a defect in this file, and it
+     * says so rather than returning a list that reads plausibly.
+     */
+    private fun ordered(sounds: List<Sound>): List<Sound> {
+        var behind = -1
+        for (sound in sounds) {
+            if (sound.spots.isEmpty()) continue
+            check(sound.spots.min() > behind) {
+                "the join walks back: /${sound.symbol}/ takes ${sound.spots} after letter $behind"
+            }
+            behind = sound.spots.max()
         }
+        return sounds
     }
 
     /** The words of [text], each with the offsets of its writable letters. */

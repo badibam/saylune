@@ -43,13 +43,13 @@ object Added {
         val marks = mutableListOf<AddedSound>()
         val run = mutableListOf<String>()
         var opened = -1
-        // Where the last letter the learner claimed was. A borrowed letter belongs to the
-        // neighbour that took it, so it does not move this -- the same rule the gutters
-        // already keep on the model's side, in `Marks.drawn`.
-        var claimed = -1
+        // The end of the last word the learner actually landed in. A borrowed letter belongs
+        // to the neighbour that took it, so it does not move this -- the same rule the
+        // gutters already keep on the model's side, in `Marks.drawn`.
+        var boundary = -1
         for (sound in said) {
             if (sound.spots.isEmpty() && sound.borrowed.isEmpty()) {
-                if (run.isEmpty()) opened = claimed
+                if (run.isEmpty()) opened = boundary
                 run.add(sound.symbol)
                 continue
             }
@@ -57,7 +57,7 @@ object Added {
                 marks.add(mark(sounds, gaps, opened, run))
                 run.clear()
             }
-            if (sound.spots.isNotEmpty()) claimed = sound.spots.max()
+            if (sound.spots.isNotEmpty()) sound.wordAt?.let { boundary = it.last }
         }
         if (run.isNotEmpty()) marks.add(mark(sounds, gaps, opened, run))
         return marks
@@ -71,6 +71,14 @@ object Added {
      * happened. Its place is the seam just after [after], the way a gutter's is -- the mark
      * belongs between two letters, and a fault that is found must not vanish for want of
      * somewhere to paint it.
+     *
+     * [after] is the **end of a word**, never a letter inside one. Measured on a real turn:
+     * `I'm trying how to learn english` against `I'm trying to learn English.` -- the `aʊ` of
+     * `how` was paid for by the `g` of `trying`, which left the `ŋ` holding the `n` alone, so
+     * the loose `h` anchored on the last letter claimed landed between the `n` and the `g`
+     * and was written before the `ŋ`. Anchoring on that letter is not wrong there, it is
+     * incoherent: a stretch that belongs to no word cannot sit inside one, and the reader
+     * sees a mark placed before a letter that was said before it.
      *
      * The readout line is the last compared sound whose own letters end at or before the
      * seam, and -1 before the first of them. Sounds holding no letter are stepped over

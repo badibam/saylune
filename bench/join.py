@@ -322,11 +322,38 @@ def joined(wav, text, cache=None):
                 covered[start + sound] += text[position]
                 spots[start + sound].append(position)
 
-    return [Sound(symbol, low, high, word or "—", at, letters_held,
-                  tuple(where), borrowed)
-            for symbol, (low, high), word, at, letters_held, where, borrowed
-            in zip(symbols, stretches, held, spans, covered, spots,
-                   lent(symbols, held, covered, spots, text))]
+    return ordered([Sound(symbol, low, high, word or "—", at, letters_held,
+                          tuple(where), borrowed)
+                    for symbol, (low, high), word, at, letters_held, where, borrowed
+                    in zip(symbols, stretches, held, spans, covered, spots,
+                           lent(symbols, held, covered, spots, text))])
+
+
+def ordered(sounds):
+    """The sounds, once it is established that they walk the text forward.
+
+    Checked rather than assumed, and checked here rather than trusted downstream.
+    Every consumer reads the order off this list -- the readout lays its lines on
+    the text in it, and a mark for added matter takes its place in the phrase from
+    the last letter claimed before it. A single sound claiming a letter behind its
+    predecessor puts one of those in the wrong place, silently and only sometimes,
+    which is the kind of defect that is found by a person reading a screen months
+    later rather than by anything here.
+
+    Nothing legitimate produces it: the partition hands out the words in text
+    order and the match inside a word never walks back. So a failure is a defect
+    in this file, and it says so instead of returning a list that reads plausibly.
+    """
+    behind = -1
+    for sound in sounds:
+        if not sound.spots:
+            continue
+        if min(sound.spots) <= behind:
+            raise AssertionError(
+                f"la jointure recule : /{sound.symbol}/ prend {sorted(sound.spots)} "
+                f"après la lettre {behind}")
+        behind = max(sound.spots)
+    return sounds
 
 
 def runs(sounds):

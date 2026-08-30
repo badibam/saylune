@@ -38,29 +38,37 @@ def found(sounds, said, gaps):
 
     A run of neighbouring loose sounds is **one** mark and not one each: a whole
     word said in addition is a burst of them at one word boundary, and it is one
-    thing that happened. Its place is the seam just after the last letter any of
-    the learner's sounds claimed, the way a gutter's is.
+    thing that happened.
+
+    Its place is the **end of the word** the last placed sound sat in, never a
+    letter inside that word. Measured on a real turn: `I'm trying how to learn
+    english` against `I'm trying to learn English.` -- the `aʊ` of `how` was paid
+    for by the `g` of `trying`, so the `ŋ` was left holding the `n` alone and the
+    loose `h` anchored between the two, splitting `ng`. Anchoring on the last
+    letter claimed is not wrong there, it is incoherent: a stretch that belongs to
+    no word cannot sit inside one, and the reader sees a mark before a letter that
+    was said before it.
 
     `gaps` says which sounds of the model's grid were compared, so a mark can
     name the readout line it follows. `Added.kt` is the same thing in Kotlin, and
     the port test holds the two against each other.
     """
     out, run, opened = [], [], -1
-    # Where the last letter the learner claimed was. A borrowed letter belongs to
-    # the neighbour that took it, so it does not move this -- the same rule the
-    # gutters already keep on the model's side.
-    claimed = -1
+    # The end of the last word the learner actually landed in. A borrowed letter
+    # belongs to the neighbour that took it, so it does not move this -- the same
+    # rule the gutters already keep on the model's side.
+    boundary = -1
     for sound in said:
         if not (sound.spots or sound.borrowed):
             if not run:
-                opened = claimed
+                opened = boundary
             run.append(sound.symbol)
             continue
         if run:
             out.append(mark(sounds, gaps, opened, run))
             run = []
-        if sound.spots:
-            claimed = max(sound.spots)
+        if sound.spots and sound.word_at is not None:
+            boundary = sound.word_at[1] - 1
     if run:
         out.append(mark(sounds, gaps, opened, run))
     return out
