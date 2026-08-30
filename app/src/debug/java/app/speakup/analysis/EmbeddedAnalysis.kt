@@ -142,6 +142,20 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             val modelAt = Overlap.widened(reading.gaps.map { it.at })
             val saidAt = Overlap.widened(reading.gaps.map { it.span })
 
+            // Did the alignment slide? One sound far longer than the take's own sounds is
+            // the signature the doc names, and comparing a sound to its neighbours rather
+            // than to the model is what makes it hold for a slow speaker: speaking slowly
+            // moves the median with it, sliding moves one sound and leaves the rest.
+            val spans = saidAt.map { it.last + 1 - it.first }.sorted()
+            val middle = spans.getOrNull(spans.size / 2) ?: 0
+            val worst = spans.lastOrNull() ?: 0
+            val slid = middle > 0 && worst > SLIDE * middle
+            Trace.add(
+                "analysis: alignment",
+                "longest / median sound" to "$worst / $middle frames",
+                "verdict" to if (slid) "slid, marks withheld" else "held",
+            )
+
             Analysed(
                 marking = TurnMarking(
                     text = text,
@@ -173,8 +187,19 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     )
                 },
                 added = added,
+                slid = slid,
             )
         }
+
+    /**
+     * How many times the take's median sound one sound may last before the reading is
+     * refused.
+     *
+     * A line drawn between two observations, not a measured threshold: on four real takes
+     * the one said faithfully sat at 1.8 and the two saying a different sentence at 4.5 and
+     * 5.5. It wants a bench, and there is none for it yet.
+     */
+    private val SLIDE = 3
 
     private fun ms(span: IntRange, step: Float): IntRange =
         (span.first * step * 1000).toInt()..((span.last + 1) * step * 1000).toInt()

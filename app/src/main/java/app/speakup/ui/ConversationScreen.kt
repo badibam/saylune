@@ -339,13 +339,25 @@ private fun Said(
         // and it is only material if all three survive.
         var shown by rememberSaveable(attempts.size) { mutableStateOf(attempts.size - 1) }
         val attempt = attempts.getOrNull(shown)
-        val marking = attempt?.marking
-        val sounds = attempt?.sounds
+        // An attempt whose alignment slid keeps its take -- it is bench material -- but shows
+        // nothing: its marks are an agreement the aligner manufactured, and drawing them
+        // would accuse the learner of the machine's mistake.
+        val marking = attempt?.takeIf { !it.slid }?.marking
+        val sounds = attempt?.takeIf { !it.slid }?.sounds
 
         if (marking != null) MarkedTurn(marking, modifier = Modifier.fillMaxWidth())
         else Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
+        if (attempt?.slid == true) {
+            Text(
+                stringResource(R.string.turn_alignment_slid),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
         if (attempts.size > 1) Attempts(attempts.size, shown) { shown = it }
-        if (sounds != null) {
+        // The redo controls stay: saying it again is exactly the answer to a reading that
+        // slid, and taking them away would leave no way out of it.
+        if (attempt != null) {
             Redo(recorder, busy, onHear, onRedo)
         }
         if (sounds != null && Trace.on) {

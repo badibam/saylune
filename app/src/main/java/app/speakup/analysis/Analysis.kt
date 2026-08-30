@@ -98,6 +98,21 @@ data class Analysed(
      * since it has exactly as many slots as the model has sounds.
      */
     val added: List<AddedSound>,
+    /**
+     * Whether the alignment slid, in which case **nothing here is worth showing**.
+     *
+     * The forced alignment must visit every sound of the model in order, so when the learner
+     * says something substantially different it has slack, and it spends the slack putting
+     * each sound wherever that sound fits best. The comparison then finds an agreement it
+     * manufactured itself: measured on a take saying `I said you are, hum, right` against
+     * `I think you're right.`, the /θ/ of `think` scored a perfect zero on audio that was
+     * /s/.
+     *
+     * This is exigence 1 of the analysis (`docs/reference.md`) -- see when it could not place
+     * the sounds -- and the doc names its signature outright: absurd durations. An aberration
+     * nobody sees passes for a fault of the learner's, which is the worst thing this can do.
+     */
+    val slid: Boolean,
 )
 
 /**

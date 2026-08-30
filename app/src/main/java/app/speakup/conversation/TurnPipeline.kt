@@ -36,7 +36,12 @@ enum class Phase { Idle, Hearing, Thinking, Speaking }
  * The two travel together because they are one reading -- a marking whose readout came from
  * another take would put the numbers of one attempt under the colours of another.
  */
-data class Attempt(val marking: TurnMarking, val sounds: List<AnalysedSound>)
+data class Attempt(
+    val marking: TurnMarking,
+    val sounds: List<AnalysedSound>,
+    /** The alignment slid, so none of this is worth drawing -- only worth saying. */
+    val slid: Boolean,
+)
 
 data class ConversationState(
     val exchanges: List<Exchange> = emptyList(),
@@ -212,7 +217,7 @@ class TurnPipeline(
             _state.value = _state.value.copy(
                 attempts = _state.value.attempts +
                     (at to _state.value.attempts[at].orEmpty() +
-                        Attempt(analysed.marking, analysed.sounds)),
+                        Attempt(analysed.marking, analysed.sounds, analysed.slid)),
                 models = _state.value.models + (at to model),
             )
             kept(at, Takes.keep(context, said, model, heard, text, false, analysed,
@@ -261,7 +266,7 @@ class TurnPipeline(
             _state.value = _state.value.copy(
                 attempts = _state.value.attempts +
                     (at to _state.value.attempts[at].orEmpty() +
-                        Attempt(analysed.marking, analysed.sounds)),
+                        Attempt(analysed.marking, analysed.sounds, analysed.slid)),
             )
             kept(at, Takes.keep(context, audio, model, emptyList(), text, false, analysed,
                                 redo = true, turn = turnOf(at), attempt = attemptOf(at)))
