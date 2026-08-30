@@ -59,6 +59,16 @@ La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'appr�
 
 Effet de bord précieux : la branche corrigée s'analyse contre un texte **certain**, celui que l'IA vient de proposer. Toute l'incertitude du texte de référence disparaît de cette branche.
 
+## Ce que le réseau entend est la source de vérité
+
+**Question close, à ne pas rouvrir.** La suite de sons que le réseau rend d'un enregistrement **est** ce qui a été dit. Aucune brique n'a le droit de la déclarer fausse, de la corriger vers ce que l'orthographe attendait, ni de traiter un désaccord avec l'orthographe comme une erreur de la machine.
+
+Quand une lettre ne sait pas écrire le son qui a été produit, **c'est la table qui est courte, jamais le réseau qui s'est trompé.** `I'm` dit vite rend `ɑ n` — la voyelle réduite, et le `m` qui s'assimile au `t` qui suit. Ce sont des réductions ordinaires de l'anglais parlé, et la table d'affinité qui ne les couvre pas a un trou. Le réflexe inverse — « le réseau a mal étiqueté » — est faux et il coûte à chaque fois la même demi-journée.
+
+Le signe qui tranche quand le doute revient : **les deux enregistrements lisent pareil.** Une voix de synthèse et un apprenant qui rendent tous deux `ɑ n` au même endroit ne partagent pas une erreur, ils partagent une prononciation.
+
+Cette règle n'est pas en contradiction avec le fait que **nommer le son produit ne sert jamais de verdict** (« Écouter plutôt que se faire expliquer »). Les deux disent des choses différentes et se complètent : l'étiquette ne dit pas si c'était *correct* — ça, c'est l'écart au modèle qui le dit —, et elle dit ce qui a été *produit*, ce que rien n'a le droit de récrire.
+
 ## Les trois échelles du son
 
 Sous « prononciation » il y a trois choses de portée différente, à bien distinguer.
