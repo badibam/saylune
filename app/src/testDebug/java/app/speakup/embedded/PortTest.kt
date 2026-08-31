@@ -49,7 +49,8 @@ class PortTest {
     private fun check(turn: File) {
         val expected = JSONObject(resource(turn, "expected.json").readText())
         val alphabet = Alphabet.read(resource(turn, "vocab.json"))
-        val affinity = Affinity.read(asset("affinity.json"), asset("affinity-groups.json"))
+        val affinity = Affinity.read(asset("affinity.json"), asset("affinity-groups.json"),
+                                     asset("affinity-reductions.json"))
         assertEquals("the table names sounds this model does not render",
                      emptyList<String>(), affinity.unknownTo(alphabet))
 

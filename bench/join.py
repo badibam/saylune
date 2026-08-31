@@ -46,6 +46,23 @@ Sound = namedtuple("Sound",
 
 AFFINITY = json.loads((HERE / "affinity.json").read_text(encoding="utf-8"))
 
+# What speed does to a letter, which is a different question from what spelling
+# does with it and has a different answer: `m` writes /m/, and the `m` of a
+# contraction said fast lands on the /n/ that follows. Generated blind by its own
+# session like the two tables above, and disjoint from them by construction -- a
+# letter/sound pair the spelling table already names is never given again.
+#
+# **It is read after the walk and never inside it.** That is the whole of the
+# guard, and it was written the second way first: merged into the affinity table,
+# a reduction bids for a letter against a spelling and sometimes wins, and the
+# `a` of `learn` went to the /l/ on `a → l`, was cut by the trim that pays only
+# spellings, and ended holding nothing at all -- while the annotated phrases and
+# the count of letterless sounds both stayed exactly where they were. A table
+# that can move a letter can lose one. Read afterwards it can only add, so
+# nothing that placed correctly before can place differently now.
+REDUCED = json.loads(
+    (HERE / "affinity-reductions.json").read_text(encoding="utf-8"))
+
 # The same question asked of groups of letters that write one sound between
 # them: `sh` writes /ʃ/, and the per-letter table cannot say so -- it can only
 # say that `s` and `h` each take part in it, which leaves `sch` free to hand its
@@ -113,7 +130,7 @@ def checked():
     can do, with nothing to say so.
     """
     symbols = set(matrix.symbols())
-    unknown = sorted({sound for table in (AFFINITY, GROUPS)
+    unknown = sorted({sound for table in (AFFINITY, GROUPS, REDUCED)
                       for row in table.values() for sound in row} - symbols)
     if unknown:
         raise SystemExit(
@@ -214,7 +231,7 @@ def inner(characters, symbols):
             chosen[position] = last
             worth[position] = bool(weights.get(symbols[last], 0))
         index, last = index - length, previous
-    return total, trimmed(chosen, worth)
+    return total, filled(characters, symbols, trimmed(chosen, worth))
 
 
 def trimmed(chosen, worth):
@@ -243,6 +260,45 @@ def trimmed(chosen, worth):
             kept[run[high]] = None
             high -= 1
     return kept
+
+
+def filled(characters, symbols, kept):
+    """Sounds the spelling left with nothing, given a letter by the reductions.
+
+    A reduction may **fill** a sound that holds no letter and may never **widen**
+    one that already holds letters its own spelling pays for. The first is what
+    the table was wanted for -- a reduced `I'm` renders `ɑ n`, which no letter of
+    `i`, `'` or `m` writes, so the whole word came back unmarkable. The second is
+    what it costs when unguarded: `t → n` drags the `t` of `market` into a /n/
+    that has its own `n`.
+
+    So only free letters are offered, and only to empty sounds, between the
+    letters their neighbours already claimed -- which is what keeps the join
+    walking the text forward. A sound with no free letter its word can reduce
+    onto keeps nothing and stays the gutter, where it belongs.
+    """
+    if not any(value is None for value in kept):
+        return kept
+    claimed = [position for position, value in enumerate(kept)
+               if value is not None]
+    out = list(kept)
+    for sound in range(len(symbols)):
+        if sound in kept:
+            continue
+        # The stretch this sound may draw from: after every letter a earlier
+        # sound took, before every letter a later one did.
+        low = max((position for position in claimed if out[position] < sound),
+                  default=-1)
+        high = min((position for position in claimed if out[position] > sound),
+                   default=len(characters))
+        run = [position for position in range(low + 1, high)
+               if out[position] is None
+               and REDUCED.get(characters[position].lower(), {})
+                          .get(symbols[sound], 0)]
+        for position in run:
+            out[position] = sound
+        claimed = sorted(claimed + run)
+    return out
 
 
 def partition(words, symbols):

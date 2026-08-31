@@ -198,7 +198,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         val affinity = context.assets.let { assets ->
             val letters = File(context.cacheDir, LETTERS).also { copy(LETTERS, it) }
             val groups = File(context.cacheDir, GROUPS).also { copy(GROUPS, it) }
-            Affinity.read(letters, groups)
+            val reductions = File(context.cacheDir, REDUCTIONS).also { copy(REDUCTIONS, it) }
+            Affinity.read(letters, groups, reductions)
         }
         val unknown = affinity.unknownTo(alphabet)
         if (unknown.isNotEmpty()) {
@@ -244,6 +245,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         const val VOCAB = "vocab.json"
         const val LETTERS = "affinity.json"
         const val GROUPS = "affinity-groups.json"
+        const val REDUCTIONS = "affinity-reductions.json"
 
 
         /** Stated rather than left to the machine: the reading has to be reproducible. */

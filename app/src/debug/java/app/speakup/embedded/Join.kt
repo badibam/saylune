@@ -256,7 +256,53 @@ object Join {
             index -= length
             last = if (from == NONE) 0 else from
         }
-        return Matched(total, trimmed(chosen, worth))
+        return Matched(total, filled(characters, symbols, trimmed(chosen, worth), affinity))
+    }
+
+    /**
+     * Sounds the spelling left with nothing, given a letter by the reductions.
+     *
+     * A reduction may **fill** a sound that holds no letter and may never **widen** one that
+     * already holds letters its own spelling pays for. The first is what the reductions table
+     * was wanted for -- a reduced `I'm` renders `ɑ n`, which no letter of `i`, `'` or `m`
+     * writes, so the whole word came back with nothing markable on it. The second is what it
+     * costs unguarded: `t → n` drags the `t` of `market` into a /n/ that has its own `n`.
+     *
+     * **Read after the walk, never inside it**, and that ordering is the guard rather than any
+     * weight. Merged into the affinity table instead, a reduction bids for a letter against a
+     * spelling and sometimes wins: the `a` of `learn` went to the /l/ on `a → l`, was then cut
+     * by a trim that pays only spellings, and ended holding nothing at all -- while the
+     * annotated phrases and the count of letterless sounds both stayed exactly where they
+     * were. A table that can move a letter can lose one. Read afterwards it can only add.
+     *
+     * Only free letters are offered, and only to empty sounds, between the letters their
+     * neighbours already claimed -- which is what keeps the join walking the text forward. A
+     * sound with no free letter its word can reduce onto keeps nothing and stays the gutter,
+     * where it belongs.
+     */
+    private fun filled(
+        characters: List<Char>,
+        symbols: List<String>,
+        kept: IntArray,
+        affinity: Affinity,
+    ): IntArray {
+        if (kept.none { it == NONE }) return kept
+        val out = kept.copyOf()
+        val claimed = out.indices.filter { out[it] != NONE }.toMutableList()
+        for (sound in symbols.indices) {
+            if (out.contains(sound)) continue
+            // The stretch this sound may draw from: after every letter an earlier sound
+            // took, before every letter a later one did.
+            val low = claimed.filter { out[it] < sound }.maxOrNull() ?: -1
+            val high = claimed.filter { out[it] > sound }.minOrNull() ?: characters.size
+            val run = (low + 1 until high).filter {
+                out[it] == NONE && affinity.reduces(characters[it], symbols[sound])
+            }
+            run.forEach { out[it] = sound }
+            claimed.addAll(run)
+            claimed.sort()
+        }
+        return out
     }
 
     /**
