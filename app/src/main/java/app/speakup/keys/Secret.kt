@@ -31,6 +31,7 @@ enum class Secret(
     ReplicateEndpoint("replicate.endpoint", R.string.secret_replicate_endpoint, masked = false),
     AzureSpeechKey("azure.speech.key", R.string.secret_azure_key),
     AzureSpeechRegion("azure.speech.region", R.string.secret_azure_region, masked = false),
+    ElevenLabsApiKey("elevenlabs.api.key", R.string.secret_elevenlabs_key),
     DeepseekApiKey("deepseek.api.key", R.string.secret_deepseek_key),
     DeepseekEndpoint("deepseek.endpoint", R.string.secret_deepseek_endpoint, masked = false),
 

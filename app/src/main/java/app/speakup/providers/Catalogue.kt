@@ -89,6 +89,23 @@ enum class Provider(
         // model to pick: the region is the endpoint and the voice is the whole choice.
         models = emptyMap(),
     ),
+    ElevenLabs(
+        id = "elevenlabs",
+        label = "ElevenLabs",
+        needs = listOf(Secret.ElevenLabsApiKey),
+        does = setOf(Task.Recognition, Task.Synthesis),
+        // Billed by the character, which is why it is worth offering: a turn spends the
+        // answer plus `intended`, and saying a sentence again spends nothing.
+        models = mapOf(
+            Task.Recognition to listOf("scribe_v1"),
+            // Flash first: it is the one whose first sound arrives soonest, and the
+            // synthesis is the link measured costing the most before anything is heard
+            // (`../../../../../../TODO.md`).
+            Task.Synthesis to listOf(
+                "eleven_flash_v2_5", "eleven_turbo_v2_5", "eleven_multilingual_v2",
+            ),
+        ),
+    ),
     Deepseek(
         id = "deepseek",
         label = "DeepSeek",
@@ -129,6 +146,7 @@ enum class Provider(
         Replicate -> ReplicateClient.choicesFor(ReplicateClient(store).schema(model), "voice")
             .map { VoiceOption(id = it, label = it) }
         Azure -> azureVoices(store)
+        ElevenLabs -> elevenVoices(store)
         Deepseek -> throw ChainFailure("DeepSeek has no voices")
     }
 
@@ -158,6 +176,38 @@ enum class Provider(
             VoiceOption(
                 id = id,
                 label = "$locale · $named" + if (gender.isBlank()) "" else " ($gender)",
+            )
+        }.sortedBy { it.label }
+    }
+
+    /**
+     * ElevenLabs lists what this key can reach, which is what makes the fetch the probe:
+     * a list that comes back is a key that works, and it is what *this* key unlocks rather
+     * than what the plan advertises.
+     */
+    private suspend fun elevenVoices(store: SecretStore): List<VoiceOption> {
+        val key = store.values().first()[Secret.ElevenLabsApiKey]
+            ?: throw ChainFailure("no ElevenLabs key has been entered")
+        val answer = withContext(Dispatchers.IO) {
+            Http.get("${ElevenLabsSynthesis.BASE}/voices", mapOf("xi-api-key" to key))
+                .decodeToString()
+        }
+        val listed = org.json.JSONObject(answer).optJSONArray("voices")
+            ?: throw ChainFailure("ElevenLabs listed no voices")
+        return (0 until listed.length()).mapNotNull { at ->
+            val voice = listed.optJSONObject(at) ?: return@mapNotNull null
+            val id = voice.optString("voice_id")
+            if (id.isBlank()) return@mapNotNull null
+            val labels = voice.optJSONObject("labels")
+            // The accent is the one thing anyone asks of a voice here, and unlike Azure's
+            // ids it is not written into the name -- so it goes in front when it is known.
+            val accent = labels?.optString("accent").orEmpty()
+            val named = voice.optString("name").ifBlank { id }
+            VoiceOption(
+                id = id,
+                label = (if (accent.isBlank()) named else "$accent · $named") +
+                    (labels?.optString("gender").orEmpty()
+                        .let { if (it.isBlank()) "" else " ($it)" }),
             )
         }.sortedBy { it.label }
     }

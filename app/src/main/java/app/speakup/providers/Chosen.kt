@@ -39,6 +39,7 @@ class ChosenRecognition(private val store: SecretStore) : Recognition {
         return when (provider) {
             Provider.Replicate -> ReplicateRecognition(store, model)
             Provider.Azure -> AzureRecognition(store)
+            Provider.ElevenLabs -> ElevenLabsRecognition(store, model)
             Provider.Deepseek -> throw ChainFailure("DeepSeek does not transcribe")
         }.transcribe(audio)
     }
@@ -67,6 +68,7 @@ class ChosenSynthesis(
         return when (provider) {
             Provider.Replicate -> ReplicateSynthesis(context, store, model)
             Provider.Azure -> AzureSynthesis(context, store)
+            Provider.ElevenLabs -> ElevenLabsSynthesis(context, store, model)
             Provider.Deepseek -> throw ChainFailure("DeepSeek does not speak")
         }.speak(text, voice)
     }
