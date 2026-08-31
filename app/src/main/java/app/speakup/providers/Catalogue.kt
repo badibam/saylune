@@ -82,8 +82,17 @@ enum class Provider(
             // whisperx first because it is the one that gives word spans. whisper is kept
             // beside it precisely because it does not: the app has to hold up without them,
             // and the seam's own contract allows a word with no bounds.
-            Task.Recognition to listOf("victor-upmeet/whisperx", "openai/whisper"),
-            Task.Synthesis to listOf("resemble-ai/chatterbox-turbo", "resemble-ai/chatterbox"),
+            Task.Recognition to listOf(
+                "victor-upmeet/whisperx", "openai/whisper", "elevenlabs/scribe-v2",
+            ),
+            // The same voices reached by two routes, and they are not the same offer: the
+            // direct one serves raw PCM and lists the account's whole voice library, this
+            // one returns a compressed file and eight preset names from its schema. Both
+            // are kept because the difference is real and the choice is the user's.
+            Task.Synthesis to listOf(
+                "resemble-ai/chatterbox-turbo", "resemble-ai/chatterbox",
+                "elevenlabs/flash-v2.5", "elevenlabs/turbo-v2.5", "elevenlabs/v3",
+            ),
         ),
     ),
     Azure(

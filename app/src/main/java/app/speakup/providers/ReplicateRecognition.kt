@@ -52,22 +52,63 @@ class ReplicateRecognition(
             "data:audio/wav;base64," + Base64.encodeToString(audio.readBytes(), Base64.NO_WRAP)
         }
 
-        val input = JSONObject().put("language", "en")
-        val prediction = if (alignable) {
-            client.predict(model, input.put("audio_file", uri).put("align_output", true))
-        } else {
-            client.predict(model, input.put("audio", uri))
+        val prediction = when {
+            scribe -> client.predict(
+                model,
+                JSONObject()
+                    .put("audio", uri)
+                    .put("language_code", "en")
+                    .put("timestamps_granularity", "word")
+                    // Laughter and coughs are not words and must not become any. Verbatim
+                    // stays on, which is what this link owes the analysis: a recognition
+                    // that tidies up erases the learning signal before anything judges it.
+                    .put("tag_audio_events", false)
+                    .put("no_verbatim", false),
+            )
+            alignable -> client.predict(
+                model,
+                JSONObject().put("language", "en").put("audio_file", uri)
+                    .put("align_output", true),
+            )
+            else -> client.predict(model, JSONObject().put("language", "en").put("audio", uri))
         }
 
         val output = prediction.opt("output") as? JSONObject
             ?: throw ChainFailure("$model returned no transcript")
-        val words = if (alignable) aligned(output) else plain(output)
+        val words = when {
+            scribe -> scribed(output)
+            alignable -> aligned(output)
+            else -> plain(output)
+        }
         Trace.add(
             "recognition: read the mouth",
             "words" to words.joinToString(" ") { it.text },
             "spans" to if (words.any { it.startMs != null }) "yes" else "no",
         )
         return words
+    }
+
+    /**
+     * Scribe: a word list with bounds in seconds, and entries that are not words.
+     *
+     * Its punctuation is dropped here as it is on the direct route -- punctuation belongs to
+     * the language model, which places it by the intention it answers, and two links
+     * deciding it would make the synthesised model's contour depend on which recognition
+     * was chosen.
+     */
+    private fun scribed(output: JSONObject): List<Word> {
+        val said = output.optJSONArray("words") ?: JSONArray()
+        return (0 until said.length()).mapNotNull { at ->
+            val word = said.optJSONObject(at) ?: return@mapNotNull null
+            if (word.optString("type", "word") != "word") return@mapNotNull null
+            val text = bare(word.optString("text"))
+            if (text.isEmpty()) return@mapNotNull null
+            Word(
+                text = text,
+                startMs = word.optDouble("start").takeIf { !it.isNaN() }?.times(1000)?.toInt(),
+                endMs = word.optDouble("end").takeIf { !it.isNaN() }?.times(1000)?.toInt(),
+            )
+        }
     }
 
     /** whisperx: the words are already separate, and each carries where it was said. */
@@ -110,4 +151,7 @@ class ReplicateRecognition(
 
     /** Only whisperx aligns, and only when asked; the rest give the sentence. */
     private val alignable: Boolean get() = model.endsWith("whisperx")
+
+    /** Scribe takes its own input names and answers with its own word list. */
+    private val scribe: Boolean get() = model.startsWith("elevenlabs/")
 }

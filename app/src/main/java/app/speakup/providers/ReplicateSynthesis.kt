@@ -63,9 +63,12 @@ class ReplicateSynthesis(
             "voice" to voice.id,
             "chars" to text.length.toString(),
         )
-        val input = JSONObject()
-            .put(textFieldOf(model), text)
-            .put("seed", SEED)
+        val input = JSONObject().put(textFieldOf(model), text)
+        // A seed only where there is one to set. The chatterbox models sample and must be
+        // pinned or every render of the same sentence is a different yardstick; the
+        // ElevenLabs models expose no such input, and sending one they do not declare is
+        // asking to be refused.
+        if (!model.startsWith("elevenlabs/")) input.put("seed", SEED)
         if (voice.id.isNotBlank()) input.put("voice", voice.id)
 
         val audio = client.fetch(model, input) { output ->
@@ -97,13 +100,14 @@ class ReplicateSynthesis(
     }
 
     /**
-     * The two chatterbox models disagree on what the text field is called -- `text` for the
-     * turbo, `prompt` for the other -- and nothing about a schema makes one of them wrong.
+     * Models disagree on what the text field is called -- `text` for the chatterbox turbo,
+     * `prompt` for the other one and for all the ElevenLabs models -- and nothing about a
+     * schema makes one of them wrong.
      * Read off the model name rather than fetched: it is one word of difference, and a fetch
      * to learn it would cost a round trip before every synthesis.
      */
     private fun textFieldOf(model: String): String =
-        if (model.endsWith("chatterbox")) "prompt" else "text"
+        if (model.endsWith("chatterbox") || model.startsWith("elevenlabs/")) "prompt" else "text"
 
     private companion object {
         /**
