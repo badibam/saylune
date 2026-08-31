@@ -82,6 +82,18 @@ object Takes {
                 .put("faulty", faulty)
                 .put("analysed", analysed != null)
                 .put("redo", redo)
+                // **Where a timing survives.** Every step is timed against the start of the
+                // turn and goes to logcat, and on this phone logcat keeps 81 seconds: some
+                // system service floods a 256 kB ring, so a turn is erased before it can be
+                // read. Written here, a latency stays attached to the take it belongs to and
+                // is still there a week later, which is what comparing two ways of running
+                // the chain needs. Names and moments only -- see `Trace.ofTurn`.
+                .put("steps", JSONArray().apply {
+                    Trace.ofTurn().forEach {
+                        put(JSONObject().put("name", it.name).put("atMs", it.atMs)
+                            .apply { if (it.failed) put("failed", true) })
+                    }
+                })
             if (analysed != null) {
                 // `phonemes` keeps the shape `bench/turn.py` writes, so the bench reads a
                 // turn from the phone the way it reads one of its own.

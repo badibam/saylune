@@ -174,7 +174,10 @@ class TurnPipeline(
                 pending = null,
             )
 
-            Playback.play(synthesis.speak(reply.spoken, synthesis.voice()))
+            Playback.play(synthesis.speak(reply.spoken, synthesis.voice())) {
+                // The number the doc puts on the chain, and the only one the learner feels.
+                Trace.add("turn: first sound")
+            }
             _state.value = _state.value.copy(phase = Phase.Idle)
             Trace.add("turn: said, and done")
 
@@ -320,6 +323,9 @@ class TurnPipeline(
     suspend fun redo(at: Int, audio: File) {
         val model = _state.value.models[at] ?: return
         val text = _state.value.exchanges.getOrNull(at)?.text ?: return
+        // Its own clock: this is pipe B alone, and timing it from the conversation turn it
+        // repeats would add every second of that turn to a chain that never ran here.
+        Trace.turn("— redo —")
         Trace.add("redo: same sentence, same model", "text" to text)
         try {
             val analysed = analysis.examine(audio, model, text)

@@ -36,6 +36,9 @@ object Trace {
 
     private const val TAG = "speakup"
 
+    /** What opens an episode. [ofTurn] finds it by its dash, whatever it is named. */
+    private const val TURN = "— turn —"
+
     /** logcat drops a line past about 4 kB, so a long body goes out in pieces. */
     private const val LINE = 3_500
 
@@ -47,11 +50,29 @@ object Trace {
     @Volatile
     private var origin = SystemClock.elapsedRealtime()
 
-    /** A new turn begins: the clock the steps are timed against restarts here. */
-    fun turn() {
+    /**
+     * A new turn begins: the clock the steps are timed against restarts here.
+     *
+     * [named] so that a saying-again, which is pipe B alone and has its own short chain, is
+     * timed from its own start rather than from the conversation turn it repeats.
+     */
+    fun turn(named: String = TURN) {
         if (!on) return
         origin = SystemClock.elapsedRealtime()
-        add("— turn —")
+        add(named)
+    }
+
+    /**
+     * The steps of the episode under way -- everything since the last [turn].
+     *
+     * Read by [app.speakup.conversation.Takes] so a kept turn carries its own timings.
+     * **The bodies are left behind**: they hold whole request payloads, an audio data-URI
+     * among them, and what a latency is read from is the name and the moment.
+     */
+    fun ofTurn(): List<Step> {
+        val steps = _steps.value
+        val from = steps.indexOfLast { it.name.startsWith("—") }
+        return if (from < 0) steps else steps.drop(from + 1)
     }
 
     fun add(name: String, vararg bricks: Pair<String, String?>) = record(name, false, bricks, true)

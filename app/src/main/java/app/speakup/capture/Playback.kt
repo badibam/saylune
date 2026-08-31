@@ -27,7 +27,18 @@ import kotlin.math.roundToInt
  */
 object Playback {
 
-    suspend fun play(wav: File, speed: Float = 1f) = withContext(Dispatchers.Main) {
+    /**
+     * [started] is called at the instant the first sample goes out, and it exists for one
+     * measurement: the doc counts the chain in seconds **to the first sound**, and every
+     * other moment nearby is the wrong one. The end of the synthesis call is too early --
+     * the render still has to be brought to 16 kHz and the player prepared -- and the return
+     * of this function is too late by the whole length of the answer.
+     */
+    suspend fun play(
+        wav: File,
+        speed: Float = 1f,
+        started: () -> Unit = {},
+    ) = withContext(Dispatchers.Main) {
         suspendCancellableCoroutine { continuation ->
             val player = MediaPlayer()
             player.setOnCompletionListener {
@@ -47,6 +58,7 @@ object Playback {
             // `ɪ` into a vowel nobody said. This stretches time and leaves pitch alone.
             if (speed != 1f) player.playbackParams = PlaybackParams().setSpeed(speed)
             player.start()
+            started()
         }
     }
 

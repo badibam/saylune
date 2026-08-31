@@ -69,6 +69,10 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         withContext(Dispatchers.Default) {
             val engine = engine ?: error("examine before readiness said On")
 
+            // Bounded on both sides, or its cost is read as the synthesis call before it:
+            // the first step it wrote came after two network passes and every join.
+            Trace.add("analysis: begun")
+
             // Both readings walk the same grid, decoded once from the model, so the two
             // face each other sound for sound.
             val modelReading = engine.matrix.read(model)
