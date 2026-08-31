@@ -7,7 +7,56 @@
     "model": "47f35c1c305202c5f530748c0f97a2ba9d7cea2d274aeece09f70d8253f136e6",
     "take": "ef37a0d68a266955caa9b673df24bbf19cb224170cb2b6e67e17ba5cf3581347"
   },
-  "syllables": [],
+  "syllables": [
+    {
+      "start": 0,
+      "end": 3,
+      "modelPitch": -2.86,
+      "learnerPitch": -1.33,
+      "modelStressed": false,
+      "learnerStressed": false
+    },
+    {
+      "start": 4,
+      "end": 9,
+      "modelPitch": 5.753,
+      "learnerPitch": 7.125,
+      "modelStressed": false,
+      "learnerStressed": false
+    },
+    {
+      "start": 10,
+      "end": 12,
+      "modelPitch": 1.34,
+      "learnerPitch": 1.057,
+      "modelStressed": false,
+      "learnerStressed": false
+    },
+    {
+      "start": 13,
+      "end": 15,
+      "modelPitch": 1.558,
+      "learnerPitch": 0.034,
+      "modelStressed": false,
+      "learnerStressed": false
+    },
+    {
+      "start": 16,
+      "end": 19,
+      "modelPitch": -1.452,
+      "learnerPitch": -3.307,
+      "modelStressed": false,
+      "learnerStressed": false
+    },
+    {
+      "start": 20,
+      "end": 25,
+      "modelPitch": -9.658,
+      "learnerPitch": -0.034,
+      "modelStressed": false,
+      "learnerStressed": false
+    }
+  ],
   "phonemes": [
     {
       "start": 0,

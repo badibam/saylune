@@ -35,9 +35,11 @@ from pathlib import Path
 
 import join
 import matrix
+import melody
 import overlap
 import phrases
 import placed
+import syllables
 
 HERE = Path(__file__).resolve().parent
 TAKES = HERE / "out" / "takes" / "set"
@@ -124,6 +126,9 @@ def read(take, model_slug, voice):
     # the grid sits in both recordings. Nothing here feeds the screen -- it is
     # the shape the app already writes beside its own turns, and what says which
     # sound a line of the readout is talking about.
+    step_s = matrix.seconds_per_frame()
+    model_pitch, model_step = melody.track(model)
+    take_pitch, take_step = melody.track(learner)
     scale = matrix.seconds_per_frame() * 1000
     stamp = lambda pair: [round(pair[0] * scale), round(pair[1] * scale)]
     model_grid = matrix.grid(matrix.probabilities(
@@ -157,13 +162,45 @@ def read(take, model_slug, voice):
         # move the anchor: the sound itself claimed nothing.
         if sound.spots:
             claimed = max(sound.spots)
+    # Brick 10: one pitch per syllable, on either side, in semitones centred on
+    # each side's own middle. The learner is read on the **model's** syllables --
+    # the model counts them, and the aligned montage already says where each of
+    # its sounds sits in the learner's recording. `Pitch.kt` is the same in
+    # Kotlin, and `Syllables.kt` cuts the same syllables.
+    placed_at = {gap.rank: (model_grid[gap.rank][1:], gap.span) for gap in gaps}
+    cuts, mine, theirs = [], [], []
+    for piece in syllables.cut(sounds):
+        if not piece.spots:
+            continue
+        held = [placed_at[rank] for rank in range(*piece.sounds)
+                if rank in placed_at]
+        if not held:
+            continue
+        cuts.append(piece)
+        mine.append(melody.over(model_pitch, model_step,
+                                min(h[0][0] for h in held) * step_s,
+                                max(h[0][1] for h in held) * step_s))
+        theirs.append(melody.over(take_pitch, take_step,
+                                  min(h[1][0] for h in held) * step_s,
+                                  max(h[1][1] for h in held) * step_s))
+    model_line = melody.centred(mine)
+    take_line = melody.centred(theirs)
+    tuned = [{"start": min(piece.spots), "end": max(piece.spots) + 1,
+              "modelPitch": round(here, 3),
+              "learnerPitch": None if there is None else round(there, 3),
+              # Both false, and not an omission: every way of reading the stress
+              # has been measured and none holds (`../TODO.md`).
+              "modelStressed": False, "learnerStressed": False}
+             for piece, here, there in zip(cuts, model_line, take_line)
+             if here is not None]
+
     # The two audios these points were read off, by their bytes: a fixture
     # regenerated from a drifted render would otherwise change what the screen
     # draws without saying so.
     return {"text": text, "take": take, "model": model_slug, "voice": voice,
             "digests": {"model": matrix.fingerprint(model),
                         "take": matrix.fingerprint(learner)},
-            "syllables": [], "phonemes": phonemes, "gutters": gutters,
+            "syllables": tuned, "phonemes": phonemes, "gutters": gutters,
             "words": words, "added": added, "freely": freely, "sounds": grid}
 
 

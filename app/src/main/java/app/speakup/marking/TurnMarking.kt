@@ -15,33 +15,45 @@ data class TurnMarking(
 ) {
     /** Pitch bounds across both contours, with a little air so neither hugs the band edge. */
     fun pitchBounds(): ClosedFloatingPointRange<Float> {
-        val values = syllables.flatMap { listOfNotNull(it.modelHz, it.learnerHz) }
-        val lo = (values.minOrNull() ?: 0f) - 10f
-        val hi = (values.maxOrNull() ?: 1f) + 10f
+        val values = syllables.flatMap { listOfNotNull(it.modelPitch, it.learnerPitch) }
+        // A semitone and a half of air, and the band is never narrower than a fifth: a turn
+        // said almost evenly would otherwise be stretched over the whole height and read as
+        // dramatic, which is the one thing it is not.
+        val lo = minOf(values.minOrNull() ?: 0f, -3.5f) - 1.5f
+        val hi = maxOf(values.maxOrNull() ?: 0f, 3.5f) + 1.5f
         return lo..hi
     }
 
     fun modelContour(): Contour =
-        Contour(syllables.map { it.center to it.modelHz })
+        Contour(syllables.map { it.center to it.modelPitch })
 
     fun learnerContour(): Contour =
-        Contour(syllables.mapNotNull { s -> s.learnerHz?.let { s.center to it } })
+        Contour(syllables.mapNotNull { s -> s.learnerPitch?.let { s.center to it } })
 
     /** False across a syllable whose pitch the harmonic-lock filter threw away. */
     fun learnerPitchKnownAt(offset: Int): Boolean =
-        syllables.none { offset in it.start until it.end && it.learnerHz == null }
+        syllables.none { offset in it.start until it.end && it.learnerPitch == null }
 }
 
 /**
  * One syllable. Stress is binary by nature: it sits on the right syllable or it does not.
  * Both stress flags come from the engine reading the model and the learner — never from a
  * dictionary, which the engine contradicts on 41% of polysyllabic words.
+ *
+ * **The two pitches are in semitones, each side centred on its own middle** — not hertz. A
+ * synthetic voice and a learner do not share a register, so a raw pitch would put the two
+ * contours on separate parts of the band and call every man imitating a woman wrong at every
+ * syllable. Neither side is scaled: a learner speaking flat where the model swings is a
+ * fault to show, and dividing by the spread would erase it before the two are compared.
+ *
+ * [learnerPitch] is null where nothing of the syllable was voiced, which is **not** the same
+ * as flat and must not be drawn alike.
  */
 data class Syllable(
     val start: Int,
     val end: Int,
-    val modelHz: Float,
-    val learnerHz: Float?,
+    val modelPitch: Float,
+    val learnerPitch: Float?,
     val modelStressed: Boolean,
     val learnerStressed: Boolean,
 ) {

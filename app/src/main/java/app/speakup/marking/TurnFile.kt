@@ -49,9 +49,9 @@ object TurnFile {
                 Syllable(
                     start = entry.getInt("start"),
                     end = entry.getInt("end"),
-                    modelHz = entry.getDouble("modelHz").toFloat(),
-                    learnerHz = if (entry.isNull("learnerHz")) null
-                                else entry.getDouble("learnerHz").toFloat(),
+                    modelPitch = entry.getDouble("modelPitch").toFloat(),
+                    learnerPitch = if (entry.isNull("learnerPitch")) null
+                                else entry.getDouble("learnerPitch").toFloat(),
                     modelStressed = entry.getBoolean("modelStressed"),
                     learnerStressed = entry.getBoolean("learnerStressed"),
                 )

@@ -10,8 +10,12 @@ import app.speakup.embedded.Frames
 import app.speakup.embedded.Grid
 import app.speakup.embedded.Join
 import app.speakup.embedded.Overlap
+import app.speakup.embedded.Pitch
+import app.speakup.embedded.Sound
+import app.speakup.embedded.Syllables
 import app.speakup.embedded.Readout
 import app.speakup.debug.Trace
+import app.speakup.marking.Syllable
 import app.speakup.marking.TurnMarking
 import app.speakup.embedded.Marks
 import app.speakup.ui.NOISE_BAND
@@ -142,14 +146,19 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                 "spreads" to Readout.spreads(reading.gaps, sounds, step),
             )
 
-            // Stress and melody stay empty, and that is not an omission to fill in later
-            // with something plausible: a syllable the screen draws carries which side is
-            // stressed and each side's pitch, all of them bricks 7 and 10. Inventing them
-            // would put a false accent on the screen.
+            // The melody, syllable by syllable. Stress stays false on both sides, and that
+            // is not an omission to fill in later with something plausible: every way of
+            // reading it has been measured and none holds -- naming the strong syllable on
+            // each side costs 24.9 % false alarm, and the three profile channels see 3, 14
+            // and 6 faults of 70 at 5 % (`../../../../../../TODO.md`). Inventing a stress
+            // would put a false accent on the screen; leaving it false leaves the two
+            // rulers unlit, which is what "not measured" looks like.
+            val melody = melody(text, sounds, reading.gaps, model, said, step)
+
             Analysed(
                 marking = TurnMarking(
                     text = text,
-                    syllables = emptyList(),
+                    syllables = melody,
                     phonemes = drawn.phonemes,
                     words = drawn.words,
                     added = added,
@@ -185,6 +194,72 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
     private fun ms(span: IntRange, step: Float): IntRange =
         (span.first * step * 1000).toInt()..((span.last + 1) * step * 1000).toInt()
+
+    /**
+     * Brick 10: one pitch per syllable, on either side, anchored to the letters.
+     *
+     * The learner is read on the **model's** syllables. The model is the source of truth and
+     * the montage in service already says where each of its sounds sits in the learner's
+     * recording, so the melody costs no montage of its own -- it reads positions and never
+     * labels, which is the one thing the forced alignment gives away for free.
+     *
+     * A syllable no sound of which was compared is left out rather than guessed at: its
+     * place in the learner's audio is precisely what is missing.
+     */
+    private fun melody(
+        text: String,
+        sounds: List<Sound>,
+        gaps: List<Overlap.Gap>,
+        model: File,
+        said: File,
+        step: Float,
+    ): List<Syllable> {
+        val cuts = Syllables.cut(sounds).filter { it.spots.isNotEmpty() }
+        if (cuts.isEmpty()) return emptyList()
+        val spanOf = gaps.associate { it.rank to (it.at to it.span) }
+
+        val kept = mutableListOf<Syllables.Cut>()
+        val mine = mutableListOf<Float>()
+        val theirs = mutableListOf<Float>()
+        val modelTrack = Pitch.track(model)
+        val saidTrack = Pitch.track(said)
+        for (cut in cuts) {
+            val held = cut.sounds.mapNotNull { spanOf[it] }
+            if (held.isEmpty()) continue
+            val here = ms(held.minOf { it.first.first }..held.maxOf { it.first.last }, step)
+            val there = ms(held.minOf { it.second.first }..held.maxOf { it.second.last }, step)
+            kept.add(cut)
+            mine.add(modelTrack.over(here.first, here.last))
+            theirs.add(saidTrack.over(there.first, there.last))
+        }
+        if (kept.isEmpty()) return emptyList()
+
+        val modelLine = Pitch.semitones(mine)
+        val saidLine = Pitch.semitones(theirs)
+        val out = kept.indices.mapNotNull { i ->
+            // A model syllable nothing voiced has no contour to be departed from, so it is
+            // no more a mark than a silence is: it drops out of both lines at once.
+            modelLine[i]?.let {
+                Syllable(
+                    start = kept[i].spots.min(),
+                    end = kept[i].spots.max() + 1,
+                    modelPitch = it,
+                    learnerPitch = saidLine[i],
+                    modelStressed = false,
+                    learnerStressed = false,
+                )
+            }
+        }
+        Trace.add(
+            "analysis: melody",
+            "syllables" to "${out.size} / ${cuts.size} cut",
+            "unvoiced in the take" to out.count { it.learnerPitch == null }.toString(),
+            "worst gap in semitones" to out.mapNotNull { s ->
+                s.learnerPitch?.let { kotlin.math.abs(s.modelPitch - it) }
+            }.maxOrNull()?.let { "%.1f".format(it) },
+        )
+        return out
+    }
 
     private fun load(): Engine {
         // The reason names the directory and what is in it. "Nothing found" without saying

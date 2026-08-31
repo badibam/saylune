@@ -7,7 +7,40 @@
     "model": "683fd066e2a41717324b37e2f958a024ae44ef848074ce4268c2128d6bd8c7f9",
     "take": "a72feb5791779af2bedb0c1a86b57d17c061c2d0d90a762755b8dc54b02e112b"
   },
-  "syllables": [],
+  "syllables": [
+    {
+      "start": 0,
+      "end": 2,
+      "modelPitch": -0.112,
+      "learnerPitch": 0.754,
+      "modelStressed": false,
+      "learnerStressed": false
+    },
+    {
+      "start": 3,
+      "end": 6,
+      "modelPitch": 1.274,
+      "learnerPitch": -0.789,
+      "modelStressed": false,
+      "learnerStressed": false
+    },
+    {
+      "start": 6,
+      "end": 7,
+      "modelPitch": 0.111,
+      "learnerPitch": 1.477,
+      "modelStressed": false,
+      "learnerStressed": false
+    },
+    {
+      "start": 11,
+      "end": 15,
+      "modelPitch": -1.6,
+      "learnerPitch": -7.939,
+      "modelStressed": false,
+      "learnerStressed": false
+    }
+  ],
   "phonemes": [
     {
       "start": 0,

@@ -108,6 +108,27 @@ class PortTest {
             assertEquals("${turn.name}: added $index after", row.getInt("after"), got.after)
         }
 
+        // The syllable cut, which the melody stands on. **Where it is cut only**, and the
+        // limit is deliberate: the pitch either side is read off the audio, and the audio is
+        // a voice -- freezing one into the repository would publish it, which does not
+        // undo. So the port is checked on the half that needs no recording, and the pitch
+        // tracker is checked on the bench alone (`bench/melody.py`).
+        assertTrue(
+            "${turn.name}: frozen before syllables -- re-freeze it with bench/fixture.py",
+            expected.has("syllables"),
+        )
+        val cut = Syllables.cut(sounds).filter { it.spots.isNotEmpty() }
+        val wantedCut = expected.getJSONArray("syllables")
+        assertEquals("${turn.name}: number of syllables", wantedCut.length(), cut.size)
+        for (index in 0 until wantedCut.length()) {
+            val row = wantedCut.getJSONObject(index)
+            val got = cut[index]
+            assertEquals("${turn.name}: syllable $index start",
+                         row.getInt("start"), got.spots.min())
+            assertEquals("${turn.name}: syllable $index end",
+                         row.getInt("end"), got.spots.max() + 1)
+        }
+
         val gutters = expected.getJSONArray("gutters")
         assertEquals("${turn.name}: number of gutters", gutters.length(), drawn.gutters.size)
         for (index in 0 until gutters.length()) {
