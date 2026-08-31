@@ -249,7 +249,7 @@ private fun Half(title: String, shares: List<Share>, modifier: Modifier) {
                 Bar(share.part, Modifier.weight(1f))
                 Text(
                     "%.2f".format(Locale.ROOT, share.part),
-                    modifier = Modifier.width(36.dp),
+                    modifier = Modifier.width(44.dp),
                     style = mono,
                     textAlign = TextAlign.End,
                 )
@@ -282,5 +282,8 @@ private const val SATURATES = 30f
 
 private val mono = androidx.compose.ui.text.TextStyle(
     fontFamily = FontFamily.Monospace,
-    fontSize = 11.sp,
+    fontSize = 14.sp,
 )
+// 11 sp fitted the widest row on the narrowest phone and was unreadable doing it. The row
+// is laid out by weights rather than by columns of characters, so it reflows instead of
+// wrapping, and the size is free to be chosen for the eye. The fixed widths below follow it.
