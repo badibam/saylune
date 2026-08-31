@@ -68,4 +68,7 @@
     <string name="setting_hear">Hear</string>
     <string name="setting_hearing">Playing…</string>
     <string name="setting_sample">The car park is rather far from the water.</string>
+    <string name="side_model">model</string>
+    <string name="side_learner">you</string>
+    <string name="speed_times">×%1$s</string>
 </resources>

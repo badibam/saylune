@@ -52,6 +52,9 @@ import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
 import app.speakup.conversation.TurnPipeline
+import app.speakup.capture.Playback
+import app.speakup.capture.Reference
+import app.speakup.conversation.Side
 import app.speakup.marking.TurnMarking
 import kotlinx.coroutines.launch
 
@@ -120,7 +123,15 @@ fun ConversationScreen(
                 faulty = at in turn.faulty,
                 recorder = recorder,
                 busy = turn.phase != Phase.Idle,
+                side = turn.side,
+                speed = turn.speed,
+                onSide = pipeline::side,
+                onSpeed = pipeline::speed,
                 onHear = { scope.launch { pipeline.hear(at) } },
+                onHearSpan = { from, to -> scope.launch { pipeline.hear(at, from, to) } },
+                onHearSound = { sound, side ->
+                    scope.launch { pipeline.hear(at, sound, side) }
+                },
                 onRedo = { scope.launch { pipeline.redo(at, it) } },
             )
         }
@@ -255,10 +266,105 @@ private fun Attempts(count: Int, shown: Int, onShow: (Int) -> Unit) {
     }
 }
 
+/**
+ * Which recording the play button and a tap on a word reach.
+ *
+ * Two words rather than an icon: "model" and "you" are the two things being compared
+ * everywhere else on this screen, and a glyph for either would have to be learnt.
+ */
+@Composable
+private fun SideChoice(side: Side, onSide: (Side) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Side.entries.forEach { option ->
+            val picked = option == side
+            Text(
+                stringResource(
+                    if (option == Side.Model) R.string.side_model else R.string.side_learner
+                ),
+                modifier = Modifier
+                    .clickable { onSide(option) }
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (picked) FontWeight.Bold else FontWeight.Normal,
+                color = if (picked) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
+ * How fast anything played by hand is played, cycling through the three.
+ *
+ * Slower keeps the pitch: the stretch is a time stretch and not a resampling, which would
+ * take the formants down with the rate and turn one vowel into another. A third of speed is
+ * where a fast reduction stops being a blur and starts being a sequence of sounds.
+ */
+@Composable
+private fun SpeedChoice(speed: Float, onSpeed: (Float) -> Unit) {
+    val next = SPEEDS[(SPEEDS.indexOfFirst { it == speed }.coerceAtLeast(0) + 1) % SPEEDS.size]
+    Text(
+        stringResource(R.string.speed_times, label(speed)),
+        modifier = Modifier
+            .clickable { onSpeed(next) }
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = if (speed != 1f) FontWeight.Bold else FontWeight.Normal,
+        color = if (speed != 1f) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+private val SPEEDS = listOf(1f, 0.5f, 0.33f)
+
+private fun label(speed: Float) = when (speed) {
+    1f -> "1"
+    0.5f -> "0.5"
+    else -> "0.33"
+}
+
+/**
+ * The word [offset] falls in, as a range of the text -- or null between two words.
+ *
+ * Whitespace decides, which is the same cut the join makes when it hands the sounds out to
+ * the words; anything finer here would name a word the analysis never spoke of.
+ */
+private fun spanOfWord(text: String, offset: Int): IntRange? {
+    if (offset !in text.indices || text[offset].isWhitespace()) return null
+    var start = offset
+    while (start > 0 && !text[start - 1].isWhitespace()) start--
+    var stop = offset
+    while (stop + 1 < text.length && !text[stop + 1].isWhitespace()) stop++
+    return start..stop
+}
+
+/**
+ * Where [word] sits in one of the two recordings, in milliseconds.
+ *
+ * Read off the sounds the word covers rather than measured again: both sides already carry
+ * their own bounds for every sound, so the model's word and the learner's are the same word
+ * by construction and cannot drift apart.
+ */
+private fun heard(
+    sounds: List<AnalysedSound>,
+    word: IntRange,
+    side: Side,
+): Pair<Int, Int>? {
+    val inside = sounds.filter { sound ->
+        sound.at.any { it in word }
+    }.map { if (side == Side.Model) it.modelMs else it.saidMs }
+    if (inside.isEmpty()) return null
+    return inside.minOf { it.first } to inside.maxOf { it.last }
+}
+
 @Composable
 private fun Redo(
     recorder: TurnRecorder,
     busy: Boolean,
+    side: Side,
+    speed: Float,
+    onSide: (Side) -> Unit,
+    onSpeed: (Float) -> Unit,
     onHear: () -> Unit,
     onSaid: (java.io.File) -> Unit,
 ) {
@@ -267,7 +373,10 @@ private fun Redo(
     var mine by rememberSaveable { mutableStateOf(false) }
     val recording = mine && capture.recording
 
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.secondary,
@@ -311,6 +420,11 @@ private fun Redo(
                 drawCircle(color = Color.White, radius = size.minDimension * 0.22f)
             }
         }
+        // Beside the play button, because their scope is it: the selector says which
+        // recording it reaches, the speed says how fast. Both also govern a tap on a word,
+        // which is the same gesture one notch finer.
+        SideChoice(side, onSide)
+        SpeedChoice(speed, onSpeed)
     }
 }
 
@@ -321,7 +435,13 @@ private fun Said(
     faulty: Boolean,
     recorder: TurnRecorder,
     busy: Boolean,
+    side: Side,
+    speed: Float,
+    onSide: (Side) -> Unit,
+    onSpeed: (Float) -> Unit,
     onHear: () -> Unit,
+    onHearSpan: (Int, Int) -> Unit,
+    onHearSound: (AnalysedSound, Side) -> Unit,
     onRedo: (java.io.File) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -337,20 +457,36 @@ private fun Said(
         // newest is the one being looked at. The earlier ones stay reachable rather than
         // being overwritten -- three takes of one sentence against one model is material,
         // and it is only material if all three survive.
+        val scope = rememberCoroutineScope()
         var shown by rememberSaveable(attempts.size) { mutableStateOf(attempts.size - 1) }
         val attempt = attempts.getOrNull(shown)
         val marking = attempt?.marking
         val sounds = attempt?.sounds
 
-        if (marking != null) MarkedTurn(marking, modifier = Modifier.fillMaxWidth())
-        else Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
+        if (marking != null) {
+            MarkedTurn(
+                marking,
+                modifier = Modifier.fillMaxWidth(),
+                // A tap anywhere in a word plays that word, on whichever side the selector
+                // points at. Its bounds are read off the sounds it covers rather than
+                // measured again, so the two recordings stay in step by construction.
+                onTapCharacter = { offset ->
+                    spanOfWord(exchange.text, offset)?.let { word ->
+                        heard(sounds.orEmpty(), word, side)?.let { (from, to) ->
+                            onHearSpan(from, to)
+                        }
+                    }
+                },
+            )
+        } else Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
         if (attempts.size > 1) Attempts(attempts.size, shown) { shown = it }
         // The redo controls stay: saying it again is exactly the answer to a reading that
         // slid, and taking them away would leave no way out of it.
         if (attempt != null) {
-            Redo(recorder, busy, onHear, onRedo)
+            Redo(recorder, busy, side, speed, onSide, onSpeed, onHear, onRedo)
         }
         if (sounds != null && Trace.on) {
+            val context = LocalContext.current
             var open by rememberSaveable { mutableStateOf(false) }
             TextButton(onClick = { open = !open }) {
                 Text(
@@ -359,10 +495,22 @@ private fun Said(
                         sounds.count { it.points > NOISE_BAND },
                         sounds.size,
                     ),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.titleSmall,
                 )
             }
-            if (open) AnalysisReadout(exchange.text, sounds, marking?.added.orEmpty())
+            if (open) {
+                AnalysisReadout(
+                    exchange.text, sounds, marking?.added.orEmpty(),
+                    onHearSound = onHearSound,
+                    // The pre-recorded set, played whole: a symbol on its own is already
+                    // one sound and there is nothing in it to cut.
+                    onHearSymbol = { symbol ->
+                        Reference.of(context, symbol)?.let { wav ->
+                            scope.launch { Playback.play(wav, speed) }
+                        }
+                    },
+                )
+            }
         }
         if (faulty) {
             // The whole turn, for want of the span. The doc asks for the portion concerned

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Share
+import app.speakup.conversation.Side
 import app.speakup.marking.AddedSound
 import app.speakup.marking.readoutRows
 import java.util.Locale
@@ -56,6 +57,15 @@ fun AnalysisReadout(
     text: String,
     sounds: List<AnalysedSound>,
     added: List<AddedSound>,
+    /** One sound of this turn, in one of the two recordings, at its place in the phrase. */
+    onHearSound: (AnalysedSound, Side) -> Unit = { _, _ -> },
+    /**
+     * A symbol on its own, from the pre-recorded set -- what `ʃ` means, not how this turn
+     * said it. The spread names sounds nobody produced here: they are the runners-up of a
+     * distribution, so there is no stretch of either recording to point at, and a recording
+     * of the sound itself is the only thing that can answer.
+     */
+    onHearSymbol: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     if (sounds.isEmpty()) return
@@ -77,10 +87,14 @@ fun AnalysisReadout(
                 null -> Unheard(text.substring(row.at.first, row.at.last + 1))
                 is Entry.Added -> Inserted(entry.sound, text)
                 is Entry.Heard -> {
-                    Line(entry.sound, marked = entry.sound.points > NOISE_BAND) {
+                    Line(
+                        entry.sound,
+                        marked = entry.sound.points > NOISE_BAND,
+                        onHear = { side -> onHearSound(entry.sound, side) },
+                    ) {
                         open = if (open == index) null else index
                     }
-                    if (open == index) Spreads(entry.sound)
+                    if (open == index) Spreads(entry.sound, onHearSymbol)
                 }
             }
         }
@@ -188,9 +202,21 @@ private fun Unheard(letters: String) {
     }
 }
 
-/** One sound: its letters, the two peaks, its points, and a bar. */
+/**
+ * One sound: its letters, the two peaks, its points, and a bar.
+ *
+ * The model's symbol is its own target and the row is another: tapping the symbol plays that
+ * sound of the model, tapping anywhere else opens the two spreads. A symbol printed with no
+ * way to hear it is a name for something the reader has never heard, which is most of what
+ * IPA is to most people.
+ */
 @Composable
-private fun Line(sound: AnalysedSound, marked: Boolean, onTap: () -> Unit) {
+private fun Line(
+    sound: AnalysedSound,
+    marked: Boolean,
+    onHear: (Side) -> Unit,
+    onTap: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onTap).padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -203,11 +229,28 @@ private fun Line(sound: AnalysedSound, marked: Boolean, onTap: () -> Unit) {
         )
         // A hint and never a verdict: the app depends on no symbol here, only on the gap
         // between the two whole shapes.
-        Text(
-            "${sound.symbol}→${sound.said.firstOrNull()?.symbol ?: "?"}",
-            modifier = Modifier.weight(1.2f),
-            style = mono,
-        )
+        // Two targets facing each other: the model's sound at this place, and the
+        // learner's at the same place. Which is which is written rather than selected --
+        // they sit side by side, so a selector could only contradict the finger.
+        Row(modifier = Modifier.weight(1.2f), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                sound.symbol,
+                modifier = Modifier
+                    .clickable { onHear(Side.Model) }
+                    .padding(horizontal = 2.dp),
+                style = mono,
+                fontWeight = FontWeight.Bold,
+            )
+            Text("→", style = mono)
+            Text(
+                sound.said.firstOrNull()?.symbol ?: "?",
+                modifier = Modifier
+                    .clickable { onHear(Side.Learner) }
+                    .padding(horizontal = 2.dp),
+                style = mono,
+                fontWeight = FontWeight.Bold,
+            )
+        }
         Text(
             "%.1f".format(Locale.ROOT, sound.points),
             modifier = Modifier.weight(0.8f),
@@ -224,7 +267,7 @@ private fun Line(sound: AnalysedSound, marked: Boolean, onTap: () -> Unit) {
 
 /** The two spreads, each half a weight of the row, so they cannot drift out of line. */
 @Composable
-private fun Spreads(sound: AnalysedSound) {
+private fun Spreads(sound: AnalysedSound, onHearSymbol: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -232,20 +275,31 @@ private fun Spreads(sound: AnalysedSound) {
             .padding(6.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        Half("model", sound.model, Modifier.weight(1f))
-        VerticalDivider(modifier = Modifier.height(80.dp).padding(horizontal = 4.dp))
-        Half("you", sound.said, Modifier.weight(1f))
+        Half("model", sound.model, Modifier.weight(1f), onHearSymbol)
+        VerticalDivider(modifier = Modifier.height(100.dp).padding(horizontal = 4.dp))
+        Half("you", sound.said, Modifier.weight(1f), onHearSymbol)
     }
     HorizontalDivider()
 }
 
 @Composable
-private fun Half(title: String, shares: List<Share>, modifier: Modifier) {
+private fun Half(
+    title: String,
+    shares: List<Share>,
+    modifier: Modifier,
+    onHearSymbol: (String) -> Unit,
+) {
     Column(modifier = modifier) {
         Text(title, style = mono, fontWeight = FontWeight.Bold)
         shares.forEach { share ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(share.symbol, modifier = Modifier.width(28.dp), style = mono)
+                Text(
+                    share.symbol,
+                    modifier = Modifier
+                        .width(34.dp)
+                        .clickable { onHearSymbol(share.symbol) },
+                    style = mono,
+                )
                 Bar(share.part, Modifier.weight(1f))
                 Text(
                     "%.2f".format(Locale.ROOT, share.part),
@@ -280,10 +334,10 @@ private fun Bar(part: Float, modifier: Modifier = Modifier) {
 /** Where the ramp of `MarkingColors.kt` tops out, so a full bar means a saturated mark. */
 private const val SATURATES = 30f
 
+// 11 sp fitted the widest row on the narrowest phone and was unreadable doing it. The row
+// is laid out by weights rather than by columns of characters, so it reflows instead of
+// wrapping, and the size is free to be chosen for the eye. The fixed widths below follow it.
 private val mono = androidx.compose.ui.text.TextStyle(
     fontFamily = FontFamily.Monospace,
     fontSize = 14.sp,
 )
-// 11 sp fitted the widest row on the narrowest phone and was unreadable doing it. The row
-// is laid out by weights rather than by columns of characters, so it reflows instead of
-// wrapping, and the size is free to be chosen for the eye. The fixed widths below follow it.

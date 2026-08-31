@@ -22,6 +22,9 @@ import java.io.File
 /** Where a turn has got to. The screen shows it; nothing else depends on it. */
 enum class Phase { Idle, Hearing, Thinking, Speaking }
 
+/** Whose recording a manual gesture plays. */
+enum class Side { Model, Learner }
+
 /**
  * One reading of one turn: what the screen draws, and what it lays out underneath.
  *
@@ -69,6 +72,31 @@ data class ConversationState(
      * model to hear, and a model to hear again at every retry.
      */
     val models: Map<Int, File> = emptyMap(),
+    /**
+     * The learner's own recording of each analysed turn, kept for the session.
+     *
+     * The doc purges these when the session closes and keeps none beyond it, which this
+     * honours: the map dies with the state. What it buys is the other half of every
+     * listening gesture -- the model at a place, and the learner at the same place, which
+     * the doc says fall out of the same calculation and asks to be heard one after the
+     * other.
+     */
+    val saids: Map<Int, File> = emptyMap(),
+    /**
+     * Which recording a manual gesture plays: the voice being imitated, or one's own.
+     *
+     * It governs the play button and a tap on a word, and nothing else. A tap on a symbol
+     * in the readout names its side outright -- the model's column and the learner's are
+     * side by side there -- so a selector would only be able to contradict what the reader
+     * just pointed at.
+     */
+    val side: Side = Side.Model,
+    /**
+     * How fast anything played by hand is played. Never applied to the answer being spoken:
+     * that is the conversation, and slowing it would be the app deciding how the
+     * conversation goes rather than the learner deciding what to examine.
+     */
+    val speed: Float = 1f,
     /** Whether the marks are on at all, settled once for the session. Null until asked. */
     val analysis: Readiness? = null,
     /**
@@ -205,6 +233,7 @@ class TurnPipeline(
                     (at to _state.value.attempts[at].orEmpty() +
                         Attempt(analysed.marking, analysed.sounds)),
                 models = _state.value.models + (at to model),
+                saids = _state.value.saids + (at to said),
             )
             kept(at, Takes.keep(context, said, model, heard, text, false, analysed,
                                 turn = turnOf(at), attempt = attemptOf(at)))
@@ -223,10 +252,55 @@ class TurnPipeline(
      * written instruction about the tongue (`docs/reference.md`). This is the hearing half.
      */
     suspend fun hear(at: Int) {
-        val model = _state.value.models[at] ?: return
+        val wav = chosen(at) ?: return
         _state.value = _state.value.copy(phase = Phase.Speaking)
-        Playback.play(model)
+        Playback.play(wav, _state.value.speed)
         _state.value = _state.value.copy(phase = Phase.Idle)
+    }
+
+    /** The recording the selector points at, for the turn at [at]. */
+    private fun chosen(at: Int): File? = when (_state.value.side) {
+        Side.Model -> _state.value.models[at]
+        Side.Learner -> _state.value.saids[at]
+    }
+
+    fun side(side: Side) { _state.value = _state.value.copy(side = side) }
+
+    fun speed(speed: Float) { _state.value = _state.value.copy(speed = speed) }
+
+    /**
+     * One stretch of the turn at [at], on whichever side the selector points at.
+     *
+     * Used by a tap on a word: the word's bounds in each recording are read off the sounds
+     * it covers, so nothing new is computed and the two sides stay in step by construction.
+     */
+    suspend fun hear(at: Int, fromMs: Int, toMs: Int) {
+        val wav = chosen(at) ?: return
+        Playback.play(wav, fromMs, toMs, _state.value.speed, Playback.WORD_MARGIN_MS)
+    }
+
+    /**
+     * Say one sound of the model of the turn at [at] -- the same remedy, one notch finer.
+     *
+     * The doc calls the isolated sound as a level of listening open rather than settled: the
+     * objection to it was about **production**, a sound got right alone still being got wrong
+     * in the word, and it does not carry over to listening, which asks nothing of the mouth.
+     * This is that level, and it costs nothing to offer -- the model is synthesised anyway
+     * and the analysis already says where in it each sound sits.
+     *
+     * It is the model's own voice and not a specimen from elsewhere, which is what keeps it
+     * inside the rule that nothing outside the two recordings is ever consulted. It says
+     * where, in the recording being imitated, this mark is about.
+     *
+     * The phase is left alone. Hearing the whole model is the app speaking and everything
+     * waits for it; a tap on a symbol is a fraction of a second, and freezing the screen for
+     * it would be a worse lie than the wait it prevents.
+     */
+    suspend fun hear(at: Int, sound: AnalysedSound, side: Side) {
+        val wav = (if (side == Side.Model) _state.value.models[at]
+                   else _state.value.saids[at]) ?: return
+        val span = if (side == Side.Model) sound.modelMs else sound.saidMs
+        Playback.play(wav, span.first, span.last, _state.value.speed)
     }
 
     /**
