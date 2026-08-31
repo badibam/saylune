@@ -31,7 +31,22 @@ enum class Side { Model, Learner }
  * The two travel together because they are one reading -- a marking whose readout came from
  * another take would put the numbers of one attempt under the colours of another.
  */
-data class Attempt(val marking: TurnMarking, val sounds: List<AnalysedSound>)
+/**
+ * One reading of one take: what was marked, what was measured, and **the recording it was
+ * measured on**.
+ *
+ * The audio belongs to the attempt and is carried by it. Holding it in a map beside the
+ * attempts made a second source that drifted from the first: `redo` appended an attempt
+ * whose times were the new take's while the map still pointed at the first take, so the
+ * screen read one recording's clock onto another's audio. A word then played a different
+ * part of the sentence, and the model side stayed right only because a turn has exactly one
+ * model and nothing to drift from.
+ */
+data class Attempt(
+    val marking: TurnMarking,
+    val sounds: List<AnalysedSound>,
+    val said: File,
+)
 
 data class ConversationState(
     val exchanges: List<Exchange> = emptyList(),
@@ -81,7 +96,6 @@ data class ConversationState(
      * the doc says fall out of the same calculation and asks to be heard one after the
      * other.
      */
-    val saids: Map<Int, File> = emptyMap(),
     /**
      * Which recording a manual gesture plays: the voice being imitated, or one's own.
      *
@@ -234,9 +248,8 @@ class TurnPipeline(
             _state.value = _state.value.copy(
                 attempts = _state.value.attempts +
                     (at to _state.value.attempts[at].orEmpty() +
-                        Attempt(analysed.marking, analysed.sounds)),
+                        Attempt(analysed.marking, analysed.sounds, said)),
                 models = _state.value.models + (at to model),
-                saids = _state.value.saids + (at to said),
             )
             kept(at, Takes.keep(context, said, model, heard, text, false, analysed,
                                 turn = turnOf(at), attempt = attemptOf(at)))
@@ -254,17 +267,23 @@ class TurnPipeline(
      * The remedy for a sound fault is to hear the model and say it again, not to be given a
      * written instruction about the tongue (`docs/reference.md`). This is the hearing half.
      */
-    suspend fun hear(at: Int) {
-        val wav = chosen(at) ?: return
+    suspend fun hear(at: Int, said: File) {
+        val wav = chosen(at, said) ?: return
         _state.value = _state.value.copy(phase = Phase.Speaking)
         Playback.play(wav, _state.value.speed)
         _state.value = _state.value.copy(phase = Phase.Idle)
     }
 
-    /** The recording the selector points at, for the turn at [at]. */
-    private fun chosen(at: Int): File? = when (_state.value.side) {
+    /**
+     * The recording the selector points at: the turn's model, or the take being looked at.
+     *
+     * [said] is handed in rather than looked up, because which take is on screen is the
+     * screen's own state -- a turn holds several and an earlier one stays reachable. Looking
+     * it up here is what let the audio and the times come from two different takes.
+     */
+    private fun chosen(at: Int, said: File): File? = when (_state.value.side) {
         Side.Model -> _state.value.models[at]
-        Side.Learner -> _state.value.saids[at]
+        Side.Learner -> said
     }
 
     fun side(side: Side) { _state.value = _state.value.copy(side = side) }
@@ -277,8 +296,8 @@ class TurnPipeline(
      * Used by a tap on a word: the word's bounds in each recording are read off the sounds
      * it covers, so nothing new is computed and the two sides stay in step by construction.
      */
-    suspend fun hear(at: Int, fromMs: Int, toMs: Int) {
-        val wav = chosen(at) ?: return
+    suspend fun hear(at: Int, said: File, fromMs: Int, toMs: Int) {
+        val wav = chosen(at, said) ?: return
         Playback.play(wav, fromMs, toMs, _state.value.speed, Playback.WORD_MARGIN_MS)
     }
 
@@ -299,9 +318,8 @@ class TurnPipeline(
      * waits for it; a tap on a symbol is a fraction of a second, and freezing the screen for
      * it would be a worse lie than the wait it prevents.
      */
-    suspend fun hear(at: Int, sound: AnalysedSound, side: Side) {
-        val wav = (if (side == Side.Model) _state.value.models[at]
-                   else _state.value.saids[at]) ?: return
+    suspend fun hear(at: Int, said: File, sound: AnalysedSound, side: Side) {
+        val wav = (if (side == Side.Model) _state.value.models[at] else said) ?: return
         val span = if (side == Side.Model) sound.modelMs else sound.saidMs
         Playback.play(wav, span.first, span.last, _state.value.speed)
     }
@@ -332,7 +350,7 @@ class TurnPipeline(
             _state.value = _state.value.copy(
                 attempts = _state.value.attempts +
                     (at to _state.value.attempts[at].orEmpty() +
-                        Attempt(analysed.marking, analysed.sounds)),
+                        Attempt(analysed.marking, analysed.sounds, audio)),
             )
             kept(at, Takes.keep(context, audio, model, emptyList(), text, false, analysed,
                                 redo = true, turn = turnOf(at), attempt = attemptOf(at)))

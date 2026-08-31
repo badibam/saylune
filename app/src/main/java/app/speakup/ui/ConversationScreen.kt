@@ -127,10 +127,12 @@ fun ConversationScreen(
                 speed = turn.speed,
                 onSide = pipeline::side,
                 onSpeed = pipeline::speed,
-                onHear = { scope.launch { pipeline.hear(at) } },
-                onHearSpan = { from, to -> scope.launch { pipeline.hear(at, from, to) } },
-                onHearSound = { sound, side ->
-                    scope.launch { pipeline.hear(at, sound, side) }
+                onHear = { said -> scope.launch { pipeline.hear(at, said) } },
+                onHearSpan = { said, from, to ->
+                    scope.launch { pipeline.hear(at, said, from, to) }
+                },
+                onHearSound = { said, sound, side ->
+                    scope.launch { pipeline.hear(at, said, sound, side) }
                 },
                 onRedo = { scope.launch { pipeline.redo(at, it) } },
             )
@@ -439,9 +441,9 @@ private fun Said(
     speed: Float,
     onSide: (Side) -> Unit,
     onSpeed: (Float) -> Unit,
-    onHear: () -> Unit,
-    onHearSpan: (Int, Int) -> Unit,
-    onHearSound: (AnalysedSound, Side) -> Unit,
+    onHear: (java.io.File) -> Unit,
+    onHearSpan: (java.io.File, Int, Int) -> Unit,
+    onHearSound: (java.io.File, AnalysedSound, Side) -> Unit,
     onRedo: (java.io.File) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -473,7 +475,9 @@ private fun Said(
                 onTapCharacter = { offset ->
                     spanOfWord(exchange.text, offset)?.let { word ->
                         heard(sounds.orEmpty(), word, side)?.let { (from, to) ->
-                            onHearSpan(from, to)
+                            // The take being looked at, never the turn's first: its times
+                            // are the ones just read off it.
+                            attempt?.let { onHearSpan(it.said, from, to) }
                         }
                     }
                 },
@@ -483,9 +487,10 @@ private fun Said(
         // The redo controls stay: saying it again is exactly the answer to a reading that
         // slid, and taking them away would leave no way out of it.
         if (attempt != null) {
-            Redo(recorder, busy, side, speed, onSide, onSpeed, onHear, onRedo)
+            Redo(recorder, busy, side, speed, onSide, onSpeed,
+                 { onHear(attempt.said) }, onRedo)
         }
-        if (sounds != null && Trace.on) {
+        if (attempt != null && sounds != null && Trace.on) {
             val context = LocalContext.current
             var open by rememberSaveable { mutableStateOf(false) }
             TextButton(onClick = { open = !open }) {
@@ -501,7 +506,9 @@ private fun Said(
             if (open) {
                 AnalysisReadout(
                     exchange.text, sounds, marking?.added.orEmpty(),
-                    onHearSound = onHearSound,
+                    onHearSound = { sound, which ->
+                        onHearSound(attempt.said, sound, which)
+                    },
                     // The pre-recorded set, played whole: a symbol on its own is already
                     // one sound and there is nothing in it to cut.
                     onHearSymbol = { symbol ->
