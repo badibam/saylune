@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -79,10 +80,18 @@ fun MarkedTurn(
             )
         }
 
+        // Read at the moment of the tap, never captured. `pointerInput` restarts only when
+        // its key changes, so the gesture it installed holds the callback it was given and
+        // every later one is ignored: the caller's lambda closes over which side is being
+        // listened to, and a tap kept answering with the side selected one change ago --
+        // model timings played on the learner's recording, and then the reverse.
+        val tap = rememberUpdatedState(onTapCharacter)
         val tapModifier = if (onTapCharacter == null) Modifier else {
             // The layout is its own hit map: no per-word touch target to lay out or keep in sync.
             Modifier.pointerInput(layouts) {
-                detectTapGestures { pos -> onTapCharacter(layouts.filled.getOffsetForPosition(pos)) }
+                detectTapGestures { pos ->
+                    tap.value?.invoke(layouts.filled.getOffsetForPosition(pos))
+                }
             }
         }
 
