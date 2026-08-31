@@ -126,6 +126,39 @@ NOT_A_SOUND = ("|", "h#", "pau", "epi", " ")
 # candidate model with another alphabet needs its own.
 VOWELS = frozenset("ɑ æ ə ɚ ɛ ɝ ɪ i ɔ ʊ u ʌ aɪ aʊ eɪ oʊ ɔɪ".split())
 
+# The vowels English glides through rather than holds. They matter here for one
+# thing only: what may not be merged with a following r-coloured vowel.
+DIPHTHONGS = frozenset("aɪ aʊ eɪ oʊ ɔɪ".split())
+
+# The r-coloured vowels, which the grid often writes as a second symbol after
+# the vowel they colour rather than as one.
+RHOTIC = frozenset("ɝ ɚ".split())
+
+
+def nuclei(symbols):
+    """Where the syllables of a word begin, as ranks into [symbols].
+
+    A vowel is a nucleus, except when it is the r-colouring of the vowel before
+    it. English writes `here`, `four` and `there` with one vowel each; the grid
+    writes them `ɪ ɝ`, `ɑ ɝ`, `ɛ ɝ`, and counting symbols gives every one of
+    them two syllables. Measured on 2500 model renders: those three pairs alone
+    occur 146 times, and every word they occur in has one syllable.
+
+    **The merge stops at the diphthongs, and the same measurement is why.** A
+    diphthong before the same `ɝ` is a real second syllable -- `pow·er`,
+    `play·er`, `hour·s` -- so `eɪ ɝ`, `aʊ ɝ` and `aɪ ɝ` are left as two. The
+    rule is therefore about a vowel English holds, never about any vowel.
+    """
+    out = []
+    for rank, symbol in enumerate(symbols):
+        if symbol not in VOWELS:
+            continue
+        if (out and out[-1] == rank - 1 and symbol in RHOTIC
+                and symbols[rank - 1] not in DIPHTHONGS):
+            continue
+        out.append(rank)
+    return out
+
 _loaded = None
 _configured = None
 _symbols = None

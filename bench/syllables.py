@@ -123,8 +123,7 @@ def cut(sounds):
     out = []
     for start, stop in join.runs(sounds):
         symbols = [sound.symbol for sound in sounds[start:stop]]
-        nuclei = [rank for rank, symbol in enumerate(symbols)
-                  if symbol in matrix.VOWELS]
+        nuclei = matrix.nuclei(symbols)
         if not nuclei:
             continue
         edges = [0]
@@ -162,7 +161,7 @@ def matched(one, two):
 
 
 def nuclei(symbols):
-    return sum(1 for symbol in symbols if symbol in matrix.VOWELS)
+    return len(matrix.nuclei(symbols))
 
 
 def readings():

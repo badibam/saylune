@@ -82,8 +82,9 @@ def measured(wav, text, cache):
             continue
         symbols, spans, power = [], [], []
         for piece in mine:
-            nucleus = next((sounds[i] for i in range(*piece.sounds)
-                            if sounds[i].symbol in matrix.VOWELS), None)
+            low, high = piece.sounds
+            found = matrix.nuclei([s.symbol for s in sounds[low:high]])
+            nucleus = sounds[low + found[0]] if found else None
             symbols.append(nucleus.symbol if nucleus else "")
             spans.append(piece.high - piece.low)
             power.append(rms(samples, rate, nucleus.low, nucleus.high)
@@ -186,8 +187,9 @@ def borrowed(model, learner, text, cache, gaps):
             continue
         symbols, spans, power = [], [], []
         for piece in mine:
-            nucleus = next((i for i in range(*piece.sounds)
-                            if sounds[i].symbol in matrix.VOWELS), None)
+            low, high = piece.sounds
+            found = matrix.nuclei([s.symbol for s in sounds[low:high]])
+            nucleus = low + found[0] if found else None
             if nucleus is None or nucleus not in span_of:
                 symbols, spans, power = [], [], []
                 break
