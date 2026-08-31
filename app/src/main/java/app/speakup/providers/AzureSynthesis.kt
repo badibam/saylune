@@ -44,6 +44,12 @@ class AzureSynthesis(
         val region = secrets[Secret.AzureSpeechRegion]
             ?: throw ChainFailure("no Azure Speech region has been entered")
 
+        Trace.add(
+            "synthesis: asking $MODEL",
+            "route" to "azure",
+            "voice" to voice.id,
+            "chars" to text.length.toString(),
+        )
         val pcm = Http.post(
             url = "https://${URLEncoder.encode(region, "UTF-8")}.tts.speech.microsoft.com" +
                 "/cognitiveservices/v1",

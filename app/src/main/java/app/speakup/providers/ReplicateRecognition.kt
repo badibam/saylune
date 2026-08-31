@@ -44,6 +44,7 @@ class ReplicateRecognition(
     override suspend fun transcribe(audio: File): List<Word> {
         Trace.add(
             "recognition: sending the turn to $model",
+            "route" to "replicate",
             "file" to audio.name,
             "bytes" to audio.length().toString(),
         )

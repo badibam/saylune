@@ -36,6 +36,7 @@ class AzureRecognition(private val store: SecretStore) : Recognition {
 
         Trace.add(
             "recognition: sending the turn",
+            "route" to "azure",
             "file" to audio.name,
             "bytes" to audio.length().toString(),
         )

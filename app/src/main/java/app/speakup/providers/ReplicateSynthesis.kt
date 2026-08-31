@@ -59,6 +59,7 @@ class ReplicateSynthesis(
 
         Trace.add(
             "synthesis: asking $model",
+            "route" to "replicate",
             "voice" to voice.id,
             "chars" to text.length.toString(),
         )

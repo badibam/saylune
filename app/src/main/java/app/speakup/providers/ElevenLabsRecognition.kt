@@ -36,6 +36,7 @@ class ElevenLabsRecognition(
 
         Trace.add(
             "recognition: sending the turn",
+            "route" to "elevenlabs",
             "file" to audio.name,
             "bytes" to audio.length().toString(),
         )

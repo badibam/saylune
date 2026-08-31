@@ -5,6 +5,7 @@ import app.speakup.capture.WavFile
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Synthesis
 import app.speakup.chain.Voice
+import app.speakup.debug.Trace
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +45,12 @@ class ElevenLabsSynthesis(
         val key = store.values().first()[Secret.ElevenLabsApiKey]
             ?: throw ChainFailure("no ElevenLabs key has been entered")
 
+        Trace.add(
+            "synthesis: asking $model",
+            "route" to "elevenlabs",
+            "voice" to voice.id,
+            "chars" to text.length.toString(),
+        )
         val body = JSONObject()
             .put("text", text)
             .put("model_id", model)
