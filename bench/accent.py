@@ -61,6 +61,9 @@ VOICE = "azure-us-jenny"
 # the alphabet does not tell them apart.
 REDUCED = ("ə", "ɚ")
 
+# How `attached` folds several learner syllables into one of the model's.
+MERGE = "somme"
+
 
 def rms(samples, rate, low, high):
     first = int(low * rate)
@@ -68,19 +71,46 @@ def rms(samples, rate, low, high):
     return float(np.sqrt(np.mean(seg ** 2))) if len(seg) else 0.0
 
 
+def reduced_mass(spread, columns, low, high, step):
+    """How much of a nucleus the network spends on a reduced vowel.
+
+    A **class** of sounds and not one phone, read as mass rather than as a
+    label: under the aligned montage the learner wears the model's symbols, so
+    asking "is this nucleus a schwa" reads the same answer twice. The frames
+    underneath are still the learner's own, and what they put on the reduced
+    vowels is his (`../TODO.md`, mesure 2). Read the same way on both sides so
+    that nothing distinguishes them but the voice.
+    """
+    first = max(int(low / step), 0)
+    last = min(int(high / step) + 1, len(spread))
+    if last <= first:
+        return 0.0
+    return float(spread[first:last, columns].sum(axis=1).mean())
+
+
 def measured(wav, text, cache):
-    """Per word: its syllables' symbols, durations and loudness, from one side."""
+    """Per word: its syllables' nuclei, and everything read off one of them.
+
+    `spots` is what lets two sides be put in front of each other when they do
+    not have the same number of syllables: a syllable knows the characters of
+    the text it covers, on either side, so an inserted syllable falls inside
+    the letters of a model syllable instead of shifting every count after it.
+    """
     sounds = join.joined(wav, text, cache=cache)
     cuts = syllables.cut(sounds)
     matrix.heard(wav)
     samples, rate = sf.read(wav, dtype="float64")
+    spread = matrix.probabilities(wav, cache=cache)
+    table = matrix.symbols()
+    columns = [i for i, symbol in enumerate(table) if symbol in REDUCED]
+    step = matrix.seconds_per_frame()
     out = {}
     for start, stop in join.runs(sounds):
         mine = [piece for piece in cuts
                 if start <= piece.sounds[0] and piece.sounds[1] <= stop]
         if not mine:
             continue
-        symbols, spans, power = [], [], []
+        symbols, spans, power, spots, reduction = [], [], [], [], []
         for piece in mine:
             low, high = piece.sounds
             found = matrix.nuclei([s.symbol for s in sounds[low:high]])
@@ -89,7 +119,12 @@ def measured(wav, text, cache):
             spans.append(piece.high - piece.low)
             power.append(rms(samples, rate, nucleus.low, nucleus.high)
                          if nucleus else 0.0)
-        out[start] = (sounds[start].word, symbols, spans, power)
+            spots.append(frozenset(piece.spots))
+            reduction.append(
+                reduced_mass(spread, columns, nucleus.low, nucleus.high, step)
+                if nucleus and columns else 0.0)
+        out[start] = (sounds[start].word, symbols, spans, power,
+                      spots, reduction)
     return [out[key] for key in sorted(out)]
 
 
@@ -107,13 +142,60 @@ def shape(values):
     return np.array([v / total for v in values]) if total > 0 else None
 
 
+def attached(model_spots, learner_spots, learner_values):
+    """Every learner syllable handed back to a model syllable, by their letters.
+
+    **The model counts the syllables, and the learner is read against that
+    count.** Dropping a word whose two sides disagree is what the montage did
+    before, and it is silence on a quarter of the words that can carry a stress
+    -- which the design refuses elsewhere. What replaces it is not a repaired
+    count but a mapping: the model says how many syllables the word has, and
+    each learner syllable joins the model syllable it shares the most letters
+    with. A syllable he inserted lands inside the one it was inserted into,
+    rather than shifting every syllable after it by one.
+
+    The letters are what makes this possible and they are new: both readings
+    are joined to the text now, the learner's at 94 % against the model's 95 %
+    (`../docs/analysis.md`, brique 12). Nothing here consults a clock.
+
+    Surjective by construction on the model's side: a model syllable with no
+    learner syllable is one he swallowed, and it keeps its place with nothing
+    in it -- which is itself what a swallowed syllable looks like.
+    """
+    held = [[] for _ in model_spots]
+    for spots, value in zip(learner_spots, learner_values):
+        overlaps = [len(spots & theirs) for theirs in model_spots]
+        best = max(range(len(model_spots)), key=lambda i: overlaps[i])
+        if overlaps[best]:
+            held[best].append(value)
+    # A syllable that took several keeps their total by default, not their
+    # average: two nuclei said where the model said one is more of whatever
+    # they carry, and averaging would hide the insertion the mapping exists to
+    # see. But an inserted vowel is a schwa, so summing also inflates the very
+    # channel that reads schwa -- which is a reason to measure both rather than
+    # to pick one. `--moyenne` is the other reading.
+    if MERGE == "moyenne":
+        return [sum(group) / len(group) if group else 0.0 for group in held]
+    return [sum(group) if group else 0.0 for group in held]
+
+
 def compared(left, right, written, word):
     """One word, both verdicts -- or the syllable counts differing, which is
     not a case to drop: a syllable added or swallowed is itself the signal."""
-    _, ms, md, mp = left
-    _, ts, td, tp = right
+    _, ms, md, mp, mspots, mred = left
+    _, ts, td, tp, tspots, tred = right
     row = {"word": written.text, "stress": written.stress,
            "syllabes": [len(ms), len(ts)]}
+
+    # The reduction, read on the model's own count of syllables whatever the
+    # learner's is. This is the channel the stress measures rank first when it
+    # speaks, and the only one of the three never read as a profile.
+    theirs = attached(mspots, tspots, tred)
+    a, b = shape(mred), shape(theirs)
+    row["profil réduction"] = (None if a is None or b is None
+                               else overlap.divergence(a, b))
+    row["réduction muette"] = a is None or b is None
+
     if len(ms) != len(ts):
         row["branche"] = "compte différent"
         return row
@@ -160,7 +242,11 @@ def read(take, voice, montage):
         pair = sides.get(key)
         if not pair or len(pair) != 2 or key in syllables.FUNCTION:
             continue
-        if len(pair["m"][1]) < 2 and len(pair["t"][1]) < 2:
+        # The model decides how many syllables the word has, so it decides
+        # whether the word can carry a stress at all. A word it gives one
+        # syllable never carries an accent mark (brique 9), and counting those
+        # was inflating every disagreement rate written down until now.
+        if len(pair["m"][1]) < 2:
             continue
         rows.append(dict(compared(pair["m"], pair["t"], written, key),
                          take=take.uid, speaker=take.speaker))
@@ -206,10 +292,38 @@ def quantile(values, q):
     return sorted(values)[int(q * (len(values) - 1))]
 
 
+def caught(rows, key):
+    """What a channel sees, at a false alarm rate rather than at a threshold.
+
+    A threshold read off the correctly stressed words themselves, so the two
+    channels are comparable and no number is chosen. Nothing is stored: the
+    brick decides no threshold, it says what one would cost.
+    """
+    ok = sorted(r[key] for r in rows if r["stress"] == 10 and r.get(key) is not None)
+    bad = [r[key] for r in rows if r["stress"] == 5 and r.get(key) is not None]
+    if not ok or not bad:
+        return None
+    out = []
+    for rate in (0.05, 0.10, 0.20):
+        bar = ok[int((1 - rate) * (len(ok) - 1))]
+        seen = sum(1 for value in bad if value > bar)
+        out.append(f"{seen:>3}/{len(bad)} à {rate * 100:.0f} %")
+    return f"{len(ok)} propres, {len(bad)} fautes — " + "   ".join(out)
+
+
 def report(rows, montage):
     same = [row for row in rows if row["branche"] == "même compte"]
     apart = [row for row in rows if row["branche"] == "compte différent"]
     print(f"\n=== montage {montage} — {len(rows)} mots pleins")
+
+    # First, and on every word: the reduction is read on the model's count of
+    # syllables, so a word whose counts differ is measured like any other.
+    mute = sum(1 for row in rows if row.get("réduction muette"))
+    line = caught(rows, "profil réduction")
+    print(f"\n    profil de réduction — sur les {len(rows)} mots, "
+          f"{mute} muets (aucune réduction d'un côté)")
+    if line:
+        print(f"      {line}")
     if apart:
         wrong = sum(1 for row in apart if row["stress"] == 5)
         print(f"    compte de syllabes différent : {len(apart)} mots, dont "
@@ -224,9 +338,9 @@ def report(rows, montage):
           f"correct, {len(faulty)} faux")
 
     lit = sum(1 for row in clean if row["élue diverge"])
-    caught = sum(1 for row in faulty if row["élue diverge"])
+    hits = sum(1 for row in faulty if row["élue diverge"])
     print(f"\n    l'élue : {100 * lit / len(clean):.1f} % de fausse alerte"
-          + (f", {caught}/{len(faulty)} fautes vues" if faulty else ""))
+          + (f", {hits}/{len(faulty)} fautes vues" if faulty else ""))
     for why in ("réduction", "intensité"):
         n = sum(1 for row in same if row["tranché"][0] == why)
         print(f"      côté modèle, tranché par {why:<11}"
@@ -255,7 +369,11 @@ def main(argv=None):
                         choices=("aligné", "libre"))
     parser.add_argument("-s", "--split", default="test")
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--moyenne", action="store_true",
+                        help="moyenner les syllabes rattachées au lieu de les sommer")
     args = parser.parse_args(argv)
+    global MERGE
+    MERGE = "moyenne" if args.moyenne else "somme"
 
     takes, _ = learners.chosen(args.budget, args.split, args.seed)
     learners.extract(takes, args.split)
