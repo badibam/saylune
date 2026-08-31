@@ -5,7 +5,6 @@
     <string name="sample_clean_turn">Tour propre</string>
     <string name="measured_turn">Tour mesuré — %1$s</string>
     <string name="no_turn_file">Aucun tour mesuré. Produire avec bench/turn.py, puis pousser dans %1$s</string>
-    <string name="gutter_sounds">%1$d son(s) tombent dans un intervalle et ne sont pas encore dessinés</string>
     <string name="settings_title">Clés des fournisseurs</string>
     <string name="settings_lead">L\'app n\'a aucune clé à elle : apporte les tiennes. Elles sont chiffrées sur cet appareil et ne partent qu\'au fournisseur auquel elles appartiennent.</string>
     <string name="settings_save">Enregistrer</string>

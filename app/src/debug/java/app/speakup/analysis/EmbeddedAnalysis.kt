@@ -149,8 +149,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     phonemes = drawn.phonemes,
                     words = drawn.words,
                     added = added,
+                    gutters = drawn.gutters,
                 ),
-                gutters = drawn.gutters,
                 dropped = reading.dropped,
                 sounds = reading.gaps.mapIndexed { index, gap ->
                     val sound = sounds[gap.rank]

@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -42,8 +44,8 @@ import app.speakup.marking.TurnMarking
  * fills its glyphs once and offers no seam to slide the halo into.
  *
  * Order, back to front: stress rules, model contour, learner contour, halo pass, glyph pass,
- * then the wedges of the sounds that were added, which sit between glyphs and so cannot be
- * part of any of them.
+ * then the wedges of the sounds no letter carries -- the gutters and the added ones -- which
+ * sit between glyphs and so cannot be part of any of them.
  */
 @Composable
 fun MarkedTurn(
@@ -94,6 +96,7 @@ fun MarkedTurn(
             drawContours(layouts.filled, marking, colors, density)
             drawText(layouts.outline, color = colors.surface, drawStyle = haloStroke(density))
             drawText(layouts.filled)
+            drawGutters(layouts.filled, marking, colors, density)
             drawAdded(layouts.filled, marking, colors, density)
         }
     }
@@ -170,31 +173,71 @@ private fun DrawScope.drawStressRules(
  * letter that was said correctly. It is the shape the gutter has been owed since it was
  * first measured, and nothing drew until now.
  */
+private fun DrawScope.drawGutters(
+    layout: TextLayoutResult,
+    marking: TurnMarking,
+    colors: MarkingColors,
+    density: Density,
+) {
+    val stroke = with(density) { 1.dp.toPx() }
+    // Silent below the band, like every other sound mark: there the engine's own spread is
+    // that wide, and a wedge drawn anyway would be a lie of precision with nothing behind
+    // it. A letter under the bar keeps the neutral ink and so shows nothing; a gutter has no
+    // glyph to keep, so it shows nothing by not being drawn.
+    marking.gutters.filter { it.points > NOISE_BAND }.forEach { gutter ->
+        drawWedge(layout, gutter.after, density, phonemeColor(gutter.points, colors),
+                  Stroke(width = stroke, join = StrokeJoin.Round))
+    }
+}
+
+/**
+ * The wedge both seam marks are drawn with, filled or hollow.
+ *
+ * One shape, because they are the same kind of thing: a mark in the seam between two
+ * letters, for a sound no letter of the text carries. What separates them cannot be colour
+ * -- added matter is always the saturated end of the ramp and a bad enough gutter reaches
+ * the same place -- so it is the fill, which is how this palette works everywhere: the form
+ * says which kind, the colour says how loud.
+ *
+ * Filled is matter that is there and should not be. Hollow is a sound that belongs and that
+ * English simply writes with no letter.
+ */
+private fun DrawScope.drawWedge(
+    layout: TextLayoutResult,
+    after: Int,
+    density: Density,
+    color: Color,
+    style: DrawStyle,
+) {
+    val half = with(density) { 3.dp.toPx() }
+    val height = with(density) { 4.dp.toPx() }
+    val gap = with(density) { 1.dp.toPx() }
+    // Just after the last letter anyone claimed; at the very start when none was.
+    val anchor = after.coerceIn(0, layout.layoutInput.text.length - 1)
+    val line = layout.getLineForOffset(anchor)
+    val box = layout.getBoundingBox(anchor)
+    val x = if (after < 0) box.left else box.right
+    val bottom = layout.getLineBottom(line) - gap
+    drawPath(
+        Path().apply {
+            moveTo(x - half, bottom)
+            lineTo(x + half, bottom)
+            lineTo(x, bottom - height)
+            close()
+        },
+        color,
+        style = style,
+    )
+}
+
 private fun DrawScope.drawAdded(
     layout: TextLayoutResult,
     marking: TurnMarking,
     colors: MarkingColors,
     density: Density,
 ) {
-    val half = with(density) { 3.dp.toPx() }
-    val height = with(density) { 4.dp.toPx() }
-    val gap = with(density) { 1.dp.toPx() }
     marking.added.forEach { added ->
-        // Just after the last letter anyone claimed; at the very start when none was.
-        val anchor = added.after.coerceIn(0, marking.text.length - 1)
-        val line = layout.getLineForOffset(anchor)
-        val box = layout.getBoundingBox(anchor)
-        val x = if (added.after < 0) box.left else box.right
-        val bottom = layout.getLineBottom(line) - gap
-        drawPath(
-            Path().apply {
-                moveTo(x - half, bottom)
-                lineTo(x + half, bottom)
-                lineTo(x, bottom - height)
-                close()
-            },
-            colors.added,
-        )
+        drawWedge(layout, added.after, density, colors.added, Fill)
     }
 }
 

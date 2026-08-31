@@ -92,7 +92,7 @@ object Takes {
                     }
                 })
                 kept.put("gutters", JSONArray().apply {
-                    analysed.gutters.forEach {
+                    analysed.marking.gutters.forEach {
                         put(JSONObject().put("symbol", it.symbol).put("after", it.after)
                             .put("points", it.points))
                     }

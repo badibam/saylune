@@ -42,9 +42,6 @@ fun MarkingPrototypeScreen() {
                                 TurnFile.path(context)?.path ?: TurnFile.NAME))
         } else {
             Sample(stringResource(R.string.measured_turn, turn.take), turn.marking)
-            if (turn.gutters > 0) {
-                Note(stringResource(R.string.gutter_sounds, turn.gutters))
-            }
         }
         Sample(stringResource(R.string.sample_multi_fault_turn), MULTI_FAULT_TURN)
         Sample(stringResource(R.string.sample_clean_turn), CLEAN_TURN)

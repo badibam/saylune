@@ -17,6 +17,12 @@ package app.speakup.marking
  * straight on, which a silent letter can carry; and one between `a` and `table`, which no
  * letter of either word can, so it falls in the seam. Both are binary -- an insertion has no
  * model side, so there is no degree to give one.
+ *
+ * And one gutter, which is the third mark that lives in a seam and the one that tells the
+ * other two apart on screen: the vowel of the syllabic `-le` in `table`, which English
+ * writes with no letter at all. Unlike an added sound it has both recordings behind it, so
+ * it carries a degree and is drawn hollow on the ramp rather than filled at the saturated
+ * end. The clean turn has none, which is the point: a gutter under the band draws nothing.
  */
 private const val SENTENCE = "I think we should book a table before they arrive"
 
@@ -53,6 +59,7 @@ val MULTI_FAULT_TURN = TurnMarking(
         AddedSound("k", after = 20),
         AddedSound("ə", after = 23),
     ),
+    gutters = listOf(Gutter("ə", after = 27, points = 21f)),
 )
 
 val CLEAN_TURN = TurnMarking(
@@ -75,4 +82,5 @@ val CLEAN_TURN = TurnMarking(
     phonemes = emptyList(),
     words = emptyList(),
     added = emptyList(),
+    gutters = emptyList(),
 )

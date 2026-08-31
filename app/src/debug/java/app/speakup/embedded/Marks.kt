@@ -1,6 +1,6 @@
 package app.speakup.embedded
 
-import app.speakup.analysis.Gutter
+import app.speakup.marking.Gutter
 import app.speakup.marking.PhonemeDeviation
 import app.speakup.marking.WordFault
 

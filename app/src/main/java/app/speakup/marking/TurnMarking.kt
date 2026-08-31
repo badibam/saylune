@@ -11,6 +11,7 @@ data class TurnMarking(
     val phonemes: List<PhonemeDeviation>,
     val words: List<WordFault>,
     val added: List<AddedSound>,
+    val gutters: List<Gutter>,
 ) {
     /** Pitch bounds across both contours, with a little air so neither hugs the band edge. */
     fun pitchBounds(): ClosedFloatingPointRange<Float> {
@@ -98,6 +99,31 @@ data class AddedSound(
     val symbol: String,
     val after: Int,
 )
+
+/**
+ * A sound of the model that no letter of the text can carry, sitting after the character at
+ * [after].
+ *
+ * English writes some sounds with nothing -- the schwa of `doesn't`, the `ɑ n` a reduced
+ * `I'm` comes back as -- and a word whose sounds are all of that kind has no letter any mark
+ * could be drawn on. The gap is measured all the same, so it goes in the seam between the
+ * letters its neighbours claimed rather than onto one of them, which would accuse a letter
+ * that was said correctly.
+ *
+ * It carries [points] where [AddedSound] carries none, and that is the difference between
+ * the two: a gutter has both recordings to compare, an added sound has only one. So it is
+ * drawn on the same ramp as every other sound mark, and like them it is silent below the
+ * band -- a letter under the bar keeps the neutral ink, which is to say no mark appears, and
+ * a gutter has no glyph to keep, so its equivalent is nothing at all. A clean turn carries
+ * none. Every gutter is still **carried** here rather than filtered on the way in: the bar
+ * belongs to the screen, and an analysis that dropped them could not be asked later what it
+ * had found.
+ *
+ * [after] is -1 when the sound precedes every letter of the turn. It is the position of the
+ * last letter any sound claimed, not of this one: a gutter has no letters, so its own spots
+ * say nothing, and reading them put every gutter at the front of the sentence.
+ */
+data class Gutter(val symbol: String, val after: Int, val points: Float)
 
 /**
  * The pitch contour, sampled in character coordinates. Control points sit at syllable

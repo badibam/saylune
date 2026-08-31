@@ -72,14 +72,21 @@ object TurnFile {
                 )
             }
         }
+        val gutters = json.optJSONArray("gutters").let { array ->
+            (0 until (array?.length() ?: 0)).map { index ->
+                val entry = array!!.getJSONObject(index)
+                Gutter(
+                    symbol = entry.getString("symbol"),
+                    after = entry.getInt("after"),
+                    points = entry.getDouble("points").toFloat(),
+                )
+            }
+        }
         return Turn(
-            marking = TurnMarking(json.getString("text"), syllables, phonemes, words, added),
+            marking = TurnMarking(json.getString("text"), syllables, phonemes, words,
+                                  added, gutters),
             take = json.optString("take"),
             model = json.optString("model"),
-            // Sounds that no letter can carry: the screen owes them a mark in the gutter
-            // between their neighbours, which nothing draws yet. Counted rather than
-            // dropped, so the reading is not quietly short of what was measured.
-            gutters = json.optJSONArray("gutters")?.length() ?: 0,
         )
     }
 }
@@ -89,5 +96,4 @@ data class Turn(
     val marking: TurnMarking,
     val take: String,
     val model: String,
-    val gutters: Int,
 )

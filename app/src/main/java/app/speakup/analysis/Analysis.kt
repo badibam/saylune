@@ -74,15 +74,13 @@ sealed interface Readiness {
 /**
  * One analysed turn.
  *
- * [marking] is what the screen draws. [gutters] are the sounds no letter can carry -- a
- * sound can hold no letter at all, measured at 1.4% of the bench's sounds, and a fault found
- * there is a fault that must not vanish for want of somewhere to paint it. [dropped] counts
- * the sounds of the model's grid that could not be compared, so a short reading is
- * distinguishable from a clean one.
+ * [marking] is what the screen draws, the gutters among the rest of it -- a sound can hold
+ * no letter at all, measured at 1.4% of the bench's sounds, and a fault found there must not
+ * vanish for want of somewhere to paint it. [dropped] counts the sounds of the model's grid
+ * that could not be compared, so a short reading is distinguishable from a clean one.
  */
 data class Analysed(
     val marking: TurnMarking,
-    val gutters: List<Gutter>,
     val dropped: Int,
     /**
      * What was found, sound by sound -- of which [marking] is the *drawn* view.
@@ -144,11 +142,4 @@ data class AnalysedSound(
 /** One sound's share of a spread. */
 data class Share(val symbol: String, val part: Float)
 
-/**
- * A sound with no letters of its own, sitting after the character at [after].
- *
- * [after] is -1 when the sound precedes every letter of the turn. It is the position of the
- * last letter any sound claimed, not of this one: a gutter has no letters, so its own spots
- * say nothing, and reading them put every gutter at the front of the sentence.
- */
-data class Gutter(val symbol: String, val after: Int, val points: Float)
+
