@@ -37,8 +37,7 @@ class DeepseekConversation(
 
             val transcript = heard.joinToString(" ") { it.text }
             Trace.add(
-                "conversation: asking $model",
-                "route" to "deepseek",
+                "conversation: asking deepseek/$model",
                 "system prompt" to ConversationPrompt.SYSTEM,
                 "turns of history" to history.size.toString(),
                 "transcript" to transcript,

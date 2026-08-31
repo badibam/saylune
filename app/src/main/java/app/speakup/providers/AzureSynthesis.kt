@@ -45,8 +45,7 @@ class AzureSynthesis(
             ?: throw ChainFailure("no Azure Speech region has been entered")
 
         Trace.add(
-            "synthesis: asking $MODEL",
-            "route" to "azure",
+            "synthesis: asking azure/$MODEL",
             "voice" to voice.id,
             "chars" to text.length.toString(),
         )

@@ -46,8 +46,7 @@ class ElevenLabsSynthesis(
             ?: throw ChainFailure("no ElevenLabs key has been entered")
 
         Trace.add(
-            "synthesis: asking $model",
-            "route" to "elevenlabs",
+            "synthesis: asking elevenlabs/$model",
             "voice" to voice.id,
             "chars" to text.length.toString(),
         )

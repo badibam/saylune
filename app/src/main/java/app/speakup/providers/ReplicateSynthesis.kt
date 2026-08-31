@@ -58,8 +58,7 @@ class ReplicateSynthesis(
         if (cached.isFile && cached.length() > 0) return cached
 
         Trace.add(
-            "synthesis: asking $model",
-            "route" to "replicate",
+            "synthesis: asking replicate/$model",
             "voice" to voice.id,
             "chars" to text.length.toString(),
         )

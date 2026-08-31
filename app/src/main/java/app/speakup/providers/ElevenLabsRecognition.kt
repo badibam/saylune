@@ -35,8 +35,7 @@ class ElevenLabsRecognition(
             ?: throw ChainFailure("no ElevenLabs key has been entered")
 
         Trace.add(
-            "recognition: sending the turn",
-            "route" to "elevenlabs",
+            "recognition: sending the turn to elevenlabs/$model",
             "file" to audio.name,
             "bytes" to audio.length().toString(),
         )

@@ -35,8 +35,7 @@ class AzureRecognition(private val store: SecretStore) : Recognition {
             ?: throw ChainFailure("no Azure Speech region has been entered")
 
         Trace.add(
-            "recognition: sending the turn",
-            "route" to "azure",
+            "recognition: sending the turn to azure",
             "file" to audio.name,
             "bytes" to audio.length().toString(),
         )

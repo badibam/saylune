@@ -33,8 +33,7 @@ internal class ReplicateConversation(
     override suspend fun reply(history: List<Exchange>, heard: List<Word>): Reply {
         val transcript = heard.joinToString(" ") { it.text }
         Trace.add(
-            "conversation: asking $model",
-            "route" to "replicate",
+            "conversation: asking replicate/$model",
             "turns of history" to history.size.toString(),
             "transcript" to transcript,
         )
