@@ -136,6 +136,12 @@ def extract(split, budget, out):
         if index % 50 == 0:
             print(f"  {index}/{len(takes)} — {kept} mots", file=sys.stderr, flush=True)
 
+    if not rows:
+        raise SystemExit(
+            f"aucun mot lisible dans {split} — les rendus modèles manquent-ils ? "
+            f"`python3 alarms.py -s {split} -b 0 -c {VOICE} -p` le dit, et `-r -y` "
+            "les synthétise, et c'est là que les caractères se dépensent")
+
     out.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(out, states=np.stack(rows), labels=np.array(labels),
                         words=np.array(words), stress=np.array(stress))
