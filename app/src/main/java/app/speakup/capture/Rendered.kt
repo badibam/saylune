@@ -1,5 +1,8 @@
 package app.speakup.capture
 
+import android.media.MediaCodec
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -8,8 +11,9 @@ import java.nio.ByteOrder
  * A wav a provider rendered, brought to the format the acoustic model consumes.
  *
  * Azure hands back `raw-16khz-16bit-mono-pcm` and needs none of this. Replicate hands back
- * whatever the model renders -- chatterbox writes floating-point samples at its own rate --
- * so something has to sit between the download and the analysis.
+ * whatever the model renders -- chatterbox writes floating-point samples at its own rate,
+ * the ElevenLabs models render a compressed file -- so something has to sit between the
+ * download and the analysis.
  *
  * **This is not a treatment, and the difference decides how carefully it is written.** The
  * doc forbids anything done to one of the two recordings and not the other: a gain, a
@@ -34,7 +38,7 @@ object Rendered {
      */
     fun at16kMono(source: File, target: File) {
         val bytes = source.readBytes()
-        val wav = read(bytes)
+        val wav = if (isWav(bytes)) read(bytes) else decoded(source)
         val mono = toMono(wav)
         val resampled = resample(mono, wav.sampleRate, WavFile.SAMPLE_RATE)
 
@@ -51,6 +55,106 @@ object Rendered {
 
     /** Samples in -1..1, and how they were laid out. */
     private class Pcm(val samples: FloatArray, val channels: Int, val sampleRate: Int)
+
+    private fun isWav(bytes: ByteArray) =
+        bytes.size > 12 && bytes.tag(0) == "RIFF" && bytes.tag(8) == "WAVE"
+
+    /**
+     * A compressed render, read by the platform's own decoder.
+     *
+     * Reached only when the bytes are not a wav, which is the ElevenLabs models through
+     * Replicate: they expose no output format and hand back a compressed file, where the
+     * direct route serves raw PCM. No library for it -- the decoder is in the system, and
+     * every dependency is one more thing to rebuild offline for a reproducible build.
+     *
+     * **What it cannot give back is what the encoder threw away**, and that loss lands on
+     * the model's side alone. It is not a treatment this code applies -- the file arrived
+     * that way -- but it is an asymmetry between the two recordings all the same, and it is
+     * a reason to prefer the route that serves PCM when a voice is to be the yardstick
+     * rather than only the voice one hears.
+     */
+    private fun decoded(source: File): Pcm {
+        val extractor = MediaExtractor()
+        extractor.setDataSource(source.path)
+        try {
+            val track = (0 until extractor.trackCount).firstOrNull { at ->
+                extractor.getTrackFormat(at).getString(MediaFormat.KEY_MIME)
+                    ?.startsWith("audio/") == true
+            } ?: throw IllegalArgumentException("the render holds no audio track")
+            extractor.selectTrack(track)
+            val format = extractor.getTrackFormat(track)
+            val mime = format.getString(MediaFormat.KEY_MIME)
+                ?: throw IllegalArgumentException("the render names no format")
+            val codec = MediaCodec.createDecoderByType(mime)
+            try {
+                codec.configure(format, null, null, 0)
+                codec.start()
+                return drained(extractor, codec, format)
+            } finally {
+                codec.stop()
+                codec.release()
+            }
+        } finally {
+            extractor.release()
+        }
+    }
+
+    private fun drained(
+        extractor: MediaExtractor,
+        codec: MediaCodec,
+        format: MediaFormat,
+    ): Pcm {
+        val out = ArrayList<Float>()
+        val info = MediaCodec.BufferInfo()
+        var channels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+        var rate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+        var fed = false
+        while (true) {
+            if (!fed) {
+                val slot = codec.dequeueInputBuffer(TIMEOUT_US)
+                if (slot >= 0) {
+                    val buffer = codec.getInputBuffer(slot)!!
+                    val size = extractor.readSampleData(buffer, 0)
+                    if (size < 0) {
+                        codec.queueInputBuffer(
+                            slot, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                        )
+                        fed = true
+                    } else {
+                        codec.queueInputBuffer(slot, 0, size, extractor.sampleTime, 0)
+                        extractor.advance()
+                    }
+                }
+            }
+            val slot = codec.dequeueOutputBuffer(info, TIMEOUT_US)
+            if (slot == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                // The real layout is the decoder's, not the container's: the two can
+                // disagree, and reading the wrong one would resample against a rate the
+                // samples never had.
+                val settled = codec.outputFormat
+                channels = settled.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+                rate = settled.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+                continue
+            }
+            if (slot >= 0) {
+                val buffer = codec.getOutputBuffer(slot)!!
+                buffer.position(info.offset)
+                buffer.limit(info.offset + info.size)
+                val shorts = buffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+                while (shorts.hasRemaining()) out.add(shorts.get() / 32768f)
+                codec.releaseOutputBuffer(slot, false)
+                if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) break
+            } else if (slot == MediaCodec.INFO_TRY_AGAIN_LATER && fed && out.isNotEmpty()) {
+                // Fed to the end and the decoder has stopped answering: some decoders never
+                // raise the end-of-stream flag, and waiting for one costs the whole turn.
+                break
+            }
+        }
+        require(out.isNotEmpty()) { "the render decoded to nothing" }
+        return Pcm(FloatArray(out.size) { out[it] }, channels, rate)
+    }
+
+    private const val TIMEOUT_US = 10_000L
 
     /**
      * Walk the chunks rather than assume the layout.
