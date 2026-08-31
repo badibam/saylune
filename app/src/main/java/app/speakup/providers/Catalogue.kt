@@ -71,8 +71,14 @@ enum class Provider(
         id = "replicate",
         label = "Replicate",
         needs = listOf(Secret.ReplicateApiKey, Secret.ReplicateEndpoint),
-        does = setOf(Task.Recognition, Task.Synthesis),
+        does = setOf(Task.Recognition, Task.Conversation, Task.Synthesis),
         models = mapOf(
+            // A second route to a language model, for two reasons the measurements gave.
+            // One key fewer at the BYOK wall, since this one already carries two links; and
+            // `reasoning_effort`, the lever the latency points at -- the thinking is what
+            // the learner waits for. Named with their namespace, which is what tells
+            // `openai/gpt-5-mini` reached this way from a `gpt-5-mini` reached direct.
+            Task.Conversation to listOf("openai/gpt-5-mini", "openai/gpt-5-nano"),
             // whisperx first because it is the one that gives word spans. whisper is kept
             // beside it precisely because it does not: the app has to hold up without them,
             // and the seam's own contract allows a word with no bounds.

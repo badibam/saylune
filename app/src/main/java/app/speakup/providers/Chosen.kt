@@ -52,6 +52,7 @@ class ChosenConversation(private val store: SecretStore) : Conversation {
         val (provider, model) = pick(Task.Conversation, values)
         return when (provider) {
             Provider.Deepseek -> DeepseekConversation(store, model)
+            Provider.Replicate -> ReplicateConversation(ReplicateClient(store), model)
             else -> throw ChainFailure("${provider.label} does not hold a conversation")
         }.reply(history, heard)
     }
