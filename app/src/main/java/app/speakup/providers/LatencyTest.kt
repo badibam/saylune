@@ -99,16 +99,22 @@ internal object LatencyTest {
                         } else null
                         for ((size, text) in listOf("court" to SHORT, "long" to LONG)) {
                             say("$round/$repeats · ${provider.id}/$model · $size")
-                            out += timed(
+                            val trial = timed(
                                 context, store, stamp, task, provider, model, voice,
                                 size, text, heard,
                             )
+                            out += trial
+                            // Written as it happens, not at the end. A sweep is minutes
+                            // long and lives in the screen's scope: leaving the settings
+                            // cancels it, and a run that only writes when it finishes
+                            // leaves nothing behind at all -- which is what happened the
+                            // first time this was used.
+                            keep(context, trial)
                         }
                     }
                 }
             }
         }
-        keep(context, out)
         return out
     }
 
@@ -199,21 +205,19 @@ internal object LatencyTest {
     }
 
     /** Appended as one JSON object per line: history by construction, nothing to migrate. */
-    private suspend fun keep(context: Context, trials: List<Trial>) = withContext(Dispatchers.IO) {
+    private suspend fun keep(context: Context, trial: Trial) = withContext(Dispatchers.IO) {
         val home = File(context.getExternalFilesDir(null), "latency").apply { mkdirs() }
         File(home, "latency.jsonl").appendText(
-            trials.joinToString("") { trial ->
-                JSONObject()
-                    .put("at", trial.at)
-                    .put("link", trial.link)
-                    .put("route", trial.route)
-                    .put("model", trial.model)
-                    .put("size", trial.size)
-                    .put("chars", trial.chars)
-                    .put("ms", trial.ms ?: JSONObject.NULL)
-                    .put("why", trial.why ?: JSONObject.NULL)
-                    .toString() + "\n"
-            }
+            JSONObject()
+                .put("at", trial.at)
+                .put("link", trial.link)
+                .put("route", trial.route)
+                .put("model", trial.model)
+                .put("size", trial.size)
+                .put("chars", trial.chars)
+                .put("ms", trial.ms ?: JSONObject.NULL)
+                .put("why", trial.why ?: JSONObject.NULL)
+                .toString() + "\n"
         )
     }
 }
