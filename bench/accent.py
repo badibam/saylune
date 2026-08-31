@@ -18,6 +18,15 @@ Two montages, because they are not the same question:
                 brick 4 on learner speech, which has never been measured
                 anywhere.
 
+    -m concurrent   competing hypotheses (`../TODO.md`, mesure 4). Neither side
+                is decoded freely and neither side is forced onto one sequence:
+                for a word of n nuclei, n stress patterns are built out of the
+                model's own sounds -- one nucleus full, the others reduced, in
+                classes -- and each is scored on each side by the same trellis
+                the alignment walks. The reduction gets its labels back, which
+                the aligned montage takes away, without ever asking the learner
+                what he said.
+
 Two verdicts per montage, because reducing a side to one winning syllable is
 itself in question:
 
@@ -212,6 +221,14 @@ def compared(left, right, written, word):
 
 
 def read(take, voice, montage):
+    if montage == "concurrent":
+        words = {entry[0].strip(".,!?'").lower(): entry
+                 for entry in contest(take, voice)}
+        return [weighed(words[written.text.lower()], written, take)
+                for written in take.words
+                if written.text.lower() in words
+                and written.text.lower() not in syllables.FUNCTION]
+
     model = RENDERS / voice / "l2" / f"{take.uid}.wav"
     learner = learners.wav(take)
     if not (overlap.readable(model) and overlap.readable(learner)):
@@ -288,6 +305,240 @@ def borrowed(model, learner, text, cache, gaps):
     return [out[key] for key in sorted(out)]
 
 
+def classes():
+    """The two vowel classes a hypothesis is written in.
+
+    Classes and not phones: a hypothesis says "a reduced vowel sits here", never
+    which one. Naming the phone would ask the network for the label it is least
+    good at (`../docs/analysis.md`), and the stress pattern does not need it.
+    """
+    table = matrix.symbols()
+    full = [i for i, symbol in enumerate(table)
+            if symbol in matrix.VOWELS and symbol not in REDUCED]
+    reduced = [i for i, symbol in enumerate(table) if symbol in REDUCED]
+    return full, reduced
+
+
+def cost(spread, slots, empty):
+    """The best path through one hypothesis, as a log-probability.
+
+    The trellis `matrix.align` walks, with the one difference that is the whole
+    point: a slot may stand for a **class** of sounds, whose mass is summed
+    before the log. Only the score comes back -- where each sound sat is not
+    asked, since the hypotheses are compared to each other and not to a clock.
+    """
+    width = 2 * len(slots) + 1
+    if len(spread) < width:
+        return None
+    blank = np.log(np.maximum(spread[:, empty], 1e-12))
+    rows, keys = [blank], [None]
+    for columns in slots:
+        rows += [np.log(np.maximum(spread[:, columns].sum(axis=1), 1e-12)), blank]
+        keys += [tuple(columns), None]
+
+    score = np.full((len(spread), width), -np.inf)
+    score[0, 0], score[0, 1] = rows[0][0], rows[1][0]
+    # A hypothesis may skip the blank between two slots, unless they stand for
+    # the same class -- two identical classes in a row need the blank to be
+    # told apart, exactly as two identical phones do.
+    skippable = [step > 1 and keys[step] is not None
+                 and keys[step] != keys[step - 2] for step in range(width)]
+    for frame in range(1, len(spread)):
+        before = score[frame - 1]
+        best = np.maximum(before, np.concatenate(([-np.inf], before[:-1])))
+        twice = np.concatenate(([-np.inf, -np.inf], before[:-2]))
+        best = np.where(skippable, np.maximum(best, twice), best)
+        score[frame] = best + np.array([row[frame] for row in rows])
+    return float(max(score[-1, width - 1], score[-1, width - 2]))
+
+
+def posterior(scores, frames):
+    """The n costs of a word, as a share over the stress positions.
+
+    Normalised by the frames they were read on, without which a long word
+    saturates the share to a single position and the montage falls back to
+    comparing two winners -- the very form the ceiling condemned.
+    """
+    values = np.array(scores) / max(frames, 1)
+    weights = np.exp(values - values.max())
+    return weights / weights.sum()
+
+
+def contest(take, voice):
+    """One take, every word confronted with the n hypotheses of its own model.
+
+    The model's sounds and the model's syllable count decide what the
+    hypotheses are; both matrices are then read against the same n. Nothing is
+    forced onto a sequence and nothing is decoded freely.
+    """
+    model = RENDERS / voice / "l2" / f"{take.uid}.wav"
+    learner = learners.wav(take)
+    if not (overlap.readable(model) and overlap.readable(learner)):
+        return []
+    model_cache = overlap.MATRICES / f"l2-{voice}" / f"{take.uid}.npz"
+    take_cache = overlap.MATRICES / f"l2-{take.uid}" / f"{take.uid}.npz"
+
+    theirs = matrix.probabilities(model, cache=model_cache)
+    segments = matrix.grid(theirs)
+    if not segments:
+        return []
+    mine = matrix.probabilities(learner, cache=take_cache)
+    spans = matrix.align(mine, [index for index, _, _ in segments])
+    step = matrix.seconds_per_frame()
+    matrix.heard(model)
+    model_samples, model_rate = sf.read(model, dtype="float64")
+    matrix.heard(learner)
+    learner_samples, learner_rate = sf.read(learner, dtype="float64")
+    sounds = join.joined(model, take.text, cache=model_cache)
+    cuts = syllables.cut(sounds)
+    full, reduced = classes()
+    empty = matrix.blank()
+
+    found = {}
+    for start, stop in join.runs(sounds):
+        pieces = [piece for piece in cuts
+                  if start <= piece.sounds[0] and piece.sounds[1] <= stop]
+        if len(pieces) < 2:
+            continue
+        at = []
+        for piece in pieces:
+            low, high = piece.sounds
+            heads = matrix.nuclei([s.symbol for s in sounds[low:high]])
+            if not heads:
+                at = []
+                break
+            at.append(low + heads[0] - start)
+        if not at:
+            continue
+
+        base = [[segments[index][0]] for index in range(start, stop)]
+        variants = []
+        for chosen in range(len(at)):
+            slots = [list(one) for one in base]
+            for rank, nucleus in enumerate(at):
+                slots[nucleus] = full if rank == chosen else reduced
+            variants.append(slots)
+
+        here = (segments[start][1], segments[stop - 1][2])
+        drawn = [spans[index] for index in range(start, stop)
+                 if spans[index] is not None]
+        if not drawn:
+            continue
+        there = (drawn[0][0], drawn[-1][1])
+        left = [cost(theirs[here[0]:here[1]], one, empty) for one in variants]
+        right = [cost(mine[there[0]:there[1]], one, empty) for one in variants]
+
+        # What a hypothesis predicts besides the sounds: that its nucleus is
+        # the loud one and the long one. Read on each side with its own
+        # recording, never across the two.
+        model_nuclei = [segments[start + one] for one in at]
+        learner_nuclei = [spans[start + one] for one in at]
+        if any(one is None for one in learner_nuclei):
+            continue
+        loud_left = [rms(model_samples, model_rate, low * step, high * step)
+                     for _, low, high in model_nuclei]
+        loud_right = [rms(learner_samples, learner_rate, low * step, high * step)
+                      for low, high in learner_nuclei]
+        long_left = [(high - low) * step for _, low, high in model_nuclei]
+        long_right = [(high - low) * step for low, high in learner_nuclei]
+        found[start] = (sounds[start].word, left, right,
+                        here[1] - here[0], there[1] - there[0],
+                        loud_left, loud_right, long_left, long_right)
+    return [found[key] for key in sorted(found)]
+
+
+def weighed(word, written, take):
+    """One word's two sets of costs, read three ways.
+
+    The three differ in what they take as the reference, and the difference is
+    the open question. `marge` is the statistic of the family (a GOP-like
+    likelihood margin): how much more the learner's own matrix wants some other
+    pattern than the one the model settles on. It is read on his matrix alone,
+    so what the network thinks of this word in general does not cancel -- it
+    enters only through the reference the model designates.
+
+    `marge symétrique` adds the same quantity with the sides swapped, so a word
+    the network is simply unsure about costs the same on both sides and lands
+    near zero. `divergence` is the house form -- two shares compared whole, by
+    brick 3's tool -- and it carries a temperature the other two do not.
+    """
+    (_, left, right, model_frames, learner_frames,
+     loud_left, loud_right, long_left, long_right) = word
+    row = {"word": written.text, "stress": written.stress,
+           "syllabes": len(left), "take": take.uid, "speaker": take.speaker,
+           "acoustique": [left, right], "trames": [model_frames, learner_frames],
+           "intensité": [loud_left, loud_right],
+           "durée": [long_left, long_right]}
+    if any(value is None for value in left + right):
+        row["muet"] = True
+        return row
+    row["muet"] = False
+    theirs, mine = np.array(left), np.array(right)
+    his, its = int(mine.argmax()), int(theirs.argmax())
+    row["élue"] = [its, his]
+    row["élue diverge"] = his != its
+    row["marge"] = float(mine.max() - mine[its]) / max(learner_frames, 1)
+    row["marge symétrique"] = row["marge"] + float(
+        theirs.max() - theirs[his]) / max(model_frames, 1)
+    row["divergence"] = overlap.divergence(posterior(left, model_frames),
+                                           posterior(right, learner_frames))
+    return row
+
+
+def share(values):
+    """One dimension of a word, as the log of each nucleus's share of it.
+
+    A hypothesis says its nucleus is the loud one and the long one, and this is
+    what that prediction is worth in the same unit as the path: the log of the
+    share, so a nucleus holding all of it costs nothing and one holding none
+    costs everything. No scale is fitted -- what a share is worth against the
+    sounds is the weight the sweep tries, and it is never chosen here.
+    """
+    total = sum(values)
+    if total <= 0:
+        return None
+    return [float(np.log(max(value / total, 1e-6))) for value in values]
+
+
+def combined(row, loud, long_):
+    """The n costs of a word once the other two dimensions have their say.
+
+    Every term is read on one side with that side's own recording; the two
+    sides meet only in the statistics below, never inside a score.
+    """
+    out = []
+    for side in (0, 1):
+        scores = np.array(row["acoustique"][side], dtype=float)
+        for weight, name in ((loud, "intensité"), (long_, "durée")):
+            if not weight:
+                continue
+            parts = share(row[name][side])
+            if parts is None or len(parts) != len(scores):
+                return None
+            scores = scores + weight * np.array(parts)
+        out.append(scores)
+    return out
+
+
+def statistics_of(row, loud, long_):
+    """The three readings of one word, at one pair of weights."""
+    pair = combined(row, loud, long_)
+    if pair is None:
+        return None
+    theirs, mine = pair
+    model_frames, learner_frames = row["trames"]
+    his, its = int(mine.argmax()), int(theirs.argmax())
+    marge = float(mine.max() - mine[its]) / max(learner_frames, 1)
+    return {
+        "élue diverge": his != its,
+        "marge": marge,
+        "marge symétrique": marge + float(
+            theirs.max() - theirs[his]) / max(model_frames, 1),
+        "divergence": overlap.divergence(posterior(theirs, model_frames),
+                                         posterior(mine, learner_frames)),
+    }
+
+
 def quantile(values, q):
     return sorted(values)[int(q * (len(values) - 1))]
 
@@ -311,7 +562,62 @@ def caught(rows, key):
     return f"{len(ok)} propres, {len(bad)} fautes — " + "   ".join(out)
 
 
+def rival(rows):
+    """What the competing hypotheses see, swept over the weight of each cue.
+
+    The weight is not chosen here and no number below is a threshold: the sweep
+    says what each combination would cost, and the brick decides nothing. A
+    weight of 0 on both is the acoustic path alone, which is the montage as it
+    was first measured -- so the first row of the sweep is the number to beat.
+    """
+    read = [row for row in rows if not row["muet"]]
+    print(f"\n=== montage concurrent — {len(rows)} mots pleins, "
+          f"{len(rows) - len(read)} muets (trop peu de trames)")
+    if not read:
+        return
+    clean = sum(1 for row in read if row["stress"] == 10)
+    faulty = sum(1 for row in read if row["stress"] == 5)
+    print(f"    {clean} à l'accent correct, {faulty} faux")
+    print("\n    poids : ce que vaut une part d'intensité (i) ou de durée (d) "
+          "contre le chemin acoustique")
+    print(f"\n      {'i':>6} {'d':>6}  {'élues ≠':>9}"
+          f"  {'marge':>16}  {'marge sym.':>16}  {'divergence':>16}")
+    for loud, long_ in ((0, 0), (5, 0), (20, 0), (50, 0), (100, 0), (300, 0),
+                        (1000, 0), (0, 20), (0, 100), (20, 20), (100, 100),
+                        (300, 100)):
+        held = []
+        for row in read:
+            found = statistics_of(row, loud, long_)
+            if found is not None:
+                held.append(dict(row, **found))
+        if not held:
+            continue
+        ok = [r for r in held if r["stress"] == 10]
+        lit = (100 * sum(1 for r in ok if r["élue diverge"]) / len(ok)
+               if ok else float("nan"))
+        cells = []
+        for channel in ("marge", "marge symétrique", "divergence"):
+            seen = seen_at(held, channel, 0.05)
+            cells.append("      —" if seen is None else f"{seen}")
+        print(f"      {loud:>6} {long_:>6}  {lit:>8.1f} %"
+              + "".join(f"  {cell:>16}" for cell in cells))
+    print("\n      colonnes : fausse alerte des deux élues, puis fautes vues "
+          "à 5 % de fausse alerte")
+
+
+def seen_at(rows, key, rate):
+    """Faults caught when the bar is set on the correct words at `rate`."""
+    ok = sorted(r[key] for r in rows if r["stress"] == 10 and r.get(key) is not None)
+    bad = [r[key] for r in rows if r["stress"] == 5 and r.get(key) is not None]
+    if not ok or not bad:
+        return None
+    bar = ok[int((1 - rate) * (len(ok) - 1))]
+    return f"{sum(1 for value in bad if value > bar)}/{len(bad)}"
+
+
 def report(rows, montage):
+    if montage == "concurrent":
+        return rival(rows)
     same = [row for row in rows if row["branche"] == "même compte"]
     apart = [row for row in rows if row["branche"] == "compte différent"]
     print(f"\n=== montage {montage} — {len(rows)} mots pleins")
@@ -366,7 +672,7 @@ def main(argv=None):
                         help="caractères de modèle du tirage ; 0 = tout le jeu")
     parser.add_argument("-c", "--candidate", default=VOICE)
     parser.add_argument("-m", "--montage", default="libre",
-                        choices=("aligné", "libre"))
+                        choices=("aligné", "libre", "concurrent"))
     parser.add_argument("-s", "--split", default="test")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--moyenne", action="store_true",
