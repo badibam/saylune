@@ -36,12 +36,7 @@ class ChosenRecognition(private val store: SecretStore) : Recognition {
     override suspend fun transcribe(audio: File): List<Word> {
         val values = store.values().first()
         val (provider, model) = pick(Task.Recognition, values)
-        return when (provider) {
-            Provider.Replicate -> ReplicateRecognition(store, model)
-            Provider.Azure -> AzureRecognition(store)
-            Provider.ElevenLabs -> ElevenLabsRecognition(store, model)
-            Provider.Deepseek -> throw ChainFailure("DeepSeek does not transcribe")
-        }.transcribe(audio)
+        return recognitionBy(store, provider, model).transcribe(audio)
     }
 }
 
@@ -50,11 +45,7 @@ class ChosenConversation(private val store: SecretStore) : Conversation {
     override suspend fun reply(history: List<Exchange>, heard: List<Word>): Reply {
         val values = store.values().first()
         val (provider, model) = pick(Task.Conversation, values)
-        return when (provider) {
-            Provider.Deepseek -> DeepseekConversation(store, model)
-            Provider.Replicate -> ReplicateConversation(ReplicateClient(store), model)
-            else -> throw ChainFailure("${provider.label} does not hold a conversation")
-        }.reply(history, heard)
+        return conversationBy(store, provider, model).reply(history, heard)
     }
 }
 
@@ -66,12 +57,7 @@ class ChosenSynthesis(
     override suspend fun speak(text: String, voice: Voice): File {
         val values = store.values().first()
         val (provider, model) = pick(Task.Synthesis, values)
-        return when (provider) {
-            Provider.Replicate -> ReplicateSynthesis(context, store, model)
-            Provider.Azure -> AzureSynthesis(context, store)
-            Provider.ElevenLabs -> ElevenLabsSynthesis(context, store, model)
-            Provider.Deepseek -> throw ChainFailure("DeepSeek does not speak")
-        }.speak(text, voice)
+        return synthesisBy(context, store, provider, model).speak(text, voice)
     }
 
     /**
@@ -88,6 +74,40 @@ class ChosenSynthesis(
             ?: throw ChainFailure("no voice has been chosen for ${provider.label}")
         return Voice(provider = provider.id, id = id)
     }
+}
+
+/**
+ * Who implements a link, named outright rather than read from the settings.
+ *
+ * The switching classes above and the latency test both need this, and a second copy of the
+ * mapping beside a second caller would be a second source that drifts. What the settings say
+ * is decided in [pick]; what a provider *is* is decided here, once.
+ */
+internal fun recognitionBy(store: SecretStore, provider: Provider, model: String): Recognition =
+    when (provider) {
+        Provider.Replicate -> ReplicateRecognition(store, model)
+        Provider.Azure -> AzureRecognition(store)
+        Provider.ElevenLabs -> ElevenLabsRecognition(store, model)
+        Provider.Deepseek -> throw ChainFailure("DeepSeek does not transcribe")
+    }
+
+internal fun conversationBy(store: SecretStore, provider: Provider, model: String): Conversation =
+    when (provider) {
+        Provider.Deepseek -> DeepseekConversation(store, model)
+        Provider.Replicate -> ReplicateConversation(ReplicateClient(store), model)
+        else -> throw ChainFailure("${provider.label} does not hold a conversation")
+    }
+
+internal fun synthesisBy(
+    context: Context,
+    store: SecretStore,
+    provider: Provider,
+    model: String,
+): Synthesis = when (provider) {
+    Provider.Replicate -> ReplicateSynthesis(context, store, model)
+    Provider.Azure -> AzureSynthesis(context, store)
+    Provider.ElevenLabs -> ElevenLabsSynthesis(context, store, model)
+    Provider.Deepseek -> throw ChainFailure("DeepSeek does not speak")
 }
 
 /**

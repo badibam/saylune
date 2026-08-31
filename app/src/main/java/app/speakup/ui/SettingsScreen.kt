@@ -2,10 +2,12 @@ package app.speakup.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -22,11 +24,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -34,6 +39,7 @@ import app.speakup.R
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.providers.Provider
+import app.speakup.providers.LatencyTest
 import app.speakup.providers.Task
 import app.speakup.providers.VoiceOption
 import app.speakup.providers.modelFor
@@ -152,8 +158,98 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
         }
 
         HorizontalDivider()
+        HorizontalDivider()
+        LatencySection(store)
+
         SoundCredits()
     }
+}
+
+/**
+ * The stopwatch: every model whose key is filled, on the same two sentences.
+ *
+ * Beside the settings because it is what one wants while choosing, and its results are what
+ * the choice should rest on. It is deliberately not automatic: a sweep spends a call per
+ * model per sentence per repeat, at the user's expense, so it says what it will cost and
+ * waits to be told.
+ */
+@Composable
+private fun LatencySection(store: SecretStore) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var repeats by rememberSaveable { mutableStateOf(3) }
+    var calls by remember { mutableStateOf<Int?>(null) }
+    var asking by remember { mutableStateOf(false) }
+    var progress by remember { mutableStateOf<String?>(null) }
+    var results by remember { mutableStateOf<List<LatencyTest.Trial>>(emptyList()) }
+
+    Text(stringResource(R.string.latency_title), style = MaterialTheme.typography.titleSmall)
+    Text(stringResource(R.string.latency_lead), style = MaterialTheme.typography.bodySmall)
+
+    Row(verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.latency_repeats), style = MaterialTheme.typography.bodySmall)
+        listOf(1, 3, 5).forEach { n ->
+            TextButton(onClick = { repeats = n }, enabled = progress == null) {
+                Text(
+                    n.toString(),
+                    fontWeight = if (n == repeats) FontWeight.Bold else FontWeight.Normal,
+                )
+            }
+        }
+    }
+
+    Button(
+        enabled = progress == null,
+        onClick = {
+            scope.launch {
+                calls = LatencyTest.planned(store, repeats)
+                asking = true
+            }
+        },
+    ) { Text(stringResource(R.string.latency_run)) }
+
+    progress?.let {
+        Text(it, style = MaterialTheme.typography.bodySmall)
+    }
+
+    if (asking) {
+        AlertDialog(
+            onDismissRequest = { asking = false },
+            title = { Text(stringResource(R.string.latency_confirm_title)) },
+            text = { Text(stringResource(R.string.latency_confirm_body, calls ?: 0)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    asking = false
+                    scope.launch {
+                        progress = ""
+                        results = LatencyTest.run(context, store, repeats) { progress = it }
+                        progress = null
+                    }
+                }) { Text(stringResource(R.string.latency_go)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { asking = false }) {
+                    Text(stringResource(R.string.latency_cancel))
+                }
+            },
+        )
+    }
+
+    // The median rather than the mean: the defect this exists to find is the occasional
+    // very slow call, and a mean lets one of those hide a link that is usually fine.
+    results.groupBy { it.label to it.size }.toSortedMap(compareBy({ it.first }, { it.second }))
+        .forEach { (key, trials) ->
+            val ok = trials.mapNotNull { it.ms }.sorted()
+            val line = if (ok.isEmpty()) trials.firstNotNullOfOrNull { it.why }.orEmpty()
+            else "${ok[ok.size / 2] / 1000f} s" +
+                (if (ok.size > 1) "  [${ok.first() / 1000f}–${ok.last() / 1000f}]" else "") +
+                (if (ok.size < trials.size) "  ${trials.size - ok.size} en échec" else "")
+            Text(
+                "${key.first} · ${key.second} — $line",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
 }
 
 /**
