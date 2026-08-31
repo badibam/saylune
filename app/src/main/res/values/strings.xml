@@ -71,4 +71,7 @@
     <string name="side_model">model</string>
     <string name="side_learner">you</string>
     <string name="speed_times">×%1$s</string>
+    <string name="credits_sounds">Sound recordings</string>
+    <string name="credits_sounds_why">One recording per phoneme, used under the licences below. Tap a line to open the original.</string>
+    <string name="credits_by">%1$s — %2$s</string>
 </resources>

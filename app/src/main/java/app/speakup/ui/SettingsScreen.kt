@@ -150,6 +150,9 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
         Task.entries.forEach { task ->
             TaskSection(task, store, stored)
         }
+
+        HorizontalDivider()
+        SoundCredits()
     }
 }
 

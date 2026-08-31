@@ -71,4 +71,7 @@
     <string name="side_model">modèle</string>
     <string name="side_learner">vous</string>
     <string name="speed_times">×%1$s</string>
+    <string name="credits_sounds">Enregistrements des sons</string>
+    <string name="credits_sounds_why">Un enregistrement par phonème, utilisé sous les licences ci-dessous. Touchez une ligne pour ouvrir l\'original.</string>
+    <string name="credits_by">%1$s — %2$s</string>
 </resources>
