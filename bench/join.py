@@ -63,6 +63,17 @@ AFFINITY = json.loads((HERE / "affinity.json").read_text(encoding="utf-8"))
 REDUCED = json.loads(
     (HERE / "affinity-reductions.json").read_text(encoding="utf-8"))
 
+# Which table answers "could some letter of this word write this sound at all",
+# which is the one question `spare` asks -- see `inner`. Named apart from
+# `AFFINITY` because it is a decision rather than a detail, and settled by
+# measurement rather than by taste: letting the reductions answer here too moves
+# neither set (231 and 311), costs one more letterless sound, and leaves the
+# added-matter marks of thirteen recorded turns identical one for one. Nothing
+# is bought, and the argument runs the other way -- `spare` draws the same line
+# `Added` reads to call a stretch added matter, so a table answering here has a
+# say in a **verdict** and not in where to paint.
+SPARED = AFFINITY
+
 # The same question asked of groups of letters that write one sound between
 # them: `sh` writes /ʃ/, and the per-letter table cannot say so -- it can only
 # say that `s` and `h` each take part in it, which leaves `sch` free to hand its
@@ -165,7 +176,7 @@ def inner(characters, symbols):
     # for a letter across it. Measured on a real turn: the `aʊ` of an added `how`
     # took the `g` of `trying` over a loose `h`, so the `ŋ` kept the `n` alone and
     # the mark for the `h` landed inside the word.
-    spare = [any(AFFINITY.get(character.lower(), {}).get(symbol, 0)
+    spare = [any(SPARED.get(character.lower(), {}).get(symbol, 0)
                  for character in characters)
              for symbol in symbols]
 
