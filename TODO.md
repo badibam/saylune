@@ -192,7 +192,34 @@ Deux causes se cumulent — et le diagnostic de la première, tel qu'il avait d'
 
 **La piste est ouverte et mesurée** (2026-09-01) : la sonde voit **24 fautes sur 76** à 5 % de fausse alerte, le double du meilleur canal fait à la main, et désigne à 96,7 % sur TIMIT. Le détail est dans `docs/analysis.md`. Ce qui reste à faire pour en tirer une brique : l'entraîner sur de la parole **d'apprenant** et sur des **fautes**, qu'elle n'a jamais vues, et remplacer la régression linéaire.
 
-**Dette, notée à l'instant où elle est créée** : `bench/accent.py -m sonde` lit des poids figés par `tmp/probe_layers.py`, qui vit dans `tmp/` et n'est donc pas versionné. **La mesure n'est pas rejouable par un tiers en l'état.** Si la piste se poursuit, le script rejoint `bench/` et les poids deviennent un artefact nommé ; si elle s'arrête, la ligne ci-dessus reste un chiffre sans instrument, et il faut le savoir en le lisant.
+**La dette de rejouabilité est payée** : l'instrument est `bench/probe.py`, versionné, et `accent.py -p <nom>` prend la sonde par son nom, donc la native et celle d'apprenant se jugent sur les mêmes mots.
+
+**Le plan, prêt à lancer (posé le 2026-09-01).** La sonde en service est ajustée sur TIMIT — anglais américain natif lu proprement, bornes de noyaux posées à la main — et jugée sur de la parole d'apprenant dont les bornes viennent du réseau. C'est le plus gros écart entre ce qu'elle a vu et ce qu'elle fait, et le corpus d'apprenant peut le combler : son annotation porte la syllabe accentuée dans ses chiffres ARPAbet (`Z IH1 R OW0`), les deux moitiés sont sur le disque, et la moitié `train` n'a jamais été lue — 2 207 mots à accent primaire marqué, contre les 1 910 natifs de la sonde actuelle.
+
+**Une étape non prévue et payante d'abord** : `train` n'a aucun rendu modèle. Le montage a besoin de la voix modèle pour découper les syllabes du mot et y aligner l'apprenant, et le corpus ne fournit que la voix de l'apprenant. Il faut donc synthétiser 2 500 phrases, **74 321 caractères** chez Azure. L'alternative — aligner l'apprenant sur les phones canoniques de l'annotation, sans voix modèle — est écartée : elle entraînerait la sonde sur des plages de noyaux obtenues autrement qu'en service, pour économiser un euro.
+
+```
+cd bench && source ../tmp/venv/bin/activate
+export HF_HOME="$(cd .. && pwd)/tmp/hf" HF_HUB_OFFLINE=1 ACOUSTIC_MODEL=timit-ipa
+set -a; . ../.env; set +a
+nohup sh -c 'python3 alarms.py -s train -b 0 -c azure-us-jenny -r -y \
+  && python3 probe.py --extract -s train \
+  && python3 probe.py --extract -s test \
+  && python3 probe.py' > out/probe.log 2>&1 &
+```
+
+`-c azure-us-jenny` n'est pas facultatif : par défaut `alarms.py` rend deux voix et doublerait la dépense, alors que toutes les mesures d'accent lisent celle-là. `HF_HUB_OFFLINE=1` non plus : dès qu'un montage charge le réseau, `matrix.loaded()` va vérifier les poids en ligne alors que rien de son travail ne le demande, et ça a fait échouer une passe.
+
+Le tableau final dit quelle couche figer — **la 19 a été choisie sur TIMIT et rien ne garantit qu'elle vaille sur de l'apprenant**. Puis :
+
+```
+python3 probe.py --fit <couche>
+python3 accent.py -b 0 -m sonde -p probe-l2-<couche>     # ~1 h
+```
+
+**Le critère de décision, posé avant le chiffre pour ne pas le négocier devant lui** : la sonde native voit **24 fautes sur 76** à 5 % de fausse alerte. Si l'entraînement sur de la parole d'apprenant passe nettement au-dessus de 40, la brique 7 mérite la suite du chantier — remplacer la régression linéaire, puis porter la sonde sur l'appareil (lire la couche coûte zéro calcul, les 24 couches tournent déjà ; ce qui change est l'export ONNX, qui doit rendre un état intermédiaire en plus du softmax). En dessous, elle reste de la recherche et l'app reprend la main.
+
+Deux précautions déjà dans le code, à ne pas défaire : **seuls les mots à l'accent correct entraînent** — sur un mot fautif l'annotation donne la position canonique alors que le locuteur a accentué ailleurs, et l'entraîner dessus lui apprendrait à pointer une syllabe que l'audio ne porte pas ; et **un mot est écarté si la grille et l'annotation ne comptent pas le même nombre de syllabes**, sans quoi « le troisième noyau » désigne deux choses différentes des deux côtés.
 
 **Ce que la piste demande, posé le 2026-08-31 : un instrument entraîné plutôt qu'un indice de plus.** Un réseau rendant une **probabilité d'accent par syllabe**, appliqué séparément aux deux audios ; l'argmax du côté modèle sert l'affichage, et l'alerte naît de l'écart continu entre les deux répartitions — jamais de l'égalité des deux argmax, qui est le plafond déjà condamné. Ce qui la justifie est mesuré : les règles à la main plafonnent à 86,7 % de désignation même avec l'inventaire complet, et les indices acoustiques sont épuisés dans les deux formes de montage. Rien d'autre ne peut bouger ce nombre.
 
