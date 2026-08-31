@@ -674,6 +674,8 @@ def main(argv=None):
     parser.add_argument("-m", "--montage", default="libre",
                         choices=("aligné", "libre", "concurrent"))
     parser.add_argument("-s", "--split", default="test")
+    parser.add_argument("-p", "--probe", default="probe-l2-19",
+                        help="la sonde figée à lire, dans out/probe/")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--moyenne", action="store_true",
                         help="moyenner les syllabes rattachées au lieu de les sommer")
