@@ -60,26 +60,37 @@ La boucle tourne de bout en bout sur l'appareil (SM-G975F, LineageOS) : capture,
 
 9. **Les sons qui ne portent aucune lettre : enquêter, ils ne sont pas d'une seule cause.** Mesuré le 2026-08-30, une fois les chiffres écrits en toutes lettres et la règle du saut posée : **17 des 1557 sons du modèle (1,1 %)** sur les 95 rendus, dont **2 mots sur 549** écrits autour d'un trou. Les ranger en bloc sous « la table est courte » était faux, et le classement qui l'a montré l'était aussi — refait le 2026-08-31 sur le code courant (`tmp/families.py`), il donne :
 
-   - **14 des 17 ont une lettre qui les paie déjà** — huit au poids 3, six au poids 2. La table a la réponse et la jointure ne la prend pas : ce ne sont **pas** des trous de table mais un défaut de l'appariement ou du découpage, et c'est l'écrasante majorité du lot. Au moins deux formes s'y mêlent — `boxes` /s/ et `use` /z/ ressemblent à un emprunt qui n'a pas eu lieu, `comfortable` /t/ et /b/ à autre chose — et les séparer demande sa propre mesure. **C'est le chantier principal du point.**
+   - **14 des 17 ont une lettre qui les paie déjà** — huit au poids 3, six au poids 2. La table a la réponse et la jointure ne la prend pas : ce ne sont **pas** des trous de table mais un défaut de l'appariement ou du découpage, et c'est l'écrasante majorité du lot. **C'est le chantier principal du point**, et deux d'entre eux sont élucidés (voir la puce d'égalités ci-dessous) ; `comfortable` /t/ et /b/ restent entiers.
    - **3 sont de vrais trous** — `market` /l/, `every` /n/, `time` /n/. Eux seuls relèvent d'une table, et la table des réductions les comble tous les trois.
 
    **Le piège est la façon de combler les vrais trous.** La table a été générée **à l'aveugle, par sa propre session, pour ne pas être ajustée là où la jointure échoue** (`bench/join.py`). Ajouter à la main les entrées qu'un tour a fait rater est exactement ce que cette méthode interdit. Ce qu'il faut est une passe systématique — pour chaque lettre, quels sons une réduction ou une assimilation peut-elle produire — conduite sans regarder les échecs constatés, puis mesurée contre l'annotation à la main (`join.py -s`, référence actuelle 231/236). Ce sont des prononciations ordinaires, pas des erreurs du réseau (`docs/reference.md`, « Ce que le réseau entend est la source de vérité »), et la table qui ne sait pas les écrire a un trou.
 
    **La passe a eu lieu, à l'aveugle, et la table existe** : `bench/tables/affinity-reductions.json`, 58 entrées sur 20 lettres, avec son prompt et ses notes de génération à côté. Une table à part plutôt qu'un raffinement de l'échelle — « à quels sons une lettre participe dans l'orthographe » et « ce que la vitesse fait à cette lettre » n'ont pas la même réponse, et les mélanger interdirait de débrancher l'une pour mesurer ce qu'elle coûte. Elle est **disjointe de la table d'orthographe par construction** (aucun couple lettre↔son n'est redonné), donc rien n'arbitre entre les deux : une réduction entre dans la marche à son propre poids.
 
-   **Mesuré le 2026-08-31** (`tmp/fillonly.py`), les trois montages :
+   **La garde est écrite et mesurée** (`bench/join.py` et `Join.kt`, `filled()`), les trois montages :
 
-   | montage | `join.py -s` | sons sans lettre | `I'm` tenu |
-   |---|---|---|---|
-   | orthographe seule (référence) | 231 / 236 | 17 / 1557 | non |
-   | + réductions, sans garde | 227 / 236 | 7 / 1557 | oui |
-   | + réductions, comblement seul | 230 / 236 | 7 / 1557 | oui |
+   | montage | calibration | heldout | sons sans lettre | `I'm` tenu |
+   |---|---|---|---|---|
+   | orthographe seule (avant) | 231 / 236 | 311 / 326 | 17 / 1557 | non |
+   | réductions fondues dans la marche | 231 / 236 | — | 7 / 1557 | oui |
+   | **réductions lues après la marche** | **231 / 236** | **311 / 326** | **9 / 1557** | **oui** |
 
-   **Le poids d'une réduction ne change rien** : la note et le compte sont identiques de ×0,17 à ×1 (`tmp/scale.py`). Ce n'est pas une compétition de score mais un booléen — `trimmed` retire une lettre qui vaut zéro au bord d'un son, et n'importe quel poids non nul la sauve. Le levier est donc ailleurs.
+   **La ligne du milieu est un piège, et c'est la leçon de la journée.** Fondre les réductions dans la table de la marche donne les meilleurs chiffres des trois et abîme la jointure : le `a` de `learn` part sur le `/l/` (réduction `a → l` = 2 contre orthographe `a → ɝ` = 2), se fait rogner puisque le rognage ne paie que les orthographes, et finit sans rien tenir. **Ni la note ni le compte de sons sans lettre ne le voient.** Une table qui peut déplacer une lettre peut en perdre une ; lue après la marche, elle ne peut qu'ajouter — d'où une garantie au lieu d'un constat.
 
-   **Là où il est, et c'est la règle à écrire** : une réduction doit pouvoir **combler** un son qui ne tient aucune lettre, jamais **élargir** un son dont l'orthographe paie déjà les lettres. Sans cette garde, `market` rend `n→nt` et `important` `n→tant` — la réduction `t → n` traîne le `t` dans un `/n/` qui avait déjà le sien. Avec elle, ces deux-là redeviennent justes et `school` gagne même un son ; il reste `−1` net, `comfortable` (`le→l`) et `doesn't` (`kn→n`).
+   **Le poids d'une réduction ne change rien** : note et compte identiques de ×0,17 à ×1 (`tmp/scale.py`). Ce n'est pas une compétition de score mais un booléen — `trimmed` retire une lettre qui vaut zéro au bord d'un son, et n'importe quel poids non nul la sauve. La règle est donc un **ordre** et pas un nombre : une réduction comble un son qui ne tient aucune lettre, et n'élargit jamais un son dont l'orthographe paie déjà les siennes. Sans la garde, `t → n` traînait le `t` de `went` dans un `/n/` qui avait le sien, et pareil dans `important`.
 
-   **Rien n'est écrit dans `join.py`** : les trois montages sont mesurés par monkey-patch depuis `tmp/fillonly.py`. Reste aussi ouvert : est-ce qu'une réduction donne le droit de sauter un son (`spare`), non mesuré. Et `I'm` tient dans la mesure ci-dessus **sur une phrase montée à la main** — aucun rendu du banc ne porte de `'m`, donc ça ne vaut pas mesure.
+   **`spare` est tranché** (mesuré le 2026-08-31, `tmp/spare_test.py`) : les réductions **ne** donnent **pas** le droit de sauter un son. Les laisser le donner ne change ni la calibration (231) ni le jeu tenu à l'écart (311), rend un son sans lettre de plus (10 contre 9), et laisse le canal de matière ajoutée identique marque pour marque sur les 13 prises du téléphone. La mesure ne plaide pas pour, et l'argument plaide contre : `spare` trace la même frontière qu'`Added` lit pour dire qu'un son est en trop, donc une table qui répond là a voix sur un **verdict** et non sur l'endroit où peindre. La table que `spare` consulte est nommée `SPARED` dans `join.py`, pour que la décision reste visible.
+
+   **Ce que la mesure ne couvre pas** : `I'm` est vérifié sur une phrase montée à la main (`ReducedTest`), aucun rendu du banc ne portant de `'m`. Et `fixture.py` ne sait geler qu'une prise du banc contre une phrase du banc, donc `PortTest` ne peut pas atteindre ce cas — c'est une limite de l'instrument, pas du portage.
+
+   **Deux des 14 sont des égalités, pas un emprunt cassé** (enquêté le 2026-08-31, `tmp/borrow.py`). `lent()` a eu raison dans les deux cas :
+
+   - `boxes` /s/ est le /s/ final de `six` qui déborde par coarticulation, et le découpage l'a donné à `boxes`. `lent()` ne prête que depuis un voisin immédiat — ici le `b`, qui ne paie rien — et le `x` qui saurait l'écrire est trois sons plus loin : le prêter marquerait le milieu de `boxes` pour un son entendu à son début. Le défaut est **en amont**, dans le découpage : rendre ce son à `six` note **16,000**, exactement comme la découpe retenue.
+   - `use` /z/ pareil : le chemin qui pose le `s` sur le /z/ note **1,000**, exactement comme celui qui ne le pose pas.
+
+   **La cause commune est structurelle** : `HUNGER` vaut 1,0 et une lettre payée 3 rapporte 3/3 = 1,0, donc sauter un son coûte exactement ce que rapporte une lettre juste, et les égalités se fabriquent seules. C'est l'ordre de la boucle qui tranche, en silence.
+
+   **Et le régler n'est pas la réparation** (`tmp/hunger.py`) : `use` est juste à `HUNGER ≤ 0,9`, `six boxes` seulement à 0,8 — faux à 0,5 comme à 0,9, ce qui est la signature d'un pile ou face et non d'un optimum. Aucune valeur n'est meilleure partout : la calibration vaut 231 de 0,9 à 2,0 et 229 en dessous, le jeu tenu à l'écart préfère 0,5–0,9 (313 contre 311), et les sons sans lettre montent avec la valeur (6 à 0,5 jusqu'à 14 à 2,0). Ce qu'il faut est une **règle de départage énoncée** — préférer poser une lettre plutôt que sauter un son, par exemple — et non un nombre mieux choisi. La valeur avait été lue sur un plateau **du score** ; personne n'avait regardé les égalités.
 
    Tant que ce n'est pas fait, l'annulation contre le modèle tient l'app juste sur le canal des ajouts, et elle ne répare pas les lignes sans verdict que le tableau affiche par ailleurs.
 
