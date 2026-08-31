@@ -38,6 +38,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `expected.py` | l'annotation à la main : les lettres que chaque son devrait porter. N'entre jamais dans l'app |
 | `affinity.json` | à quels sons une lettre participe, de 0 à 3 — avec `affinity-groups.json`, la seule donnée linguistique du montage |
 | `affinity-groups.json` | la même question pour les groupes qui écrivent un son (`sh`, `ough`, `kn`) — c'est elle qui retient les muettes qui appartiennent au son |
+| `tables/` | comment ces tables ont été fabriquées : le prompt de chacune, et les notes de génération. Gardé parce que la méthode *est* la garantie — une table écrite à l'aveugle ne vaut que si l'on peut relire à quoi la session avait droit |
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tourne sur le téléphone |
 | `concord.py` | deux machines lisant les mêmes poids disent-elles la même chose |
 | `phone.py` | pousse, mesure et rapatrie : l'appareil devient une lecture comme une autre |
