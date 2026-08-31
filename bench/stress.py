@@ -70,12 +70,17 @@ not no yes if then than as too very just only also even still
 # consonants carry no vowel and are unstressed by construction.
 REDUCED = frozenset("ax ax-h ix axr".split()) | SYLLABIC
 
-# The same question in two inventories that are ours, and they are not the same
-# one. The vocabulary the model in service writes holds `ə` beside `ʌ` and `ɚ`
-# beside `ɝ`, so it keeps the reduced vowel apart from its full counterpart.
-# Our own fine-tuning targets Lee & Hon's 39 classes, which merge both pairs
-# and leave only the schwa standing. Neither tells `ix` from `ih`, so `ɪ` --
-# reduced in `roses`, full in `sink` -- says nothing either way.
+# The same question in three inventories, and **the one in service is the
+# folded one** -- measured 2026-08-31, and it inverts what this file used to
+# say. `timit-ipa` writes 42 columns, on the bench and in the APK alike, and
+# `ʌ`, `ɚ` and `ɔ` are not among them: its own training fold sends `ah` and
+# `ax` alike to `ə`, and `axr` and `er` alike to `ɝ`. So the "en service" rows
+# below describe an inventory **no candidate of this project carries** -- they
+# are the ceiling a vocabulary that kept the pairs apart would reach, nothing
+# more. The rows that apply to the app are "notre repli".
+#
+# Neither inventory tells `ix` from `ih`, so `ɪ` -- reduced in `roses`, full in
+# `sink` -- says nothing either way in any of them.
 SPOKEN = {"ah": "ʌ", "ax": "ə", "ax-h": "ə", "er": "ɝ", "axr": "ɚ"}
 SPOKEN_REDUCED = frozenset(["ə", "ɚ"]) | SYLLABIC
 FOLDED_REDUCED = frozenset(["ə"]) | SYLLABIC
@@ -241,10 +246,13 @@ def measured(utterance, table):
         seen = [spoken_as(symbol) for symbol in nuclei]
         reduction = {
             ("timit", "durée"): picked(nuclei, own, REDUCED),
+            ("timit", "intensité"): picked(nuclei, power, REDUCED),
             ("en service", "durée"): picked(seen, own, SPOKEN_REDUCED),
             ("en service", "intensité"): picked(seen, power, SPOKEN_REDUCED),
             ("notre repli", "durée"): picked([folded(s) for s in nuclei], own,
                                              FOLDED_REDUCED),
+            ("notre repli", "intensité"): picked([folded(s) for s in nuclei],
+                                                 power, FOLDED_REDUCED),
         }
         found.append((between, inside, mark == len(stresses) - 1,
                       mark, reduction))
@@ -503,8 +511,10 @@ def report(found, skipped, utterances):
 
     print("\n    la réduction vocalique : la syllabe forte est celle qui "
           "n'est pas réduite")
-    for inventory in (("timit", "durée"), ("en service", "durée"),
-                      ("en service", "intensité"), ("notre repli", "durée")):
+    for inventory in (("timit", "durée"), ("timit", "intensité"),
+                      ("en service", "durée"),
+                      ("en service", "intensité"), ("notre repli", "durée"),
+                      ("notre repli", "intensité")):
         cases = [(row[4][inventory], row[3]) for row in found]
         right = sum(1 for (guess, _), mark in cases if guess == mark)
         alone = [(guess, why, mark) for (guess, why), mark in cases
