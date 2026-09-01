@@ -21,6 +21,15 @@ carry. Those words are what it is judged on instead.
     cd bench && python3 probe.py --extract -s test
     cd bench && python3 probe.py                       # every layer, judged on test
     cd bench && python3 probe.py --fit 19              # freeze one, for accent.py
+
+**The corpus underneath is abandoned** (2026-09-01, `../TODO.md`): what this file does
+stands, what it reads does not. SpeechOcean pins its scores to no instant, so the model
+voice had to be synthesised for the syllable cut alone; L2-ARCTIC carries bounds placed by
+hand and that bill goes away with the corpus. Before any of it, one number is owed and it
+is free: `out/probe/test.npz` holds 17 words where the half carries 2259 with a marked
+stress, and the filter that lost them -- the grid and the annotation must count the same
+syllables -- will apply to the next corpus unchanged. Re-run the test extraction and read
+the yield before hoping anything of a new corpus.
 """
 
 import argparse

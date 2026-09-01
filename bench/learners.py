@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """The labelled learner corpus: SpeechOcean762, its words and their verdicts.
 
+**This corpus is abandoned** (2026-09-01, `../TODO.md`): its phones are the ones
+expected rather than the ones said, it pins its scores to no instant so it forces a
+model voice to be synthesised for the cut alone, and its lexicon is wrong in ways that
+made every render-fidelity number unreadable. What replaces it is L2-ARCTIC, and what
+replaces this file is its reader. `alarms.py`, which consumes this, stands.
+
 Material, not measurement -- what `phrases.py` is to the rest of the bench,
 this is to `alarms.py`. Nothing here decides anything.
 

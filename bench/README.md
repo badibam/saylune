@@ -29,7 +29,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `boundaries.py` | où le réseau place chaque son dans le temps, contre les bornes de TIMIT — position et durée, la seule mesure adossée à une vérité terrain |
 | `recognition.py` | le décodage libre nomme-t-il les bons sons — PER contre la transcription de TIMIT, décomposé en substitutions / omissions / insertions |
 | `syllables.py` | la grille sait-elle combien de syllabes a un mot — les sons qu'elle perd, et le nombre de noyaux par mot |
-| `learners.py` | le corpus d'apprenants étiqueté (SpeechOcean762) : ses mots et leur verdict, et le tirage sous budget de caractères |
+| `learners.py` | le lecteur de SpeechOcean762 — **le corpus est abandonné** (`../TODO.md`), ce fichier attend son remplaçant pour L2-ARCTIC ; le montage qui le consomme, lui, reste bon |
 | `placed.py` | les sons de l'apprenant posés sur les *lettres* du texte, par `join` pointé vers sa prise — ce qui ne trouve aucune lettre est de la matière ajoutée, sans qu'aucune durée soit lue. Rend aussi le canal que `turn.py` écrit et que `Added.kt` reproduit |
 | `alarms.py` | à quelle fréquence une marque tombe sur un mot que rien n'accusait — la jointure se fait au mot, aucun seuil n'est posé |
 | `stress.py` | ce que l'accent fait à une syllabe — durée, réduction, intensité, sur les bornes de TIMIT posées à la main, sans réseau |
