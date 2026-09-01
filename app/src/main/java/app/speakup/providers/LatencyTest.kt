@@ -44,6 +44,7 @@ internal object LatencyTest {
     /** One timed call: what was asked of whom, and what it cost. */
     data class Trial(
         val at: String,
+        val note: String,
         val link: String,
         val route: String,
         val model: String,
@@ -74,6 +75,10 @@ internal object LatencyTest {
     /**
      * Run every offered model twice per repeat, and write what happened.
      *
+     * [note] names the run. Two sweeps of the same model are not two samples of the same
+     * thing when one was on a home wifi and the other on a phone network at a station: the
+     * numbers differ by the place, and nothing in the file would say so.
+     *
      * [say] reports progress; a sweep is minutes long and a frozen screen would read as a
      * crash. Nothing here throws: a link that fails is a result -- it says which model
      * refused and why, which is exactly what one wants to know before choosing it.
@@ -82,6 +87,7 @@ internal object LatencyTest {
         context: Context,
         store: SecretStore,
         repeats: Int,
+        note: String,
         say: (String) -> Unit,
     ): List<Trial> {
         val values = store.values().first()
@@ -100,7 +106,7 @@ internal object LatencyTest {
                         for ((size, text) in listOf("court" to SHORT, "long" to LONG)) {
                             say("$round/$repeats · ${provider.id}/$model · $size")
                             val trial = timed(
-                                context, store, stamp, task, provider, model, voice,
+                                context, store, stamp, note, task, provider, model, voice,
                                 size, text, heard,
                             )
                             out += trial
@@ -122,6 +128,7 @@ internal object LatencyTest {
         context: Context,
         store: SecretStore,
         stamp: String,
+        note: String,
         task: Task,
         provider: Provider,
         model: String,
@@ -155,6 +162,7 @@ internal object LatencyTest {
         val ms = (System.nanoTime() - began) / 1_000_000
         return Trial(
             at = stamp,
+            note = note,
             link = task.name.lowercase(),
             route = provider.id,
             model = model.ifBlank { "—" },
@@ -204,12 +212,30 @@ internal object LatencyTest {
         return out
     }
 
+    /**
+     * The name the last run was given, to be offered again.
+     *
+     * Typed afresh every time, the same place becomes "maison", "Maison" and "chez moi",
+     * and three names for one place group into three. Offering the last one back makes
+     * repeating a measure the cheap gesture and renaming it the deliberate one.
+     */
+    suspend fun lastNote(context: Context): String = withContext(Dispatchers.IO) {
+        val file = File(File(context.getExternalFilesDir(null), "latency"), "latency.jsonl")
+        if (!file.isFile) return@withContext ""
+        runCatching {
+            file.readLines().lastOrNull { it.isNotBlank() }
+                ?.let { JSONObject(it).optString("note") }
+                .orEmpty()
+        }.getOrDefault("")
+    }
+
     /** Appended as one JSON object per line: history by construction, nothing to migrate. */
     private suspend fun keep(context: Context, trial: Trial) = withContext(Dispatchers.IO) {
         val home = File(context.getExternalFilesDir(null), "latency").apply { mkdirs() }
         File(home, "latency.jsonl").appendText(
             JSONObject()
                 .put("at", trial.at)
+                .put("note", trial.note)
                 .put("link", trial.link)
                 .put("route", trial.route)
                 .put("model", trial.model)

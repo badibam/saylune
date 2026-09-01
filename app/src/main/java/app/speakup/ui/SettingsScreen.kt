@@ -182,9 +182,23 @@ private fun LatencySection(store: SecretStore) {
     var asking by remember { mutableStateOf(false) }
     var progress by remember { mutableStateOf<String?>(null) }
     var results by remember { mutableStateOf<List<LatencyTest.Trial>>(emptyList()) }
+    // Offered back rather than asked afresh: the same place typed three ways groups three
+    // ways, and the run one repeats is the run one already named.
+    var note by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) { if (note == null) note = LatencyTest.lastNote(context) }
 
     Text(stringResource(R.string.latency_title), style = MaterialTheme.typography.titleSmall)
     Text(stringResource(R.string.latency_lead), style = MaterialTheme.typography.bodySmall)
+
+    OutlinedTextField(
+        value = note.orEmpty(),
+        onValueChange = { note = it },
+        enabled = progress == null,
+        singleLine = true,
+        label = { Text(stringResource(R.string.latency_note)) },
+        supportingText = { Text(stringResource(R.string.latency_note_help)) },
+        modifier = Modifier.fillMaxWidth(),
+    )
 
     Row(verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -200,7 +214,10 @@ private fun LatencySection(store: SecretStore) {
     }
 
     Button(
-        enabled = progress == null,
+        // A sweep costs money and minutes, and an unnamed one cannot be told apart from
+        // the next: naming is the cheapest part of it, so it is required rather than
+        // hoped for.
+        enabled = progress == null && !note.isNullOrBlank(),
         onClick = {
             scope.launch {
                 calls = LatencyTest.planned(store, repeats)
@@ -223,7 +240,9 @@ private fun LatencySection(store: SecretStore) {
                     asking = false
                     scope.launch {
                         progress = ""
-                        results = LatencyTest.run(context, store, repeats) { progress = it }
+                        results = LatencyTest.run(
+                            context, store, repeats, note.orEmpty().trim(),
+                        ) { progress = it }
                         progress = null
                     }
                 }) { Text(stringResource(R.string.latency_go)) }

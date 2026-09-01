@@ -77,6 +77,8 @@
     <string name="credits_by">%1$s — %2$s</string>
     <string name="latency_title">Latence — comparer les modèles</string>
     <string name="latency_lead">Chaque modèle dont la clé est saisie, sur deux phrases : une courte, une longue. Chronomètre un maillon, pas un tour. Les résultats s\'ajoutent aux précédents dans latency/latency.jsonl.</string>
+    <string name="latency_note">Nom de la mesure</string>
+    <string name="latency_note_help">Où et sur quel réseau : les chiffres en dépendent autant que du modèle.</string>
     <string name="latency_repeats">Répétitions</string>
     <string name="latency_run">Lancer le test</string>
     <string name="latency_confirm_title">Lancer la mesure ?</string>
