@@ -11,7 +11,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
-- `design/activity-model.md` — **la forme que prendra le travail dans l'app, et la source de vérité de ce qu'elle décrit** : l'énoncé, l'activité, la conversation comme activité, les réglages, la capture, ce qui se garde. Il supprime les notions de session et de parenthèse. Le reste de ce doc n'en tient pas encore compte, et se corrigera à l'implémentation.
+- `design/activity-model.md` — **la forme que prend le travail dans l'app, et la source de vérité de ce qu'elle décrit** : l'énoncé, l'activité, la conversation comme activité, les prescripteurs, les cinq directions, les réglages, la capture, ce qui se garde. Il supprime les notions de session et de parenthèse. Ce doc-ci ne le contredit plus ; ce qu'il ajoute par-dessus est signalé section par section.
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
@@ -22,29 +22,26 @@ L'utilisateur parle anglais à voix haute. L'IA lui répond en voix, dans l'acce
 
 Quand il se trompe, l'IA reprend **dans sa réponse** au lieu de s'arrêter — à qui vient de dire *I have 25 years*, elle répond « Ah, you're 25! And where... ». La reprise passe dans le fil ; le tour fautif porte en plus une **marque discrète** (la portion concernée, colorée). Sans cette trace, la discrétion se retourne : on corrige, et personne ne l'apprend.
 
-Un appui sur la marque ouvre une **parenthèse** de travail sur l'erreur. Un appui la referme, et la conversation reprend où elle en était.
+Une chose remarquée a **deux sorts, et deux seulement** (`design/activity-model.md`) : redire sur place, ce qui produit un énoncé de plus dans la même conversation ; ou devenir une activité suggérée, faite plus tard si on veut. On n'interrompt jamais pour partir travailler ailleurs.
 
-Le contrôle du moment appartient à l'utilisateur, jamais à l'app. Seule exception, explicitement optionnelle : les seuils, qui peuvent ouvrir la parenthèse d'eux-mêmes.
+Le contrôle du moment appartient à l'utilisateur, jamais à l'app. Ce qui peut déclencher une suggestion pendant une conversation reste à spécifier.
 
-## Chaque tour est indépendant
+## La même faute, la même marque
 
-Aucune analyse ne s'accumule d'un tour au suivant. Un tour est examiné avec ce qu'il contient, jugé, marqué, et rien de ce jugement ne survit pour peser sur le tour d'après.
+Une marque qui apparaîtrait parce que *le même son a déjà été raté trois fois* est incompréhensible pour qui la reçoit. **La même faute doit produire la même marque, à n'importe quel moment**, et c'est une exigence sur la lisibilité du marquage, pas sur ce dont l'app a le droit de se souvenir. Ce qu'elle interdit tient en une ligne : rien de ce qui a été mesuré ailleurs n'entre dans la lecture d'un tour.
 
-Ce n'est pas une simplification d'implémentation, c'est ce qui rend le marquage lisible : une marque qui apparaît parce que *le même son a déjà été raté trois fois* est incompréhensible pour qui la reçoit. La même faute doit produire la même marque, à n'importe quel moment de la session.
+Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir de ce qui est dû sont le travail des prescripteurs (`design/activity-model.md`), et ils ne touchent jamais à la mesure.
 
-Ça vaut aussi comme borne : ni suivi longitudinal, ni tendance affichée, ni pilotage de la conversation par les faiblesses accumulées.
+## Les cinq directions
 
-La règle porte sur **la conversation et son marquage**. Une parenthèse est un épisode fermé, avec son propre déroulé — un drill dont la difficulté monte progresse à l'intérieur de la parenthèse et meurt avec elle, sans rien laisser derrière.
+Élocution, compréhension, formulation, fluidité, richesse, définies dans `design/activity-model.md`, qui porte aussi la forme des réglages : par direction, fixés pour toute la durée de la conversation. Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui les tisse toutes dans une seule conversation.
 
-## Les trois curseurs
+Deux réglages ont déjà leur mécanisme écrit dans ce doc, et ce sont les deux seuls :
 
-Fluidité, grammaire, prononciation ne sont pas trois modes entre lesquels on bascule : ce sont trois axes réglables, et **les régler est la façon de déclarer l'intention d'une session** sans changer ni d'écran ni de mode. C'est le mécanisme qui tisse les trois dans une seule conversation.
+- **Formulation** — la sévérité, en trois crans : ne rien marquer / marquer les fautes / marquer aussi les tournures correctes mais maladroites. Pas un pourcentage : une phrase est fautive ou ne l'est pas. C'est ce cran que lit « La porte grammaticale ».
+- **Élocution** — le seuil du marquage sonore, dont « Marquer par écart au modèle » dit la forme : une exigence, jamais un quota. Le poser bas, c'est déclarer qu'on travaille cet aspect-là aujourd'hui.
 
-- **Pression conversationnelle** — de « l'IA te laisse mener » à « elle relance dès que tu t'arrêtes et refuse les réponses en trois mots ». La fluidité a un contenu propre : sans ce curseur, elle ne serait qu'un mot pour « on ne t'embête pas ».
-- **Sévérité grammaticale** — trois crans : ne rien marquer / marquer les fautes / marquer aussi les tournures correctes mais maladroites. Pas un pourcentage : une phrase est fautive ou ne l'est pas.
-- **Seuil de prononciation** — sensibilité du marquage. Facultatif : le poser bas, c'est déclarer qu'on travaille cet aspect-là aujourd'hui.
-
-Un curseur peut déclencher la parenthèse automatiquement au lieu de seulement marquer. C'est un choix de l'utilisateur, et l'unique endroit où l'app prend l'initiative du moment.
+Les trois autres n'ont aucun mécanisme écrit, et la **pression**, qui les traverse toutes, est entièrement à définir (`design/activity-model.md`).
 
 ## La porte grammaticale
 
@@ -108,9 +105,9 @@ Deux propriétés qui comptent autant que la précision : la comparaison est **i
 
 Ce qui suit n'est pas du traitement mais le contrat d'entrée : 16 kHz, mono, PCM 16 bits, ce que le modèle acoustique consomme des deux côtés. Ce qui est refusé nommément : gain automatique, suppression de bruit, annulation d'écho. La capture demande donc au système sa source **sans traitement** quand l'appareil déclare en avoir une, la source de reconnaissance sinon — et elle **dit laquelle elle a obtenue**, plutôt que de garder la différence pour elle.
 
-**Le seuil est une exigence, pas un quota.** Une barre unique sur l'écart, la même pour chaque son, partout et tout le temps. Jamais « marquer les n pires », jamais un budget par mot ou par tour, jamais un classement : **toutes les fautes se marquent, aucune ne s'élit**. Un quota serait une élection, et il ferait dépendre une marque de ce qu'il y a d'autre dans la phrase, ce que l'indépendance des tours interdit — la même faute doit produire la même marque à n'importe quel moment.
+**Le seuil est une exigence, pas un quota.** Une barre unique sur l'écart, la même pour chaque son, partout et tout le temps. Jamais « marquer les n pires », jamais un budget par mot ou par tour, jamais un classement : **toutes les fautes se marquent, aucune ne s'élit**. Un quota serait une élection, et il ferait dépendre une marque de ce qu'il y a d'autre dans la phrase — or la même faute doit produire la même marque à n'importe quel moment.
 
-La barre est absolue, mais **ce qu'elle mesure est relatif** : l'écart de l'apprenant à son modèle. Exigence absolue sur une mesure relative — c'est ce qui permet au curseur d'exister. Le bouger déclare un niveau d'exigence pour la séance ; il ne change jamais la façon de mesurer.
+La barre est absolue, mais **ce qu'elle mesure est relatif** : l'écart de l'apprenant à son modèle. Exigence absolue sur une mesure relative — c'est ce qui permet au réglage d'élocution d'exister. Le bouger déclare un niveau d'exigence pour la conversation ; il ne change jamais la façon de mesurer.
 
 **Se taire n'est jamais une issue.** Quand un repère est trop bruyant, la réponse est de le réparer ou d'en trouver un autre — jamais de restreindre la marque aux cas faciles ni de retirer une échelle. Une échelle qui ne parle que là où elle est sûre laisse passer les fautes qu'elle est là pour attraper, et l'apprenant n'a aucun moyen de savoir que le silence n'est pas une approbation. Décision de projet, à ne pas rouvrir : les compromis qui achètent la fiabilité en renonçant à des marques sont écartés d'avance. Sa portée, notée pour que la question ne se repose pas : il a été écrit contre l'idée de restreindre une échelle **en service** à ses cas faciles ; il n'ordonne pas de retenir l'app derrière une échelle qui n'est pas encore écrite. L'accent lexical (brique 7) reste de la recherche tant qu'il n'est pas fiable, ses canaux vides à l'écran ; la première version marque le son et la mélodie, qui sont écrits et en service.
 
@@ -122,7 +119,7 @@ La barre est absolue, mais **ce qu'elle mesure est relatif** : l'écart de l'app
 
 **Question close, à ne pas rouvrir.** Se faire marquer souvent, c'est parler autrement que le modèle, ce que la mesure existe pour dire — ce n'est pas un symptôme à interpréter. La règle n'a pas de porte de sortie : une voix modèle qui ne conviendrait pas se **remplace**, et la voix suivante est la source de vérité exactement comme la précédente. Changer de norme ne revient jamais à s'en passer.
 
-Ce qui rend l'écart tenable à l'usage est la forme de la parenthèse : une marque qu'on juge injuste mène à écouter le modèle et à redire, le calque concorde, et la parenthèse se referme sur une réussite. Un détour court, jamais une leçon fausse.
+Ce qui rend l'écart tenable à l'usage est qu'on peut redire sur place : une marque qu'on juge injuste mène à écouter le modèle et à redire, le calque concorde, et l'affaire se ferme sur une réussite. Un détour court, jamais une leçon fausse.
 
 **Un modèle n'est un étalon que s'il s'étalonne.** Une voix de synthèse que l'analyse lit mal accuserait l'apprenant d'une faute commise par la machine — le principe se paie ici précisément parce que le modèle est cru aveuglément : rien d'extérieur ne viendra dire qu'il était bâclé. Toute voix promue modèle passe donc un test, et une voix qui échoue est écartée quelle que soit sa beauté (cf. « L'accent », où ce test se choisit).
 
@@ -136,52 +133,32 @@ La position se lit des deux côtés gratuitement : la grille dit où le modèle 
 
 **Les audios de synthèse sont gardés en cache**, indexés par le texte, la voix et le dialecte. Une même synthèse sert alors trois fois : d'étalon pour la mesure, de modèle à écouter, et de modèle à réécouter autant de fois qu'on redit le mot ou la phrase.
 
-## La parenthèse
+## Redire sur place
 
-Une seule primitive, récursive : conversation → phrase → mot. Même geste à chaque étage, même bouton de sortie.
+Redire produit **un énoncé de plus dans la même conversation**, pointant vers celui qu'il reprend (`design/activity-model.md`). Rien ne s'interrompt, rien ne part travailler ailleurs, et rien n'a à se refermer.
 
-- **Ouverture** par la marque ou par un seuil. Le genre de la marque tient à la **nature** de la faute, jamais à sa gravité — une faute de prononciation est sévère sans être grammaticale, et confondre les deux ouvre la mauvaise parenthèse.
-- **Prononciation à l'échelle de la phrase.** Un mot peut être zoomé — parenthèse dans la parenthèse, le temps de l'améliorer, puis retour à la phrase.
-- **Le nombre de marques ne multiplie pas le travail.** L'unité de réparation est la phrase, le mot au plus ; jamais le son. Un tour ouvre **une** parenthèse, quel qu'y soit le nombre de marques, et trois sons marqués dans un mot font un seul mot à redire. Les marques n'y sont donc pas des corvées à liquider une à une : elles disent **où porter l'attention** en redisant. C'est ce qui rend tenable de tout marquer sans rien élire.
+Ce qui s'y dit est noté contre un texte de référence **connu d'avance** — celui de l'énoncé repris — ce que la conversation libre ne peut pas offrir.
+
+**Le nombre de marques ne multiplie pas le travail.** L'unité de réparation est la phrase, le mot au plus ; jamais le son. Trois sons marqués dans un mot font un seul mot à redire. Les marques ne sont donc pas des corvées à liquider une à une : elles disent **où porter l'attention** en redisant. C'est ce qui rend tenable de tout marquer sans rien élire.
 
   Le prix se paie ailleurs, sur l'**affichage** et non sur la charge : mesuré sur de la parole d'apprenant réelle, la majorité des mots portent quelque chose (`../TODO.md`). Une marque binaire ne transporte alors plus rien — tout est colorié, donc rien n'est signalé. Le marquage **gradue** donc au lieu de colorier ou non, et c'est en service : une rampe d'ambre à rouge à mesure que l'écart grandit, à teinte claire fixe pour qu'elle se lise comme une seule famille. Sous la bande de bruit la lettre garde l'encre neutre — une teinte y serait un mensonge de précision, le bruit propre de la machine étant lui-même de cette largeur.
-- **Sortie** disponible à tout moment en un appui.
-- L'IA sait que ces tours sont une **parenthèse et non du contenu** : elle reprend le sujet d'avant, elle n'enchaîne pas sur la grammaire.
 
-Tout ce qui s'y dit est **neuf** — la phrase réparée, les variations, le mot zoomé — et chaque énoncé est noté contre un texte de référence **connu d'avance**, puisque c'est l'IA qui l'a proposé.
-
-### Deux temps, qui s'enchaînent
-
-**Temps 1 — corriger.** L'IA introduit en **une phrase** la manière correcte de dire, puis rend la parole. L'utilisateur formule alors une phrase **libre**, et elle doit satisfaire deux conditions : respecter la structure corrigée, et rester **cohérente avec la conversation**. Si elle les satisfait, le temps 1 est clos ; sinon il se poursuit.
-
-*Libre* qualifie la formulation, pas le terrain. La phrase d'introduction de l'IA doit rendre la structure **inévitable** — sinon l'utilisateur, sans le vouloir, contourne l'endroit qui coince : corrigé sur `He don't know`, il répond *« I like pizza »*, la règle est respectée à vide et le temps 1 se clôt sans que rien n'ait été travaillé.
-
-**La phrase produite remplace la phrase initiale** dans le fil, à la fermeture de la parenthèse. C'est la raison de la condition de cohérence : elle doit pouvoir tenir la place de ce qui avait été dit. C'est aussi ce qui donne au temps 1 son enjeu — on ne récite pas une correction, on réécrit son propre tour.
-
-**Temps 2 — driller.** Proposé, jamais imposé : à la fin du temps 1, une indication visuelle offre de poursuivre la conversation, ce qui referme la parenthèse, ou de driller la structure travaillée, ce qui la laisse ouverte.
-
-Les drills sont introduits par des phrases qui **imposent d'employer la structure**, et leur difficulté croît. Les variations sont formulées par l'utilisateur, jamais récitées : redire une fois la phrase qu'on vient de lui souffler n'apprend rien. Le drill est ainsi fait de la même matière que la conversation.
-
-*Piste, non tranchée* : la difficulté monte d'elle-même à chaque réussite, et deux boutons permettent de la corriger. Le `-` est le vrai des deux — qui décroche ne saura pas nommer ce qui le dépasse, il voudra seulement que ça redescende.
-
-### Sortir sans avoir réussi
-
-Il n'y a **pas de sortie forcée**, seulement une sortie proposée. Un locuteur peut réparer la structure en cassant autre chose, indéfiniment, et rien n'oblige à en venir à bout.
-
-Sortir avant d'avoir produit une phrase correcte et cohérente est donc légitime, et sans conséquence : **la phrase initiale reste telle qu'elle a été dite**, et tout se passe comme si l'on avait ignoré la faute dès le départ. La parenthèse est une occasion de réécrire son tour ; l'abandonner laisse le fil intact.
+**Ce que devient la phrase initiale n'est pas décidé.** Son remplacement dans le fil est listé parmi ce qui reste à spécifier (`design/activity-model.md`) ; jusque-là, redire ajoute et rien ne remplace.
 
 ## Les deux tuyaux
 
 Deux circuits distincts partagent une seule ressource : le fichier audio du tour de parole.
 
-**Tuyau A — la conversation.** Micro → tampon local (PCM 16 kHz mono, un fichier par tour, **conservé**) → fin de parole → envoi au fournisseur de conversation → lecture de la réponse audio. Le fichier local est la condition d'existence du tuyau B : aucun service distant ne rend l'audio envoyé.
+**Tuyau A — la conversation.** Micro → tampon local (PCM 16 kHz mono, **conservé**) → fin de parole → envoi au fournisseur de conversation → lecture de la réponse audio. Le tampon local est la condition d'existence du tuyau B : aucun service distant ne rend l'audio envoyé. Sa forme est décidée par le design — **un tour est une liste de segments**, le silence gardé comme durée et jamais comme échantillons, chaque segment de parole entouré d'une marge de vrai audio — et **on n'envoie pas de silence au réseau**.
 
 **Ce qui est décidé de la capture est un invariant, pas un mode.** Deux règles, et elles ne bougent pas :
 
 - **Rien ne coupe la parole de quelqu'un qui parle encore.** Couper qui hésite, cherche un mot ou reprend sa phrase, c'est couper précisément qui apprend.
 - **L'audio du tour est conservé localement**, sinon le tuyau B n'a rien à examiner.
 
-**Le mode de capture, lui, est ouvert** : l'invariant ne le désigne pas, plusieurs gestes l'honorent. Quatre pistes, aucune écartée :
+**La capture est l'un des axes que les réglages gouvernent** (`design/activity-model.md`), et trois choses y sont décidées : le micro **ne s'arme jamais avant la fin de la réponse de l'IA** ; un symbole est visible dès que ça enregistre, qui ne fait pas qu'informer — savoir que ça tourne change la façon dont on parle ; et **chaque tour porte son mode de capture**, sans quoi rien ne dit si ses silences sont significatifs, et rien ne s'agrège entre modes.
+
+**Le mode lui-même reste ouvert** : l'invariant ne le désigne pas, plusieurs gestes l'honorent. Quatre pistes, aucune écartée :
 
 - **Armement automatique, un tap pour clore.** Ce que `design/ui-flow.md` a retenu : le micro s'ouvre dès que l'IA a fini, un geste par tour, faisable à l'aveugle. De l'air mort à la fin si l'on tarde à clore.
 - **Appui / appui.** Deux gestes, mais aucun enregistrement non voulu.
@@ -198,10 +175,10 @@ L'audio d'un tour ne quitte donc l'appareil **qu'une fois**, pour la conversatio
 
 La conversation dépend de services distants, et chacun peut manquer — réseau coupé, quota épuisé, fournisseur en panne, clé expirée. L'analyse, elle, ne dépend que de l'appareil. La règle se décline par brique, pas globalement :
 
-- **La chaîne de conversation est bloquante, mais réparable par construction** : le fichier conservé fait qu'un envoi raté se **réessaie sans redire la phrase**. L'échec coûte un bouton, jamais une parole perdue. La parenthèse grammaticale, qui ne consomme que cette chaîne, hérite du même traitement.
-- **L'analyse ne dépend d'aucun réseau**, ce qui retire d'un coup le quota, la clé expirée et le fournisseur en panne. Ce qui reste est d'un autre genre et se règle **une fois pour la session, pas à chaque tour** : les poids ne sont pas encore téléchargés, ou l'appareil ne parvient pas à les charger. Dans ce cas les marques sonores sont éteintes de bout en bout, et l'option éteinte **porte sa raison** comme toute autre. Un tour reste analysable tant que la session a démarré avec son modèle chargé.
-- **La parenthèse de prononciation a besoin de la synthèse, pas du réseau d'analyse.** Redire sans modèle à entendre n'est pas un exercice dégradé, c'est de l'auto-évaluation à l'oreille — ce que l'architecture refuse partout ailleurs. Si la synthèse manque en cours de parenthèse et que le cache ne porte pas la phrase, l'app le dit franchement et propose la sortie ; la phrase initiale reste telle qu'elle a été dite, comme pour toute sortie sans réussite.
-- **Ni file hors-ligne, ni réanalyse différée** : analyser un tour trois tours plus tard produirait des marques sur du passé, ce que l'indépendance des tours interdit. Ce qui n'a pas été analysé sur le moment ne le sera pas.
+- **La chaîne de conversation est bloquante, mais réparable par construction** : le fichier conservé fait qu'un envoi raté se **réessaie sans redire la phrase**. L'échec coûte un bouton, jamais une parole perdue.
+- **L'analyse ne dépend d'aucun réseau**, ce qui retire d'un coup le quota, la clé expirée et le fournisseur en panne. Ce qui reste est d'un autre genre et se règle **une fois pour la conversation, pas à chaque tour** : les poids ne sont pas encore téléchargés, ou l'appareil ne parvient pas à les charger. Dans ce cas les marques sonores sont éteintes de bout en bout, et l'option éteinte **porte sa raison** comme toute autre. Un tour reste analysable tant que la conversation a démarré avec son modèle chargé.
+- **Redire a besoin de la synthèse, pas du réseau d'analyse.** Redire sans modèle à entendre n'est pas un exercice dégradé, c'est de l'auto-évaluation à l'oreille — ce que l'architecture refuse partout ailleurs. Si la synthèse manque et que le cache ne porte pas la phrase, l'app le dit franchement plutôt que de laisser redire à vide.
+- **Ni file hors-ligne, ni réanalyse différée** : analyser un tour trois tours plus tard poserait des marques sur du passé, devant quelqu'un qui parle d'autre chose. Ce qui n'a pas été analysé sur le moment ne le sera pas.
 
 ## Le texte de référence
 
@@ -229,15 +206,17 @@ La conversation s'affiche en texte : on ne colorie pas une portion de son.
 
 Les tours de l'IA sont **floutables** — un réglage d'écoute, indépendant de tout le reste. Les lire au lieu de les écouter fait sortir la compréhension orale par la fenêtre.
 
-Le flou ne gêne pas la correction : la marque est sur le tour de **l'utilisateur**, et la parenthèse s'ouvre dessus sans jamais avoir à déflouter la réponse de l'IA.
+Le flou ne gêne pas la correction : la marque est sur le tour de **l'utilisateur**, et on redit dessus sans jamais avoir à déflouter la réponse de l'IA.
 
-## Ce qui survit à la session
+## Ce qui se garde
 
-Trois matières, trois sorts — la ligne de partage est le coût de reconstruction, pas la nature du fichier :
+La règle est au design : **on stocke ce qui dépend de quelque chose qui ne se retrouvera pas** — l'audio d'un moment, le jugement d'un juge, une version de modèle — et **on recalcule tout ce qui ne dépend que des lignes**. Tout ce qui est stocké porte la version de ce qui l'a produit, sans quoi deux époques de mesure s'agrègent en silence.
 
-- **La voix de l'apprenant** (un fichier par tour, micro) est **purgée à la fermeture de la session**. Elle n'a aucun consommateur au-delà : l'analyse est interne au tour, la parenthèse rejoue l'extrait sur le moment, et l'indépendance des tours interdit tout usage ultérieur. Aucun stock de voix ne dort sur l'appareil.
-- **Le cache des synthèses** survit, sous **plafond de taille avec éviction du moins récent** : ce n'est qu'un cache, régénérable au prix d'un appel, et les phrases de modèle reviennent d'une session à l'autre.
-- **La trace écrite** — les tours, qui parle, le texte, les marques avec leurs ancres, les événements de parenthèse — est **archivée telle que l'écran l'affiche**, sans modélisation ajoutée : des faits bruts, dont les usages futurs (historique, révision, progression) se dériveront s'ils adviennent. En v1 l'archive est **en écriture seule** : rien ne la lit — l'indépendance des tours n'interdit pas de se souvenir, elle interdit que le souvenir pèse sur l'analyse et le marquage.
+Ce que ce doc ajoute, matière par matière :
+
+- **La voix de l'apprenant** n'est **pas purgée par défaut**, et la purge est à redéfinir : elle était attachée à la fermeture d'une session, qui n'existe plus. Deux défauts mesurés le 2026-09-01 restent ouverts en attendant (`../TODO.md`) — le wav d'un tour est écrit deux fois, et rien ne vide le tampon du tuyau A.
+- **Le cache des synthèses** survit, sous **plafond de taille avec éviction du moins récent** : ce n'est qu'un cache, régénérable au prix d'un appel, et les phrases de modèle reviennent d'une conversation à l'autre.
+- **La trace écrite** — les énoncés, qui parle, le texte, les marques avec leurs ancres — est archivée **telle que l'écran l'affiche**, sans modélisation ajoutée. Elle n'est plus en écriture seule : le prescripteur mémoire est le lecteur qui lui manquait.
 
 ## L'accent
 
@@ -344,8 +323,6 @@ D'où la règle : debug par défaut ; compiler le release **seulement** quand `a
 
 Écarté délibérément de la première version, non par oubli :
 
-- Tout ce qui **s'accumule** : ligne de base par session, motif récurrent, tendance, suivi longitudinal (cf. « Chaque tour est indépendant »).
-- Pilotage de la conversation par les faiblesses phonétiques de l'utilisateur.
 - La consigne d'articulation écrite, remplacée par l'écoute d'un modèle.
 
 Et un extrait de son ne se coupe jamais à ses bornes exactes : ce qui identifie une occlusive vit dans la transition vers le son suivant, donc on joue une marge de part et d'autre — large autour d'un son, étroite autour d'un mot, où ce qui déborde est le mot voisin. Ralentir garde la hauteur : rééchantillonner descendrait les formants et changerait la voyelle entendue.

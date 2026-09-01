@@ -8,7 +8,7 @@ Le contenu des deux bancs du chantier 2 (cf. `../../TODO.md`) : le **banc du jug
 
 Pour chaque énoncé, le candidat reçoit le contexte et la transcription, et rend son verdict (fautif / maladroit / correct), `intended` et `repaired`. Trois mesures :
 
-- **Fausses alertes sur le bloc G2** — le taux qui compte le plus : une marque sur de l'informel correct mine la confiance exactement comme une fausse alerte de prononciation, et ouvre de mauvaises parenthèses.
+- **Fausses alertes sur le bloc G2** — le taux qui compte le plus : une marque sur de l'informel correct mine la confiance exactement comme une fausse alerte de prononciation, et envoie redire ce qui n'avait rien à corriger.
 - **Tenue de la frontière des crans** — au cran 2 (marquer les fautes), G1 est marqué et G3 ne l'est pas ; au cran 3, G3 s'ajoute. Un juge qui ne sépare pas G1 de G3 rend le troisième cran inutilisable.
 - **Qualité d'`intended`** sur le bloc G4 — la reconstruction, reprise des blocs A et B du jeu de prononciation en version texte.
 

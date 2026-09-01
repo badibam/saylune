@@ -26,12 +26,6 @@ enum class Phase { Idle, Hearing, Thinking, Speaking }
 enum class Side { Model, Learner }
 
 /**
- * One reading of one turn: what the screen draws, and what it lays out underneath.
- *
- * The two travel together because they are one reading -- a marking whose readout came from
- * another take would put the numbers of one attempt under the colours of another.
- */
-/**
  * One reading of one take: what was marked, what was measured, and **the recording it was
  * measured on**.
  *
@@ -88,15 +82,6 @@ data class ConversationState(
      */
     val models: Map<Int, File> = emptyMap(),
     /**
-     * The learner's own recording of each analysed turn, kept for the session.
-     *
-     * The doc purges these when the session closes and keeps none beyond it, which this
-     * honours: the map dies with the state. What it buys is the other half of every
-     * listening gesture -- the model at a place, and the learner at the same place, which
-     * the doc says fall out of the same calculation and asks to be heard one after the
-     * other.
-     */
-    /**
      * Which recording a manual gesture plays: the voice being imitated, or one's own.
      *
      * It governs the play button and a tap on a word, and nothing else. A tap on a symbol
@@ -111,7 +96,7 @@ data class ConversationState(
      * conversation goes rather than the learner deciding what to examine.
      */
     val speed: Float = 1f,
-    /** Whether the marks are on at all, settled once for the session. Null until asked. */
+    /** Whether the marks are on at all, settled once for the conversation. Null until asked. */
     val analysis: Readiness? = null,
     /**
      * The learner's turns the model judged grammatically wrong, by their position in
@@ -148,8 +133,8 @@ class TurnPipeline(
     /**
      * Settle whether the marks are on, once, before the first turn.
      *
-     * At the start of the session and not on the first turn: the doc makes this a
-     * session-level question, and an app that only discovers it has no engine after someone
+     * At the start of the conversation and not on the first turn: the doc settles this once
+     * for the conversation, and an app that only discovers it has no engine after someone
      * has spoken has told them too late.
      */
     suspend fun prepare() {

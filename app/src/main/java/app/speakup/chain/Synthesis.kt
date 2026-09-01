@@ -19,9 +19,10 @@ import java.io.File
 interface Synthesis {
 
     /**
-     * A wav of [text] in [voice]. Throws [ChainFailure] -- and a failure mid-parenthesis is
-     * said plainly rather than worked around, because redoing a sentence with no model to
-     * hear is self-assessment by ear, which the architecture refuses everywhere else.
+     * A wav of [text] in [voice]. Throws [ChainFailure] -- and a failure while someone is
+     * saying a sentence again is said plainly rather than worked around, because redoing a
+     * sentence with no model to hear is self-assessment by ear, which the architecture
+     * refuses everywhere else.
      */
     suspend fun speak(text: String, voice: Voice): File
 }

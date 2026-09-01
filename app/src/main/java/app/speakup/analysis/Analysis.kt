@@ -30,13 +30,13 @@ import java.io.File
 interface Analysis {
 
     /**
-     * Whether marks can be produced at all -- settled **once for the session**, never per
+     * Whether marks can be produced at all -- settled **once for the conversation**, never per
      * turn (`docs/reference.md`, "La panne").
      *
      * The analysis depends on no network, which removes the quota, the expired key and the
      * provider outage in one go. What is left is of another kind and does not come and go
-     * mid-session: the weights are not downloaded, or the device will not load them. A turn
-     * stays analysable as long as the session started with its model loaded.
+     * midway: the weights are not downloaded, or the device will not load them. A turn
+     * stays analysable as long as the conversation started with its model loaded.
      */
     suspend fun readiness(): Readiness
 
@@ -85,8 +85,8 @@ data class Analysed(
     /**
      * What was found, sound by sound -- of which [marking] is the *drawn* view.
      *
-     * Not a debug extra. The parenthesis needs exactly this to make the model and the
-     * learner's own take heard at the same place, which the doc says falls out of the same
+     Not a debug extra. Saying a sentence again needs exactly this to make the model and
+     * the learner's own take heard at the same place, which the doc says falls out of the same
      * calculation; and a spread is the only way to see what a gap is made of, since two
      * spreads can share a peak and mean different things.
      */

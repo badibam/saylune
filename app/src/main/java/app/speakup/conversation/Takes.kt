@@ -15,12 +15,12 @@ import java.util.Locale
  * Every turn kept on disk, audio included, as material for the bench.
  *
  * **This is a deliberate divergence from `docs/reference.md`, and only the debug build makes
- * it.** The doc decides that the learner's voice is purged when the session closes and that
- * no store of voice sleeps on the device, for a reason that still holds: past its own turn
- * nothing consumes it, and the independence of turns forbids a later use. What the doc did
- * not weigh is that the measures the project still owes -- the false-alarm rate on a
- * spontaneous turn, the shape of the marking, the two benches of chantier 2 -- can only be
- * made on real turns, and a turn not kept is a turn measured never.
+ * it.** The doc no longer purges the learner's voice by default and leaves the purge to be
+ * redefined, but it has never asked for this either: a second copy of every take, written
+ * beside the buffer that already holds it. What justifies it is that the measures the
+ * project still owes -- the false-alarm rate on a spontaneous turn, the two benches of
+ * chantier 2 -- can only be made on real turns, and a turn not kept is a turn measured
+ * never.
  *
  * So the rule stands for the release, which keeps none of this, and this is an instrument
  * rather than a behaviour of the app. It is written down as temporary

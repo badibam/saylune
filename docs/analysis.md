@@ -404,7 +404,7 @@ Ce qui produirait un comportement inattendu, et où ça se traite.
 - **Mot d'une seule syllabe — au compte du mot, jamais au compte de la grille** : rien à comparer, ne jamais marquer. Un mot de deux syllabes dont la grille n'en rend qu'une n'est pas ce cas-là (brique 7).
 - **Mot fonctionnel non mis en relief** (`the`, `of`) : les traits sont plats des deux côtés. Correct, mais demande un seuil « le modèle a-t-il un accent net » sous lequel on ne marque pas, sinon on marque du bruit.
 - **Consonne syllabique** (`bottle`, `button`) : le noyau n'est pas une voyelle, le mot est compté à une syllabe, aucune marque d'accent n'y apparaît jamais. Silencieux, pas faux — et sans conséquence, ces noyaux n'apparaissant en anglais que dans des syllabes non accentuées.
-- **Emphase de sens** (« I said it **IS** important ») : l'apprenant met le relief là où le modèle neutre ne l'a pas, et la divergence légitime est marquée comme faute. Connu et accepté (cf. `reference.md`) — la forme de la parenthèse rend la fausse alerte peu coûteuse.
+- **Emphase de sens** (« I said it **IS** important ») : l'apprenant met le relief là où le modèle neutre ne l'a pas, et la divergence légitime est marquée comme faute. Connu et accepté (cf. `reference.md`) — pouvoir redire sur place rend la fausse alerte peu coûteuse.
 
 ### La comparaison elle-même
 
@@ -447,7 +447,7 @@ Un seul de ces quatre est un problème de notation : la voyelle de *water*, où 
 
 Deux conséquences. La première est que **fusionner les familles de symboles ne réglerait qu'un cas sur quatre**, et demanderait la table phonétique que le montage refuse — enlever les marques de ton ne rapproche pas `uo` de `ou`, et encore moins de `oː`. Écarté.
 
-La seconde est que le banc fait passer ici une épreuve **plus dure que ce que l'app fera jamais** : deux voix étrangères l'une à l'autre, sur un mot sans phrase pour le porter. Dans l'app, le modèle est la voix qu'on vient d'entendre, et le mot est une sous-étendue d'une phrase déjà synthétisée. Le seul cas réel est la reprise du mot seul par l'apprenant, dans la parenthèse.
+La seconde est que le banc fait passer ici une épreuve **plus dure que ce que l'app fera jamais** : deux voix étrangères l'une à l'autre, sur un mot sans phrase pour le porter. Dans l'app, le modèle est la voix qu'on vient d'entendre, et le mot est une sous-étendue d'une phrase déjà synthétisée. Le seul cas réel est la reprise du mot seul par l'apprenant, en redisant.
 
 ## L'écart tombe sur le son fautif
 
@@ -484,7 +484,7 @@ Le maximum de l'énoncé et l'écart sur le son étiqueté ne désignent pas le 
 
 Ces prises étaient étiquetées « correctes » sur **un** son précis, celui qu'on testait ; rien n'avait jamais été vérifié du reste. Ce ne sont donc pas des fausses alertes du calcul, ce sont des fautes que le jeu d'essai n'avait pas notées — **si le texte dit *you are*, dire *you're* est une faute**, sans quoi il n'y a plus de référence du tout.
 
-En conversation libre le cas ne se pose presque pas, le texte venant de la transcription de ce qui a été dit : qui dit *you're* aura un modèle qui dit *you're*. Il se pose dans la parenthèse, où la phrase à dire est imposée par l'IA — et c'est justement là que la règle est la bonne.
+En conversation libre le cas ne se pose presque pas, le texte venant de la transcription de ce qui a été dit : qui dit *you're* aura un modèle qui dit *you're*. Il se pose en redisant, où la phrase à dire est celle que l'IA a proposée — et c'est justement là que la règle est la bonne.
 
 Ce que la mesure valide reste **l'écart sur un son donné**. La sélection du son à marquer est un autre problème, et le pire de l'énoncé n'en est pas une mauvaise réponse — il pointe des divergences réelles.
 

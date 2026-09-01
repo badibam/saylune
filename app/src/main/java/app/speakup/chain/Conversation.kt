@@ -40,7 +40,7 @@ data class Exchange(val fromLearner: Boolean, val text: String)
  * and this says it is there.
  *
  * What is still owed here is the severity cran, which turns the verdict from "is it wrong"
- * into "is it wrong at the cran set for this session", and the span of the fault, without
+ * into "is it wrong at the cran set for this conversation", and the span of the fault, without
  * which the discreet mark the doc asks for has nowhere to sit
  * (`../../../../../../TODO.md`).
  */

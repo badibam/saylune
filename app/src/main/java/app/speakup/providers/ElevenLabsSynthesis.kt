@@ -19,7 +19,7 @@ import java.io.File
  *
  * A turn spends its characters twice and no more: the answer to say, and `intended` to
  * measure against. Saying a sentence again costs nothing at all, since a redo reuses the
- * model already rendered for the turn. What does spend is a parenthesis, where every new
+ * model already rendered for the turn. What will spend is an activity, where every new
  * sentence is a new text.
  *
  * Asked for `pcm_16000`, so the render arrives in the format the acoustic model consumes on
