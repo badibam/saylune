@@ -115,25 +115,25 @@ data class Outcome(
 )
 
 /**
- * What an activity was set to, direction by direction, fixed for the whole of its run.
+ * What an activity was set to, aptitude by aptitude, fixed for the whole of its run.
  *
  * **The form of the settings depends on the activity**; this is the conversation's. They bend
  * the content through the prompt, and they can bend the shape too: pronunciation at zero puts
  * the sound analysis out rather than computing it to show nothing of it.
  *
  * The levels are empty here and the step that gives them values is still ahead. What a level
- * is worth is not settled either: of the five directions only two have a written mechanism --
+ * is worth is not settled either: of the five aptitudes only two have a written mechanism --
  * the severity cran of wording, in three notches, and the marking threshold of elocution.
  * They are held as a number wide enough for both rather than as a shape that would have to be
  * guessed now.
  */
-data class Settings(val levels: Map<Direction, Float> = emptyMap())
+data class Settings(val levels: Map<Aptitude, Float> = emptyMap())
 
 /**
- * The five directions. They are independent: one can be intelligible and slow, correct and
+ * The five aptitudes. They are independent: one can be intelligible and slow, correct and
  * poor, fluent and wrong.
  */
-enum class Direction {
+enum class Aptitude {
     /** The sounds, the rhythm, the stress of words, the melody. What decides being understood. */
     Elocution,
     /** Following someone at their speed, with their reductions, without a text. */

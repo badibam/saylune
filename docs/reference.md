@@ -11,7 +11,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
-- `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : les prescripteurs, les cinq directions, les réglages, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
+- `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : les prescripteurs, les cinq aptitudes, les réglages, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
@@ -46,7 +46,7 @@ Une marque qui apparaîtrait parce que *le même son a déjà été raté trois 
 
 Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir de ce qui est dû sont le travail des prescripteurs (`design/activity-model.md`), et ils ne touchent jamais à la mesure.
 
-## Les cinq directions
+## Les cinq aptitudes
 
 Élocution, compréhension, formulation, fluidité, richesse. Elles sont **indépendantes** : on peut être intelligible et lent, correct et pauvre, fluide et faux.
 
@@ -56,7 +56,7 @@ Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir
 - **Fluidité** — trouver ses mots assez vite, enchaîner, ne pas s'arrêter au milieu.
 - **Richesse** — le mot précis, le registre, la nuance. La seule dont l'échec est invisible : rien ne signale qu'on vient de dire une version pauvre de son idée.
 
-Les réglages se posent **par direction** et sont **fixés pour toute la durée** de la conversation (leur forme reste à écrire, `design/activity-model.md`). Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui les tisse toutes dans une seule conversation.
+Les réglages se posent **par aptitude** et sont **fixés pour toute la durée** de la conversation (leur forme reste à écrire, `design/activity-model.md`). Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui les tisse toutes dans une seule conversation.
 
 Deux réglages ont déjà leur mécanisme écrit dans ce doc, et ce sont les deux seuls :
 

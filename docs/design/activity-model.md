@@ -22,7 +22,7 @@ Les trois sont nommés en code (`Prescriber`) et **seul l'apprenant en est un po
 
 **La forme des réglages dépend de l'activité.** Ce qui suit vaut pour la conversation.
 
-Ils sont **fixés pour toute sa durée** et se règlent **par direction**. Ils infléchissent le contenu par le prompt, et peuvent aussi infléchir la forme : une prononciation à zéro éteint l'analyse de son, plutôt que de la calculer pour ne rien en montrer.
+Ils sont **fixés pour toute sa durée** et se règlent **par aptitude**. Ils infléchissent le contenu par le prompt, et peuvent aussi infléchir la forme : une prononciation à zéro éteint l'analyse de son, plutôt que de la calculer pour ne rien en montrer.
 
 Le détail de ce que chaque réglage produit est à préciser.
 

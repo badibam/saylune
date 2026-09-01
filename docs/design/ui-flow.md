@@ -21,7 +21,7 @@ Ce que la conception d'interface a tranché, de bout en bout. Les principes qu'e
 
 ## L'écran de conversation
 
-**Vue au présent** : l'échange courant occupe la majeure partie ou la totalité de l'écran — le tour de l'utilisateur en grand avec ses marques, la réponse de l'IA (floutée si le réglage l'est). Le fil complet est accessible **en scrollant**, trace et non théâtre. L'écran d'entrée est **les réglages par direction** : les régler, c'est démarrer (`activity-model.md`).
+**Vue au présent** : l'échange courant occupe la majeure partie ou la totalité de l'écran — le tour de l'utilisateur en grand avec ses marques, la réponse de l'IA (floutée si le réglage l'est). Le fil complet est accessible **en scrollant**, trace et non théâtre. L'écran d'entrée est **les réglages par aptitude** : les régler, c'est démarrer (`activity-model.md`).
 
 ## Ce qu'un tour affiche et où mène l'appui
 

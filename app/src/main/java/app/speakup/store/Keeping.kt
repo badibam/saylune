@@ -1,7 +1,7 @@
 package app.speakup.store
 
 import app.speakup.activity.Activity
-import app.speakup.activity.Direction
+import app.speakup.activity.Aptitude
 import app.speakup.activity.Format
 import app.speakup.activity.Outcome
 import app.speakup.activity.Prescriber
@@ -30,7 +30,7 @@ internal fun Activity.row() = ActivityRow(
     matter = matter,
     settings = settings?.let { levels ->
         JSONObject().apply {
-            levels.levels.forEach { (direction, level) -> put(direction.name, level) }
+            levels.levels.forEach { (aptitude, level) -> put(aptitude.name, level) }
         }.toString()
     },
     status = status.name,
@@ -48,7 +48,7 @@ internal fun ActivityRow.activity() = Activity(
     settings = settings?.let { stored ->
         val json = JSONObject(stored)
         Settings(json.keys().asSequence().associate {
-            Direction.valueOf(it) to json.getDouble(it).toFloat()
+            Aptitude.valueOf(it) to json.getDouble(it).toFloat()
         })
     },
     status = Status.valueOf(status),
