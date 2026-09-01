@@ -11,7 +11,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
-- `design/activity-model.md` — **la forme que prend le travail dans l'app, et la source de vérité de ce qu'elle décrit** : l'énoncé, l'activité, la conversation comme activité, les prescripteurs, les cinq directions, les réglages, la capture, ce qui se garde. Il supprime les notions de session et de parenthèse. Ce doc-ci ne le contredit plus ; ce qu'il ajoute par-dessus est signalé section par section.
+- `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : les prescripteurs, les cinq directions, les réglages, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
@@ -22,9 +22,23 @@ L'utilisateur parle anglais à voix haute. L'IA lui répond en voix, dans l'acce
 
 Quand il se trompe, l'IA reprend **dans sa réponse** au lieu de s'arrêter — à qui vient de dire *I have 25 years*, elle répond « Ah, you're 25! And where... ». La reprise passe dans le fil ; le tour fautif porte en plus une **marque discrète** (la portion concernée, colorée). Sans cette trace, la discrétion se retourne : on corrige, et personne ne l'apprend.
 
-Une chose remarquée a **deux sorts, et deux seulement** (`design/activity-model.md`) : redire sur place, ce qui produit un énoncé de plus dans la même conversation ; ou devenir une activité suggérée, faite plus tard si on veut. On n'interrompt jamais pour partir travailler ailleurs.
+Une chose remarquée a **deux sorts, et deux seulement** : redire sur place, ce qui produit un énoncé de plus dans la même conversation ; ou devenir une activité suggérée, faite plus tard si on veut. On n'interrompt jamais pour partir travailler ailleurs.
 
 Le contrôle du moment appartient à l'utilisateur, jamais à l'app. Ce qui peut déclencher une suggestion pendant une conversation reste à spécifier.
+
+## L'énoncé et l'activité
+
+**L'énoncé est l'unité de matière** : un texte, un locuteur, l'audio, l'analyse. Toute parole dans l'app en est un — la réponse de l'IA comme la phrase de l'apprenant. La plupart n'en portent aucune analyse, et c'est voulu : une seule table pour tout ce qui se dit donne le fil de la conversation gratuitement, comme simple suite ordonnée, et aucun champ ne le porte. Un énoncé peut **pointer vers celui qu'il reprend**, par son identité et jamais par sa place, une place ne survivant pas à l'écriture sur disque. C'est tout ce qu'il faut pour redire.
+
+**Une activité est atomique** : un seul objet, qui porte son format, sa matière, ses réglages, son statut, ses horodatages et son résultat. Rien de séparé pour la portée, rien de séparé pour l'exécution — les deux ne se distinguaient que par une indirection dont rien n'avait l'usage. Les énoncés s'y accrochent, **toujours à un seul parent**, ce qui garde chaque requête sur la matière simple.
+
+**La conversation est une activité**, dans la même table et avec le même schéma, et tous les champs ont un sens pour elle : sa matière est ce dont on parle — le titre que l'IA lui donne —, ses réglages ceux de la séance, son statut dit si elle est encore ouverte. Ce qui la distingue tient à son comportement : son fil est la suite de ses énoncés, et elle se reprend en l'état. **Rien n'a à être terminé pour en commencer une autre** ; une activité non terminée est simplement une activité à reprendre, ce qui est l'état ordinaire de toutes sauf celle qu'on a.
+
+**Le statut** : suggérée, écartée, en cours, terminée, abandonnée. Une suggestion est une activité qui n'a jamais commencé, et l'écarter est un geste qui compte — sans lui, une suggestion refusée revient.
+
+**Le résultat** — une issue, le juge, sa date, un texte libre — est **stocké et non recalculé**, parce qu'il repose sur un jugement que rien ne reproduit à l'identique. Savoir qui a jugé et quand est ce qui permet de comparer deux résultats séparés dans le temps ; sans cette attribution, toute agrégation mélange des juges sans le dire.
+
+**La matière est du texte libre**, plus des pointeurs structurés là où ils sont gratuits — les sons, que l'analyse rend déjà codés. Rapprocher deux activités portant sur la même chose est un travail de lecture, que le modèle de langue fait ; exiger un vocabulaire fermé coûterait bien plus que ça ne rapporte.
 
 ## La même faute, la même marque
 
@@ -34,7 +48,15 @@ Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir
 
 ## Les cinq directions
 
-Élocution, compréhension, formulation, fluidité, richesse, définies dans `design/activity-model.md`, qui porte aussi la forme des réglages : par direction, fixés pour toute la durée de la conversation. Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui les tisse toutes dans une seule conversation.
+Élocution, compréhension, formulation, fluidité, richesse. Elles sont **indépendantes** : on peut être intelligible et lent, correct et pauvre, fluide et faux.
+
+- **Élocution** — les sons, le rythme, l'accent des mots, la mélodie. Ce qui décide qu'on est compris.
+- **Compréhension** — suivre quelqu'un à sa vitesse, avec ses réductions, sans texte.
+- **Formulation** — la phrase bien formée, et la règle appliquée en parlant plutôt que sue.
+- **Fluidité** — trouver ses mots assez vite, enchaîner, ne pas s'arrêter au milieu.
+- **Richesse** — le mot précis, le registre, la nuance. La seule dont l'échec est invisible : rien ne signale qu'on vient de dire une version pauvre de son idée.
+
+Les réglages se posent **par direction** et sont **fixés pour toute la durée** de la conversation (leur forme reste à écrire, `design/activity-model.md`). Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui les tisse toutes dans une seule conversation.
 
 Deux réglages ont déjà leur mécanisme écrit dans ce doc, et ce sont les deux seuls :
 
@@ -135,7 +157,7 @@ La position se lit des deux côtés gratuitement : la grille dit où le modèle 
 
 ## Redire sur place
 
-Redire produit **un énoncé de plus dans la même conversation**, pointant vers celui qu'il reprend (`design/activity-model.md`). Rien ne s'interrompt, rien ne part travailler ailleurs, et rien n'a à se refermer.
+Redire produit **un énoncé de plus dans la même conversation**, pointant vers celui qu'il reprend. Rien ne s'interrompt, rien ne part travailler ailleurs, et rien n'a à se refermer.
 
 Ce qui s'y dit est noté contre un texte de référence **connu d'avance** — celui de l'énoncé repris — ce que la conversation libre ne peut pas offrir.
 
@@ -143,7 +165,7 @@ Ce qui s'y dit est noté contre un texte de référence **connu d'avance** — c
 
   Le prix se paie ailleurs, sur l'**affichage** et non sur la charge : mesuré sur de la parole d'apprenant réelle, la majorité des mots portent quelque chose (`../TODO.md`). Une marque binaire ne transporte alors plus rien — tout est colorié, donc rien n'est signalé. Le marquage **gradue** donc au lieu de colorier ou non, et c'est en service : une rampe d'ambre à rouge à mesure que l'écart grandit, à teinte claire fixe pour qu'elle se lise comme une seule famille. Sous la bande de bruit la lettre garde l'encre neutre — une teinte y serait un mensonge de précision, le bruit propre de la machine étant lui-même de cette largeur.
 
-**Ce que devient la phrase initiale n'est pas décidé.** Son remplacement dans le fil est listé parmi ce qui reste à spécifier (`design/activity-model.md`) ; jusque-là, redire ajoute et rien ne remplace.
+**Ce que devient la phrase initiale n'est pas décidé.** Son remplacement dans le fil reste à spécifier (`design/activity-model.md`) ; jusque-là, redire ajoute et rien ne remplace.
 
 ## Les deux tuyaux
 
@@ -210,13 +232,17 @@ Le flou ne gêne pas la correction : la marque est sur le tour de **l'utilisateu
 
 ## Ce qui se garde
 
-La règle est au design : **on stocke ce qui dépend de quelque chose qui ne se retrouvera pas** — l'audio d'un moment, le jugement d'un juge, une version de modèle — et **on recalcule tout ce qui ne dépend que des lignes**. Tout ce qui est stocké porte la version de ce qui l'a produit, sans quoi deux époques de mesure s'agrègent en silence.
+**On stocke ce qui dépend de quelque chose qui ne se retrouvera pas** — l'audio d'un moment, le jugement d'un juge, une version de modèle. **On recalcule tout ce qui ne dépend que des lignes** : le nombre d'énoncés, leur ordre, les durées, tout ce qu'un compte suffit à produire. Ni les lectures d'un tour, ni le modèle à imiter, ni le rang de la prise suivante n'ont donc de colonne.
 
-Ce que ce doc ajoute, matière par matière :
+**Tout ce qui est stocké porte la version de ce qui l'a produit.** Une analyse refaite avec un modèle différent ne rend pas les mêmes chiffres ; sans cette marque, deux époques de mesure s'agrègent en silence et la comparaison est fausse sans que rien ne le dise.
 
-- **La voix de l'apprenant** n'est **pas purgée par défaut**, et la purge est à redéfinir : elle était attachée à la fermeture d'une session, qui n'existe plus. Deux défauts mesurés le 2026-09-01 restent ouverts en attendant (`../TODO.md`) — le wav d'un tour est écrit deux fois, et rien ne vide le tampon du tuyau A.
-- **Le cache des synthèses** survit, sous **plafond de taille avec éviction du moins récent** : ce n'est qu'un cache, régénérable au prix d'un appel, et les phrases de modèle reviennent d'une conversation à l'autre.
-- **La trace écrite** — les énoncés, qui parle, le texte, les marques avec leurs ancres — est archivée **telle que l'écran l'affiche**, sans modélisation ajoutée. Elle n'est plus en écriture seule : le prescripteur mémoire est le lecteur qui lui manquait.
+La liste de ce qui doit être agrégeable reste à préciser.
+
+Matière par matière :
+
+- **La voix de l'apprenant** n'est **pas purgée par défaut**, et la purge reste à écrire (`design/activity-model.md`). Un enregistrement qu'aucun énoncé ne nomme, lui, est effacé : c'est du rebut et non de l'audio gardé, il vient des deux tours qui finissent sans énoncé — celui où la reconnaissance n'a rien entendu, celui dont la chaîne a cassé sans réessai. Le balayage se fait **au démarrage et nulle part ailleurs**, seul moment où rien n'est en vol et où un fichier que la base ne nomme pas ne sera jamais nommé.
+- **Le cache des synthèses** survit, sous **plafond réglable avec éviction du moins récemment demandé** : ce n'est qu'un cache, régénérable au prix d'un appel, et ce qu'il vaut d'en garder dépend du téléphone qui le garde. Une synthèse rendue est touchée à chaque fois qu'on la redemande, sans quoi la date dirait quand elle a été fabriquée et la phrase voulue tous les jours sortirait avant une phrase que personne ne réclame plus.
+- **La trace écrite** — les énoncés, qui parle, le texte, les marques avec leurs ancres — est archivée **telle que l'écran l'affiche**, sans modélisation ajoutée : des faits bruts, dont les usages futurs se dériveront s'ils adviennent. Elle **se relit** : une conversation se reprend là où elle en était. Le prescripteur mémoire sera l'autre lecteur, quand il existera.
 
 ## L'accent
 
