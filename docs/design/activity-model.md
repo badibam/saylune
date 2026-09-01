@@ -138,6 +138,8 @@ La capture est l'un des axes que les réglages gouvernent. Elle n'est pas spéci
 
 **Plusieurs modes sont possibles, aucun n'est arrêté.** Deux ont été travaillés : l'**armement manuel**, et l'**automatique** où le tour s'ouvre et se ferme seul, la fermeture sur silence étant elle-même un levier réglé.
 
+**Le mode n'est pas un réglage à part : il appartient au curseur de fluidité**, qui exige l'automatique dès son premier cran pour que les silences veuillent dire quelque chose (« Comment les curseurs se composent »). Un mode manuel rend donc la note de fluidité impossible, et met son curseur à zéro.
+
 Le micro **ne s'arme jamais avant la fin de la réponse de l'IA**. Un symbole est visible dès que ça enregistre : il n'informe pas seulement, il fait partie de la pression — savoir que ça tourne change la façon dont on parle.
 
 **Chaque tour porte son mode de capture.** C'est ce qui dit si ses silences sont significatifs, et rien ne s'agrège entre modes. Sous armement, le délai avant de parler mesure le geste et non l'hésitation ; agréger ces tours avec des tours captés automatiquement produirait un chiffre qui ressemble à de la fluidité sans en être.
