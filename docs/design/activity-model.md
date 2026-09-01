@@ -121,6 +121,17 @@ Trois conséquences.
 
 **La conversation libre est un mode custom** qui ne pose ni note par tour ni seuil de passage. Elle rentre donc dans custom, et l'offrir comme une entrée à part est une question d'écran.
 
+## L'enjeu
+
+Quatre crans, en gradation. Ils portent sur la **séance entière**, pas sur une aptitude.
+
+1. il y a une note ;
+2. la note reste ;
+3. la note est comparée aux autres notes ;
+4. la série des notes est traitée — courbe, niveau, diplôme.
+
+Ce que ça appelle, et qui reste à reprendre : des **modules de test** correspondant à ces crans, plutôt qu'un réglage diffus posé partout.
+
 ## La capture
 
 La capture est l'un des axes que les réglages gouvernent. Elle n'est pas spécifiée, et ce qui suit est ce qui est acquis.
