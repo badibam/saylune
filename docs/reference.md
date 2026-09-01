@@ -64,7 +64,7 @@ Les réglages sont **fixés pour toute la durée** de la conversation. Ce ne son
 
 Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur des **leviers**, qui sont les vrais paramètres et ce qui se stocke. Ce que chaque aptitude fait mesurer et par quels leviers elle se presse est écrit dans `design/activity-model.md`, avec qui a le droit d'en décider — l'apprenant, le module, l'IA — et ce que chacun ne décide jamais.
 
-**Aucun réglage ne touche une marque.** La même faute produit la même marque quels que soient les réglages ; ce qu'ils gouvernent, c'est ce qu'on en **fait** — s'il faut redire, si ça compte dans la note. Cette règle a retiré les deux seuls mécanismes que ce doc avait écrits : les trois crans de sévérité grammaticale, dont le premier éteignait le marquage, et le seuil du marquage sonore, que le réglage d'élocution déplaçait. L'un et l'autre faisaient dépendre une marque du réglage du jour, et une marque dont l'absence ne se distingue pas d'une approbation ne transporte rien.
+**Aucun réglage ne touche une marque.** La même faute produit la même marque quels que soient les réglages ; ce qu'ils gouvernent, c'est ce qu'on en **fait** — s'il faut redire, si ça compte dans la note. La raison est qu'une marque dont l'absence dépendrait du réglage du jour ne transporte plus rien : rien ne la distingue alors d'une approbation. Le mécanisme des deux barres est à spécifier (`design/activity-model.md`).
 
 **La formulation se note en rangs, de A à E** — ce qu'un natif dirait, correct et naturel, correct mais maladroit, fautif mais compris, ne se dit pas. Le rang se calcule et se souligne toujours, d'une couleur qui vient de lui seul (`design/activity-model.md`).
 

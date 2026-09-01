@@ -96,10 +96,7 @@ Le détail de ce que chaque levier produit est à préciser.
 
 Ce que les réglages gouvernent, c'est ce qu'on **fait** de la marque : est-ce qu'il faut redire, est-ce que ça compte dans la note. **Le mécanisme reste à spécifier** — on sait ce qui doit varier, pas encore par quoi.
 
-Cette règle a défait deux choses qui étaient écrites :
-
-- les **trois crans de sévérité** grammaticale, dont le premier éteignait le marquage et le troisième l'étendait aux tournures maladroites : le rang se marque désormais toujours ;
-- le **seuil du marquage sonore**, que le réglage d'élocution déplaçait : la rampe des sons est fixe, et la bande de bruit de ±5 n'est pas un réglage mais une propriété mesurée de la machine.
+Deux choses en découlent et sont acquises : le rang de formulation se souligne **toujours**, et la rampe des sons est la même partout et tout le temps — la bande de bruit de ±5 n'est pas un réglage mais une propriété mesurée de la machine.
 
 **Perte assumée** : il n'y a plus de conversation sans aucune marque grammaticale. C'est plutôt un retour au texte d'origine, qui dit que sans la trace la discrétion se retourne — on corrige et personne ne l'apprend.
 
