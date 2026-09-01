@@ -1,6 +1,7 @@
 package app.speakup.analysis
 
 import android.content.Context
+import app.speakup.BuildConfig
 import app.speakup.R
 import app.speakup.embedded.AcousticMatrix
 import app.speakup.embedded.Added
@@ -23,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 import java.io.File
 
 /**
@@ -48,19 +50,22 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         val matrix: AcousticMatrix,
         val alphabet: Alphabet,
         val affinity: Affinity,
+        /** What produced every reading this engine gives. See [stamp]. */
+        val version: String,
     )
 
     override suspend fun readiness(): Readiness = lock.withLock {
-        engine?.let { return Readiness.On }
+        engine?.let { return Readiness.On(it.version) }
         refused?.let { return it }
-        // Settled once for the session and cached either way: the doc is explicit that this
-        // is not a per-turn question, and a turn stays analysable as long as the session
-        // started with its model loaded.
+        // Settled once for the conversation and cached either way: the doc is explicit that
+        // this is not a per-turn question, and a turn stays analysable as long as the
+        // conversation started with its model loaded.
         val outcome = runCatching { load() }
         outcome.getOrNull()?.let {
             engine = it
-            Trace.add("analysis: ready", "weights" to weights()?.name, "sounds" to it.alphabet.size.toString())
-            return Readiness.On
+            Trace.add("analysis: ready", "weights" to weights()?.name,
+                      "sounds" to it.alphabet.size.toString(), "version" to it.version)
+            return Readiness.On(it.version)
         }
         val failure = outcome.exceptionOrNull()
         val off = Readiness.Off(R.string.analysis_engine_refused, failure?.message)
@@ -289,8 +294,40 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     unknown.joinToString(" ")
             )
         }
-        return Engine(AcousticMatrix(weights, THREADS), alphabet, affinity)
+        return Engine(AcousticMatrix(weights, THREADS), alphabet, affinity,
+                      version = stamp(weights, vocab))
     }
+
+    /**
+     * What produced a reading, in one line: the weights, the alphabet, and the app.
+     *
+     * The three are what a number depends on. The weights and the alphabet decide what the
+     * matrix says; the app version stands for the affinity tables it ships and for the join
+     * that reads them, which move the marks as surely as the weights do.
+     *
+     * **The weights are identified by their size and the digest of their first bytes, not by
+     * their whole content.** A full digest of 359 MB is the prohibitive case the wisdom names,
+     * and this is the compromise it prescribes, stated rather than hidden: two files would
+     * have to share a size *and* a first 64 kB to be confused, which no pair of trained
+     * weights does by accident. The alphabet is small, so it is hashed whole.
+     *
+     * Never the file's name or its path. A name is what a person typed when they pushed the
+     * file, and it changes without the bytes changing -- the wisdom is explicit that identity
+     * is the content.
+     */
+    private fun stamp(weights: File, vocab: File): String {
+        val head = ByteArray(HEAD_BYTES)
+        val read = weights.inputStream().use { it.read(head) }.coerceAtLeast(0)
+        return listOf(
+            "w:${weights.length()}-${digest(head.copyOf(read))}",
+            "a:${digest(vocab.readBytes())}",
+            "app:${BuildConfig.VERSION_NAME}",
+        ).joinToString("/")
+    }
+
+    private fun digest(bytes: ByteArray): String =
+        MessageDigest.getInstance("SHA-256").digest(bytes)
+            .joinToString("") { "%02x".format(it) }.take(16)
 
     private fun copy(name: String, into: File) {
         if (into.isFile && into.length() > 0) return
@@ -320,6 +357,9 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
     private companion object {
         /** Where `adb push` can write and the app can read. Provisional, see [home]. */
         const val HOME = "/data/local/tmp/speakup-analysis"
+
+        /** Enough of the weights to tell two trained files apart, beside their size. */
+        const val HEAD_BYTES = 64 * 1024
 
         const val VOCAB = "vocab.json"
         const val LETTERS = "affinity.json"

@@ -61,7 +61,17 @@ interface Analysis {
  * broken rather than unequipped, and it is the app that gets blamed.
  */
 sealed interface Readiness {
-    data object On : Readiness
+
+    /**
+     * [version] names the engine that will produce every reading of this conversation.
+     *
+     * **Everything stored carries the version of what produced it** (`activity-model.md`).
+     * An analysis redone with a different model does not return the same numbers, and
+     * without this stamp two eras of measurement add up in silence and the comparison is
+     * wrong with nothing to say so. It is settled here rather than per reading because it
+     * cannot change under a running conversation: the engine is loaded once and kept.
+     */
+    data class On(val version: String) : Readiness
 
     /**
      * [reason] is a string resource and not a sentence, because the reason is the app's own
