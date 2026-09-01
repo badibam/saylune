@@ -156,9 +156,13 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **La pression.** Ce n'est pas un mécanisme mais un concept qui circule par plusieurs voies — le degré de liberté laissé à la production, la contrainte imposée, le temps, l'étayage retiré, l'imprévu, l'exigence de marquage. Entièrement à définir.
-- **Le détail des effets des réglages**, sur le contenu comme sur la forme.
-- **Le catalogue des activités et leur déroulé.** Aucune n'est nommée à part la conversation.
+- **Le calcul des notes.** La note par tour, la note de séance, et comment la combinaison des curseurs est prise en compte — plusieurs mécanismes sont possibles, aucun n'est choisi.
+- **Le seuil de passage**, et ce qui met fin à une séance mode par mode : le critère de validation de la campagne, ce qui termine un défi.
+- **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA — sa réponse — et ce qui passerait par une consigne hors parole.
+- **Le mécanisme de re-tentative grammaticale**, analogue à celui de la prononciation : l'apprenant cherche sa correction, et le levier d'explication dit ce qu'on lui donne pour ça.
+- **La liste des leviers de chaque aptitude**, close pour aucune, et le détail de ce que chaque position produit — y compris sa formulation lisible, qu'exige le mode arcade.
+- **Les modules de test** correspondant aux quatre crans d'enjeu.
+- **Le déroulé de chaque module**, et son écran. Le cadre est commun — l'activité, ses champs, ses statuts, son résultat — le déroulé ne l'est pas.
 - **Les déclencheurs de suggestion** pendant une conversation.
 - **Le prescripteur progression** : sur quoi il s'appuie, comment il choisit ce qui est dû.
 - **Le remplacement d'une phrase fautive** dans le fil.
