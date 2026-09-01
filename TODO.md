@@ -43,7 +43,7 @@ La boucle tourne de bout en bout sur l'appareil (SM-G975F, LineageOS) : capture,
    - **Rien n'efface `files/turns/`, ni en debug ni en release.** La divergence assumée du doc couvre `takes/`, qui est un instrument ; le tampon du tuyau A, lui, n'est couvert par rien — 408 enregistrements y dorment, et c'est exactement ce que « Ce qui survit à la session » dit de ne pas garder. C'est le seul écart doc/code non délibéré des trois.
    - **Le plus petit tas est le seul que le doc veuille garder.** La trace écrite fait 16 Ko par tour, six mégaoctets pour 365 tours. Arithmétique sur la mesure, non mesurée elle-même : mille tours de trace font 16 Mo, ce qui ne demande aucun plafond.
 
-   Reste à décider, avec ces chiffres : le plafond du cache des synthèses (aujourd'hui aucun, 15,0 Mo pour 137 rendus) et la façon dont la purge de session s'écrit.
+   **Le plafond du cache est décidé** (2026-09-01) : réglable dans les paramètres, 500 Mo par défaut, éviction du moins récemment demandé. La mesure dit qu'à 96 Ko la médiane, 500 Mo tiennent environ cinq mille phrases — le plafond est un garde-fou contre une dérive, pas un serrage. **La purge de l'audio, elle, reste à écrire** : le design la détache de la session, qui n'existe plus, et ne la remplace par rien.
 
 2. **La latence — refermée pour le moment** (2026-09-01), sur ElevenLabs en direct et DeepSeek `flash`. Ce qui suit reste ici pour ses chiffres, qui sont ce sur quoi la question se rouvrira si elle se rouvre. **Mesurée sur huit tours réels le 2026-08-31, et c'est pire que noté.** Médiane **11,0 s** jusqu'au premier son, de 8,4 à 18,4 (les 5,8 / 6,9 / 14,1 d'avant étaient trois tours, le doc annonce 2,6). Le détail par maillon, qui est ce qui permet de choisir :
 

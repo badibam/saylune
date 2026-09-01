@@ -60,5 +60,16 @@ enum class Secret(
      * from a menu instead of remembered.
      */
     SynthesisVoice("task.tts.voice", R.string.setting_voice, masked = false),
+
+    /**
+     * How many megabytes of rendered models to keep, as digits.
+     *
+     * Configuration and not a credential. The doc asks for a ceiling with least-recently-used
+     * eviction and gives no number, so the number is the user's: a cache is only ever a cache,
+     * regenerable at the price of one call, and what it is worth to hold depends on the phone
+     * it is held on. Blank or unreadable means the default, which is the one place in this
+     * store where an absent value legitimately stands for something.
+     */
+    RenderCacheCap("cache.renders.cap", R.string.setting_cache_cap, masked = false),
     ;
 }

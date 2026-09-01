@@ -57,8 +57,26 @@ class ChosenSynthesis(
     override suspend fun speak(text: String, voice: Voice): File {
         val values = store.values().first()
         val (provider, model) = pick(Task.Synthesis, values)
-        return synthesisBy(context, store, provider, model).speak(text, voice)
+        val wav = synthesisBy(context, store, provider, model).speak(text, voice)
+        // After the render and not before: pruning to make room for a file that then fails
+        // to arrive would throw sentences away to hold nothing. Here rather than in each
+        // provider, because the ceiling belongs to the app and not to whoever rendered.
+        Renders.prune(context, cap(values))
+        return wav
     }
+
+    /**
+     * The ceiling the user set, in megabytes, or the default.
+     *
+     * Blank and unreadable are the same answer, and this is the one setting where an absent
+     * value legitimately stands for something: a ceiling nobody chose is still a ceiling, and
+     * a cache with none is what the doc says not to have. A number at or below zero would
+     * empty the cache after every render, which is not a choice anyone means to make, so it
+     * reads as unset.
+     */
+    private fun cap(values: Map<Secret, String>): Int =
+        values[Secret.RenderCacheCap]?.trim()?.toIntOrNull()?.takeIf { it > 0 }
+            ?: Renders.DEFAULT_CAP_MB
 
     /**
      * The voice in force, with the provider that will actually say it.
