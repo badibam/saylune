@@ -77,7 +77,7 @@ La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'appr�
 
 **La porte suit le marquage, pas la grammaire absolue** : un tour est « fautif » pour la porte si et seulement s'il est marqué au cran de sévérité courant. Au cran 3, une tournure maladroite ferme la porte comme une faute — elle va être réécrite. Au cran 2, elle passe, et la prononciation se travaille sur elle : régler la sévérité, c'est déclarer que l'idiomatique n'est pas le sujet du jour, et rien ne va réécrire cette phrase. Coût assumé : le modèle dira la tournure maladroite d'une voix native.
 
-Effet de bord précieux : la branche corrigée s'analyse contre un texte **certain**, celui que l'IA vient de proposer. Toute l'incertitude du texte de référence disparaît de cette branche.
+L'analyse tourne donc sur une phrase **jugée correcte au cran courant**, et rien de plus : son texte de référence est aussi sûr ou incertain que celui de n'importe quel autre tour. La correction vient de l'apprenant, qui la cherche lui-même — sauf au cran où le levier d'explication lui donne la phrase correcte (`design/activity-model.md`).
 
 ## Ce que le réseau entend est la source de vérité
 
