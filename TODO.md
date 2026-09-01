@@ -22,7 +22,28 @@ La boucle tourne de bout en bout sur l'appareil (SM-G975F, LineageOS) : capture,
 
 ### Ce qui vient ensuite, dans cet ordre
 
-1. **La persistance : décider du sort des prises, et le décider sur une taille mesurée** (posé le 2026-09-01, ouvert le 2026-09-01). Le doc tranche déjà le principe — la voix de l'apprenant est **purgée à la fermeture de la session**, le cache des synthèses survit sous plafond avec éviction, la trace écrite est archivée en écriture seule (`docs/reference.md`, « Ce qui survit à la session »). Ce qui n'est pas décidé est ce que ça pèse : 242 tours dorment sur le téléphone, et rien n'a jamais mesuré ce qu'occupe un tour — le wav de la prise, le rendu du modèle, la matrice, le `turn.json`. **Mesurer d'abord, décider ensuite** : sans le chiffre, le plafond du cache et la purge se règlent au doigt mouillé. Un point à trancher avec le chiffre en main : la purge des prises est écrite pour la v1 et rien ne la fait aujourd'hui, donc l'app accumule en silence exactement ce que le doc dit de ne pas garder.
+1. **La persistance : décider du sort des prises, et le décider sur une taille mesurée** (posé le 2026-09-01, ouvert le 2026-09-01). Le doc tranche déjà le principe — la voix de l'apprenant est **purgée à la fermeture de la session**, le cache des synthèses survit sous plafond avec éviction, la trace écrite est archivée en écriture seule (`docs/reference.md`, « Ce qui survit à la session »). Ce qui n'est pas décidé est ce que ça pèse : 242 tours dorment sur le téléphone, et rien n'a jamais mesuré ce qu'occupe un tour — le wav de la prise, le rendu du modèle, la matrice, le `turn.json`. **Mesurer d'abord, décider ensuite** : sans le chiffre, le plafond du cache et la purge se règlent au doigt mouillé.
+
+   **Mesuré le 2026-09-01 sur le téléphone (SM-G975F), 99,5 Mo produits par l'usage, en trois tas qui ne se ressemblent pas.**
+
+   | tas | où | n | total | médiane | d9 | max |
+   |---|---|---|---|---|---|---|
+   | tours gardés (`takes/`) | externe, build debug seul | 365 tours | 54,9 Mo | 144 Ko | 193 Ko | 528 Ko |
+   | — dont `said.wav` | | 365 | 26,1 Mo | 65 Ko | 104 Ko | 318 Ko |
+   | — dont `model.wav` | | 362 | 22,8 Mo | 62 Ko | 85 Ko | 157 Ko |
+   | — dont `turn.json` | | 365 | 6,0 Mo | 16 Ko | 22 Ko | 53 Ko |
+   | tampon du tuyau A (`turns/`) | interne | 408 wav | 29,6 Mo | 64 Ko | 110 Ko | 408 Ko |
+   | cache des synthèses (`cache/renders/`) | interne | 137 wav | 15,0 Mo | 96 Ko | 197 Ko | 520 Ko |
+
+   S'y ajoutent `matrices/` (184 Ko) et `probe/` (3,0 Mo), qui ne croissent pas avec l'usage.
+
+   **Trois faits que la mesure a sortis, et qui ne sont pas ce qu'on cherchait.**
+
+   - **La voix de l'apprenant est gardée deux fois.** `Takes.keep` **copie** le wav qui vit déjà dans `files/turns/` : 26,1 Mo d'un côté, 29,6 Mo de l'autre, le même audio. Un lien, ou une lecture du tampon là où il est, retire un des deux tas.
+   - **Rien n'efface `files/turns/`, ni en debug ni en release.** La divergence assumée du doc couvre `takes/`, qui est un instrument ; le tampon du tuyau A, lui, n'est couvert par rien — 408 enregistrements y dorment, et c'est exactement ce que « Ce qui survit à la session » dit de ne pas garder. C'est le seul écart doc/code non délibéré des trois.
+   - **Le plus petit tas est le seul que le doc veuille garder.** La trace écrite fait 16 Ko par tour, six mégaoctets pour 365 tours. Arithmétique sur la mesure, non mesurée elle-même : mille tours de trace font 16 Mo, ce qui ne demande aucun plafond.
+
+   Reste à décider, avec ces chiffres : le plafond du cache des synthèses (aujourd'hui aucun, 15,0 Mo pour 137 rendus) et la façon dont la purge de session s'écrit.
 
 2. **La latence — refermée pour le moment** (2026-09-01), sur ElevenLabs en direct et DeepSeek `flash`. Ce qui suit reste ici pour ses chiffres, qui sont ce sur quoi la question se rouvrira si elle se rouvre. **Mesurée sur huit tours réels le 2026-08-31, et c'est pire que noté.** Médiane **11,0 s** jusqu'au premier son, de 8,4 à 18,4 (les 5,8 / 6,9 / 14,1 d'avant étaient trois tours, le doc annonce 2,6). Le détail par maillon, qui est ce qui permet de choisir :
 
