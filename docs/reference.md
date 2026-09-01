@@ -11,6 +11,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
+- `design/activity-model.md` — **la forme que prendra le travail dans l'app, et la source de vérité de ce qu'elle décrit** : l'énoncé, l'activité, la conversation comme activité, les réglages, la capture, ce qui se garde. Il supprime les notions de session et de parenthèse. Le reste de ce doc n'en tient pas encore compte, et se corrigera à l'implémentation.
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
