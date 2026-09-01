@@ -2,7 +2,7 @@
 
 ## Ordre acté (2026-08-29, révisé le soir) — le fil, pour ne plus le reperdre
 
-**On avance sur l'app sans attendre les mesures qui restent.** Ce qui reste au chantier 1 mesure la *qualité* de l'analyse, pas son *existence* : elle tourne sur l'appareil, elle est déterministe, elle trouve les fautes du jeu d'essai. Trois inconnues, en revanche, ne se mesurent **que** par l'usage réel, et le doc le dit lui-même — le taux de fausse alerte sur un tour spontané (`docs/reference.md` : il ne s'étiquette pas), la forme du marquage quand 61 % des mots propres portent quelque chose, et les deux bancs du chantier 2, pour lesquels des tours réels valent mieux que 25 énoncés écrits d'avance.
+**On avance sur l'app sans attendre les mesures qui restent.** Ce qui reste au chantier 1 mesure la *qualité* de l'analyse, pas son *existence* : elle tourne sur l'appareil, elle est déterministe, elle trouve les fautes du jeu d'essai. Deux inconnues, en revanche, ne se mesurent **que** par l'usage réel, et le doc le dit lui-même — le taux de fausse alerte sur un tour spontané (`docs/reference.md` : il ne s'étiquette pas), et les deux bancs du chantier 2, pour lesquels des tours réels valent mieux que 25 énoncés écrits d'avance. La troisième, la forme du marquage, en est sortie : elle est trouvée et en service (rampe graduée, trois canaux graphiques, `ui/MarkingColors.kt`).
 
 Ce que le fast-forward n'autorise pas, et qui est la seule vraie parade au regret : **une brique provisoire se note ici à l'instant où on l'écrit**, jamais après — écrite après coup, elle ne s'écrit pas. Et l'usage réel est une source de questions, jamais de chiffres : le banc reste le seul juge, un seuil ne se règle pas parce que l'écran en marque trop.
 
