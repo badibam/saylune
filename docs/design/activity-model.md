@@ -24,9 +24,13 @@ Les trois sont nommés en code (`Prescriber`) et **seul l'apprenant en est un po
 
 **La forme des réglages dépend de l'activité.** Ce qui suit vaut pour la conversation.
 
-Ils sont **fixés pour toute sa durée** et se règlent **par aptitude**. Ils infléchissent le contenu par le prompt, et peuvent aussi infléchir la forme : une prononciation à zéro éteint l'analyse de son, plutôt que de la calculer pour ne rien en montrer.
+Ils sont **fixés pour toute sa durée**. Ils infléchissent le contenu par le prompt, et peuvent aussi infléchir la forme : une prononciation à zéro éteint l'analyse de son, plutôt que de la calculer pour ne rien en montrer.
 
-Le détail de ce que chaque réglage produit est à préciser.
+**Les vrais paramètres sont les leviers.** Un curseur d'aptitude n'est pas un paramètre, c'est un **préréglage** — un nom donné à un ensemble de positions de leviers. C'est le mode custom qui le prouve, puisqu'il expose chaque levier séparément : si les curseurs étaient le modèle, il faudrait une deuxième façon de décrire la même séance, et les tenir d'accord.
+
+Donc **ce qui se stocke dans les réglages d'une activité est une liste de positions de leviers**, quel que soit le mode qui les a posées. Le prix se paie à la lecture : cinq curseurs se lisent d'un coup d'œil, trente positions non. Pouvoir dire d'une séance réglée à la main qu'elle valait « à peu près élocution 2 » reste à écrire, ou à abandonner.
+
+Le détail de ce que chaque levier produit est à préciser.
 
 ## La pression
 
