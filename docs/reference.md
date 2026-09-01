@@ -34,7 +34,9 @@ Le contrôle du moment appartient à l'utilisateur, jamais à l'app. Ce qui peut
 
 **La conversation est une activité**, dans la même table et avec le même schéma, et tous les champs ont un sens pour elle : sa matière est ce dont on parle — le titre que l'IA lui donne —, ses réglages ceux de la séance, son statut dit si elle est encore ouverte. Ce qui la distingue tient à son comportement : son fil est la suite de ses énoncés, et elle se reprend en l'état. **Rien n'a à être terminé pour en commencer une autre** ; une activité non terminée est simplement une activité à reprendre, ce qui est l'état ordinaire de toutes sauf celle qu'on a.
 
-**Le statut** : suggérée, écartée, en cours, terminée, abandonnée. Une suggestion est une activité qui n'a jamais commencé, et l'écarter est un geste qui compte — sans lui, une suggestion refusée revient.
+**Le statut** : suggérée, acceptée, écartée, en cours, terminée, abandonnée. Une suggestion est une activité qui n'a jamais commencé, et l'écarter est un geste qui compte — sans lui, une suggestion refusée revient. **Accepter et lancer sont deux gestes** : une suggestion acceptée est retenue et n'a pas encore commencé.
+
+Une suggestion apparaît pendant un tour, et l'ignorer ne la perd pas : elle reste en attente et se retrouve dans l'écran de l'activité qu'elle propose, où elle se valide ou se refuse plus tard. Le sélecteur d'activités et la file des suggestions sont donc le même écran vu deux fois.
 
 **Le résultat** — une issue, le juge, sa date, un texte libre — est **stocké et non recalculé**, parce qu'il repose sur un jugement que rien ne reproduit à l'identique. Savoir qui a jugé et quand est ce qui permet de comparer deux résultats séparés dans le temps ; sans cette attribution, toute agrégation mélange des juges sans le dire.
 

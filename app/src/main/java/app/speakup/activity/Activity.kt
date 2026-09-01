@@ -82,7 +82,7 @@ enum class Format { Conversation }
  * A suggestion is an activity that never started, and [Dismissed] is a gesture that counts:
  * without it a refused suggestion comes back.
  */
-enum class Status { Suggested, Dismissed, Running, Finished, Abandoned }
+enum class Status { Suggested, Accepted, Dismissed, Running, Finished, Abandoned }
 
 /**
  * What fills an activity in -- its matter and its settings.
