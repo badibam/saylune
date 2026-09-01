@@ -103,6 +103,35 @@ object Takes {
                             .put("points", it.points))
                     }
                 })
+                // The melody, which no kept take carried until now: a contour that looks
+                // wrong on screen could not be checked against anything afterwards, because
+                // the only place these numbers went was a logcat this phone keeps for 81
+                // seconds. `learnerPitch` is null where nothing of the syllable was voiced,
+                // which is not the same as flat and must not be written as a number.
+                kept.put("syllables", JSONArray().apply {
+                    analysed.marking.syllables.forEach {
+                        put(JSONObject().put("start", it.start).put("end", it.end)
+                            .put("modelPitch", it.modelPitch)
+                            .put("learnerPitch", it.learnerPitch ?: JSONObject.NULL)
+                            .put("modelStressed", it.modelStressed)
+                            .put("learnerStressed", it.learnerStressed))
+                    }
+                })
+                // The melody, which no kept take carried until now. A contour that looked
+                // wrong on screen could not be checked against anything afterwards: the only
+                // place these numbers went was a logcat this phone keeps for 81 seconds, so
+                // a turn was erased before it could be read. `learnerPitch` is null where
+                // nothing of the syllable was voiced, which is not the same as flat and must
+                // not be written as a number.
+                kept.put("syllables", JSONArray().apply {
+                    analysed.marking.syllables.forEach {
+                        put(JSONObject().put("start", it.start).put("end", it.end)
+                            .put("modelPitch", it.modelPitch)
+                            .put("learnerPitch", it.learnerPitch ?: JSONObject.NULL)
+                            .put("modelStressed", it.modelStressed)
+                            .put("learnerStressed", it.learnerStressed))
+                    }
+                })
                 kept.put("gutters", JSONArray().apply {
                     analysed.marking.gutters.forEach {
                         put(JSONObject().put("symbol", it.symbol).put("after", it.after)
