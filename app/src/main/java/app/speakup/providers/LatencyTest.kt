@@ -135,14 +135,15 @@ internal object LatencyTest {
         voice: Voice?,
         size: String,
         text: String,
-        heard: Map<String, File>,
+        heard: Samples,
     ): Trial {
         var why: String? = null
         val began = System.nanoTime()
         try {
             when (task) {
                 Task.Recognition -> {
-                    val file = heard[size] ?: error("no sample was rendered for the $size one")
+                    val file = heard.files[size]
+                        ?: error("no $size sample: " + (heard.why ?: "not rendered"))
                     recognitionBy(store, provider, model).transcribe(file)
                 }
                 Task.Conversation -> conversationBy(store, provider, model).reply(
@@ -183,6 +184,9 @@ internal object LatencyTest {
             ?.let { Voice(provider = provider.id, id = it.id) }
     }.getOrNull()
 
+    /** The samples every recognition hears, and why they are missing when they are. */
+    private class Samples(val files: Map<String, File>, val why: String?)
+
     /**
      * The two sentences said aloud, once, and kept.
      *
@@ -195,7 +199,7 @@ internal object LatencyTest {
         context: Context,
         store: SecretStore,
         say: (String) -> Unit,
-    ): Map<String, File> {
+    ): Samples {
         val home = File(context.getExternalFilesDir(null), "latency").apply { mkdirs() }
         val out = mutableMapOf<String, File>()
         for ((size, text) in listOf("court" to SHORT, "long" to LONG)) {
@@ -205,11 +209,16 @@ internal object LatencyTest {
                 runCatching {
                     val synthesis = ChosenSynthesis(context, store)
                     synthesis.speak(text, synthesis.voice()).copyTo(kept, overwrite = true)
-                }.onFailure { return out }
+                }.onFailure {
+                    // Carried out rather than swallowed. Without it a whole column reads
+                    // "no sample was rendered" and the sweep does not say what refused --
+                    // which is what a run of 2026-09-01 left behind for the recognition.
+                    return Samples(out, it.message?.take(160) ?: it.javaClass.simpleName)
+                }
             }
             out[size] = kept
         }
-        return out
+        return Samples(out, null)
     }
 
     /**
