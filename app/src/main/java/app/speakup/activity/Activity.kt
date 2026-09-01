@@ -121,11 +121,10 @@ data class Outcome(
  * the content through the prompt, and they can bend the shape too: pronunciation at zero puts
  * the sound analysis out rather than computing it to show nothing of it.
  *
- * The levels are empty here and the step that gives them values is still ahead. What a level
- * is worth is not settled either: of the five aptitudes only two have a written mechanism --
- * the severity cran of wording, in three notches, and the marking threshold of elocution.
- * They are held as a number wide enough for both rather than as a shape that would have to be
- * guessed now.
+ * **This shape is not the one the design asks for**, and the step that fixes it is next. What
+ * gets stored is a list of *lever* positions; an aptitude is a preset over levers, not a
+ * parameter of its own. One level per aptitude cannot say what a hand-set sitting was, so it
+ * would need a second way of describing the same sitting, and the two kept in step.
  */
 data class Settings(val levels: Map<Aptitude, Float> = emptyMap())
 

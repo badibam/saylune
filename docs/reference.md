@@ -84,7 +84,7 @@ La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'appr�
 
 **Le rang E ferme la porte quel que soit le réglage.** Une phrase qui ne se dit pas devrait être synthétisée pour être analysée, donc entendue comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
 
-L'analyse tourne donc sur une phrase **jugée assez correcte au réglage courant**, et rien de plus : son texte de référence est aussi sûr ou incertain que celui de n'importe quel autre tour. La correction vient de l'apprenant, qui la cherche lui-même — sauf au cran où le levier d'explication lui donne la phrase correcte (`design/activity-model.md`).
+L'analyse tourne donc sur une phrase **jugée assez correcte au réglage courant**, et rien de plus : son texte de référence est aussi sûr ou incertain que celui de n'importe quel autre tour. La correction vient de l'apprenant, qui la cherche lui-même — sauf à la position où le levier d'explication lui donne la phrase correcte (`design/activity-model.md`).
 
 ## Ce que le réseau entend est la source de vérité
 
@@ -187,9 +187,9 @@ Deux circuits distincts partagent une seule ressource : le fichier audio du tour
 - **Rien ne coupe la parole de quelqu'un qui parle encore.** Couper qui hésite, cherche un mot ou reprend sa phrase, c'est couper précisément qui apprend.
 - **L'audio du tour est conservé localement**, sinon le tuyau B n'a rien à examiner.
 
-**La capture est l'un des axes que les réglages gouvernent** (`design/activity-model.md`), et trois choses y sont décidées : le micro **ne s'arme jamais avant la fin de la réponse de l'IA** ; un symbole est visible dès que ça enregistre, qui ne fait pas qu'informer — savoir que ça tourne change la façon dont on parle ; et **chaque tour porte sa position de capture**, sans quoi rien ne dit si ses silences sont significatifs, et rien ne s'agrège entre positions.
+**La capture est un levier de fluidité** (`design/activity-model.md`), et trois choses y sont décidées quelle que soit sa position : le micro **ne s'arme jamais avant la fin de la réponse de l'IA** ; un symbole est visible dès que ça enregistre, qui ne fait pas qu'informer — savoir que ça tourne change la façon dont on parle ; et **chaque tour porte sa position de capture**, sans quoi rien ne dit si ses silences sont significatifs, et rien ne s'agrège entre positions.
 
-**La capture est un levier de fluidité, à trois positions**, et l'échelle gradue exactement ce que la fluidité peut lire :
+**Trois positions**, et l'échelle gradue exactement ce que la fluidité peut lire :
 
 1. **Maintien du doigt, envoi manuel.** Ce que fait l'app : on appuie pour parler, on relâche pour réfléchir, on réappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
 2. **Armement automatique, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le délai avant de parler et les silences intérieurs deviennent mesurables.
