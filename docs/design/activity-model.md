@@ -54,6 +54,32 @@ Deux lignes sont neuves. **Le module ne peut pas adoucir un verdict** — un mod
 
 **Deux choses ressemblent à des décideurs et n'en sont pas.** La **mesure** n'a aucune discrétion : elle applique la barre qu'on lui donne, elle ne la choisit pas, et un décideur sans discrétion est une fonction. Le **prescripteur** n'est pas un décideur d'un autre genre, c'est le **siège** que l'apprenant occupe et que la conversation ou la progression occuperont à sa place — ce qui s'y décide est le même, matière et réglages, donc les mêmes interdictions s'y appliquent sans qu'il faille les réécrire.
 
+### Ce qui mesure chaque aptitude, et les leviers qui la pressent
+
+Deux choses par aptitude, et pas plus : le **critère** qui permet de l'évaluer, et les **leviers** qui modulent la pression sur elle. Aucune de ces listes n'est close.
+
+**Élocution**
+- *Mesure* : l'écart au modèle, aux trois échelles — les sons, l'accent du mot, la mélodie de la phrase.
+- *Leviers* : voir le texte, ou redire sa phrase de tête ; un temps limité, posé en pourcentage de la durée du texte synthétisé, et dépasser oblige à réessayer ; la sensibilité du marquage, qui module la note d'écart ; le nombre de reprises permises.
+
+**Compréhension**
+- *Mesure* : la réponse montre qu'on a compris, ou révèle qu'on n'a pas compris.
+- *Leviers* : la complexité du tour de l'IA — longueur, vocabulaire, structure ; le texte affiché ou flouté ; la réécoute, autorisée ou non, et combien de fois ; le bruit et la qualité du canal, jusqu'à simuler un mauvais réseau qui coupe des mots.
+
+**Formulation**
+- *Mesure* : le rang atteint sur une échelle allant de l'incorrect à l'exemplaire, à quantifier plus finement pour en tirer une note.
+- *Leviers* : la réponse de l'IA sur un tour fautif, en trois niveaux — absente, indication indirecte (la reprise dans sa réponse, ce que le code incite aujourd'hui), ou reformulation explicite dite comme un coach reprend son élève ; le marquage dans la phrase, ou pas ; l'explication de la faute en notification, à deux niveaux — la règle à utiliser seule, ou la règle plus la phrase correcte.
+
+**Fluidité**
+- *Mesure* : le débit et les arrêts — le délai avant de commencer, le nombre et la longueur des silences.
+- *Leviers* : le mode d'enregistrement, qui passe en automatique dès le premier cran pour que la mesure du silence soit possible.
+
+**Richesse**
+- *Mesure* : la précision et la variété du lexique, l'adéquation du registre, la longueur et la complexité de la phrase.
+- *Leviers* : le registre imposé, ou une contrainte du même genre ; la longueur imposée.
+
+Deux remarques sur les leviers de formulation. Le marquage et l'explication sont **deux leviers et non deux crans d'un seul**, parce que **où** et **quoi** ne sont pas deux quantités de la même information : on peut donner l'un sans l'autre, dans les deux sens. C'est la distinction que l'analyse fait déjà pour le son, où le marquage dit où et nommer le son produit est un enrichissement séparé (`../reference.md`). Et tout en haut, ces leviers se recouvrent : une reformulation explicite de l'IA donne déjà la phrase correcte à voix haute, que l'explication redonnerait par écrit.
+
 ## La capture
 
 La capture est l'un des axes que les réglages gouvernent. Elle n'est pas spécifiée, et ce qui suit est ce qui est acquis.
