@@ -6,6 +6,7 @@ import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
 import app.speakup.chain.Recognition
 import app.speakup.chain.Word
+import app.speakup.activity.Activity
 import app.speakup.capture.Playback
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Analysis
@@ -42,6 +43,13 @@ enum class Speaker { Learner, Ai }
 data class Utterance(
     val speaker: Speaker,
     val text: String,
+    /**
+     * The activity this belongs to, and **always exactly one**.
+     *
+     * One parent and not several is what keeps every request on the matter simple, whichever
+     * activity the utterance came from.
+     */
+    val activity: String,
     /** The recording it was said in. The answers of the model have none. */
     val said: File? = null,
     /**
@@ -76,6 +84,8 @@ data class Utterance(
 )
 
 data class ConversationState(
+    /** The conversation itself, which is an activity like any other. */
+    val activity: Activity = Activity.conversation(),
     /**
      * Everything said, oldest first. The thread is this run and nothing else carries it.
      *
@@ -210,11 +220,16 @@ class TurnPipeline(
                 utterances = _state.value.utterances +
                     Utterance(
                         speaker = Speaker.Learner,
+                        activity = _state.value.activity.id,
                         text = reply.intended,
                         said = turn,
                         faulty = reply.faulty,
                     ) +
-                    Utterance(speaker = Speaker.Ai, text = reply.spoken),
+                    Utterance(
+                        speaker = Speaker.Ai,
+                        activity = _state.value.activity.id,
+                        text = reply.spoken,
+                    ),
                 phase = Phase.Speaking,
                 pending = null,
             )
@@ -374,6 +389,7 @@ class TurnPipeline(
             _state.value = _state.value.copy(
                 utterances = _state.value.utterances + Utterance(
                     speaker = Speaker.Learner,
+                    activity = spoken.activity,
                     text = spoken.text,
                     said = audio,
                     marking = analysed.marking,
