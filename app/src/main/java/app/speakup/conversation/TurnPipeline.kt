@@ -15,6 +15,7 @@ import app.speakup.debug.Trace
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
 import app.speakup.store.ArchiveDao
+import app.speakup.store.Recordings
 import app.speakup.store.activity
 import app.speakup.store.row
 import app.speakup.store.utterance
@@ -224,6 +225,10 @@ class TurnPipeline(
         if (!opened) {
             opened = true
             archive.latest()?.let { open(it.activity().id) } ?: begin()
+            // Once, here, and here only: at startup nothing is in flight and nothing has
+            // been recorded, so a file the store does not name is one nothing will name.
+            runCatching { Recordings.sweepOrphans(context, archive.recordings().toSet()) }
+                .onFailure { Trace.fail("recordings: not swept", "why" to it.message) }
         }
         if (_state.value.analysis == null) {
             _state.value = _state.value.copy(analysis = analysis.readiness())

@@ -124,6 +124,10 @@ interface ArchiveDao {
     @Query("SELECT * FROM activities WHERE id = :id")
     suspend fun activity(id: String): ActivityRow?
 
+    /** Every recording any utterance names, across every conversation. */
+    @Query("SELECT said FROM utterances WHERE said IS NOT NULL")
+    suspend fun recordings(): List<String>
+
     @Query("SELECT * FROM utterances WHERE activity = :activity ORDER BY rank ASC")
     suspend fun utterances(activity: String): List<UtteranceRow>
 }

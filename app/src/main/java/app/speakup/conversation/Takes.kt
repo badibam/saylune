@@ -68,7 +68,7 @@ object Takes {
             while (File(home, stamp).exists()) stamp = "$clock-${again++}"
             val into = File(home, stamp).apply { mkdirs() }
 
-            said.copyTo(File(into, "said.wav"), overwrite = true)
+            link(said, File(into, "said.wav"))
             model?.copyTo(File(into, "model.wav"), overwrite = true)
 
             val kept = JSONObject()
@@ -159,6 +159,27 @@ object Takes {
             // was kept.
             Trace.fail("take not kept", "why" to it.message)
         }.getOrNull()
+    }
+
+    /**
+     * Put the take's audio at [into] without keeping a second copy of it where that works.
+     *
+     * The measure of 2026-09-01 found the learner's wav on the phone twice, 26 MB against
+     * 29 MB, the same audio: this folder is on external storage so that `adb pull` can reach
+     * it, while the recording lives in internal storage where the store names it. A hard link
+     * is the same bytes under two names and removes the duplicate outright.
+     *
+     * It only works when the two are one filesystem, which nothing here can promise, so a
+     * copy stands behind it -- and which of the two happened is said rather than swallowed,
+     * because the difference is tens of megabytes and it is invisible from the outside.
+     */
+    private fun link(said: File, into: File) {
+        into.delete()
+        val linked = runCatching {
+            java.nio.file.Files.createLink(into.toPath(), said.toPath())
+        }.isSuccess
+        if (!linked) said.copyTo(into, overwrite = true)
+        Trace.add("take audio", "how" to if (linked) "linked" else "copied")
     }
 
     private fun shares(shares: List<app.speakup.analysis.Share>) = JSONArray().apply {
