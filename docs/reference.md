@@ -11,7 +11,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
-- `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : les prescripteurs, la pression et ses leviers, les modes, l'enjeu, les réglages, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
+- `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : la définition, l'exécution et le bloc, les réglages comme positions de leviers, les prescripteurs, la pression et ses leviers, les notes en A–E, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
@@ -30,7 +30,9 @@ Le contrôle du moment appartient à l'utilisateur, jamais à l'app. Ce qui peut
 
 **L'énoncé est l'unité de matière** : un texte, un locuteur, l'audio, l'analyse. Toute parole dans l'app en est un — la réponse de l'IA comme la phrase de l'apprenant. La plupart n'en portent aucune analyse, et c'est voulu : une seule table pour tout ce qui se dit donne le fil de la conversation gratuitement, comme simple suite ordonnée, et aucun champ ne le porte. Un énoncé peut **pointer vers celui qu'il reprend**, par son identité et jamais par sa place, une place ne survivant pas à l'écriture sur disque. C'est tout ce qu'il faut pour redire.
 
-**Une activité est atomique** : un seul objet, qui porte son format, sa matière, ses réglages, son statut, ses horodatages et son résultat. Rien de séparé pour la portée, rien de séparé pour l'exécution — les deux ne se distinguaient que par une indirection dont rien n'avait l'usage. Les énoncés s'y accrochent, **toujours à un seul parent**, ce qui garde chaque requête sur la matière simple.
+**Une activité est atomique** : un seul objet, qui porte son format, sa matière, ses réglages, son statut, ses horodatages et son résultat. Rien de séparé pour la portée, rien de séparé pour l'exécution. Ce n'est pas que la séparation serait inutile — rejouer s'en sert : une **définition** écrite en dur dans le code se joue autant de fois qu'on veut, et chaque partie est une ligne. C'est qu'elle n'a pas à être modélisée, la définition vivant dans le code et la partie en base. Le jour où des définitions se téléchargeraient ou s'écriraient dans l'app, elle reviendrait, et ce serait un revirement assumé. Les énoncés s'accrochent à l'activité, **toujours à un seul parent**, ce qui garde chaque requête sur la matière simple.
+
+**Une activité issue d'une définition n'est pas jetable.** Son résultat porte l'avancement, qui se dérive et ne se stocke pas, donc la supprimer reverrouille un niveau ou vide une entrée de classement. Une conversation libre, elle, se jette sans conséquence. La différence se dit à l'utilisateur au lieu de se faire en douce.
 
 **La conversation est une activité**, dans la même table et avec le même schéma, et tous les champs ont un sens pour elle : sa matière est ce dont on parle — le titre que l'IA lui donne —, ses réglages ceux de la séance, son statut dit si elle est encore ouverte. Ce qui la distingue tient à son comportement : son fil est la suite de ses énoncés, et elle se reprend en l'état. **Rien n'a à être terminé pour en commencer une autre** ; une activité non terminée est simplement une activité à reprendre, ce qui est l'état ordinaire de toutes sauf celle qu'on a.
 
@@ -58,14 +60,13 @@ Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir
 - **Fluidité** — trouver ses mots assez vite, enchaîner, ne pas s'arrêter au milieu.
 - **Richesse** — le mot précis, le registre, la nuance. La seule dont l'échec est invisible : rien ne signale qu'on vient de dire une version pauvre de son idée.
 
-Les réglages se posent **par aptitude** et sont **fixés pour toute la durée** de la conversation. Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui les tisse toutes dans une seule conversation.
+Les réglages sont **fixés pour toute la durée** de la conversation. Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui tisse les cinq dans une seule conversation.
 
-Deux réglages ont déjà leur mécanisme écrit dans ce doc, et ce sont les deux seuls :
+Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur des **leviers**, qui sont les vrais paramètres et ce qui se stocke. Ce que chaque aptitude fait mesurer et par quels leviers elle se presse est écrit dans `design/activity-model.md`, avec qui a le droit d'en décider — l'apprenant, le module, l'IA — et ce que chacun ne décide jamais.
 
-- **Formulation** — la sévérité, en trois crans : ne rien marquer / marquer les fautes / marquer aussi les tournures correctes mais maladroites. Pas un pourcentage : une phrase est fautive ou ne l'est pas. C'est ce cran que lit « La porte grammaticale ».
-- **Élocution** — le seuil du marquage sonore, dont « Marquer par écart au modèle » dit la forme : une exigence, jamais un quota. Le poser bas, c'est déclarer qu'on travaille cet aspect-là aujourd'hui.
+**Aucun réglage ne touche une marque.** La même faute produit la même marque quels que soient les réglages ; ce qu'ils gouvernent, c'est ce qu'on en **fait** — s'il faut redire, si ça compte dans la note. Cette règle a retiré les deux seuls mécanismes que ce doc avait écrits : les trois crans de sévérité grammaticale, dont le premier éteignait le marquage, et le seuil du marquage sonore, que le réglage d'élocution déplaçait. L'un et l'autre faisaient dépendre une marque du réglage du jour, et une marque dont l'absence ne se distingue pas d'une approbation ne transporte rien.
 
-Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur des **leviers**, qui sont les vrais paramètres. Ce que chaque aptitude fait mesurer et par quels leviers elle se presse est écrit dans `design/activity-model.md`, avec qui a le droit d'en décider — l'apprenant, le module, l'IA — et ce que chacun ne décide jamais.
+**La formulation se note en rangs, de A à E** — ce qu'un natif dirait, correct et naturel, correct mais maladroit, fautif mais compris, ne se dit pas. Le rang se calcule et se souligne toujours, d'une couleur qui vient de lui seul (`design/activity-model.md`).
 
 **Monter un curseur retire une aide, ou durcit un jugement**, et les deux n'ont pas le même plafond : retirer une aide converge vers le réel, durcir un jugement le dépasse. Les effets se cumulent d'une aptitude à l'autre, et c'est voulu — une note ne se lit jamais sans la combinaison qui l'a produite.
 
@@ -79,9 +80,11 @@ Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur de
 
 La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire : elle va disparaître. La conséquence technique suit — **sur un tour grammaticalement fautif, l'analyse sonore ne tourne pas du tout.** Elle n'est pas cachée, elle n'est pas calculée.
 
-**La porte suit le marquage, pas la grammaire absolue** : un tour est « fautif » pour la porte si et seulement s'il est marqué au cran de sévérité courant. Au cran 3, une tournure maladroite ferme la porte comme une faute — elle va être réécrite. Au cran 2, elle passe, et la prononciation se travaille sur elle : régler la sévérité, c'est déclarer que l'idiomatique n'est pas le sujet du jour, et rien ne va réécrire cette phrase. Coût assumé : le modèle dira la tournure maladroite d'une voix native.
+**La porte suit ce qui va être réécrit, pas la grammaire absolue.** Un tour la ferme quand quelque chose s'apprête à en produire une version corrigée — c'est la raison même de la porte. Elle ne se lit donc pas au marquage, qui est invariant, mais au rang de formulation : à partir de quel rang il faut redire est un réglage. Coût assumé au réglage le plus lâche : le modèle dira d'une voix native une tournure maladroite qu'on a choisi de ne pas reprendre.
 
-L'analyse tourne donc sur une phrase **jugée correcte au cran courant**, et rien de plus : son texte de référence est aussi sûr ou incertain que celui de n'importe quel autre tour. La correction vient de l'apprenant, qui la cherche lui-même — sauf au cran où le levier d'explication lui donne la phrase correcte (`design/activity-model.md`).
+**Le rang E ferme la porte quel que soit le réglage.** Une phrase qui ne se dit pas devrait être synthétisée pour être analysée, donc entendue comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
+
+L'analyse tourne donc sur une phrase **jugée assez correcte au réglage courant**, et rien de plus : son texte de référence est aussi sûr ou incertain que celui de n'importe quel autre tour. La correction vient de l'apprenant, qui la cherche lui-même — sauf au cran où le levier d'explication lui donne la phrase correcte (`design/activity-model.md`).
 
 ## Ce que le réseau entend est la source de vérité
 
@@ -133,7 +136,9 @@ Ce qui suit n'est pas du traitement mais le contrat d'entrée : 16 kHz, mono, PC
 
 **Le seuil est une exigence, pas un quota.** Une barre unique sur l'écart, la même pour chaque son, partout et tout le temps. Jamais « marquer les n pires », jamais un budget par mot ou par tour, jamais un classement : **toutes les fautes se marquent, aucune ne s'élit**. Un quota serait une élection, et il ferait dépendre une marque de ce qu'il y a d'autre dans la phrase — or la même faute doit produire la même marque à n'importe quel moment.
 
-La barre est absolue, mais **ce qu'elle mesure est relatif** : l'écart de l'apprenant à son modèle. Exigence absolue sur une mesure relative — c'est ce qui permet au réglage d'élocution d'exister. Le bouger déclare un niveau d'exigence pour la conversation ; il ne change jamais la façon de mesurer.
+La barre est absolue, mais **ce qu'elle mesure est relatif** : l'écart de l'apprenant à son modèle. Exigence absolue sur une mesure relative.
+
+**Et cette barre ne se règle pas.** La rampe est la même pour tout le monde et tout le temps, et la bande de bruit sous laquelle rien n'est teinté est une propriété mesurée de la machine, pas un réglage. Le réglage d'élocution existe toujours, mais il gouverne ce qu'on **fait** d'une marque — redire, compter dans la note — jamais son apparition. Les trois échelles du son ont chacune la sienne, leurs unités n'étant pas les mêmes ; celle de la mélodie ne sert qu'à la note, puisque la mélodie n'est jamais teintée.
 
 **Se taire n'est jamais une issue.** Quand un repère est trop bruyant, la réponse est de le réparer ou d'en trouver un autre — jamais de restreindre la marque aux cas faciles ni de retirer une échelle. Une échelle qui ne parle que là où elle est sûre laisse passer les fautes qu'elle est là pour attraper, et l'apprenant n'a aucun moyen de savoir que le silence n'est pas une approbation. Décision de projet, à ne pas rouvrir : les compromis qui achètent la fiabilité en renonçant à des marques sont écartés d'avance. Sa portée, notée pour que la question ne se repose pas : il a été écrit contre l'idée de restreindre une échelle **en service** à ses cas faciles ; il n'ordonne pas de retenir l'app derrière une échelle qui n'est pas encore écrite. L'accent lexical (brique 7) reste de la recherche tant qu'il n'est pas fiable, ses canaux vides à l'écran ; la première version marque le son et la mélodie, qui sont écrits et en service.
 
@@ -182,16 +187,15 @@ Deux circuits distincts partagent une seule ressource : le fichier audio du tour
 - **Rien ne coupe la parole de quelqu'un qui parle encore.** Couper qui hésite, cherche un mot ou reprend sa phrase, c'est couper précisément qui apprend.
 - **L'audio du tour est conservé localement**, sinon le tuyau B n'a rien à examiner.
 
-**La capture est l'un des axes que les réglages gouvernent** (`design/activity-model.md`), et trois choses y sont décidées : le micro **ne s'arme jamais avant la fin de la réponse de l'IA** ; un symbole est visible dès que ça enregistre, qui ne fait pas qu'informer — savoir que ça tourne change la façon dont on parle ; et **chaque tour porte son mode de capture**, sans quoi rien ne dit si ses silences sont significatifs, et rien ne s'agrège entre modes.
+**La capture est l'un des axes que les réglages gouvernent** (`design/activity-model.md`), et trois choses y sont décidées : le micro **ne s'arme jamais avant la fin de la réponse de l'IA** ; un symbole est visible dès que ça enregistre, qui ne fait pas qu'informer — savoir que ça tourne change la façon dont on parle ; et **chaque tour porte sa position de capture**, sans quoi rien ne dit si ses silences sont significatifs, et rien ne s'agrège entre positions.
 
-**Le mode lui-même reste ouvert** : l'invariant ne le désigne pas, plusieurs gestes l'honorent. Quatre pistes, aucune écartée :
+**La capture est un levier de fluidité, à trois positions**, et l'échelle gradue exactement ce que la fluidité peut lire :
 
-- **Armement automatique, un tap pour clore.** Ce que `design/ui-flow.md` a retenu : le micro s'ouvre dès que l'IA a fini, un geste par tour, faisable à l'aveugle. De l'air mort à la fin si l'on tarde à clore.
-- **Appui / appui.** Deux gestes, mais aucun enregistrement non voulu.
-- **Appui maintenu, relâchement = fin, puis validation.** Un seul geste, pas d'air mort, un réessai offert sans appel — mais tenir un bouton pendant qu'on cherche ses mots est une charge de plus, et le tour long y devient pénible.
-- **Déclenchement au seuil, arrêt après un silence long.** Le mode que l'invariant menace le plus, et pas nécessairement au point de l'écarter : avec un seuil de fin généreux, ce qui se ferait couper n'est plus l'hésitation mais la pause de réflexion vraiment longue. À mesurer plutôt qu'à trancher.
+1. **Maintien du doigt, envoi manuel.** Ce que fait l'app : on appuie pour parler, on relâche pour réfléchir, on réappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
+2. **Armement automatique, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le délai avant de parler et les silences intérieurs deviennent mesurables.
+3. **Armement automatique, envoi sur un silence de plus de x**, silence du début compris. Le silence final s'y ajoute.
 
-Un critère pèse sur ce choix et ne relève pas de l'ergonomie : la mémoire d'une passe d'analyse croît comme le **carré** de la durée du tour (`analysis.md`). Un mode qui borne naturellement la durée vaut donc mieux qu'un mode qui la laisse filer — ça ne désigne pas de gagnant, ça interdit de choisir sur le seul confort.
+Aucune ne coupe qui parle encore, ce qui est l'invariant. **Ce qui coupe est ailleurs et n'est pas un réglage** : la durée maximale d'un tour, aujourd'hui 30 s, posée parce que la mémoire d'une passe d'analyse croît comme le **carré** de la durée (`analysis.md`). Le tour se ferme alors et envoie ce qui a été dit — jeter perdrait de la parole. Cette borne disparaît quand le fenêtrage de l'analyse arrive.
 
 **Tuyau B — analyser.** Le tour est examiné, **sur l'appareil**, pour savoir s'il y a un problème et où. Se fait sur l'enregistrement existant, sans jamais rien redemander.
 

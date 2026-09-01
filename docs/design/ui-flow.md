@@ -2,7 +2,7 @@
 
 Ce que la conception d'interface a tranché, de bout en bout. Les principes qu'elle applique vivent dans `../reference.md` ; ici, leur forme.
 
-**Ce doc précède `activity-model.md` et n'a pas été refait dessus.** Ce qui y est périmé est le **flux** : tout ce qui ouvre, traverse ou referme une **parenthèse** — « Ce qu'un tour affiche et où mène l'appui », l'ouverture automatique, et la chorégraphie du tour qui en dépend. Le remplacement, à écrire, est *redire sur place* ou une activité suggérée, et il attend le catalogue des activités, que le design range dans ce qui reste à spécifier. Ce qui y est **intact et se lit** : la posture, le micro et le rognage des plages vides, le marquage et sa gradation avec ses seuils mesurés, les chiffres de latence.
+**Ce doc précède `activity-model.md` et n'a pas été refait dessus.** Ce qui y est périmé est le **flux** : tout ce qui ouvre, traverse ou referme une **parenthèse** — « Ce qu'un tour affiche et où mène l'appui », l'ouverture automatique, et la chorégraphie du tour qui en dépend, y compris son partage entre un « mode marquage » et un « mode auto-déclencheur », qui supposait qu'un curseur pilote l'affichage. Le remplacement, à écrire, est *redire sur place* ou une activité suggérée, et il attend le catalogue des activités, que le design range dans ce qui reste à spécifier. Ce qui y est **intact et se lit** : la posture, le micro et le rognage des plages vides, le marquage et sa gradation avec ses seuils mesurés, les chiffres de latence.
 
 ## La posture d'usage
 
@@ -13,9 +13,9 @@ Ce que la conception d'interface a tranché, de bout en bout. Les principes qu'e
 
 ## Le micro
 
-**Armement automatique** : le micro s'ouvre dès que l'IA finit de parler, un seul tap clôt le tour — le rythme d'une conversation, un geste par tour, faisable à l'aveugle (grande cible en bas d'écran). L'état « micro ouvert » est non ambigu, visuellement et sonorement. **L'armement manuel reste une option d'app** pour qui refuse tout enregistrement non voulu.
+**Armement automatique** : le micro s'ouvre dès que l'IA finit de parler, un seul tap clôt le tour — le rythme d'une conversation, un geste par tour, faisable à l'aveugle (grande cible en bas d'écran). L'état « micro ouvert » est non ambigu, visuellement et sonorement.
 
-**Ce mode est une piste parmi quatre**, pas un tranché (cf. `../reference.md`, « Les deux tuyaux ») : ce qui est décidé est l'invariant — rien ne coupe qui parle encore, l'audio du tour est conservé — pas le geste qui l'applique.
+**Ce mode est la deuxième des trois positions de capture** (cf. `../reference.md`, « Les deux tuyaux ») : maintien du doigt et envoi manuel, ce que fait l'app aujourd'hui ; armement automatique et envoi manuel, décrit ici ; armement automatique et envoi sur silence. La position gouverne ce que la fluidité peut mesurer, et aucune ne coupe qui parle encore.
 
 **Les plages vides sont rognées localement avant envoi**, de tête, de queue et d'intérieur — rien ne distingue le milieu du bord une fois posé un **seuil de durée**, qui est ce qui rend la coupe sûre : une occlusive est du silence, mais elle dure 50 à 120 ms, et ne retirer que les plages de l'ordre de la demi-seconde place la coupe hors du domaine des phonèmes. Le gain n'est pas que financier : la mémoire d'une passe d'analyse croît comme le carré de la durée (`../analysis.md`). Le **seuil de niveau** reste à poser, et il demande des tours spontanés hésitants que le banc n'a pas.
 
@@ -54,7 +54,7 @@ Trois propriétés ont décidé la forme :
 
 **La graisse décrit le modèle, jamais la production.** Elle n'accuse personne, ne change pas de place d'un tour à l'autre pour le même énoncé, et se lit sans légende. Elle suit néanmoins le sort des autres marques : elle naît de l'analyse, donc un tour non analysé — quota, panne, porte grammaticale fermée — n'a pas de gras non plus.
 
-**Le réglage d'élocution ne pilote plus l'affichage de la mélodie** : il gouverne la rampe phonémique et le **déclenchement automatique**, qui a bien besoin d'un seuil en demi-tons pour savoir quand se déclencher. Ce qu'il déclenche est du flux périmé ; le seuil, lui, est mesuré et tient. À l'écran, l'écart mélodique se lit tel qu'il est.
+**Le réglage d'élocution ne pilote aucun affichage** : ni la mélodie, ni la rampe phonémique, qui est la même partout et tout le temps depuis que la marque est invariante (`activity-model.md`). Il gouverne ce qu'on fait d'une marque. Le seuil en demi-tons ci-dessous reste mesuré et tient ; ce qu'il déclenchait est du flux périmé.
 
 ### Le seuil de la mélodie — un choix, pas une mesure
 
