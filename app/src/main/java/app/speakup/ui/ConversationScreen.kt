@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import app.speakup.R
 import app.speakup.capture.TurnRecorder
-import app.speakup.chain.Exchange
-import app.speakup.conversation.Attempt
+import app.speakup.conversation.Speaker
+import app.speakup.conversation.Utterance
 import app.speakup.conversation.Phase
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -109,30 +109,34 @@ fun ConversationScreen(
             return@Column
         }
 
-        if (turn.exchanges.isEmpty()) {
+        if (turn.utterances.isEmpty()) {
             Text(
                 stringResource(R.string.conversation_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        turn.exchanges.forEachIndexed { at, exchange ->
+        turn.utterances.forEachIndexed { at, spoken ->
+            // An utterance that says another again is not drawn where it sits in the run: it
+            // is one of the readings grouped under the one it repeats, which is where the
+            // learner is looking. The run keeps the order; the screen keeps the grouping.
+            if (spoken.repeats != null) return@forEachIndexed
+            val readings = turn.readings(at)
             Said(
-                exchange = exchange,
-                attempts = turn.attempts[at].orEmpty(),
-                faulty = at in turn.faulty,
+                spoken = spoken,
+                readings = readings,
                 recorder = recorder,
                 busy = turn.phase != Phase.Idle,
                 side = turn.side,
                 speed = turn.speed,
                 onSide = pipeline::side,
                 onSpeed = pipeline::speed,
-                onHear = { said -> scope.launch { pipeline.hear(at, said) } },
-                onHearSpan = { said, from, to ->
-                    scope.launch { pipeline.hear(at, said, from, to) }
+                onHear = { where -> scope.launch { pipeline.hear(where) } },
+                onHearSpan = { where, from, to ->
+                    scope.launch { pipeline.hear(where, from, to) }
                 },
-                onHearSound = { said, sound, side ->
-                    scope.launch { pipeline.hear(at, said, sound, side) }
+                onHearSound = { where, sound, side ->
+                    scope.launch { pipeline.hear(where, sound, side) }
                 },
                 onRedo = { scope.launch { pipeline.redo(at, it) } },
             )
@@ -232,17 +236,6 @@ fun ConversationScreen(
     }
 }
 
-/**
- * Hear the model, and say it again -- the two halves of the remedy, on the turn itself.
- *
- * Drawn rather than lettered: a glyph borrowed to stand for a control is the decoration
- * `dev_base` refuses, and an icon pack is a dependency to rebuild offline for a control that
- * is a triangle and a circle.
- *
- * The small circle is the big one, smaller, and it holds the same way. Saying a sentence
- * again is not a new turn of conversation: it never reaches the language model, and what
- * comes back is the same sentence measured again.
- */
 /**
  * Which take of this turn is on screen, when there is more than one.
  *
@@ -359,6 +352,17 @@ private fun heard(
     return inside.minOf { it.first } to inside.maxOf { it.last }
 }
 
+/**
+ * Hear the model, and say it again -- the two halves of the remedy, on the turn itself.
+ *
+ * Drawn rather than lettered: a glyph borrowed to stand for a control is the decoration
+ * `dev_base` refuses, and an icon pack is a dependency to rebuild offline for a control that
+ * is a triangle and a circle.
+ *
+ * The small circle is the big one, smaller, and it holds the same way. Saying a sentence
+ * again is not a new turn of conversation: it never reaches the language model, and what
+ * comes back is the same sentence measured again.
+ */
 @Composable
 private fun Redo(
     recorder: TurnRecorder,
@@ -432,24 +436,25 @@ private fun Redo(
 
 @Composable
 private fun Said(
-    exchange: Exchange,
-    attempts: List<Attempt>,
-    faulty: Boolean,
+    spoken: Utterance,
+    /** Every reading of this turn, oldest first. Each one is addressed by its place in the run. */
+    readings: List<Pair<Int, Utterance>>,
     recorder: TurnRecorder,
     busy: Boolean,
     side: Side,
     speed: Float,
     onSide: (Side) -> Unit,
     onSpeed: (Float) -> Unit,
-    onHear: (java.io.File) -> Unit,
-    onHearSpan: (java.io.File, Int, Int) -> Unit,
-    onHearSound: (java.io.File, AnalysedSound, Side) -> Unit,
+    onHear: (Int) -> Unit,
+    onHearSpan: (Int, Int, Int) -> Unit,
+    onHearSound: (Int, AnalysedSound, Side) -> Unit,
     onRedo: (java.io.File) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             stringResource(
-                if (exchange.fromLearner) R.string.speaker_learner else R.string.speaker_ai
+                if (spoken.speaker == Speaker.Learner) R.string.speaker_learner
+                else R.string.speaker_ai
             ),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
@@ -460,10 +465,11 @@ private fun Said(
         // being overwritten -- three takes of one sentence against one model is material,
         // and it is only material if all three survive.
         val scope = rememberCoroutineScope()
-        var shown by rememberSaveable(attempts.size) { mutableStateOf(attempts.size - 1) }
-        val attempt = attempts.getOrNull(shown)
-        val marking = attempt?.marking
-        val sounds = attempt?.sounds
+        var shown by rememberSaveable(readings.size) { mutableStateOf(readings.size - 1) }
+        val reading = readings.getOrNull(shown)
+        val where = reading?.first
+        val marking = reading?.second?.marking
+        val sounds = reading?.second?.sounds
 
         if (marking != null) {
             MarkedTurn(
@@ -473,24 +479,23 @@ private fun Said(
                 // points at. Its bounds are read off the sounds it covers rather than
                 // measured again, so the two recordings stay in step by construction.
                 onTapCharacter = { offset ->
-                    spanOfWord(exchange.text, offset)?.let { word ->
+                    spanOfWord(spoken.text, offset)?.let { word ->
                         heard(sounds.orEmpty(), word, side)?.let { (from, to) ->
                             // The take being looked at, never the turn's first: its times
                             // are the ones just read off it.
-                            attempt?.let { onHearSpan(it.said, from, to) }
+                            where?.let { onHearSpan(it, from, to) }
                         }
                     }
                 },
             )
-        } else Text(exchange.text, style = MaterialTheme.typography.bodyMedium)
-        if (attempts.size > 1) Attempts(attempts.size, shown) { shown = it }
+        } else Text(spoken.text, style = MaterialTheme.typography.bodyMedium)
+        if (readings.size > 1) Attempts(readings.size, shown) { shown = it }
         // The redo controls stay: saying it again is exactly the answer to a reading that
         // slid, and taking them away would leave no way out of it.
-        if (attempt != null) {
-            Redo(recorder, busy, side, speed, onSide, onSpeed,
-                 { onHear(attempt.said) }, onRedo)
+        if (where != null) {
+            Redo(recorder, busy, side, speed, onSide, onSpeed, { onHear(where) }, onRedo)
         }
-        if (attempt != null && sounds != null && Trace.on) {
+        if (where != null && sounds != null && Trace.on) {
             val context = LocalContext.current
             var open by rememberSaveable { mutableStateOf(false) }
             TextButton(onClick = { open = !open }) {
@@ -505,10 +510,8 @@ private fun Said(
             }
             if (open) {
                 AnalysisReadout(
-                    exchange.text, sounds, marking?.added.orEmpty(),
-                    onHearSound = { sound, which ->
-                        onHearSound(attempt.said, sound, which)
-                    },
+                    spoken.text, sounds, marking?.added.orEmpty(),
+                    onHearSound = { sound, which -> onHearSound(where, sound, which) },
                     // The pre-recorded set, played whole: a symbol on its own is already
                     // one sound and there is nothing in it to cut.
                     onHearSymbol = { symbol ->
@@ -519,7 +522,7 @@ private fun Said(
                 )
             }
         }
-        if (faulty) {
+        if (spoken.faulty) {
             // The whole turn, for want of the span. The doc asks for the portion concerned
             // and the model does not return one yet (`../../../../../../TODO.md`), so this
             // says where the fault is only as far as the sentence -- and says nothing about

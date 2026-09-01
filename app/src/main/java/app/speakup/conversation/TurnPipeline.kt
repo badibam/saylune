@@ -6,7 +6,6 @@ import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
 import app.speakup.chain.Recognition
 import app.speakup.chain.Word
-import app.speakup.analysis.Analysed
 import app.speakup.capture.Playback
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Analysis
@@ -25,62 +24,71 @@ enum class Phase { Idle, Hearing, Thinking, Speaking }
 /** Whose recording a manual gesture plays. */
 enum class Side { Model, Learner }
 
+/** Who said it. A human model is a third case, and it changes nothing about the shape. */
+enum class Speaker { Learner, Ai }
+
 /**
- * One reading of one take: what was marked, what was measured, and **the recording it was
- * measured on**.
+ * One thing said: a text, a speaker, the audio, the analysis.
  *
- * The audio belongs to the attempt and is carried by it. Holding it in a map beside the
- * attempts made a second source that drifted from the first: `redo` appended an attempt
- * whose times were the new take's while the map still pointed at the first take, so the
- * screen read one recording's clock onto another's audio. A word then played a different
- * part of the sentence, and the model side stayed right only because a turn has exactly one
- * model and nothing to drift from.
+ * **Everything said in the app is one of these** -- the answer of the model as much as the
+ * learner's sentence (`docs/design/activity-model.md`). Most carry no analysis, and the
+ * answers carry none at all; keeping one table for all of it is what gives the thread of the
+ * conversation for free, as a plain ordered run.
+ *
+ * [repeats] points at the utterance this one says again. That is the whole of saying a
+ * sentence again on the spot: another utterance in the same conversation, tied to the one it
+ * replays, with no second notion needed for it.
  */
-data class Attempt(
-    val marking: TurnMarking,
-    val sounds: List<AnalysedSound>,
-    val said: File,
+data class Utterance(
+    val speaker: Speaker,
+    val text: String,
+    /** The recording it was said in. The answers of the model have none. */
+    val said: File? = null,
+    /**
+     * What was marked and what was measured, or null when nothing read this.
+     *
+     * Null is not "nothing to report": a turn the gate held back and a turn read clean must
+     * not be drawn alike. [faulty] tells the two apart.
+     */
+    val marking: TurnMarking? = null,
+    val sounds: List<AnalysedSound> = emptyList(),
+    /**
+     * The synthesis of this very text, kept to be heard again.
+     *
+     * One render serves three times, exactly as the doc says: a yardstick for the measure, a
+     * model to hear, and a model to hear again at every retry. An utterance that repeats
+     * another has none of its own -- the text is the same, so the model is the same file, and
+     * [modelOf] reads it through [repeats] rather than keeping a second name for it.
+     */
+    val model: File? = null,
+    /**
+     * The grammatical gate's verdict on this utterance.
+     *
+     * Kept because the gate has to be legible. A turn marked here carries no sound marks, and
+     * that is not an absence of findings: grammar is a door in front of the sound analysis,
+     * and behind a closed door nothing was measured.
+     */
+    val faulty: Boolean = false,
+    /** The folder this take was written to on disk, or null when nothing was kept. */
+    val take: String? = null,
+    /** The utterance this says again, by its place in the run. Null when it says something new. */
+    val repeats: Int? = null,
 )
 
 data class ConversationState(
-    val exchanges: List<Exchange> = emptyList(),
+    /**
+     * Everything said, oldest first. The thread is this run and nothing else carries it.
+     *
+     * A single ordered table rather than a list of exchanges with marks and takes and models
+     * in maps beside it: those maps were four sources keyed by one index, and every one of
+     * them could drift from the others by a single append in the wrong order.
+     */
+    val utterances: List<Utterance> = emptyList(),
     val phase: Phase = Phase.Idle,
     /** The provider's own words when a link gave way. Cleared by the next attempt. */
     val failure: String? = null,
     /** Kept so a failed send is retried without saying the sentence again. */
     val pending: File? = null,
-    /**
-     * Every reading of each learner turn, oldest first, by its position in [exchanges].
-     *
-     * Keyed by index because the list only ever grows, and kept beside [exchanges] rather
-     * than inside them: an [Exchange] is what the language model is told, and marks are no
-     * business of the language model.
-     *
-     * A turn absent from here has not been analysed -- which is not the same as a turn
-     * with nothing to report, and the two must not be drawn alike.
-     *
-     * **A list and not one reading, because saying the sentence again used to overwrite it.**
-     * Each attempt keeps the analysis it was given, so the earlier ones can still be looked
-     * at. Nothing of an earlier one ever enters a later reading: the same fault must produce
-     * the same mark at any moment, and that is a rule about how a take is *read*, not about
-     * what may be remembered afterwards.
-     */
-    val attempts: Map<Int, List<Attempt>> = emptyMap(),
-    /**
-     * The takes written to disk for each turn, oldest first, by their folder name.
-     *
-     * The first names the turn, so every later take can say which turn it repeats. Kept as
-     * the list rather than as a counter: the rank derives from it, and a fact outlives a
-     * status that has to be maintained beside it.
-     */
-    val takes: Map<Int, List<String>> = emptyMap(),
-    /**
-     * The synthesised model of each analysed turn, kept to be heard again.
-     *
-     * One render serves three times, exactly as the doc says: a yardstick for the measure, a
-     * model to hear, and a model to hear again at every retry.
-     */
-    val models: Map<Int, File> = emptyMap(),
     /**
      * Which recording a manual gesture plays: the voice being imitated, or one's own.
      *
@@ -98,16 +106,49 @@ data class ConversationState(
     val speed: Float = 1f,
     /** Whether the marks are on at all, settled once for the conversation. Null until asked. */
     val analysis: Readiness? = null,
+) {
+
     /**
-     * The learner's turns the model judged grammatically wrong, by their position in
-     * [exchanges].
+     * Every reading of the utterance at [at], oldest first: its own, then each one that says
+     * it again, **each with its own place in the run**.
      *
-     * Kept because the gate has to be legible. A turn in here carries no sound marks and
-     * that is not an absence of findings: grammar is a door in front of the sound analysis,
-     * and behind a closed door nothing was measured.
+     * The place travels with the reading because every listening gesture is addressed by it:
+     * a reading whose audio came from one take and whose times came from another plays a
+     * different part of the sentence, and handing back a bare list is how that happened.
+     *
+     * Derived and never stored. It is a walk of the run, and a walk of the run cannot fall
+     * out of step with the run -- which is exactly what a list kept beside it used to do.
+     * Only the readings that carry a marking are here: one that carries none was never read,
+     * and offering it as a numbered attempt would promise something to look at.
      */
-    val faulty: Set<Int> = emptySet(),
-)
+    fun readings(at: Int): List<Pair<Int, Utterance>> =
+        utterances.withIndex()
+            .filter { (index, spoken) ->
+                (index == at || spoken.repeats == at) && spoken.marking != null
+            }
+            .map { (index, spoken) -> index to spoken }
+
+    /**
+     * The model to imitate for the utterance at [at], read through what it repeats.
+     *
+     * A repeat says the same text, so it is the same render; asking the utterance it repeats
+     * is what keeps one file under one text instead of a copy per attempt.
+     */
+    fun modelOf(at: Int): File? = utterances.getOrNull(at)?.let { spoken ->
+        spoken.model ?: spoken.repeats?.let { utterances.getOrNull(it)?.model }
+    }
+
+    /**
+     * The run as the language model should remember it.
+     *
+     * Repeats are left out. Saying a sentence again never reaches the language model -- it is
+     * pipe B alone, on a text already settled -- so putting it in the history would tell the
+     * model a turn was taken that it never answered.
+     */
+    fun history(): List<Exchange> = utterances
+        .filter { it.repeats == null }
+        .map { Exchange(fromLearner = it.speaker == Speaker.Learner, text = it.text) }
+}
 
 /**
  * One turn through the three links: what was heard, what to answer, and the voice answering.
@@ -116,9 +157,9 @@ data class ConversationState(
  * the recorded file stays in [ConversationState.pending] until a run of the chain succeeds,
  * so a failure costs a button and never a spoken sentence.
  *
- * Nothing accumulates between turns beyond the conversation itself. The analysis reads
- * `intended` and the very file this kept, and it runs **after** the answer has been said:
- * the two pipes are independent, and the conversation is never made to wait on the measure.
+ * The analysis reads `intended` and the very file this kept, and it runs **after** the answer
+ * has been said: the two pipes are independent, and the conversation is never made to wait on
+ * the measure.
  */
 class TurnPipeline(
     private val context: Context,
@@ -163,12 +204,17 @@ class TurnPipeline(
             }
 
             _state.value = _state.value.copy(phase = Phase.Thinking)
-            val reply = conversation.reply(_state.value.exchanges, heard)
+            val reply = conversation.reply(_state.value.history(), heard)
 
             _state.value = _state.value.copy(
-                exchanges = _state.value.exchanges +
-                    Exchange(fromLearner = true, text = reply.intended) +
-                    Exchange(fromLearner = false, text = reply.spoken),
+                utterances = _state.value.utterances +
+                    Utterance(
+                        speaker = Speaker.Learner,
+                        text = reply.intended,
+                        said = turn,
+                        faulty = reply.faulty,
+                    ) +
+                    Utterance(speaker = Speaker.Ai, text = reply.spoken),
                 phase = Phase.Speaking,
                 pending = null,
             )
@@ -181,17 +227,16 @@ class TurnPipeline(
             Trace.add("turn: said, and done")
 
             // The learner's turn sits two before the end: it was appended with the answer.
-            val at = _state.value.exchanges.size - 2
+            val at = _state.value.utterances.size - 2
             if (reply.faulty) {
                 // The gate: grammar is a door in front of the sound analysis. One does not
                 // work the pronunciation of a sentence about to be rewritten, so on a
                 // faulty turn the analysis is not hidden -- it is not computed.
-                _state.value = _state.value.copy(faulty = _state.value.faulty + at)
                 Trace.add("turn: grammar closes the gate, no sound analysis", "said" to reply.intended)
                 // Kept even so, and especially so: a turn the gate held back is a real
                 // learner fault the recognition could not have guessed, which is what the
                 // fidelity bench is short of.
-                kept(at, Takes.keep(context, turn, null, heard, reply.intended, true, null,
+                keep(at, Takes.keep(context, turn, null, heard, reply.intended, true, null,
                                     turn = turnOf(at), attempt = attemptOf(at)))
             } else {
                 examine(at = at, said = turn, heard = heard, text = reply.intended)
@@ -212,31 +257,22 @@ class TurnPipeline(
      * The model is synthesised from `intended` in the very voice that just answered, which
      * is the default the doc sets: the model to imitate is the voice already being heard,
      * and the accent setting governs both because there is no third thing to align.
-     *
-     * **The grammatical gate is not here yet, and its absence shows.** The doc is explicit
-     * that on a turn marked as faulty the sound analysis does not run at all -- not hidden,
-     * not computed -- because the sentence is about to be rewritten. Nothing carries the
-     * verdict yet (`../../../../../../TODO.md`), so this analyses every turn, and marks will
-     * appear on turns the gate will later hold back.
      */
     private suspend fun examine(at: Int, said: File, heard: List<Word>, text: String) {
         val readiness = _state.value.analysis
             ?: analysis.readiness().also { _state.value = _state.value.copy(analysis = it) }
         if (readiness !is Readiness.On) {
-            kept(at, Takes.keep(context, said, null, heard, text, false, null,
+            keep(at, Takes.keep(context, said, null, heard, text, false, null,
                                 turn = turnOf(at), attempt = attemptOf(at)))
             return
         }
         try {
             val model = synthesis.speak(text, synthesis.voice())
             val analysed = analysis.examine(said, model, text)
-            _state.value = _state.value.copy(
-                attempts = _state.value.attempts +
-                    (at to _state.value.attempts[at].orEmpty() +
-                        Attempt(analysed.marking, analysed.sounds, said)),
-                models = _state.value.models + (at to model),
-            )
-            kept(at, Takes.keep(context, said, model, heard, text, false, analysed,
+            update(at) {
+                it.copy(marking = analysed.marking, sounds = analysed.sounds, model = model)
+            }
+            keep(at, Takes.keep(context, said, model, heard, text, false, analysed,
                                 turn = turnOf(at), attempt = attemptOf(at)))
         } catch (failure: ChainFailure) {
             // The model has to be synthesised, so this branch depends on the network the
@@ -247,28 +283,28 @@ class TurnPipeline(
     }
 
     /**
-     * Say the model of the turn at [at] again.
+     * Say the model of the utterance at [at] again.
      *
      * The remedy for a sound fault is to hear the model and say it again, not to be given a
      * written instruction about the tongue (`docs/reference.md`). This is the hearing half.
      */
-    suspend fun hear(at: Int, said: File) {
-        val wav = chosen(at, said) ?: return
+    suspend fun hear(at: Int) {
+        val wav = chosen(at) ?: return
         _state.value = _state.value.copy(phase = Phase.Speaking)
         Playback.play(wav, _state.value.speed)
         _state.value = _state.value.copy(phase = Phase.Idle)
     }
 
     /**
-     * The recording the selector points at: the turn's model, or the take being looked at.
+     * The recording the selector points at, for the utterance at [at]: its model, or itself.
      *
-     * [said] is handed in rather than looked up, because which take is on screen is the
-     * screen's own state -- a turn holds several and an earlier one stays reachable. Looking
-     * it up here is what let the audio and the times come from two different takes.
+     * [at] is the reading being looked at and not the turn it belongs to, which is what keeps
+     * the audio and the times on the same take: a turn holds several readings, and reading
+     * one recording's clock onto another's audio played a different part of the sentence.
      */
-    private fun chosen(at: Int, said: File): File? = when (_state.value.side) {
-        Side.Model -> _state.value.models[at]
-        Side.Learner -> said
+    private fun chosen(at: Int): File? = when (_state.value.side) {
+        Side.Model -> _state.value.modelOf(at)
+        Side.Learner -> _state.value.utterances.getOrNull(at)?.said
     }
 
     fun side(side: Side) { _state.value = _state.value.copy(side = side) }
@@ -276,24 +312,24 @@ class TurnPipeline(
     fun speed(speed: Float) { _state.value = _state.value.copy(speed = speed) }
 
     /**
-     * One stretch of the turn at [at], on whichever side the selector points at.
+     * One stretch of the utterance at [at], on whichever side the selector points at.
      *
      * Used by a tap on a word: the word's bounds in each recording are read off the sounds
      * it covers, so nothing new is computed and the two sides stay in step by construction.
      */
-    suspend fun hear(at: Int, said: File, fromMs: Int, toMs: Int) {
-        val wav = chosen(at, said) ?: return
+    suspend fun hear(at: Int, fromMs: Int, toMs: Int) {
+        val wav = chosen(at) ?: return
         Playback.play(wav, fromMs, toMs, _state.value.speed, Playback.WORD_MARGIN_MS)
     }
 
     /**
-     * Say one sound of the model of the turn at [at] -- the same remedy, one notch finer.
+     * Say one sound of the utterance at [at] -- the same remedy, one notch finer.
      *
-     * The doc calls the isolated sound as a level of listening open rather than settled: the
-     * objection to it was about **production**, a sound got right alone still being got wrong
-     * in the word, and it does not carry over to listening, which asks nothing of the mouth.
-     * This is that level, and it costs nothing to offer -- the model is synthesised anyway
-     * and the analysis already says where in it each sound sits.
+     * The doc calls the isolated sound a level of listening: the objection to it was about
+     * **production**, a sound got right alone still being got wrong in the word, and it does
+     * not carry over to listening, which asks nothing of the mouth. It costs nothing to offer
+     * -- the model is synthesised anyway and the analysis already says where in it each sound
+     * sits.
      *
      * It is the model's own voice and not a specimen from elsewhere, which is what keeps it
      * inside the rule that nothing outside the two recordings is ever consulted. It says
@@ -303,59 +339,84 @@ class TurnPipeline(
      * waits for it; a tap on a symbol is a fraction of a second, and freezing the screen for
      * it would be a worse lie than the wait it prevents.
      */
-    suspend fun hear(at: Int, said: File, sound: AnalysedSound, side: Side) {
-        val wav = (if (side == Side.Model) _state.value.models[at] else said) ?: return
+    suspend fun hear(at: Int, sound: AnalysedSound, side: Side) {
+        val wav = (if (side == Side.Model) _state.value.modelOf(at)
+                   else _state.value.utterances.getOrNull(at)?.said) ?: return
         val span = if (side == Side.Model) sound.modelMs else sound.saidMs
         Playback.play(wav, span.first, span.last, _state.value.speed)
     }
 
     /**
-     * Measure [audio] against the turn at [at] again -- the saying-again half.
+     * Measure [audio] against the utterance at [at] again -- the saying-again half.
      *
      * **It does not go through the conversation.** No recognition, no language model, no
      * reply: this is pipe B alone, on a sentence whose text is already settled. That is what
      * makes it cheap and what makes it honest -- the new take is scored against a reference
      * text known in advance, which is the one thing free conversation cannot offer.
      *
-     * The new reading is **added** to the turn's attempts, never merged into the last one.
-     * Nothing of an earlier reading enters this one -- the same fault must produce the same
-     * mark at any moment, so a second take is read exactly like a first -- but the earlier
-     * reading is kept beside it rather than overwritten. The rule is about how a take is
-     * read; it never said the reading had to be thrown away afterwards.
+     * It **appends an utterance** pointing at the one it repeats, rather than adding to a
+     * list held beside the turn. Nothing of the earlier reading enters this one -- the same
+     * fault must produce the same mark at any moment, so a second take is read exactly like a
+     * first -- and the earlier reading stays where it was rather than being overwritten.
      */
     suspend fun redo(at: Int, audio: File) {
-        val model = _state.value.models[at] ?: return
-        val text = _state.value.exchanges.getOrNull(at)?.text ?: return
+        val spoken = _state.value.utterances.getOrNull(at) ?: return
+        val model = _state.value.modelOf(at) ?: return
         // Its own clock: this is pipe B alone, and timing it from the conversation turn it
         // repeats would add every second of that turn to a chain that never ran here.
         Trace.turn("— redo —")
-        Trace.add("redo: same sentence, same model", "text" to text)
+        Trace.add("redo: same sentence, same model", "text" to spoken.text)
         try {
-            val analysed = analysis.examine(audio, model, text)
+            val analysed = analysis.examine(audio, model, spoken.text)
+            val stamp = Takes.keep(context, audio, model, emptyList(), spoken.text, false,
+                                   analysed, redo = true,
+                                   turn = turnOf(at), attempt = attemptOf(at))
             _state.value = _state.value.copy(
-                attempts = _state.value.attempts +
-                    (at to _state.value.attempts[at].orEmpty() +
-                        Attempt(analysed.marking, analysed.sounds, audio)),
+                utterances = _state.value.utterances + Utterance(
+                    speaker = Speaker.Learner,
+                    text = spoken.text,
+                    said = audio,
+                    marking = analysed.marking,
+                    sounds = analysed.sounds,
+                    take = stamp,
+                    repeats = at,
+                ),
             )
-            kept(at, Takes.keep(context, audio, model, emptyList(), text, false, analysed,
-                                redo = true, turn = turnOf(at), attempt = attemptOf(at)))
         } catch (failure: ChainFailure) {
             Trace.fail("redo: could not be measured", "why" to failure.message)
         }
     }
 
-    /** The turn's name on disk: its first take, or null while it has none. */
-    private fun turnOf(at: Int): String? = _state.value.takes[at]?.firstOrNull()
-
-    /** Which take of this turn is about to be written, the first being 1. */
-    private fun attemptOf(at: Int): Int = (_state.value.takes[at]?.size ?: 0) + 1
-
-    /** Remember a take that was written, so the next one can name the turn and its rank. */
-    private fun kept(at: Int, stamp: String?) {
-        if (stamp == null) return
+    /** Replace the utterance at [at] with what [change] makes of it. */
+    private fun update(at: Int, change: (Utterance) -> Utterance) {
+        val run = _state.value.utterances
+        if (at !in run.indices) return
         _state.value = _state.value.copy(
-            takes = _state.value.takes + (at to _state.value.takes[at].orEmpty() + stamp),
+            utterances = run.mapIndexed { index, spoken ->
+                if (index == at) change(spoken) else spoken
+            },
         )
     }
 
+    /**
+     * The turn's name on disk: the take of the utterance the run starts from.
+     *
+     * A turn is named by its first take, so every later take can say which turn it repeats.
+     * Null while that first take has not been written.
+     */
+    private fun turnOf(at: Int): String? = _state.value.utterances.getOrNull(at)?.take
+
+    /** Which take of this turn is about to be written, the first being 1. */
+    private fun attemptOf(at: Int): Int {
+        val run = _state.value.utterances
+        val written = (listOfNotNull(run.getOrNull(at)) + run.filter { it.repeats == at })
+            .count { it.take != null }
+        return written + 1
+    }
+
+    /** Remember a take that was written, so the next one can name the turn and its rank. */
+    private fun keep(at: Int, stamp: String?) {
+        if (stamp == null) return
+        update(at) { it.copy(take = stamp) }
+    }
 }
