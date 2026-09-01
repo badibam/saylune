@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -9,6 +10,10 @@ android {
     // Pinned rather than left to the AGP default: the F-Droid build server must
     // resolve the same toolchain we did, or the APKs cannot be compared.
     buildToolsVersion = "37.0.0"
+
+    // The schema, versioned, so a change to it is visible in a diff rather than only in
+    // the generated code -- and so a migration has the two shapes it has to bridge.
+    ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
     defaultConfig {
         applicationId = "app.speakup"
@@ -62,6 +67,14 @@ dependencies {
     // SharedPreferences is what the android wisdom prescribes for light
     // preferences; the cipher key itself lives in the Keystore, not here.
     implementation("androidx.datastore:datastore-preferences:1.1.7")
+
+    // What was said, kept. The android wisdom prescribes Room, and the design asks for
+    // things a store answers rather than a file: what an activity holds, in what order,
+    // how many -- counts and orders being exactly what is recomputed rather than stored.
+    // The audio stays in files beside it; only its path is a column.
+    implementation("androidx.room:room-runtime:2.8.4")
+    implementation("androidx.room:room-ktx:2.8.4")
+    ksp("androidx.room:room-compiler:2.8.4")
 
     testImplementation("junit:junit:4.13.2")
     // Android ships org.json as a stub that throws in unit tests. The real one, on the

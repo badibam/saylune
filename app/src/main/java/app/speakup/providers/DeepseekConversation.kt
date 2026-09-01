@@ -28,7 +28,7 @@ class DeepseekConversation(
     private val model: String,
 ) : Conversation {
 
-    override suspend fun reply(history: List<Exchange>, heard: List<Word>): Reply =
+    override suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply =
         withContext(Dispatchers.IO) {
             val values = store.values().first()
             val key = values[Secret.DeepseekApiKey]
@@ -38,13 +38,13 @@ class DeepseekConversation(
             val transcript = heard.joinToString(" ") { it.text }
             Trace.add(
                 "conversation: asking deepseek/$model",
-                "system prompt" to ConversationPrompt.SYSTEM,
+                "system prompt" to ConversationPrompt.system(titled),
                 "turns of history" to history.size.toString(),
                 "transcript" to transcript,
             )
 
             val messages = JSONArray().apply {
-                put(ConversationPrompt.message("system", ConversationPrompt.SYSTEM))
+                put(ConversationPrompt.message("system", ConversationPrompt.system(titled)))
                 history.forEachIndexed { at, exchange ->
                     if (exchange.fromLearner) put(ConversationPrompt.message("user", exchange.text))
                     else put(ConversationPrompt.message("assistant", ConversationPrompt.answered(history, at)))
@@ -96,6 +96,9 @@ class DeepseekConversation(
                 throw ChainFailure("DeepSeek left out the grammatical verdict")
             }
             val faulty = parsed.getBoolean("faulty")
+            // Absent is the ordinary answer and means "keep the name it has". Blank is
+            // treated the same: a model that sends an empty title has not named anything.
+            val title = parsed.optString("title").trim().ifBlank { null }
             Trace.add(
                 "conversation: answered",
                 "spoken" to spoken,
@@ -103,8 +106,9 @@ class DeepseekConversation(
                 "grammatically faulty" to faulty.toString(),
                 "intended fell back to the transcript" to
                     if (parsed.optString("intended").isBlank()) "yes" else null,
+                "renamed the conversation" to title,
             )
-            Reply(spoken = spoken, intended = intended, faulty = faulty)
+            Reply(spoken = spoken, intended = intended, faulty = faulty, title = title)
         }
 
 

@@ -52,6 +52,10 @@
     <string name="turn_retry">Try again</string>
     <string name="turn_failed">The chain gave way: %1$s. Your turn is kept — nothing to say again.</string>
     <string name="conversation_empty">Hold the button and say something.</string>
+    <string name="conversations_open">Conversations</string>
+    <string name="conversations_new">New conversation</string>
+    <string name="conversations_none">No conversation yet.</string>
+    <string name="conversation_unnamed">Untitled</string>
     <string name="speaker_learner">You</string>
     <string name="speaker_ai">Speakup</string>
     <string name="debug_steps">Debug — %1$d step(s)</string>

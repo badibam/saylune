@@ -16,8 +16,11 @@ interface Conversation {
     /**
      * Answer [heard] in the context of [history]. Throws [ChainFailure]; the caller retries
      * from the kept audio file rather than asking for the sentence again.
+     *
+     * [titled] is what the conversation is called so far, or null while it is unnamed. It is
+     * sent every turn and comes back only sometimes -- see [Reply.title].
      */
-    suspend fun reply(history: List<Exchange>, heard: List<Word>): Reply
+    suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply
 }
 
 /** One past turn, as the model should remember it. */
@@ -48,4 +51,14 @@ data class Reply(
     val spoken: String,
     val intended: String,
     val faulty: Boolean,
+    /**
+     * A new name for the conversation, or **null to leave the one it has**.
+     *
+     * Null is the ordinary answer and the field is ordinarily absent. The model is given the
+     * current title every turn and asked to send one back only when there is a reason -- the
+     * conversation has none yet, or what is being talked about has drifted far enough that
+     * the old name no longer describes it. A title rewritten every turn is a title nobody can
+     * recognise in a list, which is the one thing it exists for.
+     */
+    val title: String? = null,
 )

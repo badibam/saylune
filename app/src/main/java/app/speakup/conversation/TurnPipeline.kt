@@ -14,10 +14,15 @@ import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
+import app.speakup.store.ArchiveDao
+import app.speakup.store.activity
+import app.speakup.store.row
+import app.speakup.store.utterance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
+import java.util.UUID
 
 /** Where a turn has got to. The screen shows it; nothing else depends on it. */
 enum class Phase { Idle, Hearing, Thinking, Speaking }
@@ -79,8 +84,25 @@ data class Utterance(
     val faulty: Boolean = false,
     /** The folder this take was written to on disk, or null when nothing was kept. */
     val take: String? = null,
-    /** The utterance this says again, by its place in the run. Null when it says something new. */
-    val repeats: Int? = null,
+    /**
+     * The utterance this says again, **by its identity**. Null when it says something new.
+     *
+     * Its identity and not its place in the run: a place is only true for as long as nothing
+     * is inserted before it, and it stops being true the moment the run is written down and
+     * read back. An identity survives both.
+     */
+    val repeats: String? = null,
+    val id: String = UUID.randomUUID().toString(),
+    /** When it was said. Its order in the run is the run's; this is the wall clock. */
+    val at: Long = System.currentTimeMillis(),
+    /**
+     * The engine that produced [marking], or null when nothing read this.
+     *
+     * Everything stored carries the version of what produced it: a reading redone with
+     * different weights does not give the same numbers, and two eras of measurement that add
+     * up in silence make a comparison that is wrong with nothing to say so.
+     */
+    val engine: String? = null,
 )
 
 data class ConversationState(
@@ -131,12 +153,14 @@ data class ConversationState(
      * Only the readings that carry a marking are here: one that carries none was never read,
      * and offering it as a numbered attempt would promise something to look at.
      */
-    fun readings(at: Int): List<Pair<Int, Utterance>> =
-        utterances.withIndex()
+    fun readings(at: Int): List<Pair<Int, Utterance>> {
+        val root = utterances.getOrNull(at) ?: return emptyList()
+        return utterances.withIndex()
             .filter { (index, spoken) ->
-                (index == at || spoken.repeats == at) && spoken.marking != null
+                (index == at || spoken.repeats == root.id) && spoken.marking != null
             }
             .map { (index, spoken) -> index to spoken }
+    }
 
     /**
      * The model to imitate for the utterance at [at], read through what it repeats.
@@ -145,7 +169,7 @@ data class ConversationState(
      * is what keeps one file under one text instead of a copy per attempt.
      */
     fun modelOf(at: Int): File? = utterances.getOrNull(at)?.let { spoken ->
-        spoken.model ?: spoken.repeats?.let { utterances.getOrNull(it)?.model }
+        spoken.model ?: spoken.repeats?.let { id -> utterances.firstOrNull { it.id == id }?.model }
     }
 
     /**
@@ -177,22 +201,84 @@ class TurnPipeline(
     private val conversation: Conversation,
     private val synthesis: ChosenSynthesis,
     private val analysis: Analysis,
+    private val archive: ArchiveDao,
 ) {
     private val _state = MutableStateFlow(ConversationState())
     val state: StateFlow<ConversationState> = _state.asStateFlow()
 
     /**
-     * Settle whether the marks are on, once, before the first turn.
+     * Pick the conversation back up, and settle whether the marks are on -- once, before the
+     * first turn.
      *
-     * At the start of the conversation and not on the first turn: the doc settles this once
-     * for the conversation, and an app that only discovers it has no engine after someone
-     * has spoken has told them too late.
+     * **Carrying on is continuing an activity that did not finish**, and for the conversation
+     * that is a policy on its status rather than a structure of its own: an unfinished one is
+     * reopened as it stands, utterances and all. A fresh one is only started when there is
+     * none to carry on.
+     *
+     * Readiness is asked every time and never read back from the store. It is a fact about
+     * the device and not about the conversation -- the weights can have gone since -- and
+     * asking it here rather than on the first turn is what keeps an app from discovering it
+     * has no engine after somebody has already spoken.
      */
     suspend fun prepare() {
+        if (!opened) {
+            opened = true
+            archive.latest()?.let { open(it.activity().id) } ?: begin()
+        }
         if (_state.value.analysis == null) {
             _state.value = _state.value.copy(analysis = analysis.readiness())
         }
     }
+
+    /** So a second call does not open a second conversation while the first is loading. */
+    private var opened = false
+
+    /**
+     * Open the conversation [id], utterances and all.
+     *
+     * Nothing has to have been closed for this: an activity that did not finish is one to
+     * carry on with, and every conversation but the one being had is in that state.
+     */
+    suspend fun open(id: String) {
+        val row = archive.activity(id) ?: return
+        val activity = row.activity()
+        opened = true
+        _state.value = _state.value.copy(
+            activity = activity,
+            utterances = archive.utterances(activity.id).map { it.utterance() },
+            // The run is another conversation's now, so anything that pointed into the old
+            // one has to go: a retry of a recording from the conversation just left would
+            // send it into this one.
+            pending = null,
+            failure = null,
+        )
+        Trace.add("conversation: opened", "activity" to activity.id,
+                  "titled" to activity.matter.ifBlank { null },
+                  "utterances" to _state.value.utterances.size.toString())
+    }
+
+    /**
+     * Start a fresh conversation.
+     *
+     * The one being left is not marked finished. Nothing prevents starting another, and
+     * calling the old one finished would be the app deciding it is over on no evidence -- it
+     * stays there to be carried on with.
+     */
+    suspend fun begin() {
+        val fresh = Activity.conversation()
+        opened = true
+        archive.put(fresh.row())
+        _state.value = _state.value.copy(
+            activity = fresh,
+            utterances = emptyList(),
+            pending = null,
+            failure = null,
+        )
+        Trace.add("conversation: begun", "activity" to fresh.id)
+    }
+
+    /** Every conversation, most recent first, for the list to draw. */
+    fun conversations() = archive.conversations()
 
     /** Run [audio] through the chain, or run again what a previous failure left pending. */
     suspend fun submit(audio: File? = null) {
@@ -214,7 +300,9 @@ class TurnPipeline(
             }
 
             _state.value = _state.value.copy(phase = Phase.Thinking)
-            val reply = conversation.reply(_state.value.history(), heard)
+            val reply = conversation.reply(
+                _state.value.history(), heard, titled = _state.value.activity.matter.ifBlank { null },
+            )
 
             _state.value = _state.value.copy(
                 utterances = _state.value.utterances +
@@ -234,12 +322,19 @@ class TurnPipeline(
                 pending = null,
             )
 
+            write(_state.value.utterances.size - 2)
+            write(_state.value.utterances.size - 1)
+
             Playback.play(synthesis.speak(reply.spoken, synthesis.voice())) {
                 // The number the doc puts on the chain, and the only one the learner feels.
                 Trace.add("turn: first sound")
             }
             _state.value = _state.value.copy(phase = Phase.Idle)
             Trace.add("turn: said, and done")
+
+            // A new name arrives only when there is a reason for one; any other turn leaves
+            // the conversation called what it was called.
+            reply.title?.let { name(it) }
 
             // The learner's turn sits two before the end: it was appended with the answer.
             val at = _state.value.utterances.size - 2
@@ -285,8 +380,10 @@ class TurnPipeline(
             val model = synthesis.speak(text, synthesis.voice())
             val analysed = analysis.examine(said, model, text)
             update(at) {
-                it.copy(marking = analysed.marking, sounds = analysed.sounds, model = model)
+                it.copy(marking = analysed.marking, sounds = analysed.sounds, model = model,
+                        engine = readiness.version)
             }
+            write(at)
             keep(at, Takes.keep(context, said, model, heard, text, false, analysed,
                                 turn = turnOf(at), attempt = attemptOf(at)))
         } catch (failure: ChainFailure) {
@@ -395,11 +492,44 @@ class TurnPipeline(
                     marking = analysed.marking,
                     sounds = analysed.sounds,
                     take = stamp,
-                    repeats = at,
+                    engine = (_state.value.analysis as? Readiness.On)?.version,
+                    repeats = spoken.id,
                 ),
             )
+            write(_state.value.utterances.size - 1)
         } catch (failure: ChainFailure) {
             Trace.fail("redo: could not be measured", "why" to failure.message)
+        }
+    }
+
+    /**
+     * Call the conversation [title], and keep it called that.
+     *
+     * The title is the activity's **matter**, not a field of its own: the design says the
+     * matter of a conversation is what is being talked about, which is exactly what a title
+     * says in a few words. Two fields for one idea would be two things to keep in step.
+     */
+    private suspend fun name(title: String) {
+        val named = _state.value.activity.copy(matter = title)
+        _state.value = _state.value.copy(activity = named)
+        runCatching { archive.update(named.row()) }.onFailure {
+            Trace.fail("archive: the new title was not kept", "why" to it.message)
+        }
+    }
+
+    /**
+     * Put the utterance at [at] in the store, as it now stands.
+     *
+     * Called again whenever it changes rather than only once, because it changes after it
+     * appears: a turn is said before it is read, and its marks arrive a few seconds later.
+     * The row is replaced, so writing twice costs a write and never a duplicate.
+     */
+    private suspend fun write(at: Int) {
+        val spoken = _state.value.utterances.getOrNull(at) ?: return
+        runCatching { archive.put(spoken.row(at)) }.onFailure {
+            // Keeping the trace is not the turn. A store that will not write must not cost
+            // the learner the conversation -- but it says so rather than passing for kept.
+            Trace.fail("archive: not written", "why" to it.message)
         }
     }
 
@@ -425,14 +555,16 @@ class TurnPipeline(
     /** Which take of this turn is about to be written, the first being 1. */
     private fun attemptOf(at: Int): Int {
         val run = _state.value.utterances
-        val written = (listOfNotNull(run.getOrNull(at)) + run.filter { it.repeats == at })
+        val root = run.getOrNull(at) ?: return 1
+        val written = (listOf(root) + run.filter { it.repeats == root.id })
             .count { it.take != null }
         return written + 1
     }
 
     /** Remember a take that was written, so the next one can name the turn and its rank. */
-    private fun keep(at: Int, stamp: String?) {
+    private suspend fun keep(at: Int, stamp: String?) {
         if (stamp == null) return
         update(at) { it.copy(take = stamp) }
+        write(at)
     }
 }

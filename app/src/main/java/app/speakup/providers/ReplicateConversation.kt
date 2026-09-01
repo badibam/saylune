@@ -30,7 +30,7 @@ internal class ReplicateConversation(
     private val model: String,
 ) : Conversation {
 
-    override suspend fun reply(history: List<Exchange>, heard: List<Word>): Reply {
+    override suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply {
         val transcript = heard.joinToString(" ") { it.text }
         Trace.add(
             "conversation: asking replicate/$model",
@@ -48,7 +48,7 @@ internal class ReplicateConversation(
         }
 
         val input = JSONObject()
-            .put("system_prompt", ConversationPrompt.SYSTEM + ConversationPrompt.JSON_ONLY)
+            .put("system_prompt", ConversationPrompt.system(titled) + ConversationPrompt.JSON_ONLY)
             .put("messages", messages)
             // The whole point of this route. The task is judgement against a written
             // instruction, not a problem to work through, and the measurements say the
@@ -85,13 +85,17 @@ internal class ReplicateConversation(
             throw ChainFailure("$model left out the grammatical verdict")
         }
         val faulty = parsed.getBoolean("faulty")
+        // Absent is the ordinary answer and means "keep the name it has". Blank is treated
+        // the same: a model that sends an empty title has not named anything.
+        val title = parsed.optString("title").trim().ifBlank { null }
         Trace.add(
             "conversation: answered",
             "spoken" to spoken,
             "intended" to intended,
             "grammatically faulty" to faulty.toString(),
+            "renamed the conversation" to title,
         )
-        return Reply(spoken = spoken, intended = intended, faulty = faulty)
+        return Reply(spoken = spoken, intended = intended, faulty = faulty, title = title)
     }
 
     /** Replicate hands text back in pieces as it is produced, or whole. Both are answers. */

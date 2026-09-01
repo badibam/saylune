@@ -95,7 +95,7 @@ data class Analysed(
     /**
      * What was found, sound by sound -- of which [marking] is the *drawn* view.
      *
-     Not a debug extra. Saying a sentence again needs exactly this to make the model and
+     * Not a debug extra. Saying a sentence again needs exactly this to make the model and
      * the learner's own take heard at the same place, which the doc says falls out of the same
      * calculation; and a spread is the only way to see what a gap is made of, since two
      * spreads can share a peak and mean different things.

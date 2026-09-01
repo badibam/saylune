@@ -42,10 +42,10 @@ class ChosenRecognition(private val store: SecretStore) : Recognition {
 
 class ChosenConversation(private val store: SecretStore) : Conversation {
 
-    override suspend fun reply(history: List<Exchange>, heard: List<Word>): Reply {
+    override suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply {
         val values = store.values().first()
         val (provider, model) = pick(Task.Conversation, values)
-        return conversationBy(store, provider, model).reply(history, heard)
+        return conversationBy(store, provider, model).reply(history, heard, titled)
     }
 }
 

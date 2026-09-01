@@ -29,7 +29,9 @@ import app.speakup.providers.ChosenConversation
 import app.speakup.providers.ChosenRecognition
 import app.speakup.providers.ChosenSynthesis
 import app.speakup.keys.SecretStore
+import app.speakup.store.Archive
 import app.speakup.ui.ConversationScreen
+import app.speakup.ui.ConversationsScreen
 import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.SettingsScreen
 
@@ -46,6 +48,7 @@ class MainActivity : ComponentActivity() {
             conversation = ChosenConversation(store),
             synthesis = ChosenSynthesis(applicationContext, store),
             analysis = Analyses.onDevice(applicationContext),
+            archive = Archive.of(applicationContext).dao(),
         )
         setContent {
             MaterialTheme {
@@ -58,21 +61,24 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Two screens and a switch between them.
+ * Four screens and a switch between them.
  *
- * No navigation library: the `android` wisdom holds one off below three screens, and the
- * conversation screen that will make a third is not written yet. The switch is saveable, so
- * a rotation does not throw the user back out of the settings -- which is also why no
- * orientation lock is declared.
+ * Still no navigation library: the `android` wisdom holds one off below three screens, and
+ * what is here is one switch with four positions rather than a graph -- every screen is
+ * reached from the same row of buttons and none of them leads to another. A library would
+ * buy a back stack nothing has. The switch is saveable, so a rotation does not throw the
+ * user back out of the settings -- which is also why no orientation lock is declared.
  */
 @Composable
 private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipeline) {
     var showingSettings by rememberSaveable { mutableStateOf(false) }
     var showingMarks by rememberSaveable { mutableStateOf(false) }
+    var showingConversations by rememberSaveable { mutableStateOf(false) }
 
-    BackHandler(enabled = showingSettings || showingMarks) {
+    BackHandler(enabled = showingSettings || showingMarks || showingConversations) {
         showingSettings = false
         showingMarks = false
+        showingConversations = false
     }
 
     // Without this the top row sits under the status bar and its buttons pull the
@@ -82,7 +88,23 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
-            TextButton(onClick = { showingMarks = !showingMarks; showingSettings = false }) {
+            TextButton(onClick = {
+                showingConversations = !showingConversations
+                showingSettings = false
+                showingMarks = false
+            }) {
+                Text(
+                    stringResource(
+                        if (showingConversations) R.string.conversation_open
+                        else R.string.conversations_open
+                    )
+                )
+            }
+            TextButton(onClick = {
+                showingMarks = !showingMarks
+                showingSettings = false
+                showingConversations = false
+            }) {
                 Text(
                     stringResource(
                         if (showingMarks) R.string.conversation_open else R.string.measured_marks
@@ -100,6 +122,14 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
         Box(modifier = Modifier.weight(1f)) {
             if (showingSettings) {
                 SettingsScreen(store, modifier = Modifier.fillMaxSize())
+            } else if (showingConversations) {
+                ConversationsScreen(
+                    pipeline,
+                    // Opening one puts the learner in it. Staying on the list after choosing
+                    // would make the choice look like it had not registered.
+                    onOpened = { showingConversations = false },
+                    modifier = Modifier.fillMaxSize(),
+                )
             } else if (showingMarks) {
                 MarkingPrototypeScreen()
             } else {

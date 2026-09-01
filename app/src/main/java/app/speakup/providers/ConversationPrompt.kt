@@ -13,6 +13,18 @@ import org.json.JSONObject
  */
 internal object ConversationPrompt {
 
+    /**
+     * The instruction, with what the conversation is called so far written into it.
+     *
+     * The title goes in the system message rather than into the replayed history, so the
+     * model sees the one name in force and not the succession of names it has proposed.
+     * Shown a succession, it renames to keep the pattern going.
+     */
+    fun system(titled: String?): String = SYSTEM + "\n\n" + when {
+        titled.isNullOrBlank() -> "This conversation has no title yet."
+        else -> "This conversation is currently titled: " + titled
+    }
+
     val SYSTEM = """
         You are a warm, curious English conversation partner for someone practising
         speaking. Talk with them; never run a lesson and never interrupt.
@@ -24,7 +36,8 @@ internal object ConversationPrompt {
         You receive their turn as a raw transcript: lower case, no punctuation, and
         possibly a word the recogniser misheard.
 
-        Answer with a JSON object holding exactly three fields.
+        Answer with a JSON object holding these three fields, and a fourth only when
+        the last paragraph below says so.
 
         "spoken": your reply, in English, as it should be said aloud.
 
@@ -46,6 +59,13 @@ internal object ConversationPrompt {
         three-word answer or a hesitation is not a fault. This decides whether the app
         works on their pronunciation for this turn, so a false alarm costs them the
         exercise.
+
+        You may add a fourth field, "title": a short name for this conversation, in
+        English, six words at most, with no full stop at the end. Send it only when there
+        is a reason to -- the conversation has no title yet, or what you have been
+        talking about has moved far enough that the current title no longer describes it.
+        On any other turn leave the field out entirely. A title rewritten every turn is a
+        title nobody can recognise in a list, which is the only thing it is for.
     """.trimIndent()
 
     /**
@@ -63,7 +83,9 @@ internal object ConversationPrompt {
      *
      * `faulty` is left out of the replay: it was a verdict on the learner's turn, not part
      * of the answer, and putting it back would invite the model to keep re-judging a turn
-     * that is already behind.
+     * that is already behind. `title` is left out for the neighbouring reason: the name in
+     * force is in the system message, and a history of past names is an invitation to add
+     * one more.
      *
      * Measured on the device: replaying these as bare prose makes the third turn come back
      * as twenty spaces with `finish_reason: stop`. The conversation then shows the model its

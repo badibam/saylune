@@ -149,6 +149,9 @@ internal object LatencyTest {
                 Task.Conversation -> conversationBy(store, provider, model).reply(
                     emptyList(),
                     text.trim('.').split(' ').map { Word(it.lowercase()) },
+                    // Unnamed, as a first turn is. The bench times one call and holds
+                    // nothing between them, so there is no conversation here to name.
+                    titled = null,
                 )
                 Task.Synthesis -> {
                     val speaking = voice ?: error("no voice was listed for $model")
