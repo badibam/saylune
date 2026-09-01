@@ -11,7 +11,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
-- `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : les prescripteurs, les cinq aptitudes, les réglages, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
+- `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : les prescripteurs, la pression et ses leviers, les modes, l'enjeu, les réglages, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
 - `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
@@ -58,14 +58,16 @@ Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir
 - **Fluidité** — trouver ses mots assez vite, enchaîner, ne pas s'arrêter au milieu.
 - **Richesse** — le mot précis, le registre, la nuance. La seule dont l'échec est invisible : rien ne signale qu'on vient de dire une version pauvre de son idée.
 
-Les réglages se posent **par aptitude** et sont **fixés pour toute la durée** de la conversation (leur forme reste à écrire, `design/activity-model.md`). Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui les tisse toutes dans une seule conversation.
+Les réglages se posent **par aptitude** et sont **fixés pour toute la durée** de la conversation. Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui les tisse toutes dans une seule conversation.
 
 Deux réglages ont déjà leur mécanisme écrit dans ce doc, et ce sont les deux seuls :
 
 - **Formulation** — la sévérité, en trois crans : ne rien marquer / marquer les fautes / marquer aussi les tournures correctes mais maladroites. Pas un pourcentage : une phrase est fautive ou ne l'est pas. C'est ce cran que lit « La porte grammaticale ».
 - **Élocution** — le seuil du marquage sonore, dont « Marquer par écart au modèle » dit la forme : une exigence, jamais un quota. Le poser bas, c'est déclarer qu'on travaille cet aspect-là aujourd'hui.
 
-Les trois autres n'ont aucun mécanisme écrit, et la **pression**, qui les traverse toutes, est entièrement à définir (`design/activity-model.md`).
+Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur des **leviers**, qui sont les vrais paramètres. Ce que chaque aptitude fait mesurer et par quels leviers elle se presse est écrit dans `design/activity-model.md`, avec qui a le droit d'en décider — l'apprenant, le module, l'IA — et ce que chacun ne décide jamais.
+
+**Monter un curseur retire une aide, ou durcit un jugement**, et les deux n'ont pas le même plafond : retirer une aide converge vers le réel, durcir un jugement le dépasse. Les effets se cumulent d'une aptitude à l'autre, et c'est voulu — une note ne se lit jamais sans la combinaison qui l'a produite.
 
 ## La porte grammaticale
 
