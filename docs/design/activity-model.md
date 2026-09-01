@@ -98,6 +98,29 @@ Ce test donne une contrainte dure. Le bruit et le canal dégradé de la compréh
 
 Et **une redite ne compte que pour l'élocution**. Ce sont des tours d'élocution sur une phrase identique, pas de la parole spontanée.
 
+## Les modes
+
+Un mode ne change pas la machinerie. Il change deux choses seulement : **qui règle les leviers**, et **ce qui met fin à la séance**.
+
+| mode | qui règle | ce qui met fin |
+|---|---|---|
+| **campagne** | des niveaux prédéfinis, à passer linéairement | un critère de validation à l'échelle de la séance, et un critère de terminaison |
+| **custom** | l'apprenant, levier par levier | l'apprenant |
+| **arcade** | une rampe écrite d'avance, qui monte pendant la séance | les vies épuisées |
+| **défi** | un préréglage fixé d'avance — comme custom, mais non modifiable | à préciser |
+
+En custom, ce qui se règle n'est pas un curseur par aptitude mais **chaque levier**, avec son propre cran quand il n'est pas seulement ouvert ou fermé.
+
+Trois conséquences.
+
+**Trois modes sur quatre ne demandent aucune progression.** Custom, arcade et défi se règlent dans la séance ou d'avance ; seule la campagne a besoin de savoir où en est l'apprenant d'une séance à l'autre.
+
+**L'arcade impose une contrainte à tous les leviers : chaque position doit se dire en une phrase.** Elle est annoncée au moment où elle change — « Désormais l'enregistrement se fait en mode auto : les silences sont pris en compte. » Un levier n'est donc pas qu'une valeur, il porte une formulation lisible pour chacune de ses positions. Ça ne coûte rien si on le sait dès le premier levier écrit.
+
+**L'arcade demande un verdict par tour**, réussi ou raté, pour savoir si une vie se perd. C'est autre chose qu'une note en fin de séance. Les deux notions — la note par tour et le seuil de passage — restent à spécifier.
+
+**La conversation libre est un mode custom** qui ne pose ni note par tour ni seuil de passage. Elle rentre donc dans custom, et l'offrir comme une entrée à part est une question d'écran.
+
 ## La capture
 
 La capture est l'un des axes que les réglages gouvernent. Elle n'est pas spécifiée, et ce qui suit est ce qui est acquis.
