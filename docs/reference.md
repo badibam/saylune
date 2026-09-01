@@ -242,7 +242,7 @@ Matière par matière :
 
 - **La voix de l'apprenant** n'est **pas purgée par défaut**, et la purge reste à écrire (`design/activity-model.md`). Un enregistrement qu'aucun énoncé ne nomme, lui, est effacé : c'est du rebut et non de l'audio gardé, il vient des deux tours qui finissent sans énoncé — celui où la reconnaissance n'a rien entendu, celui dont la chaîne a cassé sans réessai. Le balayage se fait **au démarrage et nulle part ailleurs**, seul moment où rien n'est en vol et où un fichier que la base ne nomme pas ne sera jamais nommé.
 - **Le cache des synthèses** survit, sous **plafond réglable avec éviction du moins récemment demandé** : ce n'est qu'un cache, régénérable au prix d'un appel, et ce qu'il vaut d'en garder dépend du téléphone qui le garde. Une synthèse rendue est touchée à chaque fois qu'on la redemande, sans quoi la date dirait quand elle a été fabriquée et la phrase voulue tous les jours sortirait avant une phrase que personne ne réclame plus.
-- **La trace écrite** — les énoncés, qui parle, le texte, les marques avec leurs ancres — est archivée **telle que l'écran l'affiche**, sans modélisation ajoutée : des faits bruts, dont les usages futurs se dériveront s'ils adviennent. Elle **se relit** : une conversation se reprend là où elle en était. Le prescripteur mémoire sera l'autre lecteur, quand il existera.
+- **La trace écrite** — les énoncés, qui parle, le texte, les marques avec leurs ancres — est archivée **telle que l'écran l'affiche**, sans modélisation ajoutée : des faits bruts, dont les usages futurs se dériveront s'ils adviennent. Elle **se relit** : une conversation se reprend là où elle en était. Le prescripteur progression sera l'autre lecteur, quand il existera.
 
 ## L'accent
 

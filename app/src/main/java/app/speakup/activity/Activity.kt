@@ -95,8 +95,8 @@ enum class Prescriber {
     Conversation,
     /** The learner, by choice or by a free instruction. This is how new matter gets in. */
     Learner,
-    /** Memory, for what is due, never got right, or about to be forgotten. */
-    Memory,
+    /** Progression, for what is due, never got right, or about to be forgotten. */
+    Progression,
 }
 
 /**

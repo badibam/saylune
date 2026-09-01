@@ -12,7 +12,7 @@ Un **prescripteur** est ce qui remplit une activité — sa matière et ses rég
 
 - **la conversation**, à partir de ce qui vient de s'y passer ;
 - **l'apprenant**, par choix ou par consigne libre, ce qui est la voie par laquelle de la matière neuve entre ;
-- **la mémoire**, pour ce qui est dû, jamais réussi, ou sur le point d'être oublié.
+- **la progression**, pour ce qui est dû, jamais réussi, ou sur le point d'être oublié.
 
 Un quatrième viendra peut-être — le contexte global, qui suggérerait de lui-même. Il n'a rien à préparer : ajouter un prescripteur n'est qu'une façon de plus de remplir les mêmes champs.
 
@@ -52,7 +52,7 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **Le détail des effets des réglages**, sur le contenu comme sur la forme.
 - **Le catalogue des activités et leur déroulé.** Aucune n'est nommée à part la conversation.
 - **Les déclencheurs de suggestion** pendant une conversation.
-- **Le prescripteur mémoire** : sur quoi il s'appuie, comment il choisit ce qui est dû.
+- **Le prescripteur progression** : sur quoi il s'appuie, comment il choisit ce qui est dû.
 - **Le remplacement d'une phrase fautive** dans le fil.
 - **La purge**, et la durée de vie des audios.
 - **Ce que chaque mesure lit** de l'audio, segment par segment.
