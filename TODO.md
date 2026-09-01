@@ -108,7 +108,27 @@ La boucle tourne de bout en bout sur l'appareil (SM-G975F, LineageOS) : capture,
 
    **Deuxième trouvaille, séparée.** Dans les deux prises la fréquence maximale lue est **exactement 400,0 Hz**, qui est `F0_MAX`, le plafond de la bande de recherche. Le détecteur ne peut rien rendre au-dessus : une voix qui monte plus haut est écrêtée. Avec une médiane à 175-183 Hz, le plafond est à peine plus d'un octave au-dessus de la voix — donc atteint en parlant normalement avec une intonation montante. Non mesuré : combien de trames sont écrêtées plutôt que lues.
 
-   **La direction, non tranchée.** La version la plus bête est de supprimer le repli ; elle ne suffit pas, les accrochages harmoniques étant réels et documentés (`docs/qualification.md`). Élargir la bande ne fait que déplacer la barre. La piste qui vise la bonne chose : **un accrochage est une discontinuité contre ses voisines**, pas une distance à la médiane — une montée réelle est continue, un accrochage saute d'un octave d'une syllabe à la suivante. Juger sur l'écart au voisin attrape ce qui définit un accrochage, là où la distance à la médiane est un substitut qui échoue précisément sur les courbes larges. À décider avant d'écrire, et le plafond `F0_MAX` est une question à part.
+   **Le plafond n'est pas la cause, mesuré le 2026-09-01 et contre l'attente.** Si les trames rendues au décalage le plus court étaient de la vraie voix écrêtée, monter `F0_MAX` les libérerait. Elles ne bougent pas et empirent : la prise de l'app passe de 16,3 % à 20,7 % de trames au plafond entre 400 et 800 Hz, la prise 21 de 1,8 % à 9,6 %, et la part de trames au-delà de +15 demi-tons monte partout. **Être au décalage le plus court ne veut donc pas dire que la voix dépasse le plafond** : l'autocorrélation normalisée est naturellement forte aux décalages très courts, où un signal ressemble toujours à lui-même, et `VOICED = 0,30` ne filtre pas ça. Monter le plafond élargit la zone de facilité. Corollaire : **16 % des trames d'un tour ordinaire sont rendues au décalage plancher sans qu'on sache ce qu'elles valent** — défaut noté, non compris, à ne pas confondre avec le repli.
+
+   **Et l'effondrement côté bas des deux voix aiguës n'est pas dû au plafond non plus** : la part de trames sous la moitié de la médiane reste à 40-45 % de 400 à 800 Hz. Sur ces deux prises (296 et 269 Hz de médiane) le repli côté bas travaille donc sur quelque chose de réel et **non identifié**. Raison de ne pas y toucher.
+
+   **Deux hypothèses écartées par la mesure, notées pour ne pas les refaire** : le bruit stationnaire de la pièce, et le plafond du détecteur.
+
+   **La direction, mesurée contre le cas observé.** Le repli s'applique à la médiane de chaque syllabe, pas aux trames — donc un accrochage de 10 à 70 ms se noie dans une syllabe de 200 ms et n'atteint jamais le repli. Compté par fenêtres glissantes de 200 ms, hors bande :
+
+   | prise | médiane | x2,0 (en service) | x2,5 | x3,0 |
+   |---|---|---|---|---|
+   | 21 question montante | 138 Hz | 0/159 | 0 | 0 |
+   | 22 aplatissement | 122 Hz | 0/151 | 0 | 0 |
+   | 24 calque témoin | 122 Hz | 1/117 | 0 | 0 |
+   | 26 calque témoin | 114 Hz | 5/148 | 0 | 0 |
+   | **prise app b)** | 183 Hz | **28/278** | **0** | 0 |
+   | 23 spontané | 296 Hz | 93/185 | 52 | 0 |
+   | 25 spontané | 269 Hz | 109/272 | 21 | 0 |
+
+   Sur les quatre prises de voix grave le repli ne fait **rien** au niveau où il tourne. Sur la prise de l'app il touche un dixième de l'énoncé, et x2,5 le ramène à zéro. Le seul travail substantiel est côté **bas**, sur les deux voix aiguës, et il n'est pas compris. D'où la proposition : **élargir la barre haute à x2,5 et laisser la barre basse à x2,0** — asymétrique, parce que le problème et le travail utile ne sont pas du même côté, et qu'une bande symétrique à x3,0 supprimerait en aveugle tout le côté bas.
+
+   **Ancienne direction, abandonnée** : juger un accrochage à son écart aux voisines. Une reprise de souffle après une fin basse est une discontinuité légitime, et la syllabe repliée du cas observé est **la dernière**, donc sans voisine de droite pour la juger. La version la plus bête est de supprimer le repli ; elle ne suffit pas, les accrochages harmoniques étant réels et documentés (`docs/qualification.md`). Élargir la bande ne fait que déplacer la barre. La piste qui vise la bonne chose : **un accrochage est une discontinuité contre ses voisines**, pas une distance à la médiane — une montée réelle est continue, un accrochage saute d'un octave d'une syllabe à la suivante. Juger sur l'écart au voisin attrape ce qui définit un accrochage, là où la distance à la médiane est un substitut qui échoue précisément sur les courbes larges. À décider avant d'écrire, et le plafond `F0_MAX` est une question à part.
 
    **L'instrument reste incomplet** : `Takes` écrit `letters` pour chaque son mais pas `at`, ses offsets de caractères, donc on ne peut pas relier une syllabe à son audio depuis un `turn.json` du téléphone. Le contournement a été de lire la piste brute par tranches de 200 ms. `store/Marks.kt` écrit `at`, lui.
 
