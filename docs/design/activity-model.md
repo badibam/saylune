@@ -44,7 +44,7 @@ Un **bloc** est un groupe nommé de définitions, avec une seule propriété qui
 
 **Rien de tout ça n'est en base** : ni table de blocs, ni table de campagnes, ni table d'avancement. Les définitions vivent dans le code, et **l'avancement se dérive des résultats** — un niveau est ouvert si les résultats des précédents le disent. Un avancement stocké serait une deuxième source qui se décale du résultat.
 
-**Le déverrouillage lit la moyenne des notes** de la séance, sur les aptitudes qui en ont une : la fluidité n'en a pas sous capture manuelle, et elle ne compte alors pas comme un zéro. Le seuil est celui de partout — A ou B (« La marque est invariante »). Un bloc qui veut être plus dur monte la sévérité de ses réglages ; il ne déplace pas la barre.
+**Le déverrouillage lit la note de la séance**, calculée sur les feuilles réellement présentes — la fluidité n'a rien à lire sous capture manuelle, et son absence ne compte pas comme un zéro (« Les notes »). Le seuil est celui de partout — A ou B (« La marque est invariante »). Un bloc qui veut être plus dur monte la sévérité de ses réglages ; il ne déplace pas la barre.
 
 Trois conséquences à ne pas redécouvrir plus tard.
 
@@ -98,7 +98,7 @@ Il y a donc **trois étages, et un seul où les réglages entrent**.
 
 - **La mesure** — l'écart au modèle pour le son, le cran de formulation pour un groupe de mots. Aucun réglage ne la touche.
 - **La marque** — elle affiche la mesure telle quelle. Invariante, c'est le repère stable de l'apprenant.
-- **La note** — elle agrège les mesures du tour, puis de la séance. C'est **là et nulle part ailleurs** que les réglages agissent : la sévérité décide à quel niveau de fautes on passe de A à B, de B à C.
+- **La note** — elle agrège les mesures du passage, puis de la séance. C'est **là et nulle part ailleurs** que les réglages agissent : la sévérité décide à quel niveau de fautes on passe de A à B, de B à C.
 
 Ce que les réglages gouvernaient — faut-il redire, est-ce que ça compte dans la note — n'est donc plus deux choses. Compter dans la note **est** l'effet du réglage, et redire se lit sur la note qui en sort plutôt que sur la mesure brute. Une seule lecture réglée, tout le reste en découle.
 
@@ -106,7 +106,7 @@ Ce que les réglages gouvernaient — faut-il redire, est-ce que ça compte dans
 
 **Et elle ne se règle pas.** Si la sévérité et la barre bougeaient toutes les deux, deux boutons feraient la même chose et plus rien ne dirait lequel a rendu une séance dure. Ce qui se règle est la sévérité ; ce qu'il faut atteindre ne bouge jamais.
 
-Ça retire deux choses qui étaient écrites ici : il n'y a **pas de barre de redire par échelle**, les sensibilités ne servant qu'à la note ; et **le nombre d'essais permis n'est pas un levier d'élocution** mais une propriété du défi, qui dit combien de fois on peut ne pas passer.
+Ça retire une chose qui était écrite ici : il n'y a **pas de barre de redire par échelle**, les sensibilités ne servant qu'à la note. Et **le nombre d'essais permis est un levier du format**, pas de l'élocution : il dit combien de tentatives un passage accepte, jusqu'à une seule (« Le passage »).
 
 Deux choses restent acquises : la formulation se souligne **toujours** dès qu'il y a un cran à montrer, et la rampe des sons est la même partout et tout le temps — la bande de bruit de ±5 n'est pas un réglage mais une propriété mesurée de la machine.
 
@@ -114,9 +114,46 @@ Deux choses restent acquises : la formulation se souligne **toujours** dès qu'i
 
 ## Les notes
 
-**Une échelle unique, A–E, pour les cinq aptitudes.** Une séance se lit en cinq lettres, sans avoir à retenir cinq échelles différentes.
+**Une échelle unique, A–E.** Elle vaut pour tout ce qui se note, à n'importe quel niveau, sans avoir à retenir plusieurs échelles.
+
+**La note ne vit pas sur l'aptitude, elle vit sur la mesure.** Un défi qui ne noterait que l'accent tonique rendrait sinon une note « élocution » qui ne veut pas dire la même chose que celle du défi d'à côté, sans que rien à l'écran ne le dise. C'est la troisième application de la règle qui ouvre ce doc : « élocution B » est un nom sur un jeu de mesures, comme « élocution 2 » était un nom sur un jeu de leviers. L'aptitude reste un tiroir — pour choisir, pour afficher — et n'est plus l'unité de la note.
 
 **La lettre est toujours une note, jamais une mesure.** Elle est contextuelle par construction, puisque la sévérité déplace ses bornes ; une mesure, elle, ne bouge pas. Les deux ne doivent donc jamais porter les mêmes noms — c'est la confusion que ce doc portait, où les crans de formulation étaient écrits en A–E comme la note. **On garde les nombres et les crans en base, jamais les lettres** : les bornes pourront bouger sans abîmer les vieilles séances.
+
+### L'arbre des poids
+
+**Ce qui se note est un arbre, à profondeur libre.** Aptitude, mesure, découpage plus fin ne sont pas trois natures : ce sont des nœuds, et la profondeur dit seulement à quel grain on peut peser. La question « est-ce une mesure ou une catégorie de mesure ? » ne se pose donc jamais, et démultiplier revient à creuser une branche, jamais à changer de mécanisme. **Rien n'oblige un nœud de premier niveau à être une aptitude** — l'arbre ne connaît que des poids.
+
+Deux réglages par nœud, et ils ne font pas la même chose :
+
+- **la sensibilité** — où tombent les bornes A–E de cette note ;
+- **le poids** — combien cette note pèse dans celle du dessus. À 0, le nœud ne compte pas.
+
+Un défi qui ne note que l'accent tonique est donc un poids à 1 et des poids à 0, pas un mécanisme à part. C'est ce qui permet de viser sans ajouter de champ : quoi qu'on note, l'information est déjà là.
+
+### L'agrégation se fait une fois, à plat
+
+**Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
+
+La raison est qu'une cascade de moyennes redistribue en silence des poids que personne n'a réglés, dès qu'une feuille manque — et il en manque tout le temps : la fluidité n'a rien à lire en capture manuelle, un passage dont la porte grammaticale s'est fermée n'a aucune mesure de son.
+
+Avec élocution 2 (sons 1, mélodie 1) et formulation 1, sur deux passages dont le second a la porte fermée — passage 1 : sons 40, mélodie 80, formulation 90 ; passage 2 : formulation 50. En cascade, le passage 1 vaut 70, le passage 2 vaut 50 puisque sa moyenne se renormalise sur ce qui reste, et la séance 60. À plat, (40 + 80 + 90 + 50) / 4 = 65. L'écart n'est pas l'arrondi : dans la cascade, la formulation a fini par peser deux tiers de la séance et l'élocution un tiers, l'inverse exact du 2:1 demandé, parce qu'au passage 2 elle était seule et a pris tout le passage pour elle.
+
+**Une feuille absente sort de la somme, elle ne vaut jamais zéro.** C'était déjà la règle pour la fluidité ; elle vaut pour toutes.
+
+**Chaque feuille pèse par la longueur du passage** — et pour la compréhension, par celle du tour de l'IA, qui est la matière qu'elle couvre. Proportionnel à la longueur est un peu arbitraire, un contour mélodique étant un contour qu'il soit long ou court ; c'est uniforme, et le tenir sur une longue phrase est effectivement plus de travail. La longueur se compte en **mots** plutôt qu'en sons : un passage dont la porte a coupé l'analyse n'a pas de sons et a toujours des mots.
+
+**Entre feuilles, la moyenne décide seule** : pas de plancher qui plafonnerait la note dès qu'une feuille comptée passe sous la barre. Une bonne feuille peut donc en masquer une mauvaise, et c'est accepté — dans un défi, peu de feuilles comptent, et la sensibilité de chacune dit à quel point elle est facile à tenir. Ça ne touche pas le plafond posé *à l'intérieur* de la formulation, où les fautes bornent le cran haut.
+
+### Le passage
+
+**Le passage est l'unité de la note : un énoncé et toutes ses redites.** Le mot est neuf parce que « tour » désigne déjà un tour de parole — un enregistrement, un énoncé, une position de capture — et confondre les deux se paierait au premier commit.
+
+**La note du passage est celle de la dernière tentative**, et le nombre de tentatives permises est un levier du format, qui peut valoir 1. La dernière est ce qu'on sait dire maintenant. Conséquence à dire à l'apprenant plutôt qu'à lui laisser découvrir : une tentative de trop, après une réussite, peut faire baisser la note.
+
+Les trois autres lectures sont pires. La **première** rend la redite sans effet, donc sans intérêt. La **meilleure** laisse l'obstination atteindre A. La **moyenne des tentatives** fait baisser la note à chaque essai, c'est-à-dire punit exactement le geste que l'app existe pour provoquer.
+
+**Le nombre de tentatives est lui-même une feuille**, dans la branche où la redite a eu lieu : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la justesse d'emblée. Redire une prononciation et reformuler une phrase ne se comptent pas ensemble — deux feuilles, une par branche.
 
 ### Les crans de formulation
 
@@ -154,7 +191,7 @@ La formulation partage donc la famille de couleurs des sons — le vert pour le 
 
 **Et le cran « ne se dit pas » ferme la porte quel que soit le réglage**, sans passer par la note. Une phrase qui ne se dit pas, l'app devrait la synthétiser pour l'analyser, donc la faire entendre comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
 
-**La marque porte sur un élément, la note agrège sur le tour.** C'est vrai des trois échelles du son comme des crans de formulation : l'accent d'un mot est au bon endroit ou pas, mais un tour en contient plusieurs et la note les compte.
+**La marque porte sur un élément, la note agrège sur le passage.** C'est vrai des trois échelles du son comme des crans de formulation : l'accent d'un mot est au bon endroit ou pas, mais un passage en contient plusieurs et la note les compte.
 
 ## La pression
 
