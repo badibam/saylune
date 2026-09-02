@@ -387,6 +387,39 @@ Quatre crans, en gradation, qui portent sur la **séance entière** et pas sur u
 
 **C'est un concept pour parler d'une activité, pas une pièce du modèle.** Rien ne porte ces crans, et ce qu'ils décrivent tombe de la combinaison choisie : un défi rend une note, une campagne la compare aux précédentes, l'arcade la range dans un classement.
 
+## Le personnage
+
+Rencontrer quelqu'un plutôt que choisir un thème. La version la plus bête est qu'**un personnage est un `brief`** — du texte dans le prompt, zéro pièce neuve. Elle manque peu : un personnage porte aussi une **voix** et des **positions de leviers** (débit, vocabulaire, complexité du tour, c'est-à-dire les leviers de compréhension). Or un `brief` plus une voix plus des positions, c'est **une définition**. Le personnage n'est donc pas un objet neuf : une rencontre est le lancement d'une définition, un recueil de personnages est un bloc à accès libre.
+
+**La voix d'un personnage ne sert jamais d'étalon, et c'est ce qui rend l'idée gratuite.** Le personnage dit *ses* tours ; le modèle à imiter dit *la phrase de l'apprenant*. Ce sont deux énoncés différents, donc les deux voix se séparent sans rien casser : un personnage peut avoir n'importe quelle voix, y compris une qui échoue à l'étalonnage, puisqu'elle ne mesure rien. Une voix difficile à suivre devient alors un levier de compréhension, ce qui est l'intérêt même. En échange, **la voix de conversation cesse d'être un réglage global** et devient une position de levier sur l'activité ; la voix de référence, elle, reste le réglage de l'apprenant.
+
+**Un personnage déclare ce qu'il lui faut d'une voix, jamais laquelle** — rapide, régionale, âgée, difficile à suivre. C'est la règle du projet : ce qu'un fournisseur rend en plus ne peut pas devenir une condition. L'app résout contre le catalogue du fournisseur choisi, qu'elle récupère déjà à chaque ouverture de l'écran ; rien ne correspond, l'option s'éteint **en portant sa raison**. Le défi « voix difficile » survit donc au changement de fournisseur, parce qu'il demande une propriété et pas un nom.
+
+D'où vient la propriété reste ouvert. Deux sources : une **table par fournisseur** écrite à la main, et un chiffre **mesuré** — le test de voix calcule la divergence d'une voix aux autres, 11,5 % pour `eleven-us-sarah` contre 18 % pour `eleven-gb-daniel` (`../../TODO.md`). Portée de ce chiffre : il dit à quel point le réseau acoustique lit cette voix comme atypique, **pas** à quel point un humain peine à la suivre. C'est un candidat de proxy, non mesuré contre la difficulté réelle.
+
+**Plusieurs personnages.** L'activité pointe une **distribution**, pas un interlocuteur ; chaque énoncé porte **qui parle**, le champ locuteur cessant de valoir apprenant-ou-IA pour devenir une identité ; la synthèse choisit une voix **par énoncé**, ce que le cache encaisse déjà puisqu'il est indexé par texte et par voix. Côté modèle, l'IA rend la clé du personnage qui parle : le retour énuméré le moins cher qui soit.
+
+**La persona ne doit jamais atteindre la reconstruction d'`intended`.** Le même appel fait deux travaux — répondre en personnage, et reconstruire ce que l'apprenant voulait dire. Si le personnage déteint sur le second, la phrase de l'apprenant ressort en dialecte et c'est l'étalon de toute la mesure qui bouge. C'est la même famille de fuite que celle déjà mesurée, où le modèle réparait la grammaire de l'apprenant (`../../TODO.md`).
+
+**Un personnage jetable ne coûte rien, un personnage qu'on retrouve coûte le stockage.** Fabriqué par l'IA à la volée, il ne fait que remplir les champs d'une activité, ce qu'un prescripteur fait déjà. Revoir Vera trois séances plus tard exige de la garder, et c'est le revirement que le modèle annonce : le jour où des définitions s'écrivent dans l'app, la séparation définition/exécution revient en base. La porte reste ouverte, elle n'est pas franchie.
+
+### Les briques
+
+Construire une activité en choisissant des briques — un lieu, un personnage, une situation —, chacune avec son texte libre. Aucune pièce neuve là non plus : une brique apporte des fragments de `brief`, des positions de leviers et des règles, donc c'est un **préréglage nommé**, comme le curseur d'aptitude et comme le mode. Quatrième fois qu'un nom rond se pose sur les mêmes axes.
+
+Ce qui compte est le **périmètre**, et il se définit par ce que chaque brique possède :
+
+- **Lieu** — où, quand, ce qu'on entend autour. Possède le bruit et la qualité du canal.
+- **Personnage** — qui parle : identité, tempérament, façon de parler. Possède l'exigence de voix et les leviers de sa parole.
+- **Situation** — ce qui se joue, ce qu'il faut obtenir. Possède les conditions de fin.
+- **Règles** — ce que l'app fait respecter : feuilles notées, poids, sensibilités, règles.
+
+**Deux briques qui voudraient le même levier signalent que la coupe est fausse**, pas qu'il faut une règle de priorité. Leurs textes libres, eux, n'entrent en conflit avec rien : ils ne se lisent pas, ils se comprennent.
+
+### L'habillage rétro
+
+Le rétro touche aussi le marquage, qui est aujourd'hui un instrument de précision — une rampe ambre-rouge à nombreuses nuances, trois canaux graphiques superposés, une vaguelette qui doit se distinguer d'un filet droit au même endroit. Ça se refait **une fois**, en gardant la lisibilité ; ce n'est pas une contrainte permanente sur la conception.
+
 ## La capture
 
 La capture est **un levier de fluidité, à trois positions**, et l'échelle gradue exactement ce que la fluidité peut lire.
@@ -399,7 +432,9 @@ Le micro **ne s'arme jamais avant la fin de la réponse de l'IA**. Un symbole es
 
 **Chaque tour porte sa position de capture.** C'est ce qui dit si ses silences sont significatifs, et rien ne s'agrège entre positions : agréger un tour capté au doigt avec un tour capté automatiquement produirait un chiffre qui ressemble à de la fluidité sans en être.
 
-**La durée maximale du tour n'est pas un levier.** C'est une contrainte de l'app, aujourd'hui 30 s, posée pour une raison technique : la mémoire d'une passe d'analyse croît comme le **carré** de la durée du tour. Le tour se ferme et envoie ce qui a été dit — jeter perdrait de la parole. Elle disparaît quand le fenêtrage de l'analyse arrive (`../../TODO.md`).
+**La durée d'un tour est une seule variable, et le plafond technique en est la valeur maximale admissible.** Imposer de répondre en cinq secondes et supporter trente secondes au plus sont la même chose réglée différemment, avec le même comportement : un avertissement quand le temps s'épuise, puis l'envoi. Ce qui se passe à zéro — envoyer, ou compter la tentative comme ratée — est une règle déclenchée par « temps écoulé ».
+
+Le plafond, lui, est technique : la mémoire d'une passe d'analyse croît comme le **carré** de la durée du tour, d'où 30 s aujourd'hui. Envoyer plutôt que jeter, parce que jeter perdrait de la parole. Le plafond remonte quand le fenêtrage de l'analyse arrive (`../../TODO.md`) ; le levier, lui, reste.
 
 ## L'audio
 
