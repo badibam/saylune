@@ -194,6 +194,8 @@ Les trois autres lectures sont pires. La **première** rend la redite sans effet
 
 **La dernière tentative ne porte que les feuilles que la redite sert à corriger** — l'élocution et la formulation. La fluidité et la richesse lisent la **première**, parce qu'une phrase répétée n'est plus de la parole spontanée, et que c'est la parole spontanée qu'elles mesurent. C'est la version précise de la règle déjà écrite plus bas, qui disait qu'une redite ne compte que pour l'élocution.
 
+**Une redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative, et la réponse de l'IA se refait sur elle — sans quoi la conversation garderait une réponse à une phrase que personne ne lit plus. Mais les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue, et le compte des essais est une feuille. Ça tranche ce que `../reference.md` laissait ouvert sur le sort de la phrase initiale.
+
 **Le nombre de tentatives est lui-même une feuille**, dans la branche où la redite a eu lieu : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la justesse d'emblée. Redire une prononciation et reformuler une phrase ne se comptent pas ensemble — deux feuilles, une par branche.
 
 ### Les crans de formulation
@@ -289,6 +291,32 @@ Ce qui rend une contrainte dure n'est pas la note — noyée dans une moyenne po
 Une condition **lit le résultat d'une feuille, elle ne change pas ce que la feuille mesure**. Elle se branche donc aussi bien sur une feuille calculée : un silence de plus de cinq secondes coûte une vie.
 
 **Le mécanisme reste à préciser** : porte-t-elle sur la mesure, sur la note, ou sur les deux. Deux formes se dessinent — la note de la feuille sous la barre, ou une position atteinte au moins une fois : un empan au cran « ne se dit pas », un passage jugé hors registre.
+
+## Le blocage
+
+**Bloquer, c'est une règle dont l'effet est que le passage ne se ferme pas.** Pas un mécanisme neuf, et donc branchable sur n'importe quelle feuille : un défi peut bloquer sur la prononciation comme sur la formulation.
+
+Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond pas au fond et ne pose pas de question neuve ; le passage **reste ouvert**, ce qu'on attend ensuite étant une reprise de la même chose ; et rien n'avance tant qu'il ne se ferme pas.
+
+**Ce n'est pas l'interruption que le projet refuse.** On ne part pas travailler ailleurs, le sujet ne change pas, l'écran ne change pas : c'est la conversation qui s'arrête sur une phrase. Le geste fondateur reste tenu.
+
+**Deux axes, pas un.** L'**écho** — absent, indication indirecte, reprise explicite — est le levier déjà écrit. L'**avance** est le second : la réponse poursuit, ou elle attend. Le geste fondateur du projet est la combinaison (indirect, poursuit) : *« Ah, you're 25! And where... »*. Une seule combinaison ne s'offre pas, (absent, attend), qui ferait attendre sans dire pourquoi.
+
+Ça éclaire ce que la porte grammaticale est vraiment : **une seule barre, trois conséquences** — le son ne s'analyse pas, une redite est proposée, et la conversation attend si les réglages le disent.
+
+### Deux branches pour la formulation, une notification pour le son
+
+**Le verdict de formulation naît dans le même appel que la réponse ; le verdict de son naît après**, puisque l'analyse a besoin d'`intended`, qui vient du modèle. Les deux blocages n'ont donc pas les mêmes moyens, et ce n'est pas une incohérence : c'est ce que chaque verdict rend possible au moment où il tombe.
+
+**Formulation** : l'appel rend **une réponse plus une ligne courte** — la continuation, et l'écho de reprise (« Ah, you mean you ARE 25 »). L'app calcule la note dès le retour et joue l'une ou l'autre. Trois conséquences : **plus rien n'est jamais remplacé**, une seule étant jouée ; c'est littéralement « l'IA joue, l'app décide », puisqu'elle fournit la matière des deux issues sans trancher ; et la ligne courte **n'est produite que si l'IA a marqué quelque chose**, ce qui la rend gratuite sur un passage propre. Un champ de retour de plus, une chaîne, sans énumération à valider — le moins cher des contrats.
+
+**Prononciation** : quand l'écart au modèle arrive, l'appel est fini et la réponse existe. Rien ne peut fournir un écho en personnage sans un second appel, écarté pour la latence. Donc la réponse est **retenue**, et une notification dit quoi reprendre — en donnant à **écouter** le modèle, qui est synthétisé de toute façon, et non en expliquant, le remède d'une faute sonore n'ayant jamais été une consigne écrite.
+
+### La sortie d'un passage bloqué
+
+Deux, et elles ne sont pas concurrentes : **les tentatives s'épuisent**, ce qui est la sortie automatique, ou **l'apprenant abandonne**, ce qui est la même sortie déclenchée à la main. Sans l'une des deux, la conversation meurt sur une phrase.
+
+Dans les deux cas l'IA repart du sens qu'elle avait compris — elle l'a toujours compris — et le passage est enregistré comme raté. C'est ce qui alimente les règles : perdre une vie, durcir, ouvrir ou non le niveau suivant.
 
 ## La pression
 
@@ -388,12 +416,10 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 ## Ce qui reste à spécifier
 
 - **Ce que vaut une feuille avant d'être une lettre.** La forme de l'agrégation est écrite ; ce qui ne l'est pas est comment on passe des marques d'une feuille à son chiffre — combien de crans sur quelle longueur —, et où chaque sensibilité pose ses bornes A–E.
-- **Le mécanisme des conditions** branchées sur une feuille : sur la mesure, sur la note, ou les deux.
+- **La liste fermée des sortes de déclencheurs** d'une règle, et si un déclencheur lit une mesure, une note, ou les deux.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers.
 - **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode.
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
-- **Ce que devient la phrase initiale** quand on la redit : son remplacement dans le fil, ou son maintien. Jusque-là, redire ajoute et rien ne remplace.
-- **Le mécanisme de re-tentative grammaticale**, analogue à celui de la prononciation : l'apprenant cherche sa correction, et le levier d'explication dit ce qu'on lui donne pour ça.
 - **La liste des leviers de chaque format**, close pour aucun, et le détail de ce que chaque position produit — y compris sa formulation lisible, qu'exige le mode arcade.
 - **Le score** : propre à l'arcade ou pas, et à quoi ressemble son écran.
 - **Garder le nom du préréglage** d'une séance réglée à la main. Aucun lecteur n'en a besoin aujourd'hui — l'origine suffit là où ça compte — donc pas de champ pour l'instant.

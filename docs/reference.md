@@ -23,6 +23,8 @@ Quand il se trompe, l'IA reprend **dans sa réponse** au lieu de s'arrêter — 
 
 Une chose remarquée a **deux sorts, et deux seulement** : redire sur place, ce qui produit un énoncé de plus dans la même conversation ; ou devenir une activité suggérée, faite plus tard si on veut. On n'interrompt jamais pour partir travailler ailleurs.
 
+Un réglage peut faire **attendre** la conversation sur une phrase à reprendre, et ce n'est pas cette interruption-là : on ne part nulle part, le sujet ne change pas, l'écran ne change pas. Ce que l'app dit alors n'est pas une réponse mise de côté puis reprise — l'appel au modèle rend **la continuation et un écho de reprise**, et l'app joue celui que la note désigne, donc rien n'est jamais rétracté (`design/activity-model.md`).
+
 Le contrôle du moment appartient à l'utilisateur, jamais à l'app. Ce qui peut déclencher une suggestion pendant une conversation reste à spécifier.
 
 ## L'énoncé et l'activité
@@ -177,7 +179,7 @@ Ce qui s'y dit est noté contre un texte de référence **connu d'avance** — c
 
   Le prix se paie ailleurs, sur l'**affichage** et non sur la charge : mesuré sur de la parole d'apprenant réelle, la majorité des mots portent quelque chose (`../TODO.md`). Une marque binaire ne transporte alors plus rien — tout est colorié, donc rien n'est signalé. Le marquage **gradue** donc au lieu de colorier ou non, et c'est en service : une rampe d'ambre à rouge à mesure que l'écart grandit, à teinte claire fixe pour qu'elle se lise comme une seule famille. Sous la bande de bruit la lettre garde l'encre neutre — une teinte y serait un mensonge de précision, le bruit propre de la machine étant lui-même de cette largeur.
 
-**Ce que devient la phrase initiale n'est pas décidé.** Son remplacement dans le fil reste à spécifier (`design/activity-model.md`) ; jusque-là, redire ajoute et rien ne remplace.
+**La redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative, et la réponse de l'IA se refait sur elle — garder une réponse à une phrase que personne ne lit plus n'aurait pas de sens. Les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue (`design/activity-model.md`).
 
 ## Les deux tuyaux
 
