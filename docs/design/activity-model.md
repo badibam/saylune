@@ -192,7 +192,7 @@ Avec élocution 2 (sons 1, mélodie 1) et formulation 1, sur deux passages dont 
 
 Les trois autres lectures sont pires. La **première** rend la redite sans effet, donc sans intérêt. La **meilleure** laisse l'obstination atteindre A. La **moyenne des tentatives** fait baisser la note à chaque essai, c'est-à-dire punit exactement le geste que l'app existe pour provoquer.
 
-**La dernière tentative ne porte que les feuilles que la redite sert à corriger** — l'élocution et la formulation. La fluidité et la richesse lisent la **première**, parce qu'une phrase répétée n'est plus de la parole spontanée, et que c'est la parole spontanée qu'elles mesurent. C'est la version précise de la règle déjà écrite plus bas, qui disait qu'une redite ne compte que pour l'élocution.
+**Proposé, non tranché : la dernière tentative ne porterait que les feuilles que la redite sert à corriger** — l'élocution et la formulation —, la fluidité et la richesse lisant la **première**, parce qu'une phrase répétée n'est plus de la parole spontanée et que c'est la parole spontanée qu'elles mesurent. C'est une lecture précise de la règle déjà écrite plus bas, qui dit qu'une redite ne compte que pour l'élocution ; elle n'a pas été éprouvée.
 
 **Une redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative, et la réponse de l'IA se refait sur elle — sans quoi la conversation garderait une réponse à une phrase que personne ne lit plus. Mais les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue, et le compte des essais est une feuille. Ça tranche ce que `../reference.md` laissait ouvert sur le sort de la phrase initiale.
 
@@ -268,7 +268,7 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 
 **Trois feuilles sont jugées par le modèle de langue** — l'empan de formulation, l'adéquation du registre, la pertinence de la réponse. Tout le reste se calcule : un écart de répartition, un silence, un débit, un rapport, une table de fréquence.
 
-**Le juge rend un cran, jamais un pourcentage.** « 72 % de pertinence » n'est vérifiable par personne, et la finesse vient du comptage, comme pour les sons.
+**Le juge rend un cran, jamais un pourcentage.** « 72 % de pertinence » n'est vérifiable par personne, et la finesse vient du comptage, comme pour les sons. Les échelles qui suivent sont **proposées, pas tranchées** — seuls les crans de formulation le sont.
 
 - **empan de formulation** — les quatre crans ci-dessus, par groupe de mots.
 - **registre** — un cran par passage, avec un bon côté comme la formulation : remarquablement dans le ton / rien / approximatif / hors registre. Le bon côté se justifie pour la même raison que là-bas : il n'y a pas un seul ton correct, donc on peut dépasser l'acceptable.
@@ -314,9 +314,9 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 
 ### La sortie d'un passage bloqué
 
-Deux, et elles ne sont pas concurrentes : **les tentatives s'épuisent**, ce qui est la sortie automatique, ou **l'apprenant abandonne**, ce qui est la même sortie déclenchée à la main. Sans l'une des deux, la conversation meurt sur une phrase.
+**Les tentatives s'épuisent, et c'est la seule sortie.** Pas de geste d'abandon à part : le nombre de tentatives est déjà un levier, donc la sortie est déjà réglable, et un deuxième mécanisme ne ferait que doubler celui-là.
 
-Dans les deux cas l'IA repart du sens qu'elle avait compris — elle l'a toujours compris — et le passage est enregistré comme raté. C'est ce qui alimente les règles : perdre une vie, durcir, ouvrir ou non le niveau suivant.
+L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris — et le passage est enregistré comme raté. C'est ce qui alimente les règles : perdre une vie, durcir, ouvrir ou non le niveau suivant.
 
 ## La pression
 
@@ -379,7 +379,7 @@ Le test qui sépare une vraie collision du fonctionnement : **une combinaison n'
 
 Ce test donne une contrainte dure. Le bruit et le canal dégradé de la compréhension portent sur ce qui est **écouté**, jamais sur la prise de l'apprenant : l'analyse compare deux enregistrements traités symétriquement, et bruiter un seul côté rendrait l'écart mesuré en partie fabriqué (`../reference.md`).
 
-Et **une redite ne compte que pour ce qu'elle sert à corriger**, l'élocution et la formulation : c'est une reprise d'une phrase identique, pas de la parole spontanée (« Le passage »).
+Et **une redite ne compte que pour ce qu'elle sert à corriger**, l'élocution et la formulation : c'est une reprise d'une phrase identique, pas de la parole spontanée. Ce que ça implique sur la tentative que chaque feuille lit est proposé et non tranché (« Le passage »).
 
 ## L'enjeu
 
@@ -407,7 +407,7 @@ D'où vient la propriété reste ouvert. Deux sources : une **table par fourniss
 
 Construire une activité en choisissant des briques — un lieu, un personnage, une situation —, chacune avec son texte libre. Aucune pièce neuve là non plus : une brique apporte des fragments de `brief`, des positions de leviers et des règles, donc c'est un **préréglage nommé**, comme le curseur d'aptitude et comme le mode. Quatrième fois qu'un nom rond se pose sur les mêmes axes.
 
-Ce qui compte est le **périmètre**, et il se définit par ce que chaque brique possède :
+Ce qui compte est le **périmètre**, et il se définit par ce que chaque brique possède. Cette coupe-là est **une première proposition, pas une décision** :
 
 - **Lieu** — où, quand, ce qu'on entend autour. Possède le bruit et la qualité du canal.
 - **Personnage** — qui parle : identité, tempérament, façon de parler. Possède l'exigence de voix et les leviers de sa parole.
