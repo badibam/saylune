@@ -58,12 +58,14 @@ Ce que ça change à l'atomicité de l'activité, qui reste vraie mais pour une 
 
 ## Les champs qui manquent
 
-Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque quatre, et un cinquième change de type.
+Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque six, et un septième change de type.
 
 - **La consigne** — du texte libre, posé au départ et injecté dans le prompt, jamais réécrit ensuite. À ne pas confondre avec la **matière**, qui dit de quoi ça parle et que l'IA peut écrire après coup : une consigne « pousse-le sur le passé, il l'évite » peut donner une conversation dont la matière finit par être « son déménagement ». Les confondre ferait qu'un titre écrit par l'IA écrase la consigne. Nom proposé : `brief` — `seed` évoque une graine de tirage aléatoire, ce que ce n'est pas.
 - **La rampe**, ou rien.
 - **Les conditions de fin**, qui sont une liste : on peut avoir les vies **et** un critère de réussite, ce qui donne un gagné et un perdu au lieu d'un seul.
 - **L'origine**, ci-dessus.
+- **Les consignes par feuille jugée** — du texte libre, une par feuille au plus, distinct du `brief` de l'activité (« Ce qui est jugé, ce qui est calculé »). Les poids et les sensibilités, eux, ne sont pas un champ neuf : ce sont des positions de leviers, donc des réglages.
+- **Les conditions branchées sur une feuille**, qui font perdre une vie ou refusent un passage.
 - **Le résultat doit pouvoir porter un nombre.** Il porte aujourd'hui un verdict, un juge, une date et du texte libre ; un score d'arcade est un nombre, et le ranger dans du texte libre le rendrait inexploitable.
 
 Et **`mode` n'est pas un champ** : « arcade », « campagne », « défi », « custom » sont des noms d'usage sur des combinaisons de ces axes-là.
@@ -102,7 +104,7 @@ Il y a donc **trois étages, et un seul où les réglages entrent**.
 
 Ce que les réglages gouvernaient — faut-il redire, est-ce que ça compte dans la note — n'est donc plus deux choses. Compter dans la note **est** l'effet du réglage, et redire se lit sur la note qui en sort plutôt que sur la mesure brute. Une seule lecture réglée, tout le reste en découle.
 
-**Une seule barre, la même partout : A ou B, ça va.** Sur un tour elle décide s'il faut redire ; sur une activité, si c'est réussi et si le niveau suivant s'ouvre. L'apprenant apprend la règle une fois et elle vaut partout.
+**Une seule barre, la même partout : A ou B, ça va.** Sur un passage elle décide s'il faut redire ; sur une activité, si c'est réussi et si le niveau suivant s'ouvre. L'apprenant apprend la règle une fois et elle vaut partout.
 
 **Et elle ne se règle pas.** Si la sévérité et la barre bougeaient toutes les deux, deux boutons feraient la même chose et plus rien ne dirait lequel a rendu une séance dure. Ce qui se règle est la sévérité ; ce qu'il faut atteindre ne bouge jamais.
 
@@ -153,6 +155,8 @@ Avec élocution 2 (sons 1, mélodie 1) et formulation 1, sur deux passages dont 
 
 Les trois autres lectures sont pires. La **première** rend la redite sans effet, donc sans intérêt. La **meilleure** laisse l'obstination atteindre A. La **moyenne des tentatives** fait baisser la note à chaque essai, c'est-à-dire punit exactement le geste que l'app existe pour provoquer.
 
+**La dernière tentative ne porte que les feuilles que la redite sert à corriger** — l'élocution et la formulation. La fluidité et la richesse lisent la **première**, parce qu'une phrase répétée n'est plus de la parole spontanée, et que c'est la parole spontanée qu'elles mesurent. C'est la version précise de la règle déjà écrite plus bas, qui disait qu'une redite ne compte que pour l'élocution.
+
 **Le nombre de tentatives est lui-même une feuille**, dans la branche où la redite a eu lieu : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la justesse d'emblée. Redire une prononciation et reformuler une phrase ne se comptent pas ensemble — deux feuilles, une par branche.
 
 ### Les crans de formulation
@@ -169,13 +173,13 @@ Quatre crans, et le neutre au milieu ne se marque pas :
 
 **C'est la seule mesure du projet qui va dans les deux sens**, et la raison tient à la nature des deux : pour le son, le modèle est la vérité, donc on ne peut pas faire mieux que lui — être dessus est l'attendu, et sous la bande de bruit rien ne se distingue. Pour la formulation il n'y a pas de modèle unique, donc on peut dépasser le simplement correct. Le cran haut est ce qui donne un sens à A : sans lui, A et B disaient tous deux « rien à signaler » et la différence n'était observable nulle part.
 
-**Le juge rend le cran, et rien de plus fin.** Sur trois mots, « haut de maladroit » n'est pas un jugement que quelqu'un pourrait vérifier. La finesse ne se perd pas, elle change d'endroit : elle vient du comptage — combien de groupes marqués, à quel cran, sur quelle longueur de phrase. Un tour se note donc finement en agrégeant beaucoup de jugements grossiers, exactement comme le fait déjà l'élocution. Coût assumé : un tour de trois mots portant un seul groupe marqué a une note très grossière. C'est une grossièreté vraie, pas une fausse précision.
+**Le juge rend le cran, et rien de plus fin.** Sur trois mots, « haut de maladroit » n'est pas un jugement que quelqu'un pourrait vérifier. La finesse ne se perd pas, elle change d'endroit : elle vient du comptage — combien de groupes marqués, à quel cran, sur quelle longueur de phrase. Un passage se note donc finement en agrégeant beaucoup de jugements grossiers, exactement comme le fait déjà l'élocution. Coût assumé : un passage de trois mots portant un seul groupe marqué a une note très grossière. C'est une grossièreté vraie, pas une fausse précision.
 
-**Le cran haut ne vaut que s'il est rare.** C'est l'argument déjà fait contre le marquage tout-ou-rien : quand tout est colorié, plus rien n'est signalé. Un juge qui en donne un tour sur deux le rend décoratif, et la consigne doit donc être exigeante. **Non mesuré** : personne ne sait à quelle fréquence ce juge-là en donnera.
+**Le cran haut ne vaut que s'il est rare.** C'est l'argument déjà fait contre le marquage tout-ou-rien : quand tout est colorié, plus rien n'est signalé. Un juge qui en donne un passage sur deux le rend décoratif, et la consigne doit donc être exigeante. **Non mesuré** : personne ne sait à quelle fréquence ce juge-là en donnera.
 
 **Piste pour le calcul**, à détailler quand on l'écrira : les **fautes fixent le plafond**, le cran haut monte à l'intérieur de ce qui reste — n'avoir aucune faute est nécessaire pour atteindre A, et c'est le cran haut qui sépare A de B. Un cran haut ne compense pas une faute : une tournure brillante à côté d'un verbe cassé ne rend pas le verbe moins cassé, et si les deux se compensaient on couvrirait ses fautes en en accumulant.
 
-Ça absorbe un chantier qui traînait à part (`../../TODO.md`, point 6) : le verdict grammatical était un booléen sur le tour entier, ce qui écrasait le fait qu'un tour puisse porter plusieurs fautes et empêchait de marquer la portion concernée. Un cran par groupe de mots règle les deux.
+Ça absorbe un chantier qui traînait à part (`../../TODO.md`, point 6) : le verdict grammatical était un booléen sur le tour entier, ce qui écrasait le fait qu'un passage puisse porter plusieurs fautes et empêchait de marquer la portion concernée. Un cran par groupe de mots règle les deux.
 
 ### Ce que ça change au marquage
 
@@ -187,11 +191,67 @@ La formulation partage donc la famille de couleurs des sons — le vert pour le 
 
 **Elle se ferme sur ce qui va être réécrit**, plus sur le marquage. La raison de la porte a toujours été qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire ; tant que marquage et réécriture allaient ensemble, « marqué » était un bon substitut. Ce n'est plus le cas depuis que la formulation a des leviers séparés.
 
-**Elle lit la même barre que tout le reste** : un tour dont la note de formulation ne passe pas est un tour à refaire, donc son son ne s'analyse pas. En défi, ne pas passer force le nouvel essai ; en conversation libre ça ne force rien, mais l'app tient quand même la phrase pour une phrase à refaire — elle marque la formulation, propose de redire, et n'analyse pas le son. Une seule barre, deux conséquences selon le contexte.
+**Elle lit la même barre que tout le reste** : un passage dont la note de formulation ne passe pas est un passage à refaire, donc son son ne s'analyse pas. En défi, ne pas passer force le nouvel essai ; en conversation libre ça ne force rien, mais l'app tient quand même la phrase pour une phrase à refaire — elle marque la formulation, propose de redire, et n'analyse pas le son. Une seule barre, deux conséquences selon le contexte.
 
 **Et le cran « ne se dit pas » ferme la porte quel que soit le réglage**, sans passer par la note. Une phrase qui ne se dit pas, l'app devrait la synthétiser pour l'analyser, donc la faire entendre comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
 
 **La marque porte sur un élément, la note agrège sur le passage.** C'est vrai des trois échelles du son comme des crans de formulation : l'accent d'un mot est au bon endroit ou pas, mais un passage en contient plusieurs et la note les compte.
+
+## La grille des mesures
+
+Trois conditions pour qu'une feuille existe, et elles tiennent ensemble :
+
+- elle **se calcule toujours**, quelle que soit l'activité — sinon la configuration d'un défi déciderait quels champs existent, et deux séances ne porteraient pas la même matière ;
+- elle **veut dire quelque chose sans aucun défi**, dans une conversation ordinaire — sinon c'est un cas particulier déguisé en mesure ;
+- quelqu'un pourrait vouloir la **noter seule**.
+
+**Aucune feuille n'a deux sens.** Une feuille dont la direction devrait s'inverser selon l'activité est la mauvaise feuille : le défi « explique ça à un enfant de huit ans » ne demande pas la rareté du lexique à l'envers, il demande de s'adapter à qui écoute — c'est du registre, et la rareté passe simplement à 0.
+
+Ce qui suit est la grille du **format conversation** ; un autre format apporte la sienne. Aucune branche n'est close.
+
+**Élocution** — les sons (par son) ; l'accent lexical (par mot) ; la mélodie (par passage) ; le nombre de tentatives de prononciation. *Candidate* : le rythme, les durées relatives comparées au modèle. La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer.
+
+**Formulation** — le cran par groupe de mots, découpé par **la nature de l'empan marqué** : groupe verbal, groupe nominal, préposition ou particule, circonstanciel, proposition entière. Plus le nombre de tentatives de reformulation.
+
+Ce découpage-là plutôt qu'une liste de causes — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. La nature de l'empan est **fermée par construction**, tout empan étant une pièce de la phrase, et bien plus stable à juger : dire qu'un empan est un groupe verbal se vérifie, dire qu'une faute est d'aspect plutôt que de temps se discute. Coût assumé, c'est plus grossier — « I go there yesterday » et « I goed there » tombent au même endroit. La finesse est ailleurs, dans la consigne.
+
+**Fluidité** — le délai avant de parler ; le nombre et la longueur des silences intérieurs ; le silence final ; le débit ; les mots de remplissage ; les répétitions ; les reprises et faux départs. Les quatre premières n'existent qu'en capture automatique.
+
+Les trois dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. C'est un critère de choix de plus pour le banc de fidélité (`../../TODO.md`, chantier 2), qui ne le devait jusqu'ici qu'à la grammaire.
+
+**Richesse** — la variété du lexique ; sa rareté ; l'adéquation du registre ; la complexité de la phrase.
+
+**Compréhension** — la pertinence de la réponse ; le nombre d'écoutes du tour de l'IA.
+
+Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se lit qu'une fois**, par la fluidité : en faire aussi une mesure de compréhension compterait deux fois le même silence, avec deux poids qui s'additionnent sans que personne l'ait voulu. Et **l'allongement de syllabe** — « I waaaant », une hésitation portée par la durée — tomberait sur le même signal que le rythme de l'élocution ; il reste dehors tant que rien ne dit lequel des deux le lit.
+
+## Ce qui est jugé, ce qui est calculé
+
+**Trois feuilles sont jugées par le modèle de langue** — l'empan de formulation, l'adéquation du registre, la pertinence de la réponse. Tout le reste se calcule : un écart de répartition, un silence, un débit, un rapport, une table de fréquence.
+
+**Le juge rend un cran, jamais un pourcentage.** « 72 % de pertinence » n'est vérifiable par personne, et la finesse vient du comptage, comme pour les sons.
+
+- **empan de formulation** — les quatre crans ci-dessus, par groupe de mots.
+- **registre** — un cran par passage, avec un bon côté comme la formulation : remarquablement dans le ton / rien / approximatif / hors registre. Le bon côté se justifie pour la même raison que là-bas : il n'y a pas un seul ton correct, donc on peut dépasser l'acceptable.
+- **pertinence** — un cran par passage, et **pas de bon côté** : répond / répond à moitié / à côté. Contrairement au ton, il n'y a qu'une chose à faire, répondre à ce qui a été dit ; rien au-dessus.
+
+**Seule une feuille jugée prend une consigne** — du texte libre qui entre dans le critère que le juge lit. Une feuille calculée n'en prend pas : il n'y a pas de phrase à reformuler dans un écart de répartition. **Le poids choisit parmi ce qui est mesuré, la consigne reformule ce qui est jugé.** Un défi « prononce tous les -ed finaux » ne s'écrit donc pas en consigne sur les sons, que l'écart au modèle voit déjà, mais en creusant l'arbre pour ne peser que ces sons-là.
+
+**La consigne fait partie de la situation, pas des réglages.** C'est ce qui la rend compatible avec l'invariance : deux personnes dans la même activité reçoivent le même traitement, et c'est ça que l'invariance protège. Elle n'a ni positions ni phrase lisible par position, donc elle ne va pas dans la liste des leviers — c'est un champ à part, un `brief` par feuille jugée.
+
+**Une consigne n'est qu'additive.** Pour qu'une feuille compte moins ou pas du tout, il y a le poids, et lui seul. Une consigne « ignore les temps » est le cas interdit : elle ferait adoucir un verdict par un texte, ce que le module n'a pas le droit de faire.
+
+**Une feuille sous consigne n'est pas vérifiée par le banc**, qui éprouve le critère par défaut. Coût connu, pas un défaut à réparer.
+
+Deux défis que ça écrit sans champ neuf. « 100 % passé » pèse le groupe verbal et pose sa consigne dessus ; la marque sur « I'll go there » montre alors la consigne — le passé était demandé — au lieu de mentir sur la langue, puisque la phrase est de l'anglais parfait. Et le **mot interdit** est une consigne sur le registre : il n'a pas de feuille à lui, une feuille qui n'existe que si quelqu'un la configure ne passant pas les trois conditions.
+
+### Les conditions attachées à une feuille
+
+Ce qui rend une contrainte dure n'est pas la note — noyée dans une moyenne pondérée par la longueur, une occurrence coûte quelques centièmes de lettre — mais une **condition branchée sur la feuille**, qui fait perdre une vie ou refuse le passage sur-le-champ. Une vie perdue et une condition de fin sont la même chose vue deux fois : la fin, c'est zéro vie.
+
+Une condition **lit le résultat d'une feuille, elle ne change pas ce que la feuille mesure**. Elle se branche donc aussi bien sur une feuille calculée : un silence de plus de cinq secondes coûte une vie.
+
+**Le mécanisme reste à préciser** : porte-t-elle sur la mesure, sur la note, ou sur les deux. Deux formes se dessinent — la note de la feuille sous la barre, ou une position atteinte au moins une fois : un empan au cran « ne se dit pas », un passage jugé hors registre.
 
 ## La pression
 
@@ -219,36 +279,27 @@ Deux lignes sont neuves. **Le module ne peut pas adoucir un verdict** — un mod
 
 **Deux choses ressemblent à des décideurs et n'en sont pas.** La **mesure** n'a aucune discrétion : elle applique la barre qu'on lui donne, elle ne la choisit pas, et un décideur sans discrétion est une fonction. Le **prescripteur** n'est pas un décideur d'un autre genre, c'est le **siège** que l'apprenant occupe et que la conversation ou la progression occuperont à sa place — ce qui s'y décide est le même, matière et réglages, donc les mêmes interdictions s'y appliquent sans qu'il faille les réécrire.
 
-### Ce qui mesure chaque aptitude, et les leviers qui la pressent
+### Les leviers qui pressent chaque aptitude
 
-Deux choses par aptitude, et pas plus : le **critère** qui permet de l'évaluer, et les **leviers** qui modulent la pression sur elle. Ce sont les leviers du **format conversation** ; un autre format apporte les siens. Aucune de ces listes n'est close.
+Ce que chaque aptitude fait mesurer est dans « La grille des mesures » ; ici ne sont que les **leviers** qui modulent la pression sur elle, ceux du **format conversation**. Un autre format apporte les siens, et aucune de ces listes n'est close. Un levier commun à toutes ne se répète pas : **chaque feuille a sa sensibilité et son poids**, par construction de l'arbre.
 
 **Élocution**
-- *Mesure* : l'écart au modèle, aux trois échelles — les sons, l'accent du mot, la mélodie de la phrase.
-- *Leviers* : voir le texte, ou redire sa phrase de tête ; un temps limité, posé en pourcentage de la durée du texte synthétisé, et dépasser oblige à réessayer ; **une sensibilité par échelle**.
-
-Le nombre d'essais permis a quitté cette liste : ce n'est pas une pression sur l'élocution, c'est ce que le défi accorde à qui ne passe pas la barre.
-
-Les trois sensibilités sont distinctes parce que les trois échelles ne se mesurent pas dans la même unité — des points d'écart, des demi-tons, une position de syllabe — et qu'un seul chiffre ne peut pas les gouverner toutes. Elles ne font pas non plus la même chose : la mélodie n'est jamais teintée à l'écran, les deux courbes étant toujours tracées, donc sa sensibilité ne sert qu'à la note. Un seul bruit de fond est mesuré, celui des sons.
+- *Leviers* : voir le texte, ou redire sa phrase de tête ; un temps limité, posé en pourcentage de la durée du texte synthétisé, et dépasser oblige à réessayer.
 
 **Compréhension**
-- *Mesure* : la réponse montre qu'on a compris, ou révèle qu'on n'a pas compris.
 - *Leviers* : la complexité du tour de l'IA — longueur, vocabulaire, structure ; le texte affiché ou flouté ; la réécoute, autorisée ou non, et combien de fois ; le bruit et la qualité du canal, jusqu'à simuler un mauvais réseau qui coupe des mots.
 
 Le bruit s'applique **à la lecture**, jamais au rendu mis en cache : le même fichier sert d'étalon à la mesure, et le bruiter fausserait l'écart.
 
 **Formulation**
-- *Mesure* : le rang A–E, ci-dessus.
 - *Leviers* : la réponse de l'IA sur un tour fautif, en trois niveaux — absente (erreur ignorée, réponse normale), indication indirecte (la reprise dans sa réponse, ce que le code incite aujourd'hui), ou reformulation explicite dite comme un coach reprend son élève ; l'explication de la faute en notification, à deux niveaux — la règle à utiliser seule, ou la règle plus la phrase correcte.
 
 Le marquage a quitté cette liste : il est invariant, donc il n'est plus un levier. Les deux qui restent sont bien **deux** et non deux crans d'un seul, parce que **où** et **quoi** ne sont pas deux quantités de la même information : on peut donner l'un sans l'autre, dans les deux sens. C'est la distinction que l'analyse fait déjà pour le son, où le marquage dit où et nommer le son produit est un enrichissement séparé. Et tout en haut, ils se recouvrent : une reformulation explicite de l'IA donne déjà la phrase correcte à voix haute, que l'explication redonnerait par écrit.
 
 **Fluidité**
-- *Mesure* : le débit et les arrêts — le délai avant de commencer, le nombre et la longueur des silences.
 - *Leviers* : la capture, en trois positions (« La capture »).
 
 **Richesse**
-- *Mesure* : la précision et la variété du lexique, l'adéquation du registre, la longueur et la complexité de la phrase.
 - *Leviers* : le registre imposé, ou une contrainte du même genre ; la longueur imposée.
 
 ### Comment les curseurs se composent
@@ -263,7 +314,7 @@ Le test qui sépare une vraie collision du fonctionnement : **une combinaison n'
 
 Ce test donne une contrainte dure. Le bruit et le canal dégradé de la compréhension portent sur ce qui est **écouté**, jamais sur la prise de l'apprenant : l'analyse compare deux enregistrements traités symétriquement, et bruiter un seul côté rendrait l'écart mesuré en partie fabriqué (`../reference.md`).
 
-Et **une redite ne compte que pour l'élocution**. Ce sont des tours d'élocution sur une phrase identique, pas de la parole spontanée.
+Et **une redite ne compte que pour ce qu'elle sert à corriger**, l'élocution et la formulation : c'est une reprise d'une phrase identique, pas de la parole spontanée (« Le passage »).
 
 ## L'enjeu
 
@@ -299,7 +350,8 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Le calcul des notes.** La note par tour, la note de séance, et surtout **comment les trois échelles de l'élocution donnent une seule lettre**. Plusieurs mécanismes sont possibles, aucun n'est choisi.
+- **Ce que vaut une feuille avant d'être une lettre.** La forme de l'agrégation est écrite ; ce qui ne l'est pas est comment on passe des marques d'une feuille à son chiffre — combien de crans sur quelle longueur —, et où chaque sensibilité pose ses bornes A–E.
+- **Le mécanisme des conditions** branchées sur une feuille : sur la mesure, sur la note, ou les deux.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers.
 - **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode.
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
