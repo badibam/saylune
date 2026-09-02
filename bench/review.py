@@ -28,6 +28,8 @@ import termios
 import tty
 from pathlib import Path
 
+import atomic
+
 import soundfile as sf
 
 import expected
@@ -300,7 +302,7 @@ def main(argv=None):
     # The two audios the verdicts were given on, by their bytes: synthesis is
     # not reproducible, and a judgement filed under a phrase's name would
     # otherwise outlive the sounds it was about.
-    out.write_text(json.dumps({"take": options.take, "model": options.model,
+    atomic.write_text(out, json.dumps({"take": options.take, "model": options.model,
                                "voice": options.candidate, "text": text,
                                "digests": {"model": matrix.fingerprint(model),
                                            "take": matrix.fingerprint(learner)},

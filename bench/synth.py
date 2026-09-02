@@ -20,6 +20,8 @@ from pathlib import Path
 
 import requests
 
+import atomic
+
 TIMEOUT_SECONDS = 30
 SAMPLE_RATE = 16000
 
@@ -54,8 +56,7 @@ def env(*names):
 
 
 def write_wav(path, pcm):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "wb") as handle:
+    with atomic.opened(path) as raw, wave.open(raw, "wb") as handle:
         handle.setnchannels(1)
         handle.setsampwidth(2)
         handle.setframerate(SAMPLE_RATE)

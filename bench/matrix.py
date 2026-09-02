@@ -21,6 +21,8 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
+import atomic
+
 # The acoustic model is a parameter, because which one to run is exactly what
 # the bench is measuring. Anything with frame-level logits over a phone
 # inventory fits: what is read is the spread, never the label.
@@ -425,20 +427,9 @@ def probabilities(wav, cache=None):
         probabilities = torch.softmax(logits, dim=-1).numpy().astype(np.float32)
 
     if cache is not None:
-        # Written aside then renamed, never in place: a run killed mid-write
-        # otherwise leaves a truncated cache, and a truncated cache is worse
-        # than an absent one -- it is not detected as missing, it raises in the
-        # middle of the next run. Regenerable does not exempt it.
-        cache = Path(cache)
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        part = cache.with_suffix(".npz.part")
-        # Through a handle, because savez appends `.npz` to any name that does
-        # not already end in it -- the temporary would land beside the cache
-        # instead of becoming it.
-        with open(part, "wb") as handle:
+        with atomic.opened(cache) as handle:
             np.savez_compressed(handle, probabilities=probabilities,
                                 audio=heard(wav))
-        part.replace(cache)
     return probabilities
 
 

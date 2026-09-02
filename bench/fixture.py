@@ -25,6 +25,7 @@ import struct
 import sys
 from pathlib import Path
 
+import atomic
 import matrix
 import phrases
 import turn
@@ -36,7 +37,7 @@ OUT = HERE.parent / "app" / "src" / "testDebug" / "resources" / "fixture"
 def freeze(into, name, probabilities):
     """Shape then rows, little-endian: the plainest thing both sides can read."""
     frames, width = probabilities.shape
-    with open(into / name, "wb") as handle:
+    with atomic.opened(into / name) as handle:
         handle.write(struct.pack("<ii", frames, width))
         handle.write(probabilities.astype("<f4").tobytes())
     return frames, width
@@ -62,16 +63,16 @@ def main(argv=None):
         "model.matrix": freeze(into, "model.matrix", matrix.probabilities(model)),
         "said.matrix": freeze(into, "said.matrix", matrix.probabilities(learner)),
     }
-    (into / "vocab.json").write_text(
+    atomic.write_text(
+        into / "vocab.json",
         json.dumps({name: index for index, name in enumerate(matrix.symbols())},
-                   indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+                   indent=2, ensure_ascii=False) + "\n")
 
     expected = turn.read(options.take, options.model, options.candidate)
     if expected is None:
         raise SystemExit("turn.py n'a rien rendu sur cette paire")
-    (into / "expected.json").write_text(
-        json.dumps(expected, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8")
+    atomic.write_text(into / "expected.json",
+                      json.dumps(expected, indent=2, ensure_ascii=False) + "\n")
 
     print(f"  {into}")
     for name, (frames, width) in shapes.items():

@@ -39,6 +39,8 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
+import atomic
+
 import join
 import learners
 import matrix
@@ -151,9 +153,10 @@ def extract(split, budget, out):
             f"`python3 alarms.py -s {split} -b 0 -c {VOICE} -p` le dit, et `-r -y` "
             "les synthétise, et c'est là que les caractères se dépensent")
 
-    out.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(out, states=np.stack(rows), labels=np.array(labels),
-                        words=np.array(words), stress=np.array(stress))
+    with atomic.opened(out) as handle:
+        np.savez_compressed(handle, states=np.stack(rows),
+                            labels=np.array(labels), words=np.array(words),
+                            stress=np.array(stress))
     print(f"{split} : {kept} mots, {len(rows)} syllabes → {out}")
 
 
@@ -213,9 +216,10 @@ def freeze(layer):
     mean, deviation = x.mean(axis=0), x.std(axis=0) + 1e-6
     net = fit((x - mean) / deviation, y, torch)
     out = STORE / f"probe-l2-{layer}.npz"
-    np.savez(out, layer=layer, mean=mean, deviation=deviation,
-             weight=net.weight.detach().numpy()[0],
-             bias=net.bias.detach().numpy())
+    with atomic.opened(out) as handle:
+        np.savez(handle, layer=layer, mean=mean, deviation=deviation,
+                 weight=net.weight.detach().numpy()[0],
+                 bias=net.bias.detach().numpy())
     print(f"couche {layer} figée sur {len(x)} syllabes d'apprenant → {out}")
 
 

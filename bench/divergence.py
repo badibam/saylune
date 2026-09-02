@@ -39,6 +39,8 @@ import json
 import random
 from pathlib import Path
 
+import atomic
+
 import numpy as np
 
 import expected
@@ -293,8 +295,8 @@ def main(argv=None):
                 answer = review.ask("  a  b  n=aucun  ?=incertain  "
                                     "5/3/1=vitesse  r=réécouter  q  ")
                 if answer is None or answer == "q":
-                    book.write_text(json.dumps(given, ensure_ascii=False,
-                                               indent=2), encoding="utf-8")
+                    atomic.write_text(book, json.dumps(given, ensure_ascii=False,
+                                                       indent=2))
                     return 0
                 if answer in SPEEDS:
                     speed = SPEEDS[answer]
@@ -314,8 +316,8 @@ def main(argv=None):
                                   "juste": {"a": sides[0][0],
                                             "b": sides[1][0]}.get(
                                       answer, ANSWERS[answer])}
-                    book.write_text(json.dumps(given, ensure_ascii=False,
-                                               indent=2), encoding="utf-8")
+                    atomic.write_text(book, json.dumps(given, ensure_ascii=False,
+                                                       indent=2))
                     break
 
     if absent:

@@ -38,6 +38,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import atomic
+
 import review
 
 HERE = Path(__file__).resolve().parent
@@ -220,8 +222,8 @@ def fetch():
         time.sleep(PAUSE)
         print(f"  /{symbol:<3}/ {target.name:<10}{target.stat().st_size:>8} o  "
               f"{row['licence']}")
-    PROVENANCE.write_text(
-        json.dumps(provenance, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    atomic.write_text(
+        PROVENANCE, json.dumps(provenance, indent=2, ensure_ascii=False) + "\n")
     print(f"\n  {len(provenance)} fichiers, provenance dans {PROVENANCE}")
     missing = [s for s, v in SOURCES.items() if v is None]
     print(f"  sans source : {' '.join(missing)}")
@@ -313,11 +315,11 @@ def ship():
         if not verdict["ok"]:
             continue
         row = provenance[symbol]
-        (into / f"{symbol}.ogg").write_bytes((OUT / row["file"]).read_bytes())
+        atomic.write_bytes(into / f"{symbol}.ogg", (OUT / row["file"]).read_bytes())
         credits[symbol] = {"title": row["title"], "author": row["author"],
                            "licence": row["licence"], "page": row["page"]}
-    (into / "credits.json").write_text(
-        json.dumps(credits, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    atomic.write_text(into / "credits.json",
+                      json.dumps(credits, indent=2, ensure_ascii=False) + "\n")
 
     unchecked = [s for s in provenance if s not in verdicts]
     refused = [s for s, v in verdicts.items() if not v["ok"]]
@@ -332,8 +334,8 @@ def ship():
 
 
 def save(verdicts):
-    VERDICTS.write_text(json.dumps(verdicts, indent=2, ensure_ascii=False) + "\n",
-                        encoding="utf-8")
+    atomic.write_text(VERDICTS,
+                      json.dumps(verdicts, indent=2, ensure_ascii=False) + "\n")
 
 
 def main(argv=None):

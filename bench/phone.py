@@ -30,6 +30,8 @@ from pathlib import Path
 
 import numpy as np
 
+import atomic
+
 HERE = Path(__file__).resolve().parent
 PACKAGE = "app.speakup.debug"
 PROBE = f"{PACKAGE}/app.speakup.embedded.ProbeActivity"
@@ -136,8 +138,8 @@ def gathered(destination):
         values = np.frombuffer(raw, dtype="<f4", offset=8).reshape(frames, symbols)
         tag, _, slug = dump.stem.partition(JOIN)
         cache = destination / tag / f"{slug}.npz"
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(cache, probabilities=values)
+        with atomic.opened(cache) as handle:
+            np.savez_compressed(handle, probabilities=values)
         written += 1
     return written
 

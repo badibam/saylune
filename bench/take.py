@@ -26,6 +26,7 @@ import sys
 import wave
 from pathlib import Path
 
+import atomic
 import synth
 import phrases
 
@@ -55,7 +56,7 @@ def trim_lead(path):
     with wave.open(str(path), "rb") as handle:
         rate = handle.getframerate()
         frames = handle.readframes(handle.getnframes())
-    with wave.open(str(path), "wb") as handle:
+    with atomic.opened(path) as raw, wave.open(raw, "wb") as handle:
         handle.setnchannels(1)
         handle.setsampwidth(2)
         handle.setframerate(rate)
