@@ -34,7 +34,7 @@ Les trois sont nommés en code (`Prescriber`) et **seul l'apprenant en est un po
 
 Trois choses que la première passe confondait en une.
 
-Une **définition** est une activité écrite d'avance : son format, ses réglages de départ, sa rampe s'il y en a une, ses conditions de fin, son critère de réussite. Elle est **écrite en dur dans le code, et fixe**. On la rejoue autant qu'on veut.
+Une **définition** est une activité écrite d'avance : son format, ses réglages de départ, ses règles — ce qui change en cours de route, ce qui met fin —, son critère de réussite. Elle est **écrite en dur dans le code, et fixe**. On la rejoue autant qu'on veut.
 
 Une **exécution** est une ligne en base : une partie jouée, un essai, une conversation. C'est ce que le code appelle une activité, et c'est la seule des trois qui se stocke.
 
@@ -73,7 +73,7 @@ Et **`mode` n'est pas un champ** : « arcade », « campagne », « défi », «
 
 **Ce qui se stocke est une liste ouverte de positions de leviers, et rien d'autre.** Le critère est qu'elles répondent toutes à la même question : *où en est ce paramètre en ce moment*. Une rampe n'y répond pas, elle dit comment ça va changer ; une origine non plus, elle dit d'où les réglages viennent. Ces choses-là ont leurs champs à elles.
 
-Deux raisons concrètes de tenir cette homogénéité. L'arcade doit **annoncer chaque changement en une phrase**, ce qui exige que toute entrée porte une phrase lisible pour chacune de ses positions — une rampe n'en a pas. Et l'état effectif se calcule depuis les réglages et l'avancement : mettre la rampe dans les réglages ferait chercher l'entrée du calcul là où il range sa sortie.
+Deux raisons concrètes de tenir cette homogénéité. L'arcade doit **annoncer chaque changement en une phrase**, ce qui exige que toute entrée porte une phrase lisible pour chacune de ses positions — une rampe n'en a pas. Et l'état effectif se calcule depuis les réglages et les règles : mettre une règle dans les réglages ferait chercher l'entrée du calcul là où il range sa sortie.
 
 **Un curseur d'aptitude n'est pas un paramètre, c'est un préréglage** — un nom donné à un ensemble de positions. C'est le mode custom qui le prouve, puisqu'il expose chaque levier séparément : si les curseurs étaient le modèle, il faudrait une deuxième façon de décrire la même séance, et les tenir d'accord.
 
