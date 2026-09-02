@@ -12,7 +12,6 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
 - `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : la définition, l'exécution et le bloc, les réglages comme positions de leviers, les prescripteurs, la pression et ses leviers, les notes en A–E, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
-- `design/ui-flow.md` — le flux et l'écran, de bout en bout : posture, micro, marquage, chorégraphie du tour.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
 

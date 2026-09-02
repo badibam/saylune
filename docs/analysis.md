@@ -162,7 +162,7 @@ Sur TIMIT, où la vérité existe, la même sonde désigne la bonne syllabe dans
 
 **L'alphabet coûte aussi au niveau du son, et personne ne l'avait écrit.** Puisque `ə` et `ʌ`, `ɚ` et `ɝ`, `ɔ` et `ɑ` partagent une colonne, une confusion entre ces voyelles-là **ne peut jamais être marquée**, quelle que soit la prise et quel que soit le seuil. C'est un angle mort de l'analyse en service, indépendant de l'accent tonique, et il se mesure au niveau du son plutôt qu'ici.
 
-**Ce qui s'affiche : la syllabe.** `design/ui-flow.md` a tranché la forme — graisse sur la syllabe que le modèle accentue, et sur une faute deux réglettes sous la ligne, rouge où l'accent est parti, verte où il devait tomber. Deux réglettes se comparent, deux points non ; et les trois canaux graphiques sont des étendues. Il faut donc une étendue syllabique exacte, pas approchée.
+**Ce qui s'affiche : la syllabe.** La forme est tranchée et en service — graisse sur la syllabe que le modèle accentue, et sur une faute deux réglettes sous la ligne, rouge où l'accent est parti, verte où il devait tomber. Deux réglettes se comparent, deux points non ; et les trois canaux graphiques sont des étendues. Il faut donc une étendue syllabique exacte, pas approchée.
 
 ### 8. La syllabification — sur la grille, pas sur le texte
 
