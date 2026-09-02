@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, et par celle qui a écrit ce que vaut une feuille pour toute l'élocution. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -170,6 +170,58 @@ Deux réglages par nœud, et ils ne font pas la même chose :
 
 Un défi qui ne note que l'accent tonique est donc un poids à 1 et des poids à 0, pas un mécanisme à part. C'est ce qui permet de viser sans ajouter de champ : quoi qu'on note, l'information est déjà là.
 
+### Des marques au chiffre d'une feuille
+
+**Une feuille est la moyenne de ses éléments.** Une part et une moyenne sont la même chose — une proportion, c'est la moyenne d'un 0/1 —, donc il n'y a qu'une recette. Ce qui change d'une feuille à l'autre n'est pas la formule mais **ce que vaut un élément** : 0 ou 1 quand la question est fermée, une quantité brute quand elle est graduée. Et une feuille qui ne rend qu'un chiffre pour tout le passage — le débit, le délai avant de parler — est le même cas avec un seul élément.
+
+**Jamais un nombre d'occurrences.** Deux gros ratés dans *Where is it?* et deux dans *I was thinking about going to the market* ne valent pas la même chose : sur quatre mots dont deux abîmés, personne ne rattrape le sens ; sur neuf, le contexte répare. Et la raison mécanique est déjà écrite plus haut — chaque feuille pèse par la longueur du passage, donc un nombre ferait compter la longueur deux fois, une fois parce qu'une phrase longue a mécaniquement plus de ratés, une fois par le poids. Une proportion multipliée par la longueur redonne le nombre.
+
+**Le dénominateur est ce que la feuille lit**, pas tout le passage : sur un défi qui ne pèse que les *th*, un raté sur les quatre *th* de la phrase fait 25 %, pas 3 %. Le poids choisit les colonnes, le dénominateur suit le poids.
+
+**Les comptes sont hors du poids par longueur.** Le nombre de tentatives, le nombre d'écoutes, les faux départs ne sont ni une part ni une moyenne : ce sont des entiers. Les peser par la longueur ferait que deux redites sur une phrase longue comptent plus que deux redites sur une courte, alors que redire deux fois est redire deux fois — et si la longueur jouait, elle jouerait à l'envers, la phrase courte étant la plus facile à reprendre. Un passage compte donc une fois pour ces feuilles-là, quelle que soit sa longueur.
+
+**Le nombre ne disparaît pas pour autant, il change d'endroit.** « Zéro faute franche » compte des occurrences : c'est une condition branchée sur la feuille, pas une note. Les deux lisent la même chose et n'en font pas le même usage.
+
+**Le chiffre d'une feuille est dans son unité à elle** — un pourcentage pour les gros ratés, des demi-tons pour la mélodie, des mots par seconde pour le débit, un entier pour les tentatives. Rien ne les rend comparables avant le passage en A–E, donc **c'est la sensibilité qui rend les feuilles comparables**. Elle n'est pas un curseur de 1 à 5 partagé : c'est un jeu de bornes propre à chaque feuille, dans son unité. « Ce défi est plus sévère » se traduit feuille par feuille.
+
+**Et la sensibilité déplace les bornes A–E, jamais une ligne interne à la mesure.** Si les deux se réglaient, durcir la ligne ferait monter la proportion et baisser la borne A ferait tomber la note : deux boutons, un seul effet, et plus rien ne dirait lequel a rendu une séance dure. C'est l'argument déjà servi pour refuser que la barre « A ou B » se règle en même temps que la sévérité. Une ligne appartient à la mesure, comme la bande de bruit.
+
+#### Les sons
+
+**La branche se coupe en deux feuilles**, parce que deux défis veulent des choses opposées. « Fais-toi comprendre » ne compte que ce qui change le mot ; « gomme ton accent » compte tout, et un apprenant parfaitement compréhensible à l'accent épais réussit le premier et échoue le second. Un seul chiffre servant les deux serait réglé par un curseur qui déciderait laquelle des deux questions on pose, c'est-à-dire une feuille à deux sens, ce que la grille interdit.
+
+- **Les gros ratés** — la part des sons où le mot a changé. **Binaire par son** : un son à 95 ne compte pas plus qu'un son à 40, la question étant fermée. Graduer reprendrait le travail de l'autre feuille, et les deux diraient la même chose en moins net.
+- **La masse des écarts** — la moyenne des écarts sur tous les sons, gros ratés compris. Aucune ligne, donc aucun seuil à trouver.
+
+**La ligne du gros raté est celle où la rampe sature, 30 points, et c'est la même pour la feuille et pour l'écran.** Ailleurs, deux lettres peintes du même rouge plein compteraient différemment dans la note, et l'apprenant n'aurait aucun moyen de voir la différence sur laquelle la note agit. Avec cette ligne, rouge plein veut dire gros raté, et ça se lit à l'œil sans explication.
+
+Ce que le banc pin, et ce qu'il ne pin pas : sur le jeu étiqueté, les témoins sont à 0,3 point, les demi-fautes sous 25, les fautes franches au-dessus de 93 (`../analysis.md`). La ligne est donc quelque part entre 26 et 92, où n'importe quelle valeur sépare aussi bien les deux populations. **30 n'est pas mesuré** : il vient de l'écran, où il avait été posé pour que l'image cesse de changer là où la différence cesse de vouloir dire quelque chose. Ce qui resserrerait l'intervalle, ce sont des fautes vraiment intermédiaires, que le jeu d'essai n'a pas — il n'a que des franches et des demies.
+
+Effet à connaître : `09-walkin`, le /ŋ/ de *walking* dit /n/, tombe sous la ligne. Il compte dans la masse des écarts et pas dans l'intelligibilité, ce qui est le bon comportement — on comprend *walkin'*.
+
+**Un son ajouté ou manquant est un gros raté par nature, pas par franchissement de ligne.** Il n'a aucun point, n'ayant rien en face de lui à comparer (`embedded/Marks.kt`), et l'écran le peint déjà au bout saturé de la rampe : ce n'est pas un degré de faux, c'est une chose qui est là et ne devrait pas y être, ou l'inverse.
+
+#### La mélodie
+
+Deux feuilles, sur le même modèle que les sons.
+
+- **La distance** — à chaque syllabe, l'écart de hauteur entre les deux courbes, chaque côté ramené d'abord à sa propre médiane, et la **moyenne simple** de ces écarts, en demi-tons.
+- **La grosse divergence** — la part des transitions où l'apprenant ne fait pas le mouvement du modèle. D'une syllabe à la suivante : si le modèle bouge moins que la bande de bruit, la transition n'est pas lue du tout ; sinon on lit `r`, le mouvement de l'apprenant divisé par celui du modèle, avec son signe. `r = 1`, il fait le mouvement exact ; `r = 0`, il est plat ; `r` négatif, il fait l'inverse.
+
+Trois méthodes écartées, chacune par un cas du banc plutôt que par goût. **La corrélation** ignore l'amplitude, donc qui fait la bonne forme deux fois trop petite obtient un score parfait — or le cas 22 du banc, la phrase dite plate à la française, est étiqueté comme une faute : la seule faute de mélodie que le projet ait étiquetée disqualifie toute méthode qui normalise l'amplitude. **La moyenne des carrés** laisse une divergence isolée écraser le reste, ce qui est le travail de la feuille voisine. **Le recalage temporel élastique** sert à comparer deux courbes décalées dans le temps ; ici elles sont déjà alignées syllabe par syllabe, même texte — et il pardonnerait à qui met sa montée sur la mauvaise syllabe, ce qui est justement une faute.
+
+Pourquoi `r` plutôt qu'un seuil en demi-tons : trois demi-tons sont énormes là où le modèle ne bouge pas et négligeables là où il monte de quinze. `r` est sans unité et ses repères se lisent en français — zéro, il ne bouge pas ; négatif, il fait l'inverse. Les deux prises du banc tombent chacune d'un côté : le 22 donne `r` proche de zéro, le 21, montant là où le modèle descend, donne `r` négatif.
+
+**Portée : toute la phrase, et ce n'est pas mesuré.** La brique 10 ne lit aujourd'hui que la région voisée finale et n'en rend qu'une pente (`../analysis.md`) ; le contour par syllabe existe dans le chemin d'affichage (`marking/TurnMarking.kt`) et n'a jamais été confronté à des étiquettes. On l'étend quand même : une échelle qui ne parle que là où elle est sûre laisse passer les fautes qu'elle est là pour attraper, et l'emphase — *I said it IS important* — ne vit pas à la fin de la phrase.
+
+**Gardé de côté** : `r` proche de zéro et `r` négatif ne disent pas la même chose — l'aplatissement est le trait systématique du francophone, l'inversion change le sens et elle est rare. En faire deux feuilles reste possible, c'est ce que l'arbre permet ; ça n'a pas été tranché.
+
+#### L'accent lexical et les tentatives
+
+**L'accent** — élément le mot, binaire : l'appui est tombé sur la bonne syllabe ou ailleurs. Le dénominateur n'est pas « les mots » : un monosyllabe n'a pas de choix d'accent, et un mot outil n'a pas d'appui net même chez le modèle, ce qui demande le seuil « le modèle a-t-il un accent net » que `../analysis.md` réclame déjà. Ce sont donc **les mots de plus d'une syllabe que le modèle accentue nettement**. La brique n'étant pas en service, la feuille est **absente** et sort de la somme au lieu de valoir zéro.
+
+**Les tentatives** — un entier par passage, hors du poids par longueur. Ce sont des **tentatives** et non des redites : la feuille vaut au moins 1 et existe sur tous les passages. Compter des redites la mettrait à zéro presque partout, et une feuille à zéro partout tire la moyenne vers le haut sans rien dire.
+
 ### L'agrégation se fait une fois, à plat
 
 **Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
@@ -234,6 +286,8 @@ La formulation partage donc la famille de couleurs des sons — le vert pour le 
 
 **Et le cran « ne se dit pas » ferme la porte quel que soit le réglage**, sans passer par la note. Une phrase qui ne se dit pas, l'app devrait la synthétiser pour l'analyser, donc la faire entendre comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
 
+**Point ouvert : ce qui tombe d'un côté ou de l'autre dépend d'une décision du modèle de langue.** *I walk to school yesterday.* Le STT transcrit la bouche, donc *walk* ; le modèle décide l'intention, et avec *yesterday* il peut écrire *walked*. S'il écrit *walked*, la grammaire est correcte, la porte est ouverte, et l'analyse voit un /t/ manquant : faute de prononciation. S'il écrit *walk*, la grammaire est fautive, la porte se ferme, et rien du son ne s'analyse : faute de formulation. Le même énoncé, deux traitements opposés, et ce qui tranche n'est contrôlé par personne.
+
 **La marque porte sur un élément, la note agrège sur le passage.** C'est vrai des trois échelles du son comme des crans de formulation : l'accent d'un mot est au bon endroit ou pas, mais un passage en contient plusieurs et la note les compte.
 
 ## La grille des mesures
@@ -248,7 +302,7 @@ Trois conditions pour qu'une feuille existe, et elles tiennent ensemble :
 
 Ce qui suit est la grille du **format conversation** ; un autre format apporte la sienne. Aucune branche n'est close.
 
-**Élocution** — les sons (par son) ; l'accent lexical (par mot) ; la mélodie (par passage) ; le nombre de tentatives de prononciation. *Candidate* : le rythme, les durées relatives comparées au modèle. La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer.
+**Élocution** — les gros ratés et la masse des écarts, deux feuilles sur les mêmes sons ; la distance des courbes et la part des mouvements non faits, deux feuilles sur la mélodie ; l'accent lexical, par mot ; le nombre de tentatives de prononciation. Ce que vaut un élément et ce qui fait le dénominateur, feuille par feuille, est en « Des marques au chiffre d'une feuille ». *Candidate* : le rythme, les durées relatives comparées au modèle. La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer.
 
 **Formulation** — le cran par groupe de mots, découpé par **la nature de l'empan marqué** : groupe verbal, groupe nominal, préposition ou particule, circonstanciel, proposition entière. Plus le nombre de tentatives de reformulation.
 
@@ -450,7 +504,10 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Ce que vaut une feuille avant d'être une lettre.** La forme de l'agrégation est écrite ; ce qui ne l'est pas est comment on passe des marques d'une feuille à son chiffre — combien de crans sur quelle longueur —, et où chaque sensibilité pose ses bornes A–E.
+- **Ce que vaut une feuille, hors de l'élocution.** La forme est écrite pour les sons, la mélodie, l'accent et les tentatives (« Des marques au chiffre d'une feuille »). La formulation, la fluidité, la richesse et la compréhension n'ont pas été balayées.
+- **La formulation casse la forme, et c'est le premier point à reprendre.** Deux choses y manquent. Son **dénominateur** : un juge marque ce qui cloche, il n'énumère pas ce qui va, donc rien ne compte les empans d'un passage propre — une piste est de lui faire découper toute la phrase, ce que la grille suppose déjà en disant que tout empan est une pièce de la phrase. Et ses **deux côtés ne s'additionnent pas** : une tournure brillante ne compense pas un verbe cassé, donc les fautes fixent un plafond et le cran haut ne bouge qu'en dessous, ce qui demande deux chiffres là où toutes les autres feuilles en rendent un. Trois issues se dessinaient — assumer la paire, faire du cran haut une feuille séparée (mais entre feuilles la moyenne compense, ce qui est écrit comme interdit), ou porter le plafond par une condition.
+- **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
+- **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
 - **La liste fermée des sortes de déclencheurs** d'une règle, et si un déclencheur lit une mesure, une note, ou les deux.
 - **D'où vient la propriété d'une voix** — table écrite par fournisseur, ou chiffre mesuré — pour qu'un personnage demande « difficile à suivre » sans nommer personne.
 - **Ce qui empêche la persona d'atteindre la reconstruction d'`intended`**, un même appel faisant les deux.
