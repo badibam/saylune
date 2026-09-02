@@ -63,7 +63,9 @@ Les réglages sont **fixés pour toute la durée** de la conversation. Ce ne son
 
 Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur des **leviers**, qui sont les vrais paramètres et ce qui se stocke. Ce que chaque aptitude fait mesurer et par quels leviers elle se presse est écrit dans `design/activity-model.md`, avec qui a le droit d'en décider — l'apprenant, le module, l'IA — et ce que chacun ne décide jamais.
 
-**Aucun réglage ne touche une marque.** La même faute produit la même marque quels que soient les réglages ; ce qu'ils gouvernent, c'est ce qu'on en **fait** — s'il faut redire, si ça compte dans la note. La raison est qu'une marque dont l'absence dépendrait du réglage du jour ne transporte plus rien : rien ne la distingue alors d'une approbation. Le mécanisme des deux barres est à spécifier (`design/activity-model.md`).
+**Aucun réglage ne touche une marque.** La même faute produit la même marque quels que soient les réglages ; ce qu'ils gouvernent, c'est ce qu'on en **fait** — s'il faut redire, si ça compte dans la note. La raison est qu'une marque dont l'absence dépendrait du réglage du jour ne transporte plus rien : rien ne la distingue alors d'une approbation.
+
+Le mécanisme tient en trois étages : la **mesure**, que rien ne règle ; la **marque**, qui l'affiche telle quelle ; la **note**, qui l'agrège et où les réglages entrent seuls, la sévérité décidant où tombent les bornes A–E. Le reste se lit sur la note : **A ou B, ça va** — sur un tour c'est ce qui décide s'il faut redire, sur une activité si c'est réussi. Cette barre ne se règle pas ; ce qui se règle est ce qu'il faut faire pour l'atteindre (`design/activity-model.md`).
 
 **La formulation se note en rangs, de A à E** — ce qu'un natif dirait, correct et naturel, correct mais maladroit, fautif mais compris, ne se dit pas. Le rang se calcule et se souligne toujours, d'une couleur qui vient de lui seul (`design/activity-model.md`).
 
@@ -79,7 +81,7 @@ Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur de
 
 La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire : elle va disparaître. La conséquence technique suit — **sur un tour grammaticalement fautif, l'analyse sonore ne tourne pas du tout.** Elle n'est pas cachée, elle n'est pas calculée.
 
-**La porte suit ce qui va être réécrit, pas la grammaire absolue.** Un tour la ferme quand quelque chose s'apprête à en produire une version corrigée — c'est la raison même de la porte. Elle ne se lit donc pas au marquage, qui est invariant, mais au rang de formulation : à partir de quel rang il faut redire est un réglage. Coût assumé au réglage le plus lâche : le modèle dira d'une voix native une tournure maladroite qu'on a choisi de ne pas reprendre.
+**La porte suit ce qui va être réécrit, pas la grammaire absolue.** Un tour la ferme quand quelque chose s'apprête à en produire une version corrigée — c'est la raison même de la porte. Elle ne se lit donc pas au marquage, qui est invariant, mais à la note de formulation du tour : la porte se ferme sur le tour qui ne passe pas la barre. Coût assumé au réglage le plus lâche : le modèle dira d'une voix native une tournure maladroite qu'on a choisi de ne pas reprendre.
 
 **Le rang E ferme la porte quel que soit le réglage.** Une phrase qui ne se dit pas devrait être synthétisée pour être analysée, donc entendue comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
 

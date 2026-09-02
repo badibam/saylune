@@ -44,7 +44,7 @@ Un **bloc** est un groupe nommé de définitions, avec une seule propriété qui
 
 **Rien de tout ça n'est en base** : ni table de blocs, ni table de campagnes, ni table d'avancement. Les définitions vivent dans le code, et **l'avancement se dérive des résultats** — un niveau est ouvert si les résultats des précédents le disent. Un avancement stocké serait une deuxième source qui se décale du résultat.
 
-**Le déverrouillage lit la moyenne des notes** de la séance, sur les aptitudes qui en ont une : la fluidité n'en a pas sous capture manuelle, et elle ne compte alors pas comme un zéro. Le seuil est une **donnée du bloc**, pas une règle générale — le premier bloc qui veut autre chose ne doit pas obliger à rouvrir le code commun.
+**Le déverrouillage lit la moyenne des notes** de la séance, sur les aptitudes qui en ont une : la fluidité n'en a pas sous capture manuelle, et elle ne compte alors pas comme un zéro. Le seuil est celui de partout — A ou B (« La marque est invariante »). Un bloc qui veut être plus dur monte la sévérité de ses réglages ; il ne déplace pas la barre.
 
 Trois conséquences à ne pas redécouvrir plus tard.
 
@@ -94,9 +94,21 @@ Le détail de ce que chaque levier produit est à préciser.
 
 **La même faute produit la même marque, à n'importe quel moment, quels que soient les réglages.** Aucun levier ne touche jamais une marque. C'est l'exigence de `../reference.md` tenue jusqu'au bout : une marque dont la couleur ou la présence dépendrait du réglage du jour ne transporte plus rien, puisque son absence ne se distingue pas d'une approbation.
 
-Ce que les réglages gouvernent, c'est ce qu'on **fait** de la marque : est-ce qu'il faut redire, est-ce que ça compte dans la note. **Le mécanisme reste à spécifier** — on sait ce qui doit varier, pas encore par quoi.
+Il y a donc **trois étages, et un seul où les réglages entrent**.
 
-Deux choses en découlent et sont acquises : le rang de formulation se souligne **toujours**, et la rampe des sons est la même partout et tout le temps — la bande de bruit de ±5 n'est pas un réglage mais une propriété mesurée de la machine.
+- **La mesure** — l'écart au modèle pour le son, le cran de formulation pour un groupe de mots. Aucun réglage ne la touche.
+- **La marque** — elle affiche la mesure telle quelle. Invariante, c'est le repère stable de l'apprenant.
+- **La note** — elle agrège les mesures du tour, puis de la séance. C'est **là et nulle part ailleurs** que les réglages agissent : la sévérité décide à quel niveau de fautes on passe de A à B, de B à C.
+
+Ce que les réglages gouvernaient — faut-il redire, est-ce que ça compte dans la note — n'est donc plus deux choses. Compter dans la note **est** l'effet du réglage, et redire se lit sur la note qui en sort plutôt que sur la mesure brute. Une seule lecture réglée, tout le reste en découle.
+
+**Une seule barre, la même partout : A ou B, ça va.** Sur un tour elle décide s'il faut redire ; sur une activité, si c'est réussi et si le niveau suivant s'ouvre. L'apprenant apprend la règle une fois et elle vaut partout.
+
+**Et elle ne se règle pas.** Si la sévérité et la barre bougeaient toutes les deux, deux boutons feraient la même chose et plus rien ne dirait lequel a rendu une séance dure. Ce qui se règle est la sévérité ; ce qu'il faut atteindre ne bouge jamais.
+
+Ça retire deux choses qui étaient écrites ici : il n'y a **pas de barre de redire par échelle**, les sensibilités ne servant qu'à la note ; et **le nombre d'essais permis n'est pas un levier d'élocution** mais une propriété du défi, qui dit combien de fois on peut ne pas passer.
+
+Deux choses restent acquises : la formulation se souligne **toujours** dès qu'il y a un cran à montrer, et la rampe des sons est la même partout et tout le temps — la bande de bruit de ±5 n'est pas un réglage mais une propriété mesurée de la machine.
 
 **Perte assumée** : il n'y a plus de conversation sans aucune marque grammaticale. C'est plutôt un retour au texte d'origine, qui dit que sans la trace la discrétion se retourne — on corrige et personne ne l'apprend.
 
@@ -156,7 +168,9 @@ Deux choses par aptitude, et pas plus : le **critère** qui permet de l'évaluer
 
 **Élocution**
 - *Mesure* : l'écart au modèle, aux trois échelles — les sons, l'accent du mot, la mélodie de la phrase.
-- *Leviers* : voir le texte, ou redire sa phrase de tête ; un temps limité, posé en pourcentage de la durée du texte synthétisé, et dépasser oblige à réessayer ; le nombre de reprises permises ; **une sensibilité par échelle**.
+- *Leviers* : voir le texte, ou redire sa phrase de tête ; un temps limité, posé en pourcentage de la durée du texte synthétisé, et dépasser oblige à réessayer ; **une sensibilité par échelle**.
+
+Le nombre d'essais permis a quitté cette liste : ce n'est pas une pression sur l'élocution, c'est ce que le défi accorde à qui ne passe pas la barre.
 
 Les trois sensibilités sont distinctes parce que les trois échelles ne se mesurent pas dans la même unité — des points d'écart, des demi-tons, une position de syllabe — et qu'un seul chiffre ne peut pas les gouverner toutes. Elles ne font pas non plus la même chose : la mélodie n'est jamais teintée à l'écran, les deux courbes étant toujours tracées, donc sa sensibilité ne sert qu'à la note. Un seul bruit de fond est mesuré, celui des sons.
 
@@ -228,7 +242,6 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Ce qui décide qu'il faut redire, et ce qui compte dans la note.** On sait que ce sont les deux choses que les réglages gouvernent, la marque étant invariante ; par quoi elles sont gouvernées n'est pas écrit.
 - **Le calcul des notes.** La note par tour, la note de séance, et surtout **comment les trois échelles de l'élocution donnent une seule lettre**. Plusieurs mécanismes sont possibles, aucun n'est choisi.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers.
 - **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode.
