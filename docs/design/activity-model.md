@@ -325,7 +325,7 @@ Dans les deux cas l'IA repart du sens qu'elle avait compris — elle l'a toujour
 Trois mots à ne pas confondre :
 
 - la **pression**, l'effet chez l'apprenant ;
-- le **levier**, un moyen concret de la moduler : le texte affiché ou caché, le silence toléré avant qu'on relance, un mot interdit ;
+- le **levier**, un moyen concret de la moduler : le texte affiché ou caché, le silence toléré avant qu'on relance, la durée d'un tour ;
 - le **curseur**, un préréglage qui pose plusieurs leviers d'un coup sous un nom lisible.
 
 ### Qui décide de la pression
@@ -357,7 +357,7 @@ Ce que chaque aptitude fait mesurer est dans « La grille des mesures » ; ici n
 Le bruit s'applique **à la lecture**, jamais au rendu mis en cache : le même fichier sert d'étalon à la mesure, et le bruiter fausserait l'écart.
 
 **Formulation**
-- *Leviers* : la réponse de l'IA sur un tour fautif, en trois niveaux — absente (erreur ignorée, réponse normale), indication indirecte (la reprise dans sa réponse, ce que le code incite aujourd'hui), ou reformulation explicite dite comme un coach reprend son élève ; l'explication de la faute en notification, à deux niveaux — la règle à utiliser seule, ou la règle plus la phrase correcte.
+- *Leviers* : **l'écho** de la faute dans la réponse de l'IA, en trois niveaux — absent (erreur ignorée, réponse normale), indication indirecte (la reprise dans sa réponse, ce que le code incite aujourd'hui), ou reformulation explicite dite comme un coach reprend son élève ; **l'avance**, la réponse poursuivant ou attendant (« Le blocage ») ; l'explication de la faute en notification, à deux niveaux — la règle à utiliser seule, ou la règle plus la phrase correcte.
 
 Le marquage a quitté cette liste : il est invariant, donc il n'est plus un levier. Les deux qui restent sont bien **deux** et non deux crans d'un seul, parce que **où** et **quoi** ne sont pas deux quantités de la même information : on peut donner l'un sans l'autre, dans les deux sens. C'est la distinction que l'analyse fait déjà pour le son, où le marquage dit où et nommer le son produit est un enrichissement séparé. Et tout en haut, ils se recouvrent : une reformulation explicite de l'IA donne déjà la phrase correcte à voix haute, que l'explication redonnerait par écrit.
 
@@ -452,6 +452,8 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 - **Ce que vaut une feuille avant d'être une lettre.** La forme de l'agrégation est écrite ; ce qui ne l'est pas est comment on passe des marques d'une feuille à son chiffre — combien de crans sur quelle longueur —, et où chaque sensibilité pose ses bornes A–E.
 - **La liste fermée des sortes de déclencheurs** d'une règle, et si un déclencheur lit une mesure, une note, ou les deux.
+- **D'où vient la propriété d'une voix** — table écrite par fournisseur, ou chiffre mesuré — pour qu'un personnage demande « difficile à suivre » sans nommer personne.
+- **Ce qui empêche la persona d'atteindre la reconstruction d'`intended`**, un même appel faisant les deux.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers.
 - **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode.
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
