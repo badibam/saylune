@@ -116,25 +116,45 @@ Deux choses restent acquises : la formulation se souligne **toujours** dès qu'i
 
 **Une échelle unique, A–E, pour les cinq aptitudes.** Une séance se lit en cinq lettres, sans avoir à retenir cinq échelles différentes.
 
-Les cinq n'y arrivent pas par le même chemin, et c'est une distinction qui compte. Pour la **formulation**, la lettre **est** la mesure : le modèle rend un rang. Pour l'**élocution**, la mesure est un nombre — l'écart au modèle — et la lettre est un **affichage** dont les bornes ne sont pas mesurées. On garde donc le nombre en base : les bornes pourront bouger sans abîmer les vieilles séances.
+**La lettre est toujours une note, jamais une mesure.** Elle est contextuelle par construction, puisque la sévérité déplace ses bornes ; une mesure, elle, ne bouge pas. Les deux ne doivent donc jamais porter les mêmes noms — c'est la confusion que ce doc portait, où les crans de formulation étaient écrits en A–E comme la note. **On garde les nombres et les crans en base, jamais les lettres** : les bornes pourront bouger sans abîmer les vieilles séances.
 
-**La formulation se note en rangs**, et le modèle les rend au lieu du booléen actuel :
+### Les crans de formulation
 
-- **A** — ce qu'un natif dirait
-- **B** — correct et naturel
-- **C** — correct mais maladroit
-- **D** — fautif, mais on comprend
-- **E** — ne se dit pas
+La formulation se juge **par groupe de mots**, et le fait d'être situé fait tomber le haut de l'échelle : « ce qu'un natif dirait » et « correct et naturel » ne se distinguent pas quand il n'y a rien à montrer.
 
-Le rang se calcule et se souligne **toujours**, d'une couleur qui vient du rang et de rien d'autre : A et B rien, C jaune, D orange, E rouge.
+Quatre crans, et le neutre au milieu ne se marque pas :
 
-Ça absorbe un chantier qui traînait à part (`../../TODO.md`, point 6) : le verdict grammatical était un booléen sur le tour entier, ce qui écrasait le fait qu'un tour puisse porter plusieurs fautes et empêchait de marquer la portion concernée. Un rang par portion règle les deux.
+- **natif** — idiomatique, ce qu'un apprenant ne produit pas spontanément.
+- *(rien)* — correct, il n'y a rien à pointer.
+- **maladroit** — correct, mais on ne dit pas comme ça.
+- **fautif** — incorrect, mais on comprend.
+- **ne se dit pas**.
 
-**La porte grammaticale se ferme sur ce qui va être réécrit**, plus sur le marquage. La raison de la porte a toujours été qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire ; tant que marquage et réécriture allaient ensemble, « marqué » était un bon substitut. Ce n'est plus le cas depuis que la formulation a des leviers séparés.
+**C'est la seule mesure du projet qui va dans les deux sens**, et la raison tient à la nature des deux : pour le son, le modèle est la vérité, donc on ne peut pas faire mieux que lui — être dessus est l'attendu, et sous la bande de bruit rien ne se distingue. Pour la formulation il n'y a pas de modèle unique, donc on peut dépasser le simplement correct. Le cran haut est ce qui donne un sens à A : sans lui, A et B disaient tous deux « rien à signaler » et la différence n'était observable nulle part.
 
-**Et le rang E ferme la porte quel que soit le réglage.** Une phrase qui ne se dit pas, l'app devrait la synthétiser pour l'analyser, donc la faire entendre comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
+**Le juge rend le cran, et rien de plus fin.** Sur trois mots, « haut de maladroit » n'est pas un jugement que quelqu'un pourrait vérifier. La finesse ne se perd pas, elle change d'endroit : elle vient du comptage — combien de groupes marqués, à quel cran, sur quelle longueur de phrase. Un tour se note donc finement en agrégeant beaucoup de jugements grossiers, exactement comme le fait déjà l'élocution. Coût assumé : un tour de trois mots portant un seul groupe marqué a une note très grossière. C'est une grossièreté vraie, pas une fausse précision.
 
-**La marque porte sur un élément, la note agrège sur le tour.** C'est vrai des trois échelles du son comme du rang : l'accent d'un mot est au bon endroit ou pas, mais un tour en contient plusieurs et la note les compte.
+**Le cran haut ne vaut que s'il est rare.** C'est l'argument déjà fait contre le marquage tout-ou-rien : quand tout est colorié, plus rien n'est signalé. Un juge qui en donne un tour sur deux le rend décoratif, et la consigne doit donc être exigeante. **Non mesuré** : personne ne sait à quelle fréquence ce juge-là en donnera.
+
+**Piste pour le calcul**, à détailler quand on l'écrira : les **fautes fixent le plafond**, le cran haut monte à l'intérieur de ce qui reste — n'avoir aucune faute est nécessaire pour atteindre A, et c'est le cran haut qui sépare A de B. Un cran haut ne compense pas une faute : une tournure brillante à côté d'un verbe cassé ne rend pas le verbe moins cassé, et si les deux se compensaient on couvrirait ses fautes en en accumulant.
+
+Ça absorbe un chantier qui traînait à part (`../../TODO.md`, point 6) : le verdict grammatical était un booléen sur le tour entier, ce qui écrasait le fait qu'un tour puisse porter plusieurs fautes et empêchait de marquer la portion concernée. Un cran par groupe de mots règle les deux.
+
+### Ce que ça change au marquage
+
+**La forme dit de quelle échelle il s'agit, la couleur dit de quel côté et à quelle distance du neutre.** C'est l'amendement d'une phrase de `../reference.md`, qui disait que la couleur ne porte que l'alarme : le cran haut porte l'inverse d'une alarme, donc la couleur porte aussi le côté. Le principe change de portée sans se perdre, la forme restant seule à dire l'échelle.
+
+La formulation partage donc la famille de couleurs des sons — le vert pour le cran haut, la rampe ambre-rouge pour les trois autres — et se distingue par sa forme. Ça pose un problème concret : les sons prennent déjà **un filet sous le mot** pour l'accent lexical, et un soulignement de formulation tomberait au même endroit. **La formulation se souligne en vaguelette, l'accent garde le trait droit.** La vaguelette se lit comme une erreur de langue sans qu'on ait à l'apprendre, et elle se distingue d'un trait droit au même endroit et dans la même couleur.
+
+### La porte grammaticale
+
+**Elle se ferme sur ce qui va être réécrit**, plus sur le marquage. La raison de la porte a toujours été qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire ; tant que marquage et réécriture allaient ensemble, « marqué » était un bon substitut. Ce n'est plus le cas depuis que la formulation a des leviers séparés.
+
+**Elle lit la même barre que tout le reste** : un tour dont la note de formulation ne passe pas est un tour à refaire, donc son son ne s'analyse pas. En défi, ne pas passer force le nouvel essai ; en conversation libre ça ne force rien, mais l'app tient quand même la phrase pour une phrase à refaire — elle marque la formulation, propose de redire, et n'analyse pas le son. Une seule barre, deux conséquences selon le contexte.
+
+**Et le cran « ne se dit pas » ferme la porte quel que soit le réglage**, sans passer par la note. Une phrase qui ne se dit pas, l'app devrait la synthétiser pour l'analyser, donc la faire entendre comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
+
+**La marque porte sur un élément, la note agrège sur le tour.** C'est vrai des trois échelles du son comme des crans de formulation : l'accent d'un mot est au bon endroit ou pas, mais un tour en contient plusieurs et la note les compte.
 
 ## La pression
 

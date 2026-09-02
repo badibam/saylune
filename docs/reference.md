@@ -67,7 +67,7 @@ Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur de
 
 Le mécanisme tient en trois étages : la **mesure**, que rien ne règle ; la **marque**, qui l'affiche telle quelle ; la **note**, qui l'agrège et où les réglages entrent seuls, la sévérité décidant où tombent les bornes A–E. Le reste se lit sur la note : **A ou B, ça va** — sur un tour c'est ce qui décide s'il faut redire, sur une activité si c'est réussi. Cette barre ne se règle pas ; ce qui se règle est ce qu'il faut faire pour l'atteindre (`design/activity-model.md`).
 
-**La formulation se note en rangs, de A à E** — ce qu'un natif dirait, correct et naturel, correct mais maladroit, fautif mais compris, ne se dit pas. Le rang se calcule et se souligne toujours, d'une couleur qui vient de lui seul (`design/activity-model.md`).
+**La formulation se marque par groupe de mots, sur quatre crans** — natif, maladroit, fautif, ne se dit pas — le correct étant l'absence de marque. C'est la seule mesure du projet qui va dans les deux sens : il n'y a pas de modèle unique de la bonne phrase, donc on peut dépasser le simplement correct, là où pour le son être sur le modèle est déjà le mieux qu'on puisse faire. Le cran se souligne toujours, d'une couleur qui vient de lui seul (`design/activity-model.md`).
 
 **Monter un curseur retire une aide, ou durcit un jugement**, et les deux n'ont pas le même plafond : retirer une aide converge vers le réel, durcir un jugement le dépasse. Les effets se cumulent d'une aptitude à l'autre, et c'est voulu — une note ne se lit jamais sans la combinaison qui l'a produite.
 
@@ -83,7 +83,7 @@ La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'appr�
 
 **La porte suit ce qui va être réécrit, pas la grammaire absolue.** Un tour la ferme quand quelque chose s'apprête à en produire une version corrigée — c'est la raison même de la porte. Elle ne se lit donc pas au marquage, qui est invariant, mais à la note de formulation du tour : la porte se ferme sur le tour qui ne passe pas la barre. Coût assumé au réglage le plus lâche : le modèle dira d'une voix native une tournure maladroite qu'on a choisi de ne pas reprendre.
 
-**Le rang E ferme la porte quel que soit le réglage.** Une phrase qui ne se dit pas devrait être synthétisée pour être analysée, donc entendue comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
+**Le cran « ne se dit pas » ferme la porte quel que soit le réglage.** Une phrase qui ne se dit pas devrait être synthétisée pour être analysée, donc entendue comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
 
 L'analyse tourne donc sur une phrase **jugée assez correcte au réglage courant**, et rien de plus : son texte de référence est aussi sûr ou incertain que celui de n'importe quel autre tour. La correction vient de l'apprenant, qui la cherche lui-même — sauf à la position où le levier d'explication lui donne la phrase correcte (`design/activity-model.md`).
 
@@ -111,7 +111,7 @@ La syllabe **porte** l'accent et la hauteur, mais elle n'est la portée d'aucun 
 
 **Les trois se jugent par comparaison au modèle, jamais dans l'absolu.** Ce n'est pas une précaution, c'est la forme même de l'analyse : rien d'extérieur aux deux enregistrements n'est jamais consulté — ni dictionnaire de prononciation, ni lexique de dialecte, ni référentiel de justesse. La seule question posée est *en quoi cette prise s'écarte-t-elle de celle-là*, et ce qu'on compare est la lecture de l'apprenant à la lecture du modèle, par la même machine, dont le biais est donc le même des deux côtés et s'annule.
 
-**Les trois s'ancrent aux mêmes caractères du texte affiché** — chaque son connaît les lettres qu'il couvre, chaque syllabe sa sous-chaîne, et la mélodie se pose sur ces mêmes groupes. Ce sont trois propriétés d'une seule chaîne, pas trois analyses à superposer. C'est ce qui rend possible de les marquer **d'un seul mouvement**, et la forme retenue le fait : **la couleur ne porte que l'alarme, jamais l'échelle**, qui est portée par la forme — les lettres teintées pour le son, un filet dessous pour l'accent, une ligne derrière le texte pour la mélodie. Trois échelles lues d'un coup d'œil sans qu'aucune ne se déguise en une autre.
+**Les trois s'ancrent aux mêmes caractères du texte affiché** — chaque son connaît les lettres qu'il couvre, chaque syllabe sa sous-chaîne, et la mélodie se pose sur ces mêmes groupes. Ce sont trois propriétés d'une seule chaîne, pas trois analyses à superposer. C'est ce qui rend possible de les marquer **d'un seul mouvement**, et la forme retenue le fait : **la couleur ne porte jamais l'échelle**, qui est portée par la forme — les lettres teintées pour le son, un filet dessous pour l'accent, une ligne derrière le texte pour la mélodie. Trois échelles lues d'un coup d'œil sans qu'aucune ne se déguise en une autre. La couleur porte le côté et la distance au neutre : l'alarme partout, et le vert du cran haut de formulation, seule mesure qui ait un bon côté. La formulation se souligne alors **en vaguelette**, pour ne pas se confondre avec le filet droit de l'accent, qui tombe au même endroit.
 
 Trois irrégularités à prévoir : une lettre peut porter deux sons, une lettre peut n'en porter aucun, et **un son peut ne porter aucune lettre**. La troisième est mesurée à 1,4 % des sons du banc, et se sépare en deux causes qui n'appellent pas le même geste — la lettre déjà prise par le son voisin (le `x` de `boxes`, qui écrit /k/ puis /s/), et la voyelle que l'orthographe n'écrit pas du tout (le schwa de `doesn't`). Le marquage doit servir les deux, sans quoi une faute trouvée reste invisible.
 
@@ -241,7 +241,7 @@ Le flou ne gêne pas la correction : la marque est sur le tour de **l'utilisateu
 
 ## Ce qui se garde
 
-**On stocke ce qui dépend de quelque chose qui ne se retrouvera pas** — l'audio d'un moment, le jugement d'un juge, une version de modèle. **On recalcule tout ce qui ne dépend que des lignes** : le nombre d'énoncés, leur ordre, les durées, tout ce qu'un compte suffit à produire. Ni les lectures d'un tour, ni le modèle à imiter, ni le rang de la prise suivante n'ont donc de colonne.
+**On stocke ce qui dépend de quelque chose qui ne se retrouvera pas** — l'audio d'un moment, le jugement d'un juge, une version de modèle. **On recalcule tout ce qui ne dépend que des lignes** : le nombre d'énoncés, leur ordre, les durées, tout ce qu'un compte suffit à produire. Ni les lectures d'un tour, ni le modèle à imiter, ni le cran de la prise suivante n'ont donc de colonne.
 
 **Tout ce qui est stocké porte la version de ce qui l'a produit.** Une analyse refaite avec un modèle différent ne rend pas les mêmes chiffres ; sans cette marque, deux époques de mesure s'agrègent en silence et la comparaison est fausse sans que rien ne le dise.
 
