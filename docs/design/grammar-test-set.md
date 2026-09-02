@@ -67,7 +67,9 @@ Reprise en version texte des cas de prononciation : la transcription porte un mo
 
 ## Banc de l'oreille — recette des prises
 
-Critère central : **fidélité verbatim sur la faute** — un STT qui rend `He doesn't know` pour « He don't know » est disqualifié. Nuance : les **disfluences** (euh, faux départs, répétitions) peuvent être coupées sans faute — elles ne sont pas un signal d'apprentissage — mais **un mot dit ne se répare jamais**. Formatage intelligent coupé quand le fournisseur le permet.
+Critère central : **fidélité verbatim sur la faute** — un STT qui rend `He doesn't know` pour « He don't know » est disqualifié, et **un mot dit ne se répare jamais**. Formatage intelligent coupé quand le fournisseur le permet.
+
+**Les disfluences comptent aussi, et ça a changé.** Ce banc les tolérait coupées, au motif qu'elles ne sont pas un signal d'apprentissage ; trois mesures de fluidité les lisent désormais — les mots de remplissage, les répétitions, les reprises et faux départs (`activity-model.md`). Un moteur qui les nettoie rend ces trois-là muettes sans le dire, et la fluidité paraîtra excellente. Elles se notent donc comme le reste : coupées, c'est un défaut du candidat, pas une commodité.
 
 Les prises existantes se réutilisent — même voix, mêmes fichiers :
 
@@ -78,7 +80,7 @@ Deux prises neuves à enregistrer (contrainte de capture de `../qualification.md
 
 | # | à dire | ce qu'on observe |
 |---|---|---|
-| 26 | `I want to— uh, I mean, we want to go there together.` | le faux départ et le « uh » : coupés (acceptable) ou réparés en phrase lisse (le faux départ doit rester lisible comme reformulation, pas fusionner en un seul énoncé propre) |
+| 26 | `I want to— uh, I mean, we want to go there together.` | le faux départ et le « uh » : rendus, coupés, ou réparés en phrase lisse. Les rendre est ce qu'on veut ; coupés est un défaut ; fusionnés en un seul énoncé propre est le pire des trois, la reprise n'étant alors même plus lisible |
 | 27 | `I'm gonna call him tomorrow.` | observation sans verdict : `gonna` rendu tel quel ou étendu en `going to` — les deux se défendent, on note de quel côté chaque candidat tombe |
 
 ## Ce que ce jeu ne mesure pas
