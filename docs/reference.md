@@ -49,6 +49,8 @@ Une marque qui apparaîtrait parce que *le même son a déjà été raté trois 
 
 Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir de ce qui est dû sont le travail des prescripteurs (`design/activity-model.md`), et ils ne touchent jamais à la mesure.
 
+**Et elle n'interdit pas de lire la situation.** Une mesure a le droit de lire tout ce dans quoi l'apprenant se trouve — la conversation en cours, et la consigne de l'activité s'il y en a une. *« I go there yesterday »* n'est fautif que sachant qu'on parle d'hier, et *« I'll go there »* est de l'anglais parfait qu'un défi « parle au passé » rend hors sujet. Ce qu'une mesure ne lit jamais, ce sont **les réglages** et **le passé de l'apprenant**. La règle porte sur la faute, pas sur la suite de mots : la même phrase dans deux situations différentes n'est pas la même faute. Le prix se paie à la vérification — un juge qui lit le contexte s'éprouve sur des couples (contexte, phrase), jamais sur des phrases seules.
+
 ## Les cinq aptitudes
 
 Élocution, compréhension, formulation, fluidité, richesse. Elles sont **indépendantes** : on peut être intelligible et lent, correct et pauvre, fluide et faux.
@@ -65,7 +67,7 @@ Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur de
 
 **Aucun réglage ne touche une marque.** La même faute produit la même marque quels que soient les réglages ; ce qu'ils gouvernent, c'est ce qu'on en **fait** — s'il faut redire, si ça compte dans la note. La raison est qu'une marque dont l'absence dépendrait du réglage du jour ne transporte plus rien : rien ne la distingue alors d'une approbation.
 
-Le mécanisme tient en trois étages : la **mesure**, que rien ne règle ; la **marque**, qui l'affiche telle quelle ; la **note**, qui l'agrège et où les réglages entrent seuls, la sévérité décidant où tombent les bornes A–E. Le reste se lit sur la note : **A ou B, ça va** — sur un tour c'est ce qui décide s'il faut redire, sur une activité si c'est réussi. Cette barre ne se règle pas ; ce qui se règle est ce qu'il faut faire pour l'atteindre (`design/activity-model.md`).
+Le mécanisme tient en trois étages : la **mesure**, que rien ne règle ; la **marque**, qui l'affiche telle quelle ; la **note**, qui l'agrège et où les réglages entrent seuls, la sévérité décidant où tombent les bornes A–E. **La note vit sur la mesure, pas sur l'aptitude** : une aptitude est un regroupement de mesures, chacune avec sa sensibilité et son poids, ce qui est la seule façon qu'un défi ne note que l'accent tonique sans que « élocution B » veuille dire deux choses (`design/activity-model.md`). Le reste se lit sur la note : **A ou B, ça va** — sur un tour c'est ce qui décide s'il faut redire, sur une activité si c'est réussi. Cette barre ne se règle pas ; ce qui se règle est ce qu'il faut faire pour l'atteindre (`design/activity-model.md`).
 
 **La formulation se marque par groupe de mots, sur quatre crans** — natif, maladroit, fautif, ne se dit pas — le correct étant l'absence de marque. C'est la seule mesure du projet qui va dans les deux sens : il n'y a pas de modèle unique de la bonne phrase, donc on peut dépasser le simplement correct, là où pour le son être sur le modèle est déjà le mieux qu'on puisse faire. Le cran se souligne toujours, d'une couleur qui vient de lui seul (`design/activity-model.md`).
 
