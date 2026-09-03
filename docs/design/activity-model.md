@@ -608,7 +608,7 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **Ce que vaut une feuille, pour ce qui reste.** La forme est écrite pour l'élocution, pour la formulation, et pour le débit et les silences (« Des marques au chiffre d'une feuille »). Restent le délai avant de parler, les mots de remplissage, les répétitions et les faux départs, puis la richesse et la compréhension.
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
-- **La liste fermée des sortes de déclencheurs** d'une règle, et si un déclencheur lit une mesure, une note, ou les deux.
+- **La liste fermée des sortes de déclencheurs** d'une règle. Ce qu'un déclencheur lit est tranché — un élément, le chiffre d'une feuille, ou sa note à la barre A–B.
 - **D'où vient la propriété d'une voix** — table écrite par fournisseur, ou chiffre mesuré — pour qu'un personnage demande « difficile à suivre » sans nommer personne.
 - **Ce qui empêche la persona d'atteindre la reconstruction d'`intended`**, un même appel faisant les deux.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers.
