@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, et par celle qui a écrit ce que vaut une feuille pour toute l'élocution. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -293,7 +293,13 @@ Couper en deux feuilles comme les sons demanderait deux choses qui manquent. Le 
 
 **Le dénominateur est la durée du tour, du premier mot au dernier** : le délai avant de parler en est exclu, il a sa propre feuille, sinon le même silence serait compté deux fois par deux feuilles dont les poids s'additionnent — la collision déjà écartée pour ce délai-là. Ce qui suit le dernier mot en est exclu aussi, et pour une autre raison, dite juste après.
 
-**Le silence final ne mesure rien, et il sort de la grille.** En position 1 comme en 2, l'écart entre le dernier mot et l'envoi mesure le pouce. En position 3, l'envoi part *parce qu'il y a eu un silence de plus de x*, donc le silence final vaut x, toujours et pour tout le monde : c'est le réglage relu à l'envers. Le seul tour où il vaut autre chose est celui que le plafond de durée a coupé, et ce silence-là dit qu'on a coupé, pas comment l'apprenant parle. Ce qu'il aurait pu attraper — celui qui s'arrête au milieu de son idée et n'y revient pas — est indistinguable de celui qui a fini, à toutes les positions.
+**Le silence final ne mesure rien, et il sort de la grille.** Aux trois positions, un tour envoyé au clic porte un silence final qui mesure le pouce. Un tour interrompu en position 3 en porte un qui vaut x, toujours et pour tout le monde : c'est le réglage relu à l'envers. Le compter ferait donc dépendre le chiffre du bouton — deux apprenants aussi fluides l'un que l'autre, dix secondes de parole sans un blanc, rendraient 0 % pour celui qui clique en finissant et 3/13 pour celui qui laisse partir. Et ce qu'il aurait pu attraper — celui qui s'arrête au milieu de son idée et n'y revient pas — est indistinguable de celui qui a fini, à toutes les positions.
+
+**En position 3, une hésitation longue ne fait pas un long silence : elle fait une phrase inachevée.** Aucun silence n'y dépasse x, et au-delà le tour est parti tronqué. Ce que la fluidité perd, la formulation le prend : *« I went to the »* est marquée fautive et la porte grammaticale se ferme. La pression se paie, elle se paie ailleurs.
+
+**Le tour interrompu est une feuille**, et elle se lit sur un passage : ce tour a-t-il été envoyé, oui ou non. Un seul élément, vrai ou faux. La part des tours interrompus d'une séance n'est pas la feuille, c'est ce que l'agrégation en fait — une feuille se calcule toujours sur un passage, et confondre les deux plans se paie vite.
+
+Deux causes d'interruption, une seule feuille : le silence de plus de x en position 3, et le plafond de durée du tour, qui existe aux trois positions. C'est pourquoi elle est mesurable partout, et vaut « non » presque toujours là où aucun temps n'est imposé — presque, et non par construction. **Elle est hors du poids par longueur**, comme les tentatives : être interrompu est un fait, il ne compte pas double parce que la phrase était longue.
 
 Et ce qui compte comme silence ne demande aucun chiffre neuf : c'est ce que le découpage en segments appelle déjà silence, un tour étant une liste de segments dont les silences sont gardés comme durées (`../reference.md`).
 
@@ -391,7 +397,7 @@ Ce qui suit est la grille du **format conversation** ; un autre format apporte l
 
 Ce découpage-là plutôt qu'une liste de causes — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. La nature de l'empan est **fermée par construction**, tout empan étant une pièce de la phrase, et bien plus stable à juger : dire qu'un empan est un groupe verbal se vérifie, dire qu'une faute est d'aspect plutôt que de temps se discute. Coût assumé, c'est plus grossier — « I go there yesterday » et « I goed there » tombent au même endroit. La finesse est ailleurs, dans la consigne.
 
-**Fluidité** — le délai avant de parler ; la part silencieuse du tour ; le débit ; les mots de remplissage ; les répétitions ; les reprises et faux départs. Les deux premières n'existent qu'en capture automatique ; le débit se mesure sur le temps de parole et existe partout. Le silence final en est sorti, faute de mesurer quoi que ce soit.
+**Fluidité** — le délai avant de parler ; la part silencieuse du tour ; le débit ; le tour interrompu ; les mots de remplissage ; les répétitions ; les reprises et faux départs. Les deux premières n'existent qu'en capture automatique ; le débit se mesure sur le temps de parole, et le tour interrompu se lit aux trois positions, le plafond de durée existant partout. Le silence final en est sorti, faute de mesurer quoi que ce soit.
 
 Les trois dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. C'est un critère de choix de plus pour le banc de fidélité (`../../TODO.md`, chantier 2), qui ne le devait jusqu'ici qu'à la grammaire.
 
@@ -438,6 +444,12 @@ Une condition **lit le résultat d'une feuille, elle ne change pas ce que la feu
 - **la note de la feuille**, à la barre A–B et jamais à une lettre choisie par le défi. Sinon deux boutons feraient un seul effet — durcir la sensibilité, ou monter la lettre exigée — et plus rien ne dirait lequel a rendu la séance difficile. C'est l'argument déjà servi pour refuser que la barre se règle.
 
 Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. La troisième **suit la sensibilité**, qui est précisément ce qui déplace les bornes A–E : monter la sévérité rend la condition plus fréquente sans qu'on la touche, et c'est un service — un défi dit « plus dur » d'un seul geste. La porte grammaticale est de cette troisième forme.
+
+**Une condition ne lit jamais autre chose qu'une feuille.** Un fait porté par le tour — sa position de capture, comment il s'est fini — n'est pas lisible tel quel : il faut la feuille qui le lit, et c'est ce qui permet d'écrire un défi contre le catalogue plutôt que contre le code. La feuille du tour interrompu existe pour cette raison.
+
+**Le poids gouverne la note, la condition lit sans passer par lui.** Une feuille à 0 n'est pas éteinte : elle se calcule, et une condition la lit. Une feuille peut donc n'exister que pour les conditions et n'entrer dans aucune note nulle part — le tour interrompu pèse 0 en conversation libre, où aucun temps n'est imposé, et le défi qui veut de la réactivité lui met un poids, lui branche une condition, ou les deux.
+
+**Une condition lit un passage et se déclenche sur-le-champ ; l'accumulation vit dans l'effet, pas dans la lecture.** « Un tour interrompu coûte une vie » n'a besoin de compter jusqu'à trois nulle part : au troisième, le compteur de vies est à zéro. Ce qui a besoin de voir la séance entière est d'une autre nature — le critère de réussite d'un défi, qui reste à écrire.
 
 **Rien ne s'écrit par feuille pour autant.** Une feuille déclare **deux unités**, celle de son chiffre et celle de ses éléments, et elles diffèrent presque toujours : la part silencieuse rend un pourcentage du tour et ses éléments sont des secondes ; la justesse rend un pourcentage de mots et ses éléments sont des crans. Une condition se dit alors partout pareil — quelle feuille, laquelle des trois formes, et une valeur dans l'unité concernée.
 
@@ -581,7 +593,13 @@ La capture est **un levier de fluidité, à trois positions**, et l'échelle gra
 
 1. **Maintien du doigt, envoi manuel.** Ce que fait l'app aujourd'hui : on appuie pour parler, on relâche pour réfléchir, on réappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
 2. **Armement automatique, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le **délai avant de parler** et les **silences intérieurs** deviennent mesurables.
-3. **Armement automatique, envoi sur un silence de plus de x**, silence du début compris. Aucune mesure neuve ne s'y ajoute — ce qui suit le dernier mot vaut alors x par construction.
+3. **Armement automatique, envoi au clic ou sur un silence de plus de x**, silence du début compris. Le clic reste le geste normal ; un tour que personne n'envoie est **interrompu**, et c'est ce que cette position demande, de la réactivité. Aucune mesure neuve ne s'y ajoute, et aucun silence n'y dépasse x, puisqu'à x le tour est déjà parti.
+
+Un tour interrompu est **tronqué et envoyé tel quel** : ce qui restait à dire n'est jamais capté, le micro ne se rouvrant qu'après la réponse de l'IA. Il n'est pas coupé en deux tours.
+
+**Chaque tour porte comment il s'est fini** — envoyé, ou interrompu, et par laquelle des deux horloges. Ce n'est pas une mesure mais un fait sur l'enregistrement, à côté de la position de capture. Deux lecteurs : le modèle de langue, à qui il interdit de compléter une phrase inachevée (`../reference.md`), et la feuille du tour interrompu.
+
+**Les deux décomptes sont visibles, toujours** — celui du silence de x et celui de la durée maximale du tour. Deux temps qui s'épuisent, montrés de la même façon. Ce n'est pas un levier.
 
 Le micro **ne s'arme jamais avant la fin de la réponse de l'IA**. Un symbole est visible dès que ça enregistre : il n'informe pas seulement, il fait partie de la pression — savoir que ça tourne change la façon dont on parle.
 
@@ -605,14 +623,14 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Ce que vaut une feuille, pour ce qui reste.** La forme est écrite pour l'élocution, pour la formulation, et pour le débit et les silences (« Des marques au chiffre d'une feuille »). Restent le délai avant de parler, les mots de remplissage, les répétitions et les faux départs, puis la richesse et la compréhension.
+- **Ce que vaut une feuille, pour ce qui reste.** La forme est écrite pour l'élocution, pour la formulation, et pour le débit et les silences (« Des marques au chiffre d'une feuille »). Restent le délai avant de parler — dont la troncature à x en position 3 n'est pas tranchée —, les mots de remplissage, les répétitions et les faux départs, puis la richesse et la compréhension.
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
 - **La liste fermée des sortes de déclencheurs** d'une règle. Ce qu'un déclencheur lit est tranché — un élément, le chiffre d'une feuille, ou sa note à la barre A–B.
 - **D'où vient la propriété d'une voix** — table écrite par fournisseur, ou chiffre mesuré — pour qu'un personnage demande « difficile à suivre » sans nommer personne.
 - **Ce qui empêche la persona d'atteindre la reconstruction d'`intended`**, un même appel faisant les deux.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers.
-- **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode.
+- **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode. C'est lui qui lit la séance entière ; les conditions, elles, restent sur le passage.
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
 - **La liste des leviers de chaque format**, close pour aucun, et le détail de ce que chaque position produit — y compris sa formulation lisible, qu'exige le mode arcade.
 - **Le score** : propre à l'arcade ou pas, et à quoi ressemble son écran.
