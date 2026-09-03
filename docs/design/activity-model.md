@@ -222,6 +222,33 @@ Pourquoi `r` plutôt qu'un seuil en demi-tons : trois demi-tons sont énormes l�
 
 **Les tentatives** — un entier par passage, hors du poids par longueur. Ce sont des **tentatives** et non des redites : la feuille vaut au moins 1 et existe sur tous les passages. Compter des redites la mettrait à zéro presque partout, et une feuille à zéro partout tire la moyenne vers le haut sans rien dire.
 
+#### La formulation
+
+Le juge marque des groupes de mots à quatre crans, et rien n'énumère ceux qui vont bien : il n'y a donc pas de « tous les empans du passage » comme il y a « tous les sons du passage ». **Le dénominateur est les mots du passage**, comptés par l'app.
+
+Faire découper toute la phrase par le juge est écarté : couper du correct n'est vérifiable par personne — *to the market* fait un morceau ou trois selon l'habitude de coupe, et le chiffre bougerait avec elle. Marquer *I go* comme groupe verbal fautif, ça, se vérifie. Le juge garde donc le travail qu'il fait déjà pour l'écran, l'app compte, et elle compte dans l'unité qui sert déjà au poids par longueur.
+
+En mots, deux fautes dans *Where is it?* et deux dans une phrase de vingt ne rendent pas le même chiffre — le même argument que pour les sons. Et deux empans qui se recouvrent ne comptent pas deux fois : **un mot prend le pire cran qu'il porte**, et il compte une fois.
+
+**Prix assumé : les sous-feuilles par nature d'empan partagent ce dénominateur.** La sous-feuille « groupe verbal » lit la part des mots du passage tombant dans un groupe verbal marqué, et non un taux de réussite sur les groupes verbaux — l'app ne connaît pas ceux qui vont bien, et les connaître demanderait le découpage qu'on vient d'écarter.
+
+**Deux feuilles, pour la même raison que les sons en ont deux** : « parle juste » et « parle naturel » sont deux buts, et un seul chiffre les servant serait une feuille à deux sens.
+
+- **La justesse** — la part des mots dans un empan *fautif* ou *ne se dit pas*. Binaire par mot, la question étant fermée : la phrase est à refaire ou elle ne l'est pas.
+- **Le naturel** — sur les mêmes mots, *maladroit* vaut +1, *natif* vaut −1, le reste 0, et on en fait la moyenne. De +100 % à −100 %, zéro pour une phrase correcte et sans relief. *Maladroit* et *natif* sont les deux sens d'une seule question — « on ne dit pas comme ça » et « c'est ce qu'on dit » — donc ils vivent dans la même feuille.
+
+Deux feuilles plutôt qu'un poids par cran : à compter *maladroit* pour un demi et *fautif* pour un, personne ne saurait dire pourquoi un demi, et ce chiffre déciderait en douce qu'une phrase guindée vaut mieux ou moins qu'une phrase au verbe cassé. Séparées, les deux ne se comparent plus, et c'est la sensibilité de chacune qui dit ce qu'un défi tolère.
+
+**Le côté négatif du naturel ne compte que si la justesse est à zéro sur tout le passage.** *Yesterday I go to the market to grab a loaf* rend donc justesse 20 %, naturel 0 % — les mêmes chiffres que la même phrase sans la tournure idiomatique. Une tournure brillante ne rachète pas un verbe cassé, sans quoi on couvrirait ses fautes en en accumulant. Sur tout le passage et non sur chaque sous-feuille : sinon un verbe cassé plafonnerait la sous-feuille « groupe verbal » pendant que le natif ferait monter la sous-feuille « groupe nominal », et la moyenne des deux ramènerait la compensation par la porte de derrière.
+
+**L'argument est celui de la porte grammaticale** : on ne mesure pas les qualités d'une phrase qui va être réécrite, comme on n'analyse pas ses sons. Rien n'est perdu — sur la redite, la tournure gardée compte pleinement. Coût : sur l'essai qui va être refait, une phrase plate et une phrase brillante portant la même faute rendent le même chiffre.
+
+**La consigne se pose sur l'une des deux, et ce choix dit si la contrainte est dure ou molle.** Sur la justesse — « parle au passé » — ne pas le faire est une faute : *I'll go there* est marqué, la porte se ferme, la phrase est à redire. Sur le naturel — « préfère l'idiome à la tournure scolaire » — ne pas le faire coûte dans la note et ne ferme rien. Rien de neuf à stocker : c'est la feuille où la consigne est posée. Un défi choisit ainsi franchement entre « à refaire » et « ça compte », là où la sévérité seule ne le disait pas.
+
+Les deux feuilles sont deux lectures d'**un seul passage du juge**, qui marque une fois ; leurs consignes lui sont donc données ensemble, chacune disant quel cran elle gouverne. Poser la même exigence sur les deux est légitime, et veut dire « ne pas le faire est une faute, le faire lourdement coûte aussi ».
+
+**Une consigne peut faire marquer un empan, jamais le déplacer au cran « ne se dit pas ».** Ce cran est réservé à ce qui n'existe pas dans la langue, et c'est lui qui ferme la porte quel que soit le réglage. Le déclencher sur de l'anglais correct que la consigne n'a pas demandé mentirait sur la langue, et empoisonnerait le modèle à imiter — *I'll go there* se dit très bien.
+
 ### L'agrégation se fait une fois, à plat
 
 **Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
@@ -268,7 +295,7 @@ Quatre crans, et le neutre au milieu ne se marque pas :
 
 **Le cran haut ne vaut que s'il est rare.** C'est l'argument déjà fait contre le marquage tout-ou-rien : quand tout est colorié, plus rien n'est signalé. Un juge qui en donne un passage sur deux le rend décoratif, et la consigne doit donc être exigeante. **Non mesuré** : personne ne sait à quelle fréquence ce juge-là en donnera.
 
-**Piste pour le calcul**, à détailler quand on l'écrira : les **fautes fixent le plafond**, le cran haut monte à l'intérieur de ce qui reste — n'avoir aucune faute est nécessaire pour atteindre A, et c'est le cran haut qui sépare A de B. Un cran haut ne compense pas une faute : une tournure brillante à côté d'un verbe cassé ne rend pas le verbe moins cassé, et si les deux se compensaient on couvrirait ses fautes en en accumulant.
+**Le calcul est écrit** en « Des marques au chiffre d'une feuille » : deux feuilles, la justesse et le naturel, et le cran haut ne compte que sur un passage sans faute. N'avoir aucune faute est donc nécessaire pour atteindre A, et c'est le cran haut qui sépare A de B.
 
 Ça absorbe un chantier qui traînait à part (`../../TODO.md`, point 6) : le verdict grammatical était un booléen sur le tour entier, ce qui écrasait le fait qu'un passage puisse porter plusieurs fautes et empêchait de marquer la portion concernée. Un cran par groupe de mots règle les deux.
 
@@ -304,7 +331,7 @@ Ce qui suit est la grille du **format conversation** ; un autre format apporte l
 
 **Élocution** — les gros ratés et la masse des écarts, deux feuilles sur les mêmes sons ; la distance des courbes et la part des mouvements non faits, deux feuilles sur la mélodie ; l'accent lexical, par mot ; le nombre de tentatives de prononciation. Ce que vaut un élément et ce qui fait le dénominateur, feuille par feuille, est en « Des marques au chiffre d'une feuille ». *Candidate* : le rythme, les durées relatives comparées au modèle. La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer.
 
-**Formulation** — le cran par groupe de mots, découpé par **la nature de l'empan marqué** : groupe verbal, groupe nominal, préposition ou particule, circonstanciel, proposition entière. Plus le nombre de tentatives de reformulation.
+**Formulation** — deux feuilles sur le même marquage, la **justesse** et le **naturel**, chacune découpable par **la nature de l'empan marqué** : groupe verbal, groupe nominal, préposition ou particule, circonstanciel, proposition entière. Plus le nombre de tentatives de reformulation.
 
 Ce découpage-là plutôt qu'une liste de causes — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. La nature de l'empan est **fermée par construction**, tout empan étant une pièce de la phrase, et bien plus stable à juger : dire qu'un empan est un groupe verbal se vérifie, dire qu'une faute est d'aspect plutôt que de temps se discute. Coût assumé, c'est plus grossier — « I go there yesterday » et « I goed there » tombent au même endroit. La finesse est ailleurs, dans la consigne.
 
@@ -320,7 +347,7 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 
 ## Ce qui est jugé, ce qui est calculé
 
-**Trois feuilles sont jugées par le modèle de langue** — l'empan de formulation, l'adéquation du registre, la pertinence de la réponse. Tout le reste se calcule : un écart de répartition, un silence, un débit, un rapport, une table de fréquence.
+**Trois jugements viennent du modèle de langue** — le marquage des empans de formulation, dont l'app tire deux feuilles, l'adéquation du registre, la pertinence de la réponse. Tout le reste se calcule : un écart de répartition, un silence, un débit, un rapport, une table de fréquence.
 
 **Le juge rend un cran, jamais un pourcentage.** « 72 % de pertinence » n'est vérifiable par personne, et la finesse vient du comptage, comme pour les sons. Les échelles qui suivent sont **proposées, pas tranchées** — seuls les crans de formulation le sont.
 
@@ -504,8 +531,7 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Ce que vaut une feuille, hors de l'élocution.** La forme est écrite pour les sons, la mélodie, l'accent et les tentatives (« Des marques au chiffre d'une feuille »). La formulation, la fluidité, la richesse et la compréhension n'ont pas été balayées.
-- **La formulation casse la forme, et c'est le premier point à reprendre.** Deux choses y manquent. Son **dénominateur** : un juge marque ce qui cloche, il n'énumère pas ce qui va, donc rien ne compte les empans d'un passage propre — une piste est de lui faire découper toute la phrase, ce que la grille suppose déjà en disant que tout empan est une pièce de la phrase. Et ses **deux côtés ne s'additionnent pas** : une tournure brillante ne compense pas un verbe cassé, donc les fautes fixent un plafond et le cran haut ne bouge qu'en dessous, ce qui demande deux chiffres là où toutes les autres feuilles en rendent un. Trois issues se dessinaient — assumer la paire, faire du cran haut une feuille séparée (mais entre feuilles la moyenne compense, ce qui est écrit comme interdit), ou porter le plafond par une condition.
+- **Ce que vaut une feuille, pour la fluidité, la richesse et la compréhension.** La forme est écrite pour l'élocution et pour la formulation (« Des marques au chiffre d'une feuille ») ; ces trois branches-là n'ont pas été balayées.
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
 - **La liste fermée des sortes de déclencheurs** d'une règle, et si un déclencheur lit une mesure, une note, ou les deux.
