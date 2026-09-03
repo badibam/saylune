@@ -552,7 +552,7 @@ Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. 
 
 **Bloquer, c'est une règle dont l'effet est que le passage ne se ferme pas.** Pas un mécanisme neuf, et donc branchable sur n'importe quelle feuille : un défi peut bloquer sur la prononciation comme sur la formulation.
 
-**« Ne pas passer » se dit de trois choses**, à ne pas confondre. Une **feuille** ne passe pas quand sa note est sous la barre A–B : c'est une lecture, il ne s'ensuit rien. Un **passage** ne passe pas quand quelque chose l'a déclaré à refaire — la note de formulation, toujours, ou une règle posée par un défi. Une **activité** ne passe pas quand elle se termine sans être réussie : zéro vie, ou son critère de réussite non atteint.
+**« Ne pas passer » se dit de trois choses**, à ne pas confondre. Une **feuille** ne passe pas quand sa note est sous la barre A–B : c'est une lecture, il ne s'ensuit rien. Un **passage** ne passe pas quand une règle l'a déclaré à refaire — quelle feuille elle lit est écrit par l'activité, la formulation hors défi. Une **activité** ne passe pas quand elle se termine sans être réussie : zéro vie, ou son critère de réussite non atteint.
 
 Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond pas au fond et ne pose pas de question neuve ; le passage **reste ouvert**, ce qu'on attend ensuite étant une reprise de la même chose ; et rien n'avance tant qu'il ne se ferme pas.
 
@@ -560,7 +560,17 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 
 **Deux axes, pas un.** L'**écho** — absent, indication indirecte, reprise explicite — est le levier déjà écrit. L'**avance** est le second : la réponse poursuit, ou elle attend. C'est un levier comme un autre, disponible partout — une conversation libre peut attendre sur une phrase, un défi peut poursuivre. Le geste fondateur du projet est la combinaison (indirect, poursuit) : *« Ah, you're 25! And where... »*. **Toutes les combinaisons s'offrent**, certaines étant seulement plus austères. Ce qui est garanti est ailleurs : **rien n'attend jamais sans qu'une raison soit visible**, et ce qui la porte est la marque, toujours là et invariante, plus la notification quand c'est le son qui bloque. Jamais l'écho, dont la position reste donc libre.
 
-Ça éclaire ce que la porte de reformulation est vraiment : **une seule barre, trois conséquences** — le son ne s'analyse pas, une redite est proposée, et la conversation attend si les réglages le disent.
+Ça éclaire ce que la porte de reformulation est vraiment, et surtout ce qu'elle n'est pas. **Sa portée est l'analyse du son, rien d'autre** : « la porte se ferme » veut dire « on ne mesure pas la prononciation de cette phrase-là », jamais « la conversation s'arrête ». Trois choses se déclenchent autour d'un passage à refaire, et elles n'ont ni la même portée ni le même décideur :
+
+| ce qui se passe | portée | qui décide |
+|---|---|---|
+| la porte se ferme | l'analyse du son de cette tentative | automatique, dès que le passage est déclaré à refaire |
+| une reprise est proposée | l'écran | automatique |
+| la conversation attend | le fil — le passage ne se ferme pas, l'IA n'avance pas | le levier d'avance, posé par une règle |
+
+**Les deux dernières sont indépendantes**, et ça se voit dans les deux sens. Porte fermée sans attendre est la conversation libre ordinaire : la phrase est marquée, ses sons ne sont pas analysés, l'IA répond et le fil continue. Attendre sans fermer la porte est le blocage sur la prononciation : les mots ne changent pas, donc l'analyse a tourné — c'est même elle qui a rendu le verdict — et c'est la réponse qui est retenue.
+
+**Et *ne se dit pas* se lit sur les deux plans sans les confondre.** L'absence d'analyse y est un fait, non négociable, puisqu'il n'y a pas de modèle à comparer. Refuser de continuer, en revanche, reste une décision : un défi l'écrit avec une condition sur l'élément, dont le patch met l'avance sur « attend ». En conversation libre, rien ne bloque — le geste fondateur du projet est que rien n'interrompt.
 
 ### Deux branches pour la formulation, une notification pour le son
 
