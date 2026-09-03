@@ -199,7 +199,7 @@ Deux circuits distincts partagent une seule ressource : le fichier audio du tour
 **Trois positions**, et l'échelle gradue exactement ce que la fluidité peut lire :
 
 1. **Maintien du doigt, envoi manuel.** Ce que fait l'app : on appuie pour parler, on relâche pour réfléchir, on réappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
-2. **Armement automatique, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le délai avant de parler et les silences intérieurs deviennent mesurables.
+2. **Armement automatique, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le silence devient mesurable de bout en bout — avant le premier mot, entre les mots, après le dernier.
 3. **Armement automatique, envoi au clic ou sur un silence de plus de x**, silence du début compris. Le clic reste le geste normal : un tour que personne n'envoie est **interrompu**, et c'est ce que cette position demande, de la réactivité. Aucune mesure neuve ne s'y ajoute, et aucun silence n'y dépasse x, puisqu'à x le tour est déjà parti.
 
 **La portée de l'invariant.** Il a été écrit contre l'app qui coupe dans le dos de quelqu'un en conversation ordinaire ; il vaut donc là où rien n'a été déclaré. Une pression annoncée est un autre problème : la position 3 coupe, sous une règle connue d'avance et choisie. Elle ne contredit pas l'invariant, elle est hors de sa portée.

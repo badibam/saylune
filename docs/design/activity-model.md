@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, et par celle qui a étendu le silence aux deux bords. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -281,9 +281,13 @@ Les deux feuilles sont deux lectures d'**un seul passage du juge**, qui marque u
 
 **Le débit se mesure sur le temps de parole**, silences exclus : les mots divisés par le temps où la bouche articule. Ce n'est pas une version approchée du débit sur la durée du tour, c'est une autre mesure — l'une dit à quelle vitesse le tour avance, l'autre à quelle vitesse on enchaîne. C'est la seconde qui parle d'anglais oral, un francophone lent étant souvent quelqu'un qui détache ses mots au lieu de les lier.
 
-Elle existe donc **aux trois positions de capture**, et sort de la liste des mesures réservées à la capture automatique, qui n'en garde que deux : le délai avant de parler et les silences intérieurs. Ça compte, l'app étant en position 1 aujourd'hui : sans ça la fluidité n'aurait que ce que le juge lit dans le texte, et rien qui se mesure dans le temps.
+Elle existe donc **aux trois positions de capture**, et sort de la liste des mesures réservées à la capture automatique, qui n'en garde qu'une : la part silencieuse. Ça compte, l'app étant en position 1 aujourd'hui : sans ça la fluidité n'aurait que ce que le juge lit dans le texte, et rien qui se mesure dans le temps.
 
-**Les silences intérieurs font une seule feuille, la part silencieuse** — le temps de silence divisé par la durée du tour, du premier mot au dernier. Un tour de 21 s portant 6 s de silence vaut 29 %, que ce soit un blanc unique ou douze petits. L'app ne prétend pas savoir lequel des deux est le pire : parler haché et chercher un mot une fois sont deux défauts différents, et aucun n'est clairement plus grave.
+**Le silence, de bout en bout, fait une seule feuille, la part silencieuse** — le temps de silence divisé par la durée du tour entier, de l'armement du micro à l'envoi. Elle couvre les trois moments où l'app garde du silence : avant le premier mot, entre les mots, après le dernier. Un tour de 21 s portant 6 s de silence vaut 29 %, que ce soit un blanc unique ou douze petits, au début, au milieu ou à la fin. L'app ne prétend pas savoir lequel est le pire : parler haché, chercher un mot une fois, tarder à démarrer ou tarder à rendre la parole sont des défauts différents, et aucun n'est clairement plus grave.
+
+**Un délai de grâce d'une seconde s'applique aux deux bords, jamais à l'intérieur.** Sans lui, le temps normal de réagir et de cliquer — le même pour tout le monde, qu'on ait dit un mot ou vingt — pèserait proportionnellement bien plus sur un tour court que sur un tour long : deux secondes de réflexe sur *« Yes, I did »* font 50 %, les mêmes deux secondes devant une réponse de vingt secondes ne font presque rien, pour un comportement identique. Le silence initial et le silence final comptent donc chacun leur durée moins une seconde, jamais moins que zéro ; un silence intérieur, lui, compte en entier — c'est justement le temps qu'on cherche à voir. Un tour où personne ne traîne, ni pour démarrer ni pour rendre la parole, vaut alors 0 %, quelle que soit sa longueur. La seconde n'est pas mesurée : comme la ligne des 30 points sur les gros ratés, elle vient d'un jugement plutôt que d'un banc, posée à hauteur d'un temps de réaction ordinaire.
+
+**La grâce ne touche pas ce qu'une condition lit.** Les éléments de la feuille restent les silences avec leur durée réelle, non réduite — un silence de 6 s reste un silence de 6 s pour qui cherche un gros blanc. Elle ne joue que dans le chiffre de la feuille elle-même.
 
 Prendre le silence comme élément et sa durée comme valeur donnerait une moyenne de durées, et **un tour sans aucun silence n'aurait pas d'élément, donc pas de feuille** : le tour le plus fluide possible ne serait pas noté. Disqualifiant.
 
@@ -291,11 +295,11 @@ Couper en deux feuilles comme les sons demanderait deux choses qui manquent. Le 
 
 **Le gros blanc reste lisible par une condition**, qui va voir les éléments de la feuille — les silences avec leurs durées. Sa ligne est alors un choix de défi, cinq secondes pour l'un et trois pour l'autre, et non une propriété de la langue gravée dans la mesure.
 
-**Le dénominateur est la durée du tour, du premier mot au dernier** : le délai avant de parler en est exclu, il a sa propre feuille, sinon le même silence serait compté deux fois par deux feuilles dont les poids s'additionnent — la collision déjà écartée pour ce délai-là. Ce qui suit le dernier mot en est exclu aussi, et pour une autre raison, dite juste après.
+**Le dénominateur est la durée du tour entière, de l'armement du micro à l'envoi.** Une seule feuille couvre tout le silence du tour, donc aucun silence n'est jamais compté par deux feuilles dont les poids s'additionneraient.
 
-**Le silence final ne mesure rien, et il sort de la grille.** Aux trois positions, un tour envoyé au clic porte un silence final qui mesure le pouce. Un tour interrompu en position 3 en porte un qui vaut x, toujours et pour tout le monde : c'est le réglage relu à l'envers. Le compter ferait donc dépendre le chiffre du bouton — deux apprenants aussi fluides l'un que l'autre, dix secondes de parole sans un blanc, rendraient 0 % pour celui qui clique en finissant et 3/13 pour celui qui laisse partir. Et ce qu'il aurait pu attraper — celui qui s'arrête au milieu de son idée et n'y revient pas — est indistinguable de celui qui a fini, à toutes les positions.
+**Le silence final compte, et c'est voulu : rendre la parole est un acte.** Dans une conversation réelle, on signale qu'on a fini — la voix qui retombe, le silence qu'on laisse à l'autre — et tarder à le faire est un vrai défaut, pas du bruit à retirer. Le clic en est le geste ; la grâce d'une seconde absorbe le temps normal de l'appuyer, et au-delà, le temps qui reste compte pareil qu'un silence intérieur.
 
-**En position 3, une hésitation longue ne fait pas un long silence : elle fait une phrase inachevée.** Aucun silence n'y dépasse x, et au-delà le tour est parti tronqué. Ce que la fluidité perd, la formulation le prend : *« I went to the »* est marquée fautive et la porte grammaticale se ferme. La pression se paie, elle se paie ailleurs.
+**En position 3, une hésitation qui dépasse x se voit à trois endroits.** Le silence est compté dans la part silencieuse, plafonné à x comme tout silence de cette position ; le tour est marqué interrompu ; et la phrase tronquée, souvent incomplète, se fait marquer par le juge de formulation.
 
 **Le tour interrompu est une feuille**, et elle se lit sur un passage : ce tour a-t-il été envoyé, oui ou non. Un seul élément, vrai ou faux. La part des tours interrompus d'une séance n'est pas la feuille, c'est ce que l'agrégation en fait — une feuille se calcule toujours sur un passage, et confondre les deux plans se paie vite.
 
@@ -397,7 +401,7 @@ Ce qui suit est la grille du **format conversation** ; un autre format apporte l
 
 Ce découpage-là plutôt qu'une liste de causes — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. La nature de l'empan est **fermée par construction**, tout empan étant une pièce de la phrase, et bien plus stable à juger : dire qu'un empan est un groupe verbal se vérifie, dire qu'une faute est d'aspect plutôt que de temps se discute. Coût assumé, c'est plus grossier — « I go there yesterday » et « I goed there » tombent au même endroit. La finesse est ailleurs, dans la consigne.
 
-**Fluidité** — le délai avant de parler ; la part silencieuse du tour ; le débit ; le tour interrompu ; les mots de remplissage ; les répétitions ; les reprises et faux départs. Les deux premières n'existent qu'en capture automatique ; le débit se mesure sur le temps de parole, et le tour interrompu se lit aux trois positions, le plafond de durée existant partout. Le silence final en est sorti, faute de mesurer quoi que ce soit.
+**Fluidité** — la part silencieuse du tour ; le débit ; le tour interrompu ; les mots de remplissage ; les répétitions ; les reprises et faux départs. La première n'existe qu'en capture automatique ; le débit se mesure sur le temps de parole, et le tour interrompu se lit aux trois positions, le plafond de durée existant partout.
 
 Les trois dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. C'est un critère de choix de plus pour le banc de fidélité (`../../TODO.md`, chantier 2), qui ne le devait jusqu'ici qu'à la grammaire.
 
@@ -623,7 +627,7 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Ce que vaut une feuille, pour ce qui reste.** La forme est écrite pour l'élocution, pour la formulation, et pour le débit et les silences (« Des marques au chiffre d'une feuille »). Restent le délai avant de parler — dont la troncature à x en position 3 n'est pas tranchée —, les mots de remplissage, les répétitions et les faux départs, puis la richesse et la compréhension.
+- **Ce que vaut une feuille, pour ce qui reste.** La forme est écrite pour l'élocution, pour la formulation, et pour le débit et les silences (« Des marques au chiffre d'une feuille »). Restent les mots de remplissage, les répétitions et les faux départs, puis la richesse et la compréhension.
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
 - **La liste fermée des sortes de déclencheurs** d'une règle. Ce qu'un déclencheur lit est tranché — un élément, le chiffre d'une feuille, ou sa note à la barre A–B.
