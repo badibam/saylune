@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, et par celle qui a dit quand une règle se déclenche. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -147,7 +147,7 @@ Ces deux manques se règlent en séparant trois choses que le mot « rampe » te
 
 ```
 règle
-  quand   : { sorte, paramètres }          # liste fermée de sortes
+  quand   : { sorte, moment, paramètres }  # trois sortes, trois moments
   choix   : [ patch, patch, ... ]          # un seul élément = pas de choix
   qui     : écrit | hasard | IA
 ```
@@ -181,6 +181,28 @@ Trois choses tombent de cette forme.
 **Les sortes de déclencheurs sont une liste fermée et courte**, déclarées comme les positions d'un levier. La pente est d'y glisser un mini-langage de conditions ; ce jour-là, plus personne ne sait ce qu'une définition fait sans l'exécuter.
 
 **Une règle se résout avant que l'IA réponde**, parce qu'elle doit pouvoir fabriquer l'occasion de la contrainte qu'on vient de poser. Le cycle d'un passage est donc : il se ferme, les règles se déclenchent, l'IA répond en connaissant déjà ce qui a changé, son tour est dit, la notification affiche le changement quelques secondes hors du temps de parole, le micro s'arme. Quand c'est l'IA qui choisit, **elle choisit et répond dans le même appel** — deux sorties, pas deux allers-retours, ce qui compte quand la latence est le premier défaut du projet. Contrepartie : elle choisit en sachant ce qu'elle a envie de dire, et le menu est ce qui borne ça.
+
+### Quand une règle se déclenche
+
+**Trois moments, et ils ne se distinguent pas par le goût mais par ce qui est calculé à cet instant.**
+
+- **Pendant l'enregistrement.** Deux horloges tournent, visibles toutes les deux : le temps d'enregistrement écoulé et le silence en cours. Aucune feuille n'existe encore, la personne est en train de parler — donc une règle de ce moment ne peut lire qu'une horloge. Ce n'est pas une restriction posée, c'est un fait sur ce qui existe.
+- **À la fin d'une tentative.** Le tour est parti, le modèle a répondu, l'analyse a tourné. Se décide là ce qui concerne cette tentative : la porte du son, et si la conversation attend ou poursuit.
+- **À la fermeture du passage.** La note du passage est celle de la dernière tentative et le compte des tentatives est connu. Tombe là tout le reste : les patchs, la rampe, les vies, la fin de la séance.
+
+**Un passage se ferme au gros bouton, pas quand un tour part.** Un passage est un énoncé et toutes ses redites, donc il contient autant de tentatives qu'on en fait, et en « attend » il ne peut pas se fermer du tout. C'est pourquoi le blocage ne peut pas attendre la fermeture : la règle qui décide d'attendre est précisément ce qui l'empêche.
+
+**Trois sortes de déclencheur, et la liste est fermée.**
+
+- **une horloge atteint sa valeur** — laquelle des deux, et la valeur. Les deux sont le **temps maximal d'enregistrement**, dont les 30 s ne sont que le plafond technique et jamais la valeur réglée, et le **seuil de silence** de la troisième position de capture.
+- **une feuille dit quelque chose** — laquelle, laquelle des trois lectures (un élément, le chiffre, la note), et une valeur.
+- **un compte de passages** — à tel passage, ou tous les N.
+
+La première n'a que le premier moment, la troisième que le dernier : il se déduit. **La deuxième doit dire lequel des deux**, et c'est une vraie distinction — « la correction est sous B » veut dire *bloque maintenant* à la fin d'une tentative, et *perds une vie* à la fermeture du passage. Deux règles différentes qui lisent la même feuille.
+
+À l'intérieur de la fin de tentative, l'instant exact **se déduit de la feuille** et ne se déclare pas : une feuille de son n'existe pas avant que l'analyse ait fini, une feuille de langue existe dès le retour de l'appel. C'est l'ordre des deux portes que le doc écrit déjà — les mots d'abord, le son ensuite.
+
+**Le début et la fin d'une séance ne sont pas des déclencheurs.** Un déclencheur existe pour *éprouver* quelque chose à un moment qui revient ; le début et la fin arrivent une fois et sans condition, il n'y a rien à tester. Ce sont des champs de la définition — ce qui ouvre la séance, et son critère de réussite.
 
 ## Ce que l'app exécute, ce que l'IA interprète
 
@@ -808,7 +830,7 @@ Le micro **ne s'arme jamais avant la fin de la réponse de l'IA**. Un symbole es
 
 **Chaque tour porte sa position de capture.** C'est ce qui dit si ses silences sont significatifs, et rien ne s'agrège entre positions : agréger un tour capté au doigt avec un tour capté automatiquement produirait un chiffre qui ressemble à de la fluidité sans en être.
 
-**La durée d'un tour est une seule variable, et le plafond technique en est la valeur maximale admissible.** Imposer de répondre en cinq secondes et supporter trente secondes au plus sont la même chose réglée différemment, avec le même comportement : un avertissement quand le temps s'épuise, puis l'envoi. Ce qui se passe à zéro — envoyer, ou compter la tentative comme ratée — est une règle déclenchée par « temps écoulé ».
+**La durée d'un tour est une seule variable, et le plafond technique en est la valeur maximale admissible.** Imposer de répondre en cinq secondes et supporter trente secondes au plus sont la même chose réglée différemment, avec le même comportement : un avertissement quand le temps s'épuise, puis l'envoi. Ce qui se passe à zéro — envoyer, ou compter la tentative comme ratée — est une règle, déclenchée par l'horloge du **temps maximal d'enregistrement** pendant qu'on parle (« Quand une règle se déclenche »).
 
 Le plafond, lui, est technique : la mémoire d'une passe d'analyse croît comme le **carré** de la durée du tour, d'où 30 s aujourd'hui. Envoyer plutôt que jeter, parce que jeter perdrait de la parole. Le plafond remonte quand le fenêtrage de l'analyse arrive (`../../TODO.md`) ; le levier, lui, reste.
 
@@ -828,12 +850,11 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
-- **La liste fermée des sortes de déclencheurs** d'une règle. Ce qu'un déclencheur lit est tranché — un élément, le chiffre d'une feuille, ou sa note à la barre A–B.
 - **Les parties du `brief` et leurs lecteurs.** Il en a plusieurs — le modèle qui joue, les juges qui notent — et tout ne doit pas aller à tout le monde : *« tu es un vendeur, le client est pressé »* est vrai pour les deux, *« pousse-le sur le passé, il l'évite »* est une instruction de mise en scène qui n'a rien à faire chez un juge, qui marquerait des choses que personne ne lui demandait.
 - **Comment un personnage obtient sa voix.** L'invariant seul est tranché : aucun nom de voix écrit en dur. Et si c'est la piste de la propriété déclarée qui gagne, d'où vient cette propriété — table par fournisseur, ou chiffre mesuré.
 - **Ce qui empêche la persona d'atteindre la reconstruction d'`intended`**, un même appel faisant les deux.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers — et **ce que ces crans font varier**, les poids étant constants pendant une partie.
-- **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode. C'est lui qui lit la séance entière ; les conditions, elles, restent sur le passage.
+- **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode. C'est lui qui lit la séance entière ; les conditions, elles, restent sur le passage. C'est un **champ** de la définition et non un déclencheur, comme ce qui ouvre la séance (« Quand une règle se déclenche »).
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
 - **La liste des leviers de chaque format**, close pour aucun, et le détail de ce que chaque position produit — sa valeur par défaut et sa phrase lisible, qu'exige le mode arcade. Leur forme est écrite (« Ce qui fait un levier ») et ceux de la conversation sont énumérés (« Les leviers qui pressent chaque aptitude »). À vérifier en les détaillant : la **préparation**, nommée en passant parmi les aides qu'un curseur retire, n'a ni levier ni définition — soit c'est un temps de réflexion avant de parler et il manque, soit c'est un mot lâché.
 - **Quels préréglages chaque mode offre**, et ce que chacun pose. Le curseur d'aptitude n'en est qu'un.
