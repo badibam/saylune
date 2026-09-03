@@ -371,7 +371,15 @@ Ce qui rend une contrainte dure n'est pas la note — noyée dans une moyenne po
 
 Une condition **lit le résultat d'une feuille, elle ne change pas ce que la feuille mesure**. Elle se branche donc aussi bien sur une feuille calculée : un silence de plus de cinq secondes coûte une vie.
 
-**Le mécanisme reste à préciser** : porte-t-elle sur la mesure, sur la note, ou sur les deux. Deux formes se dessinent — la note de la feuille sous la barre, ou une position atteinte au moins une fois : un empan au cran « ne se dit pas », un passage jugé hors registre.
+**Trois formes, et il n'y en a pas d'autre.** Une condition lit :
+
+- **un élément** — au moins un élément atteint ou dépasse une valeur : un silence de plus de cinq secondes, un empan au cran « ne se dit pas », un son au-delà de la ligne du gros raté ;
+- **le chiffre de la feuille** — plus de 30 % du tour passé en silence ;
+- **la note de la feuille**, à la barre A–B et jamais à une lettre choisie par le défi. Sinon deux boutons feraient un seul effet — durcir la sensibilité, ou monter la lettre exigée — et plus rien ne dirait lequel a rendu la séance difficile. C'est l'argument déjà servi pour refuser que la barre se règle.
+
+Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. La troisième **suit la sensibilité**, qui est précisément ce qui déplace les bornes A–E : monter la sévérité rend la condition plus fréquente sans qu'on la touche, et c'est un service — un défi dit « plus dur » d'un seul geste. La porte grammaticale est de cette troisième forme.
+
+**Rien ne s'écrit par feuille pour autant.** Une feuille déclare **deux unités**, celle de son chiffre et celle de ses éléments, et elles diffèrent presque toujours : la part silencieuse rend un pourcentage du tour et ses éléments sont des secondes ; la justesse rend un pourcentage de mots et ses éléments sont des crans. Une condition se dit alors partout pareil — quelle feuille, laquelle des trois formes, et une valeur dans l'unité concernée.
 
 ## Le blocage
 
