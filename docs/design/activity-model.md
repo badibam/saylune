@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la formulation et la richesse autour d'un seul marquage. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la formulation et la richesse autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -64,7 +64,7 @@ Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque cinq, et
 - **Les règles** — une liste, qui absorbe la rampe, les conditions de fin et les conditions branchées sur une feuille (« Les règles »).
 - **Le journal des changements appliqués**, sans quoi une séance dont un tirage ou l'IA a modifié les réglages ne se recalcule plus.
 - **L'origine**, ci-dessus.
-- **Les consignes par feuille jugée** — du texte libre, une par feuille au plus, distinct du `brief` de l'activité (« Ce qui est jugé, ce qui est calculé »). Les poids et les sensibilités, eux, ne sont pas un champ neuf : ce sont des positions de leviers, donc des réglages.
+- **Les consignes par marquage jugé** — du texte libre, une par marquage au plus, distinct du `brief` de l'activité (« Ce qui est jugé, ce qui est calculé »). Les poids et les sensibilités, eux, ne sont pas un champ neuf : ce sont des positions de leviers, donc des réglages.
 - **Le résultat doit pouvoir porter un nombre.** Il porte aujourd'hui un verdict, un juge, une date et du texte libre ; un score d'arcade est un nombre, et le ranger dans du texte libre le rendrait inexploitable.
 
 Et **`mode` n'est pas un champ** : « arcade », « campagne », « défi », « custom » sont des noms d'usage sur des combinaisons de ces axes-là.
@@ -260,44 +260,52 @@ En mots, deux fautes dans *Where is it?* et deux dans une phrase de vingt ne ren
 
 **Prix assumé : les sous-feuilles par nature d'empan partagent ce dénominateur.** La sous-feuille « groupe verbal » lit la part des mots du passage tombant dans un groupe verbal marqué, et non un taux de réussite sur les groupes verbaux — l'app ne connaît pas ceux qui vont bien, et les connaître demanderait le découpage qu'on vient d'écarter.
 
-**La formulation pose une seule question — est-ce que c'est de l'anglais ? — et rend une seule feuille, la justesse** : la part des mots retenus dans un empan marqué. Binaire par mot, la question étant fermée.
+**La formulation pose une seule question — est-ce que c'est de l'anglais ? — et rend une seule feuille**, qui porte le nom de l'aptitude : la part des mots retenus dans un empan marqué. Binaire par mot, la question étant fermée.
+
+**C'est un jugement absolu, et elle ne prend donc aucune consigne.** « Est-ce de l'anglais » est un fait sur la langue, vrai indépendamment de qui parle à qui : aucune situation ne le déplace. Une consigne, elle, est toujours une exigence de situation — elle appartient donc entièrement à la richesse. *« Parle au passé »* ne fait pas de *I'll go there* une phrase mal formée, c'est de l'anglais irréprochable qui ne convient pas ici.
+
+Ça règle une contorsion que le doc portait : il fallait poser la consigne sur la formulation, marquer *I'll go there*, puis expliquer que la marque montrait la consigne « au lieu de mentir sur la langue ». Il n'y a plus rien à expliquer.
+
+Et ça donne une propriété qui vaut cher : **la formulation est toujours à son critère par défaut, donc toujours vérifiable au banc**, sur des phrases isolées. Le doc note ailleurs qu'une feuille sous consigne échappe au banc ; celle-ci n'y échappe jamais. C'est exactement ce dont le banc grammatical a besoin (`../../TODO.md`, chantier 2).
+
+**Elle ne se découpe pas non plus par nature d'empan.** Le groupe verbal, le groupe nominal, la préposition, le circonstanciel, la proposition entière : cette liste fermée disparaît. Sans consigne, ces sous-feuilles seraient le seul moyen de viser quelque chose dans la formulation — or viser est toujours un acte de situation. *« Travaille tes prépositions »* est donc une consigne côté richesse, et une préposition fautive se retrouve marquée des deux côtés, ce qui est déjà permis. Une liste fermée de moins à tenir, et une étiquette de moins à demander au juge.
+
+Ce qui laisse la formulation avec **un seul chiffre, absolu, qu'on ne peut que rendre plus ou moins sévère.** Tout ce qu'un défi veut viser, exiger ou souligner vit dans l'autre aptitude.
 
 **Deux étiquettes, qui pèsent pareil dans la feuille et ne déclenchent pas la même chose.**
 
 - **mal formé** — la phrase n'est pas bien montée : *I go there yesterday*, *I make my homework*.
 - **ne se dit pas** — ça n'existe pas dans la langue.
 
-La seconde n'est pas un *mal formé* plus grave, c'est une chose à part : elle ferme la porte de reformulation **quel que soit le réglage**, sans passer par la note. Une phrase qui ne se dit pas devrait être synthétisée pour être analysée, donc entendue comme modèle à imiter, et le montage entier repose sur le fait que le modèle est la vérité. Cet effet-là ne peut pas voyager dans une note ; il lui faut son étiquette.
+**Pas deux feuilles pour autant.** *Ne se dit pas* est rare, donc une feuille à elle vaudrait 0 % partout — et ici 0 % est le bon bout, donc tout le monde y serait en A tout le temps, ce qui ne fait que diluer les autres. Et elle n'a pas besoin d'un poids : elle a besoin de son effet, qui ne voyage pas dans une note. Un défi qui veut qu'elle coûte plus cher branche une **condition** sur l'élément.
 
-**Ce qui a quitté la formulation, c'est le choix.** *Maladroit* et *natif* n'étaient pas des degrés de correction, c'étaient des jugements sur ce qui **convient**, et ils sont maintenant la richesse. La ligne entre les deux aptitudes se dit alors sans cas limite : *« I entered the shop »*, dit en bavardant, est de l'anglais irréprochable et n'a rien à faire dans la formulation — c'est le ton qui ne va pas.
+**Ce qui a quitté la formulation, c'est le choix.** *Maladroit* et *natif* n'étaient pas des degrés de correction, c'étaient des jugements sur ce qui **convient**, et ils sont maintenant la richesse.
 
 **Et la règle qui conditionnait le côté positif disparaît.** Elle existait quand justesse et naturel étaient deux feuilles d'une même aptitude tirées d'un même marquage : sans elle, une tournure brillante compensait un verbe cassé à l'intérieur d'un seul chiffre. Deux aptitudes séparées font passer cette compensation par les poids, que quelqu'un règle et qui se lisent — ce que le doc accepte partout ailleurs (« entre feuilles, la moyenne décide seule »).
 
-**La consigne se pose sur la feuille, et le choix de la feuille dit si la contrainte est dure ou molle.** Sur la justesse — « parle au passé » — ne pas le faire est marqué, la porte se ferme, la phrase est à refaire. Sur une feuille de richesse — « préfère l'idiome à la tournure scolaire » — ne pas le faire coûte dans la note et ne ferme rien, sauf si un défi branche la porte dessus. Rien de neuf à stocker : c'est la feuille où la consigne est posée.
-
-**Une consigne peut faire marquer un empan, jamais le déplacer au cran « ne se dit pas ».** Ce cran est réservé à ce qui n'existe pas dans la langue. Le déclencher sur de l'anglais correct que la consigne n'a pas demandé mentirait sur la langue, et empoisonnerait le modèle à imiter — *I'll go there* se dit très bien.
-
 #### La richesse
 
-**La richesse pose l'autre question — est-ce que c'est l'anglais qui convient ici ?** Même marquage par groupes de mots, même dénominateur, trois étiquettes, et **trois feuilles, une par étiquette**, chacune binaire par mot.
+**La richesse pose l'autre question — as-tu visé juste ?** Juste par rapport à la situation, à qui écoute, à ce qui a été demandé, et à ce qu'on voulait dire soi-même. Même marquage par groupes de mots, même dénominateur, trois étiquettes, et **trois feuilles, une par étiquette**, chacune binaire par mot.
 
-- **inadéquat** — ne convient pas à la situation : *hey mate* à un client, *I entered the shop* en bavardant.
-- **plat** — vague, basique, ou repris alors qu'un autre mot était disponible : *I did a thing*, *nice* pour la troisième fois.
-- **juste** — la tournure ou le mot que le natif aurait choisis : *I popped into the shop*.
+- **à côté** — ne vise pas ce qu'il fallait : le ton, la situation, la consigne. *Hey mate* à un client, *I entered the shop* en bavardant, un présent quand le passé était demandé.
+- **plat** — vise bon mais mollement : vague, basique, ou repris alors qu'un autre mot était disponible. *I did a thing*, *nice* pour la troisième fois.
+- **juste** — vise et touche : la tournure que le natif aurait choisie. *I popped into the shop*.
 
-**Trois feuilles plutôt qu'une feuille signée**, parce qu'une feuille signée obligerait à inventer une pondération entre les étiquettes — un demi pour l'une, un pour l'autre — que personne ne saurait justifier, et le doc a déjà refusé ça. Avec trois feuilles, un défi qui veut que l'inadéquation compte trois fois plus que la platitude met 3 et 1, et celui qui ne veut rien récompenser met 0 sur *juste*. Rien de tout ça n'était écrivable autrement.
+**Trois feuilles plutôt qu'une feuille signée**, parce qu'une feuille signée obligerait à inventer une pondération entre les étiquettes — un demi pour l'une, un pour l'autre — que personne ne saurait justifier, et le doc a déjà refusé ça. Avec trois feuilles, un défi qui veut que *à côté* compte trois fois plus que *plat* met 3 et 1, et celui qui ne veut rien récompenser met 0 sur *juste*. Rien de tout ça n'était écrivable autrement.
 
-**Le poids dit combien la feuille compte, les bornes disent combien on en tolère**, et ce sont deux questions différentes. « L'inadéquation, c'est plus grave » se règle par des bornes A–E plus serrées, une fois, comme défaut du projet — pas par un poids qu'un défi devrait penser à monter.
+**Le poids dit combien la feuille compte, les bornes disent combien on en tolère**, et ce sont deux questions différentes. *Plat* est bien négatif, seulement moins que *à côté* — et ce « moins » s'écrit en bornes A–E plus larges, une fois, comme défaut du projet. Pas en valeur, et pas dans un poids qu'un défi devrait penser à monter.
 
-**Un mot porte au plus une des trois étiquettes**, et une précédence fixe suffit à le garantir : *inadéquat* devant *plat* devant *juste*. C'est la règle déjà écrite pour la formulation — un mot prend le pire cran qu'il porte et compte une fois. Le juge n'arbitre pas, l'app applique. Le cas qui décide est le groupe idiomatique mais hors ton : *crack on with it* dit à un client est de l'anglais précis, et faux ici ; l'exclusion le range en *inadéquat*, ce qui est le bon verdict.
+**Un mot porte au plus une des trois étiquettes**, et une précédence fixe suffit à le garantir : *à côté* devant *plat* devant *juste*. C'est la règle déjà écrite pour la formulation — un mot prend le pire cran qu'il porte et compte une fois. Le juge n'arbitre pas, l'app applique. Le cas qui décide est le groupe idiomatique mais hors ton : *crack on with it* dit à un client est de l'anglais précis, et faux ici ; l'exclusion le range en *à côté*, ce qui est le bon verdict.
 
-**Prix assumé : un mot peut s'échapper de la feuille qu'un défi pèse.** Un défi qui ne vise que la platitude verra *stuff*, vague **et** trop familier, étiqueté inadéquat, donc absent de sa feuille. C'est le bon compromis quand même : l'étiquetage ne dépend jamais des réglages, ce qui est l'invariant de fond du projet.
+**Prix assumé : un mot peut s'échapper de la feuille qu'un défi pèse.** Un défi qui ne vise que la platitude verra *stuff*, vague **et** trop familier, étiqueté *à côté*, donc absent de sa feuille. C'est le bon compromis quand même : l'étiquetage ne dépend jamais des réglages, ce qui est l'invariant de fond du projet.
 
 **Les bornes de *juste* ne se posent pas comme les deux autres.** Elle vaut zéro sur presque tous les passages — on ne place pas une tournure remarquable à chaque phrase. Posées comme celles de *plat*, ses bornes mettraient tout le monde en E tout le temps et plomberaient la richesse pour rien : zéro doit y être une note correcte, et la moindre trouvaille faire monter. C'est un cas concret pour « où chaque sensibilité pose ses bornes », qui reste à écrire.
 
-**Le registre n'a pas de feuille à lui, il est l'étiquette *inadéquat*.** Un cran séparé sur tout le passage aurait compté deux fois les mots que la richesse marque déjà. Et le **mot interdit** est une consigne sur ces feuilles, comme le reste.
+**La consigne se pose sur le marquage, pas sur une feuille.** Les trois ne sont pas trois jugements mais trois lectures d'un seul passage du juge, qui marque une fois ; il n'y a donc rien à quoi trois consignes s'attacheraient. Une seule, comme quelqu'un l'écrirait : *« tu parles à un client, tiens-toi au passé, préfère les verbes à particule »*. Le doc le disait déjà de la formulation sans en tirer la conséquence — *« leurs consignes lui sont donc données ensemble »*.
 
-**La complexité de la phrase est absorbée par *plat*.** *« I bought bread. It was good. »* est correct, naturel et sans relief, et c'est exactement ce que *plat* dit. Une feuille de plus n'aurait rien ajouté.
+Deux choses en tombent. **La consigne ne touche jamais la formulation**, bien qu'elle partage le marquage, ses deux étiquettes étant absolues. Et **elle ne peut qu'endurcir** : la précédence va de *à côté* vers *juste*, donc une consigne fait passer des groupes vers l'étiquette plus sévère, jamais vers la plus douce. « Ignore les répétitions » reste inécrivable, ce qui est la règle.
+
+**Le registre, la variété, la rareté et la complexité de la phrase n'ont pas de feuille à elles.** Le registre est ce que *à côté* dit ; la répétition, la vaguerie et la platitude de construction sont ce que *plat* dit. Une feuille par notion aurait compté deux fois les mêmes mots.
 
 **Un même mot peut être marqué par la formulation et par la richesse**, et son poids s'ajoute dans les deux. *« I make a thing »* est mal formé **et** plat : ce sont deux défauts réels, pas un compté deux fois. C'est la seule exception au principe qu'aucun mot n'entre dans deux feuilles dont les poids s'additionnent, et elle est assumée.
 
@@ -400,7 +408,7 @@ Les trois autres lectures sont pires. La **première** rend la redite sans effet
 
 Reste le cas où la phrase corrigée dit autre chose que ce que l'IA avait compris, sa réponse devenant absurde. La redite ne fabrique pas ce risque, elle le révèle : l'app répond à l'intention, et se tromper d'intention est le cas déjà écrit de `../reference.md`. Le remède est celui de n'importe quelle conversation — le dire au tour suivant.
 
-**Le nombre de tentatives est lui-même une feuille** : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la justesse d'emblée. Reformuler et redire ne se comptent pas ensemble — deux feuilles, une par compteur, du même découpage que les leviers.
+**Le nombre de tentatives est lui-même une feuille** : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la réussite d'emblée. Reformuler et redire ne se comptent pas ensemble — deux feuilles, une par compteur, du même découpage que les leviers.
 
 ### Les étiquettes de l'empan
 
@@ -408,10 +416,12 @@ Le juge marque **par groupe de mots**, une seule fois pour les deux aptitudes, e
 
 - **ne se dit pas** — hors de la langue. *(formulation)*
 - **mal formé** — la phrase n'est pas bien montée. *(formulation)*
-- **inadéquat** — ne convient pas à la situation. *(richesse)*
+- **à côté** — ne vise pas ce qu'il fallait. *(richesse)*
 - **plat** — vague, basique, ou repris. *(richesse)*
 - *(rien)*.
-- **juste** — le mot ou la tournure que le natif aurait choisis. *(richesse)*
+- **juste** — vise et touche. *(richesse)*
+
+Les deux de la formulation sont **absolues** : aucune consigne ne les déplace. Les trois de la richesse sont **situationnelles**, et la consigne façonne où passe leur frontière.
 
 **C'est la seule mesure du projet qui ait un bon côté**, et la raison tient à la nature des deux : pour le son, le modèle est la vérité, donc on ne peut pas faire mieux que lui — être dessus est l'attendu, et sous la bande de bruit rien ne se distingue. Pour une phrase il n'y a pas de modèle unique, donc on peut dépasser le simplement correct. Le cran haut est ce qui donne un sens à A : sans lui, A et B disaient tous deux « rien à signaler » et la différence n'était observable nulle part.
 
@@ -429,15 +439,15 @@ Le juge marque **par groupe de mots**, une seule fois pour les deux aptitudes, e
 
 Les deux aptitudes issues du même marquage prennent **deux formes distinctes**, parce qu'elles répondent à deux questions.
 
-**La formulation se souligne en vaguelette rouge.** Un soulignement était nécessaire — les sons prennent déjà **un filet sous le mot** pour l'accent lexical, et un trait droit tomberait au même endroit ; la vaguelette se lit comme une erreur de langue sans qu'on ait à l'apprendre.
+**La formulation se souligne en vaguelette — jaune pour *mal formé*, rouge pour *ne se dit pas*.** La couleur y porte la distance au neutre, comme partout, et elle dit quelque chose de réel : un tour *mal formé* peut passer la porte au réglage lâche, un tour *ne se dit pas* n'a jamais d'analyse du son quoi qu'on règle. Un soulignement était nécessaire — les sons prennent déjà **un filet sous le mot** pour l'accent lexical, et un trait droit tomberait au même endroit ; la vaguelette se lit comme une erreur de langue sans qu'on ait à l'apprendre.
 
-**La richesse s'encadre** — rouge pour *inadéquat*, jaune pour *plat*, vert pour *juste*. Un contour est une forme neuve qui n'occupe ni l'intérieur des lettres ni la ligne de base, donc un mot peut être encadré et porter ses lettres teintées sans qu'on confonde les deux échelles. Le vert vit là et nulle part ailleurs, puisque c'est la seule mesure du projet qui ait un bon côté.
+**La richesse s'encadre** — rouge pour *à côté*, jaune pour *plat*, vert pour *juste*. Pas de collision avec le jaune de la vaguelette : la forme sépare les deux échelles, un cadre n'étant pas un soulignement. Un contour est une forme neuve qui n'occupe ni l'intérieur des lettres ni la ligne de base, donc un mot peut être encadré et porter ses lettres teintées sans qu'on confonde les deux échelles. Le vert vit là et nulle part ailleurs, puisque c'est la seule mesure du projet qui ait un bon côté.
 
 ### La porte de reformulation
 
 **Elle se ferme sur ce qui va être réécrit**, plus sur le marquage. La raison de la porte a toujours été qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire ; tant que marquage et réécriture allaient ensemble, « marqué » était un bon substitut. Ce n'est plus le cas depuis que la formulation a des leviers séparés.
 
-**Elle n'est pas câblée sur la formulation, et elle ne s'appelle plus grammaticale.** C'est une condition ordinaire, de la troisième forme — elle lit la note d'une feuille à la barre A–B —, donc **quelle feuille la ferme est écrit par les règles du défi**. Le registre en fait partie de plein droit : un tour à refaire parce que le ton est à côté est un tour dont les mots vont changer. Par défaut, hors défi, c'est la justesse.
+**Elle n'est pas câblée sur la formulation, et elle ne s'appelle plus grammaticale.** C'est une condition ordinaire, de la troisième forme — elle lit la note d'une feuille à la barre A–B —, donc **quelle feuille la ferme est écrit par les règles du défi**. Le registre en fait partie de plein droit : un tour à refaire parce que le ton est à côté est un tour dont les mots vont changer. Par défaut, hors défi, c'est la formulation.
 
 **Ce qui la ferme est toujours de la même famille : les marques qui appellent une reformulation**, où les mots changent. Celles qui appellent une redite — les sons, l'accent, la mélodie — ne peuvent pas la fermer, par construction : la phrase reste la même, il n'y a rien à réécrire.
 
@@ -445,7 +455,21 @@ Les deux aptitudes issues du même marquage prennent **deux formes distinctes**,
 
 **Rien de ce qui est jugé ne s'éteint quand elle se ferme.** Toutes les feuilles jugées se calculent, puisque ce sont elles qui décident si elle se ferme — l'éteindre par sa propre décision serait circulaire. Ce qui s'éteint est l'analyse du son, et elle seule.
 
-**Et le cran « ne se dit pas » ferme la porte quel que soit le réglage**, sans passer par la note. Une phrase qui ne se dit pas, l'app devrait la synthétiser pour l'analyser, donc la faire entendre comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
+**Et *ne se dit pas* n'est pas une porte, c'est une absence de sol.** Les deux se ressemblent à l'écran et n'ont rien à voir :
+
+|  | la porte de reformulation | *ne se dit pas* |
+|---|---|---|
+| nature | une décision — on ne travaille pas une phrase qu'on va réécrire | une impossibilité — il n'y a pas de modèle à comparer |
+| ce qui est lu | la **note** d'une feuille, à la barre A–B | un **élément** : un seul empan suffit |
+| qui décide | les règles du défi, et laquelle des feuilles la ferme | personne, c'est un fait |
+| négociable | oui, entièrement | non, il n'y a rien à négocier |
+| ce qui se passe | l'analyse du son ne tourne pas | l'analyse du son n'a pas d'objet |
+
+Dans le premier cas la phrase **pourrait** être synthétisée et on choisit de ne pas le faire ; dans le second elle **ne peut pas** l'être, et la faire dire au modèle donnerait à imiter une non-phrase. Tout le montage repose sur le fait que le modèle est la vérité.
+
+**On ne peut pas retirer l'empan et synthétiser le reste**, comme on retire un *um* du texte de référence. Un bafouillage est **hors** de la phrase ; un empan qui ne se dit pas est **dedans**, et demande à être remplacé. Le retirer laisserait *« I have [ ] years »*, que le modèle dirait *« I have years »* — une autre phrase, cassée elle aussi.
+
+**Et rien d'autre ne s'arrête.** L'IA répond, le fil continue, la marque s'affiche et la reformulation est proposée. Le canal du son reste vide en portant sa raison, pour cette tentative-là seulement : la reformulation est un énoncé neuf, dont le modèle se synthétise et dont les sons s'analysent normalement.
 
 **Point ouvert : ce qui tombe d'un côté ou de l'autre dépend d'une décision du modèle de langue.** *I walk to school yesterday.* Le STT transcrit la bouche, donc *walk* ; le modèle décide l'intention, et avec *yesterday* il peut écrire *walked*. S'il écrit *walked*, la grammaire est correcte, la porte est ouverte, et l'analyse voit un /t/ manquant : faute de prononciation. S'il écrit *walk*, la grammaire est fautive, la porte se ferme, et rien du son ne s'analyse : faute de formulation. Le même énoncé, deux traitements opposés, et ce qui tranche n'est contrôlé par personne.
 
@@ -459,21 +483,21 @@ Trois conditions pour qu'une feuille existe, et elles tiennent ensemble :
 - elle **veut dire quelque chose sans aucun défi**, dans une conversation ordinaire — sinon c'est un cas particulier déguisé en mesure ;
 - quelqu'un pourrait vouloir la **noter seule**.
 
-**Aucune feuille n'a deux sens.** Une feuille dont la direction devrait s'inverser selon l'activité est la mauvaise feuille : le défi « explique ça à un enfant de huit ans » ne demande pas la richesse du lexique à l'envers, il demande de s'adapter à qui écoute — c'est ce que l'étiquette *inadéquat* dit déjà, un mot trop savant ne convenant pas à qui écoute.
+**Aucune feuille n'a deux sens.** Une feuille dont la direction devrait s'inverser selon l'activité est la mauvaise feuille : le défi « explique ça à un enfant de huit ans » ne demande pas la richesse du lexique à l'envers, il demande de s'adapter à qui écoute — c'est ce que l'étiquette *à côté* dit déjà, un mot trop savant ne convenant pas à qui écoute.
 
 Ce qui suit est la grille du **format conversation** ; un autre format apporte la sienne. Aucune branche n'est close.
 
 **Élocution** — les gros ratés et la masse des écarts, deux feuilles sur les mêmes sons ; la distance des courbes et la part des mouvements non faits, deux feuilles sur la mélodie ; l'accent lexical, par mot ; le nombre de redites. Ce que vaut un élément et ce qui fait le dénominateur, feuille par feuille, est en « Des marques au chiffre d'une feuille ». *Candidate* : le rythme, les durées relatives comparées au modèle. La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer.
 
-**Formulation** — une feuille, la **justesse**, découpable par **la nature de l'empan marqué** : groupe verbal, groupe nominal, préposition ou particule, circonstanciel, proposition entière. Plus le nombre de reformulations.
+**Formulation** — une feuille, sans découpage et sans consigne : un jugement absolu sur la langue. Plus le nombre de reformulations.
 
-Ce découpage-là plutôt qu'une liste de causes — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. La nature de l'empan est **fermée par construction**, tout empan étant une pièce de la phrase, et bien plus stable à juger : dire qu'un empan est un groupe verbal se vérifie, dire qu'une faute est d'aspect plutôt que de temps se discute. Coût assumé, c'est plus grossier — « I go there yesterday » et « I goed there » tombent au même endroit. La finesse est ailleurs, dans la consigne.
+Aucun découpage par cause — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. Et aucun découpage par nature d'empan non plus : viser une partie de la phrase est un acte de situation, donc ça se dit en consigne côté richesse. Coût assumé, c'est grossier — « I go there yesterday » et « I goed there » tombent au même endroit.
 
 **Fluidité** — la part silencieuse du tour ; le débit ; le tour interrompu ; le remplissage ; les reprises. La première n'existe qu'en capture automatique ; le débit se mesure sur le temps de parole, et le tour interrompu se lit aux trois positions, le plafond de durée existant partout.
 
 Les deux dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. Et depuis qu'on aligne l'apprenant sur tout ce qu'il a dit, un nettoyage silencieux fait aussi rater le placement des sons dans un audio qui, lui, contient les hésitations. Le critère de fidélité verbatim du banc (`../../TODO.md`, chantier 2) ne pesait jusqu'ici que sur la grammaire ; il pèse maintenant sur la mesure des sons.
 
-**Richesse** — trois feuilles sur le même marquage que la formulation, une par étiquette : **inadéquat**, **plat**, **juste**. Découpables par la nature de l'empan comme la justesse. La variété, la rareté, le registre et la complexité de la phrase n'ont pas de feuille à elles : elles sont ce que ces trois étiquettes disent (« La richesse »).
+**Richesse** — trois feuilles sur le même marquage que la formulation, une par étiquette : **à côté**, **plat**, **juste**. C'est elle qui porte la consigne, donc tout ce qu'un défi veut exiger. La variété, la rareté, le registre et la complexité de la phrase n'ont pas de feuille à elles : elles sont ce que ces trois étiquettes disent (« La richesse »).
 
 **Compréhension** — la pertinence de la réponse ; le nombre d'écoutes du tour de l'IA.
 
@@ -485,18 +509,18 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 
 **Le juge rend un cran, jamais un pourcentage.** « 72 % de pertinence » n'est vérifiable par personne, et la finesse vient du comptage, comme pour les sons. Les échelles qui suivent sont **proposées, pas tranchées** — seuls les crans de formulation le sont.
 
-- **empan** — un groupe de mots et son étiquette, une seule : *ne se dit pas*, *mal formé*, *inadéquat*, *plat*, *juste*, du remplissage, ou un morceau abandonné. Un mot n'en porte jamais deux (« Les étiquettes de l'empan »).
+- **empan** — un groupe de mots et son étiquette, une seule : *ne se dit pas*, *mal formé*, *à côté*, *plat*, *juste*, du remplissage, ou un morceau abandonné. Un mot n'en porte jamais deux (« Les étiquettes de l'empan »).
 - **pertinence** — un cran par passage, et **pas de bon côté** : répond / répond à moitié / à côté. Contrairement au ton, il n'y a qu'une chose à faire, répondre à ce qui a été dit ; rien au-dessus.
 
-**Seule une feuille jugée prend une consigne** — du texte libre qui entre dans le critère que le juge lit. Une feuille calculée n'en prend pas : il n'y a pas de phrase à reformuler dans un écart de répartition. **Le poids choisit parmi ce qui est mesuré, la consigne reformule ce qui est jugé.** Un défi « prononce tous les -ed finaux » ne s'écrit donc pas en consigne sur les sons, que l'écart au modèle voit déjà, mais en creusant l'arbre pour ne peser que ces sons-là.
+**Seul un marquage jugé prend une consigne** — du texte libre qui entre dans le critère que le juge lit, et non une feuille : plusieurs feuilles se lisent d'un même passage du juge, et il n'y a rien à quoi des consignes séparées s'attacheraient. Il n'y en a donc que deux dans toute l'app, celle du marquage des empans et celle de la pertinence. Un marquage calculé n'en prend pas : il n'y a pas de phrase à reformuler dans un écart de répartition. **Le poids choisit parmi ce qui est mesuré, la consigne reformule ce qui est jugé.** Un défi « prononce tous les -ed finaux » ne s'écrit donc pas en consigne sur les sons, que l'écart au modèle voit déjà, mais en creusant l'arbre pour ne peser que ces sons-là.
 
-**La consigne fait partie de la situation, pas des réglages.** C'est ce qui la rend compatible avec l'invariance : deux personnes dans la même activité reçoivent le même traitement, et c'est ça que l'invariance protège. Elle n'a ni positions ni phrase lisible par position, donc elle ne va pas dans la liste des leviers — c'est un champ à part, un `brief` par feuille jugée.
+**La consigne fait partie de la situation, pas des réglages.** C'est ce qui la rend compatible avec l'invariance : deux personnes dans la même activité reçoivent le même traitement, et c'est ça que l'invariance protège. Elle n'a ni positions ni phrase lisible par position, donc elle ne va pas dans la liste des leviers — c'est un champ à part, un `brief` par marquage jugé.
 
 **Une consigne n'est qu'additive.** Pour qu'une feuille compte moins ou pas du tout, il y a le poids, et lui seul. Une consigne « ignore les temps » est le cas interdit : elle ferait adoucir un verdict par un texte, ce que le module n'a pas le droit de faire.
 
 **Une feuille sous consigne n'est pas vérifiée par le banc**, qui éprouve le critère par défaut. Coût connu, pas un défaut à réparer.
 
-Deux défis que ça écrit sans champ neuf. « 100 % passé » pèse le groupe verbal et pose sa consigne dessus ; la marque sur « I'll go there » montre alors la consigne — le passé était demandé — au lieu de mentir sur la langue, puisque la phrase est de l'anglais parfait. Et le **mot interdit** est une consigne sur les feuilles de richesse : il n'a pas de feuille à lui, une feuille qui n'existe que si quelqu'un la configure ne passant pas les trois conditions.
+Deux défis que ça écrit sans champ neuf. « 100 % passé » est une consigne sur le marquage, et pèse la feuille *à côté* : *I'll go there* s'y range, ce qui ne ment pas sur la langue — la phrase est de l'anglais parfait qui ne convient pas ici, et la formulation ne la voit pas. Et le **mot interdit** est une consigne du même marquage : il n'a pas de feuille à lui, une feuille qui n'existe que si quelqu'un la configure ne passant pas les trois conditions.
 
 ### Les conditions attachées à une feuille
 
@@ -522,7 +546,7 @@ Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. 
 
 **Une condition lit un passage et se déclenche sur-le-champ ; l'accumulation vit dans l'effet, pas dans la lecture.** « Un tour interrompu coûte une vie » n'a besoin de compter jusqu'à trois nulle part : au troisième, le compteur de vies est à zéro. Ce qui a besoin de voir la séance entière est d'une autre nature — le critère de réussite d'un défi, qui reste à écrire.
 
-**Rien ne s'écrit par feuille pour autant.** Une feuille déclare **deux unités**, celle de son chiffre et celle de ses éléments, et elles diffèrent presque toujours : la part silencieuse rend un pourcentage du tour et ses éléments sont des secondes ; la justesse rend un pourcentage de mots et ses éléments sont des crans. Une condition se dit alors partout pareil — quelle feuille, laquelle des trois formes, et une valeur dans l'unité concernée.
+**Rien ne s'écrit par feuille pour autant.** Une feuille déclare **deux unités**, celle de son chiffre et celle de ses éléments, et elles diffèrent presque toujours : la part silencieuse rend un pourcentage du tour et ses éléments sont des secondes ; la formulation rend un pourcentage de mots et ses éléments sont des étiquettes. Une condition se dit alors partout pareil — quelle feuille, laquelle des trois formes, et une valeur dans l'unité concernée.
 
 ## Le blocage
 
