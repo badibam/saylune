@@ -198,7 +198,7 @@ Deux circuits distincts partagent une seule ressource : le fichier audio du tour
 
 1. **Maintien du doigt, envoi manuel.** Ce que fait l'app : on appuie pour parler, on relâche pour réfléchir, on réappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
 2. **Armement automatique, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le délai avant de parler et les silences intérieurs deviennent mesurables.
-3. **Armement automatique, envoi sur un silence de plus de x**, silence du début compris. Le silence final s'y ajoute.
+3. **Armement automatique, envoi sur un silence de plus de x**, silence du début compris. Aucune mesure neuve ne s'y ajoute.
 
 Aucune ne coupe qui parle encore, ce qui est l'invariant. **Ce qui coupe est ailleurs** : la durée d'un tour, une seule variable dont le plafond technique est la valeur maximale admissible — 30 s aujourd'hui, parce que la mémoire d'une passe d'analyse croît comme le **carré** de la durée (`analysis.md`). Imposer de répondre en cinq secondes est la même variable réglée plus bas. Dans les deux cas le tour se ferme et envoie ce qui a été dit — jeter perdrait de la parole. Le plafond remonte quand le fenêtrage de l'analyse arrive ; le levier reste.
 

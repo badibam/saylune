@@ -273,7 +273,7 @@ Les deux feuilles sont deux lectures d'**un seul passage du juge**, qui marque u
 
 **Le débit se mesure sur le temps de parole**, silences exclus : les mots divisés par le temps où la bouche articule. Ce n'est pas une version approchée du débit sur la durée du tour, c'est une autre mesure — l'une dit à quelle vitesse le tour avance, l'autre à quelle vitesse on enchaîne. C'est la seconde qui parle d'anglais oral, un francophone lent étant souvent quelqu'un qui détache ses mots au lieu de les lier.
 
-Elle existe donc **aux trois positions de capture**, et sort de la liste des mesures réservées à la capture automatique, qui n'en garde que trois : le délai avant de parler, les silences intérieurs, le silence final. Ça compte, l'app étant en position 1 aujourd'hui : sans ça la fluidité n'aurait que ce que le juge lit dans le texte, et rien qui se mesure dans le temps.
+Elle existe donc **aux trois positions de capture**, et sort de la liste des mesures réservées à la capture automatique, qui n'en garde que deux : le délai avant de parler et les silences intérieurs. Ça compte, l'app étant en position 1 aujourd'hui : sans ça la fluidité n'aurait que ce que le juge lit dans le texte, et rien qui se mesure dans le temps.
 
 **Les silences intérieurs font une seule feuille, la part silencieuse** — le temps de silence divisé par la durée du tour, du premier mot au dernier. Un tour de 21 s portant 6 s de silence vaut 29 %, que ce soit un blanc unique ou douze petits. L'app ne prétend pas savoir lequel des deux est le pire : parler haché et chercher un mot une fois sont deux défauts différents, et aucun n'est clairement plus grave.
 
@@ -283,7 +283,7 @@ Couper en deux feuilles comme les sons demanderait deux choses qui manquent. Le 
 
 **Le gros blanc reste lisible par une condition**, qui va voir les éléments de la feuille — les silences avec leurs durées. Sa ligne est alors un choix de défi, cinq secondes pour l'un et trois pour l'autre, et non une propriété de la langue gravée dans la mesure.
 
-**Le dénominateur est la durée du tour, du premier mot au dernier** : le délai avant de parler et le silence final en sont exclus, chacun ayant sa feuille. Sinon le même silence serait compté deux fois par deux feuilles dont les poids s'additionnent, la collision déjà écartée pour le délai avant de parler.
+**Le dénominateur est la durée du tour, du premier mot au dernier** : le délai avant de parler en est exclu, il a sa propre feuille, sinon le même silence serait compté deux fois par deux feuilles dont les poids s'additionnent — la collision déjà écartée pour ce délai-là. Ce qui suit le dernier mot en est exclu aussi, et pour une autre raison, dite juste après.
 
 **Le silence final ne mesure rien, et il sort de la grille.** En position 1 comme en 2, l'écart entre le dernier mot et l'envoi mesure le pouce. En position 3, l'envoi part *parce qu'il y a eu un silence de plus de x*, donc le silence final vaut x, toujours et pour tout le monde : c'est le réglage relu à l'envers. Le seul tour où il vaut autre chose est celui que le plafond de durée a coupé, et ce silence-là dit qu'on a coupé, pas comment l'apprenant parle. Ce qu'il aurait pu attraper — celui qui s'arrête au milieu de son idée et n'y revient pas — est indistinguable de celui qui a fini, à toutes les positions.
 
@@ -563,7 +563,7 @@ La capture est **un levier de fluidité, à trois positions**, et l'échelle gra
 
 1. **Maintien du doigt, envoi manuel.** Ce que fait l'app aujourd'hui : on appuie pour parler, on relâche pour réfléchir, on réappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
 2. **Armement automatique, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le **délai avant de parler** et les **silences intérieurs** deviennent mesurables.
-3. **Armement automatique, envoi sur un silence de plus de x**, silence du début compris. Le **silence final** s'y ajoute.
+3. **Armement automatique, envoi sur un silence de plus de x**, silence du début compris. Aucune mesure neuve ne s'y ajoute — ce qui suit le dernier mot vaut alors x par construction.
 
 Le micro **ne s'arme jamais avant la fin de la réponse de l'IA**. Un symbole est visible dès que ça enregistre : il n'informe pas seulement, il fait partie de la pression — savoir que ça tourne change la façon dont on parle.
 
