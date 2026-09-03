@@ -170,6 +170,22 @@ Deux réglages par nœud, et ils ne font pas la même chose :
 
 Un défi qui ne note que l'accent tonique est donc un poids à 1 et des poids à 0, pas un mécanisme à part. C'est ce qui permet de viser sans ajouter de champ : quoi qu'on note, l'information est déjà là.
 
+### Ce qu'une feuille déclare
+
+**Un défi s'écrit contre une liste, jamais contre le code.** Sans ça, poser une condition — la feuille *part silencieuse*, forme élément, cinq secondes — demande de savoir que cette feuille existe, comment elle s'appelle, et que ses éléments sont des secondes et non des pourcentages. C'est-à-dire de lire le calcul.
+
+**L'arbre des feuilles est donc déclaré en un endroit**, et chaque feuille y dit cinq choses :
+
+- son **nom** et sa place dans l'arbre ;
+- l'**unité de son chiffre** — un pourcentage de sons, des demi-tons, des mots par seconde, un entier ;
+- l'**unité de ses éléments**, presque jamais la même — des secondes, un cran, un vrai/faux, des points ;
+- la **liste ordonnée de ses crans**, quand ses éléments sont des crans ;
+- si elle **prend une consigne**, c'est-à-dire si elle est jugée ou calculée.
+
+Un défi se réduit alors à quatre choses posées sur cette liste : des poids sur les nœuds, une sensibilité par feuille, des consignes sur les feuilles jugées, des conditions. Rien n'y est un branchement de code neuf, et une définition écrite par un modèle devient possible sans lui donner le code — on lui donne le catalogue, il rend ces quatre choses.
+
+**Ce que le catalogue ne donne pas** : de quoi écrire un défi *sensé*. Savoir qu'une feuille existe ne dit pas ce qu'un chiffre y vaut, et où chaque sensibilité pose ses bornes reste à écrire.
+
 ### Des marques au chiffre d'une feuille
 
 **Une feuille est la moyenne de ses éléments.** Une part et une moyenne sont la même chose — une proportion, c'est la moyenne d'un 0/1 —, donc il n'y a qu'une recette. Ce qui change d'une feuille à l'autre n'est pas la formule mais **ce que vaut un élément** : 0 ou 1 quand la question est fermée, une quantité brute quand elle est graduée. Et une feuille qui ne rend qu'un chiffre pour tout le passage — le débit, le délai avant de parler — est le même cas avec un seul élément.
@@ -222,6 +238,10 @@ Pourquoi `r` plutôt qu'un seuil en demi-tons : trois demi-tons sont énormes l�
 
 **Les tentatives** — un entier par passage, hors du poids par longueur. Ce sont des **tentatives** et non des redites : la feuille vaut au moins 1 et existe sur tous les passages. Compter des redites la mettrait à zéro presque partout, et une feuille à zéro partout tire la moyenne vers le haut sans rien dire.
 
+**Il y en a deux, et elles se séparent par ce qui doit changer dans la phrase** : les **reformulations**, où les mots changent, et les **redites**, où ils ne changent pas et où c'est la façon de dire qui est reprise. Un blocage sur le débit ou sur un silence fait redire la même phrase, donc compte en redite — la liste est fermée par construction, une phrase changeant ses mots ou ne les changeant pas.
+
+Prix assumé : la feuille des redites mélange ce qu'a causé le son et ce qu'ont causé le débit ou un silence. Un défi qui veut peser « bonne prononciation du premier coup » compte donc aussi les redites de débit.
+
 #### La formulation
 
 Le juge marque des groupes de mots à quatre crans, et rien n'énumère ceux qui vont bien : il n'y a donc pas de « tous les empans du passage » comme il y a « tous les sons du passage ». **Le dénominateur est les mots du passage**, comptés par l'app.
@@ -265,6 +285,8 @@ Couper en deux feuilles comme les sons demanderait deux choses qui manquent. Le 
 
 **Le dénominateur est la durée du tour, du premier mot au dernier** : le délai avant de parler et le silence final en sont exclus, chacun ayant sa feuille. Sinon le même silence serait compté deux fois par deux feuilles dont les poids s'additionnent, la collision déjà écartée pour le délai avant de parler.
 
+**Le silence final ne mesure rien, et il sort de la grille.** En position 1 comme en 2, l'écart entre le dernier mot et l'envoi mesure le pouce. En position 3, l'envoi part *parce qu'il y a eu un silence de plus de x*, donc le silence final vaut x, toujours et pour tout le monde : c'est le réglage relu à l'envers. Le seul tour où il vaut autre chose est celui que le plafond de durée a coupé, et ce silence-là dit qu'on a coupé, pas comment l'apprenant parle. Ce qu'il aurait pu attraper — celui qui s'arrête au milieu de son idée et n'y revient pas — est indistinguable de celui qui a fini, à toutes les positions.
+
 Et ce qui compte comme silence ne demande aucun chiffre neuf : c'est ce que le découpage en segments appelle déjà silence, un tour étant une liste de segments dont les silences sont gardés comme durées (`../reference.md`).
 
 ### L'agrégation se fait une fois, à plat
@@ -285,7 +307,7 @@ Avec élocution 2 (sons 1, mélodie 1) et formulation 1, sur deux passages dont 
 
 **Le passage est l'unité de la note : un énoncé et toutes ses redites.** Le mot est neuf parce que « tour » désigne déjà un tour de parole — un enregistrement, un énoncé, une position de capture — et confondre les deux se paierait au premier commit.
 
-**La note du passage est celle de la dernière tentative**, et le nombre de tentatives permises est un levier du format, qui peut valoir 1. La dernière est ce qu'on sait dire maintenant. Conséquence à dire à l'apprenant plutôt qu'à lui laisser découvrir : une tentative de trop, après une réussite, peut faire baisser la note.
+**La note du passage est celle de la dernière tentative**, et les tentatives permises sont un levier du format, qui peut valoir 1. **Deux leviers en fait, un par compteur** — tant de reformulations, tant de redites — et ils ne se volent rien : un défi qui ne vise que la prononciation garde ses redites intactes quoi qu'il arrive du côté des mots. La dernière est ce qu'on sait dire maintenant. Conséquence à dire à l'apprenant plutôt qu'à lui laisser découvrir : une tentative de trop, après une réussite, peut faire baisser la note.
 
 Les trois autres lectures sont pires. La **première** rend la redite sans effet, donc sans intérêt. La **meilleure** laisse l'obstination atteindre A. La **moyenne des tentatives** fait baisser la note à chaque essai, c'est-à-dire punit exactement le geste que l'app existe pour provoquer.
 
@@ -293,7 +315,7 @@ Les trois autres lectures sont pires. La **première** rend la redite sans effet
 
 **Une redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative, et la réponse de l'IA se refait sur elle — sans quoi la conversation garderait une réponse à une phrase que personne ne lit plus. Mais les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue, et le compte des essais est une feuille. Ça tranche ce que `../reference.md` laissait ouvert sur le sort de la phrase initiale.
 
-**Le nombre de tentatives est lui-même une feuille**, dans la branche où la redite a eu lieu : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la justesse d'emblée. Redire une prononciation et reformuler une phrase ne se comptent pas ensemble — deux feuilles, une par branche.
+**Le nombre de tentatives est lui-même une feuille** : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la justesse d'emblée. Reformuler et redire ne se comptent pas ensemble — deux feuilles, une par compteur, du même découpage que les leviers.
 
 ### Les crans de formulation
 
@@ -347,13 +369,13 @@ Trois conditions pour qu'une feuille existe, et elles tiennent ensemble :
 
 Ce qui suit est la grille du **format conversation** ; un autre format apporte la sienne. Aucune branche n'est close.
 
-**Élocution** — les gros ratés et la masse des écarts, deux feuilles sur les mêmes sons ; la distance des courbes et la part des mouvements non faits, deux feuilles sur la mélodie ; l'accent lexical, par mot ; le nombre de tentatives de prononciation. Ce que vaut un élément et ce qui fait le dénominateur, feuille par feuille, est en « Des marques au chiffre d'une feuille ». *Candidate* : le rythme, les durées relatives comparées au modèle. La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer.
+**Élocution** — les gros ratés et la masse des écarts, deux feuilles sur les mêmes sons ; la distance des courbes et la part des mouvements non faits, deux feuilles sur la mélodie ; l'accent lexical, par mot ; le nombre de redites. Ce que vaut un élément et ce qui fait le dénominateur, feuille par feuille, est en « Des marques au chiffre d'une feuille ». *Candidate* : le rythme, les durées relatives comparées au modèle. La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer.
 
-**Formulation** — deux feuilles sur le même marquage, la **justesse** et le **naturel**, chacune découpable par **la nature de l'empan marqué** : groupe verbal, groupe nominal, préposition ou particule, circonstanciel, proposition entière. Plus le nombre de tentatives de reformulation.
+**Formulation** — deux feuilles sur le même marquage, la **justesse** et le **naturel**, chacune découpable par **la nature de l'empan marqué** : groupe verbal, groupe nominal, préposition ou particule, circonstanciel, proposition entière. Plus le nombre de reformulations.
 
 Ce découpage-là plutôt qu'une liste de causes — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. La nature de l'empan est **fermée par construction**, tout empan étant une pièce de la phrase, et bien plus stable à juger : dire qu'un empan est un groupe verbal se vérifie, dire qu'une faute est d'aspect plutôt que de temps se discute. Coût assumé, c'est plus grossier — « I go there yesterday » et « I goed there » tombent au même endroit. La finesse est ailleurs, dans la consigne.
 
-**Fluidité** — le délai avant de parler ; la part silencieuse du tour ; le silence final ; le débit ; les mots de remplissage ; les répétitions ; les reprises et faux départs. Les trois premières n'existent qu'en capture automatique ; le débit se mesure sur le temps de parole et existe partout.
+**Fluidité** — le délai avant de parler ; la part silencieuse du tour ; le débit ; les mots de remplissage ; les répétitions ; les reprises et faux départs. Les deux premières n'existent qu'en capture automatique ; le débit se mesure sur le temps de parole et existe partout. Le silence final en est sorti, faute de mesurer quoi que ce soit.
 
 Les trois dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. C'est un critère de choix de plus pour le banc de fidélité (`../../TODO.md`, chantier 2), qui ne le devait jusqu'ici qu'à la grammaire.
 
@@ -385,7 +407,11 @@ Deux défis que ça écrit sans champ neuf. « 100 % passé » pèse le groupe v
 
 ### Les conditions attachées à une feuille
 
-Ce qui rend une contrainte dure n'est pas la note — noyée dans une moyenne pondérée par la longueur, une occurrence coûte quelques centièmes de lettre — mais une **condition branchée sur la feuille**, qui fait perdre une vie ou refuse le passage sur-le-champ. Une vie perdue et une condition de fin sont la même chose vue deux fois : la fin, c'est zéro vie.
+Ce qui rend une contrainte dure n'est pas la note — noyée dans une moyenne pondérée par la longueur, une occurrence coûte quelques centièmes de lettre — mais une **condition branchée sur la feuille**, qui se déclenche sur-le-champ.
+
+**Une condition est une règle**, pas un mécanisme à part : son déclencheur lit une feuille, et son effet est un patch, c'est-à-dire n'importe quel levier déplacé. Il n'y a donc pas d'effets à énumérer — retirer une vie est une position de levier comme une autre, et une vie perdue et une fin sont la même chose vue deux fois, la fin étant zéro vie.
+
+**Perdre une vie n'est jamais automatique.** Rater un passage ne coûte rien par soi-même : ça coûte une vie parce qu'un défi a écrit la règle qui le dit. Un autre en demandera trois, un autre rien. Et les vies n'existent que là où il y a un enjeu — une conversation libre n'en a pas, donc un passage raté y est un fait enregistré et rien d'autre.
 
 Une condition **lit le résultat d'une feuille, elle ne change pas ce que la feuille mesure**. Elle se branche donc aussi bien sur une feuille calculée : un silence de plus de cinq secondes coûte une vie.
 
@@ -403,11 +429,13 @@ Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. 
 
 **Bloquer, c'est une règle dont l'effet est que le passage ne se ferme pas.** Pas un mécanisme neuf, et donc branchable sur n'importe quelle feuille : un défi peut bloquer sur la prononciation comme sur la formulation.
 
+**« Ne pas passer » se dit de trois choses**, à ne pas confondre. Une **feuille** ne passe pas quand sa note est sous la barre A–B : c'est une lecture, il ne s'ensuit rien. Un **passage** ne passe pas quand quelque chose l'a déclaré à refaire — la note de formulation, toujours, ou une règle posée par un défi. Une **activité** ne passe pas quand elle se termine sans être réussie : zéro vie, ou son critère de réussite non atteint.
+
 Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond pas au fond et ne pose pas de question neuve ; le passage **reste ouvert**, ce qu'on attend ensuite étant une reprise de la même chose ; et rien n'avance tant qu'il ne se ferme pas.
 
 **Ce n'est pas l'interruption que le projet refuse.** On ne part pas travailler ailleurs, le sujet ne change pas, l'écran ne change pas : c'est la conversation qui s'arrête sur une phrase. Le geste fondateur reste tenu.
 
-**Deux axes, pas un.** L'**écho** — absent, indication indirecte, reprise explicite — est le levier déjà écrit. L'**avance** est le second : la réponse poursuit, ou elle attend. Le geste fondateur du projet est la combinaison (indirect, poursuit) : *« Ah, you're 25! And where... »*. Une seule combinaison ne s'offre pas, (absent, attend), qui ferait attendre sans dire pourquoi.
+**Deux axes, pas un.** L'**écho** — absent, indication indirecte, reprise explicite — est le levier déjà écrit. L'**avance** est le second : la réponse poursuit, ou elle attend. C'est un levier comme un autre, disponible partout — une conversation libre peut attendre sur une phrase, un défi peut poursuivre. Le geste fondateur du projet est la combinaison (indirect, poursuit) : *« Ah, you're 25! And where... »*. **Toutes les combinaisons s'offrent**, certaines étant seulement plus austères. Ce qui est garanti est ailleurs : **rien n'attend jamais sans qu'une raison soit visible**, et ce qui la porte est la marque, toujours là et invariante, plus la notification quand c'est le son qui bloque. Jamais l'écho, dont la position reste donc libre.
 
 Ça éclaire ce que la porte grammaticale est vraiment : **une seule barre, trois conséquences** — le son ne s'analyse pas, une redite est proposée, et la conversation attend si les réglages le disent.
 
@@ -421,7 +449,9 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 
 ### La sortie d'un passage bloqué
 
-**Les tentatives s'épuisent, et c'est la seule sortie.** Pas de geste d'abandon à part : le nombre de tentatives est déjà un levier, donc la sortie est déjà réglable, et un deuxième mécanisme ne ferait que doubler celui-là.
+**Les tentatives s'épuisent, et c'est la seule sortie.** Pas de geste d'abandon à part : les tentatives permises sont déjà un levier, donc la sortie est déjà réglable, et un deuxième mécanisme ne ferait que doubler celui-là.
+
+**Deux portes, dans cet ordre.** Celle des mots d'abord — on n'analyse pas le son d'une phrase dont les mots vont changer — puis celle du son. Les deux moments où l'app peut agir sont exactement ceux-là : au retour de l'appel, elle connaît le verdict de formulation et tout ce qui se calcule sur l'audio et le texte ; à la fin de l'analyse, elle connaît le reste. Si les reformulations s'épuisent, le passage est raté et les redites ne sont jamais entamées.
 
 L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris — et le passage est enregistré comme raté. C'est ce qui alimente les règles : perdre une vie, durcir, ouvrir ou non le niveau suivant.
 
@@ -557,7 +587,7 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Ce que vaut une feuille, pour la fluidité, la richesse et la compréhension.** La forme est écrite pour l'élocution et pour la formulation (« Des marques au chiffre d'une feuille ») ; ces trois branches-là n'ont pas été balayées.
+- **Ce que vaut une feuille, pour ce qui reste.** La forme est écrite pour l'élocution, pour la formulation, et pour le débit et les silences (« Des marques au chiffre d'une feuille »). Restent le délai avant de parler, les mots de remplissage, les répétitions et les faux départs, puis la richesse et la compréhension.
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
 - **La liste fermée des sortes de déclencheurs** d'une règle, et si un déclencheur lit une mesure, une note, ou les deux.
