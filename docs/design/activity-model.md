@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, par celle qui a écrit la fin d'une séance et son issue, et par celle qui a fait des définitions de la donnée et posé l'histoire comme une campagne à mémoire déclarée. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, par celle qui a écrit la fin d'une séance et son issue, et par celle qui a fait des définitions de la donnée posé l'histoire comme une campagne à mémoire déclarée, et ouvert les règles au modèle des deux côtés. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -153,9 +153,11 @@ Ces deux manques se règlent en séparant trois choses que le mot « rampe » te
 
 ```
 règle
-  quand   : { sorte, moment, paramètres }  # trois sortes, trois moments
-  choix   : [ patch, patch, ... ]          # un seul élément = pas de choix
+  quand   : { sorte, moment, paramètres }  # quatre sortes, trois moments
+  choix   : [ paquet, paquet, ... ]        # un seul élément = pas de choix
   qui     : écrit | hasard | IA
+
+paquet    : [ effet, effet, ... ]          # un effet : patch, fin, ou message au modèle
 ```
 
 **Un patch a exactement la forme des réglages** — des clés et des positions — et hérite donc des phrases lisibles déclarées avec chaque levier. Appliquer, c'est superposer ; annoncer, c'est lire la phrase ; proposer à l'IA, c'est envoyer les phrases et attendre une clé.
@@ -198,13 +200,16 @@ Trois choses tombent de cette forme.
 
 **Un passage se ferme au gros bouton, pas quand un tour part.** Un passage est un énoncé et toutes ses redites, donc il contient autant de tentatives qu'on en fait, et en « attend » il ne peut pas se fermer du tout. C'est pourquoi le blocage ne peut pas attendre la fermeture : la règle qui décide d'attendre est précisément ce qui l'empêche.
 
-**Trois sortes de déclencheur, et la liste est fermée.**
+**Quatre sortes de déclencheur, et la liste est fermée.**
 
 - **une horloge atteint sa valeur** — laquelle des deux, et la valeur. Les deux sont le **temps maximal d'enregistrement**, dont les 30 s ne sont que le plafond technique et jamais la valeur réglée, et le **seuil de silence** de la troisième position de capture.
 - **une feuille dit quelque chose** — laquelle, laquelle des trois lectures (un élément, le chiffre, la note), et une valeur.
 - **un compte de passages** — à tel passage, ou tous les N.
+- **le modèle juge que oui** — une phrase en prose, *« s'il dépasse les limites de la politesse »*, et il répond oui ou non.
 
-La première n'a que le premier moment, la troisième que le dernier : il se déduit. **La deuxième doit dire lequel des deux**, et c'est une vraie distinction — « la correction est sous B » veut dire *bloque maintenant* à la fin d'une tentative, et *perds une vie* à la fermeture du passage. Deux règles différentes qui lisent la même feuille.
+**Le quatrième ne coûte pas d'appel** : le modèle répond dans celui qu'on fait déjà, en un champ énuméré — le contrat le moins cher qui soit. Il porte le drapeau **demandé** avec tout ce qu'il implique : personne ne le vérifie, il ne se rejoue pas, le banc ne l'éprouve pas. Et il peut parfaitement parler de langue, c'est une app de langue ; ce qui le borne est ailleurs et suffit — **une décision du modèle ne produit jamais une marque ni une note**, les trois effets ne touchant aucun marquage. *« Elle se braque parce qu'il est trop familier »* est une conséquence d'histoire, pendant que l'empan est marqué *à côté* à l'écran : deux choses déclenchées par le même comportement, pas deux verdicts concurrents. Reste un coût d'auteur — les deux peuvent sembler se contredire à l'écran, et c'est à la scène de les accorder.
+
+La première sorte n'a que le premier moment, la troisième que le dernier : il se déduit. **La deuxième doit dire lequel des deux**, et c'est une vraie distinction — « la correction est sous B » veut dire *bloque maintenant* à la fin d'une tentative, et *perds une vie* à la fermeture du passage. Deux règles différentes qui lisent la même feuille.
 
 À l'intérieur de la fin de tentative, l'instant exact **se déduit de la feuille** et ne se déclare pas : une feuille de son n'existe pas avant que l'analyse ait fini, une feuille de langue existe dès le retour de l'appel. C'est l'ordre des deux portes que le doc écrit déjà — les mots d'abord, le son ensuite.
 
@@ -710,7 +715,7 @@ L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris �
 
 ## La fin d'une séance et son issue
 
-**Un effet de règle est un patch, ou la fin.** Deux, et pas une seule. Finir ne peut pas être un levier : il faudrait un côté dur, et finir n'est ni plus dur ni plus facile que continuer — c'est une porte qu'on franchit une fois, pas une position. Et le faire passer par les vies obligerait un défi « dix passages et c'est fini » à s'inventer une vie unique, donc à afficher un cœur à quelqu'un qui n'en a pas, alors que les vies n'existent que là où il y a un enjeu.
+**Un effet de règle est un patch, la fin, ou un message au modèle.** Trois, et la liste est fermée. Finir ne peut pas être un levier : il faudrait un côté dur, et finir n'est ni plus dur ni plus facile que continuer — c'est une porte qu'on franchit une fois, pas une position. Et le faire passer par les vies obligerait un défi « dix passages et c'est fini » à s'inventer une vie unique, donc à afficher un cœur à quelqu'un qui n'en a pas, alors que les vies n'existent que là où il y a un enjeu.
 
 **Les vies à zéro mettent fin, et c'est une propriété déclarée du levier, pas une règle.** Aucun des trois déclencheurs ne lit une position de levier — ils lisent une horloge, une feuille ou un compte de passages — donc « quand il ne reste plus de vie » n'est pas écrivable en règle, et n'a pas à l'être.
 
@@ -725,6 +730,8 @@ L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris �
 **Ça bouche un trou que la note seule ne voyait pas : la quantité.** Un A sur deux passages puis on ferme, c'est une note excellente et un défi qui n'a rien prouvé. « Assez de passages » n'est donc pas un critère de réussite mais une **condition de fin**, et n'atteindre aucune fin, c'est n'avoir aucune issue. Un défi dit combien il en veut en écrivant sa règle de fin, comme il dit tout le reste.
 
 **Il n'y a donc pas de champ « critère de réussite ».** Il se dissout en deux choses déjà là : la barre A–B, qui ne se règle jamais, et ce que les règles de fin déclarent. Un défi plus exigeant monte ses sensibilités, il ne déplace pas la barre — c'est ce que le doc dit déjà du déverrouillage d'un niveau.
+
+**Le message au modèle est de la prose injectée dans le prompt du tour suivant** — *« le barman a compris que tu lui as menti »*. C'est là où le doc dit d'être généreux : ce que personne ne relit est gratuit. Il ne double pas la phrase de mise en scène du patch — celle-là s'affiche à **l'apprenant**, celle-ci part au **modèle**, et une règle peut vouloir l'une, l'autre, ou les deux.
 
 **L'arcade ne réussit ni ne rate**, elle rend un score : sa fin est zéro vie, et ce qui compte est le nombre que le résultat porte. Comment ce score se calcule reste à écrire.
 
