@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, et par celle qui a dit quand une règle se déclenche. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, et par celle qui a écrit la fin d'une séance et son issue. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -36,7 +36,7 @@ Les trois sont nommés en code (`Prescriber`) et **seul l'apprenant en est un po
 
 Trois choses que la première passe confondait en une.
 
-Une **définition** est une activité écrite d'avance : son format, ses réglages de départ, ses règles — ce qui change en cours de route, ce qui met fin —, son critère de réussite. Elle est **écrite en dur dans le code, et fixe**. On la rejoue autant qu'on veut.
+Une **définition** est une activité écrite d'avance : son format, ses réglages de départ, ses règles — ce qui change en cours de route, ce qui met fin et avec quelle issue. Elle est **écrite en dur dans le code, et fixe**. On la rejoue autant qu'on veut.
 
 Une **exécution** est une ligne en base : une partie jouée, un essai, une conversation. C'est ce que le code appelle une activité, et c'est la seule des trois qui se stocke.
 
@@ -202,7 +202,7 @@ La première n'a que le premier moment, la troisième que le dernier : il se dé
 
 À l'intérieur de la fin de tentative, l'instant exact **se déduit de la feuille** et ne se déclare pas : une feuille de son n'existe pas avant que l'analyse ait fini, une feuille de langue existe dès le retour de l'appel. C'est l'ordre des deux portes que le doc écrit déjà — les mots d'abord, le son ensuite.
 
-**Le début et la fin d'une séance ne sont pas des déclencheurs.** Un déclencheur existe pour *éprouver* quelque chose à un moment qui revient ; le début et la fin arrivent une fois et sans condition, il n'y a rien à tester. Ce sont des champs de la définition — ce qui ouvre la séance, et son critère de réussite.
+**Le début d'une séance n'est pas un déclencheur.** Un déclencheur existe pour *éprouver* quelque chose à un moment qui revient ; le début arrive une fois et sans condition, il n'y a rien à tester. Ce qui ouvre la séance est donc un champ de la définition. La fin, elle, se déclenche bien — elle est l'effet d'une règle (« La fin d'une séance et son issue »).
 
 ## Ce que l'app exécute, ce que l'IA interprète
 
@@ -656,7 +656,7 @@ Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. 
 
 **Le poids gouverne la note, la condition lit sans passer par lui.** Une feuille à 0 n'est pas éteinte : elle se calcule, et une condition la lit. Une feuille peut donc n'exister que pour les conditions et n'entrer dans aucune note nulle part — le tour interrompu pèse 0 en conversation libre, où aucun temps n'est imposé, et le défi qui veut de la réactivité lui met un poids, lui branche une condition, ou les deux.
 
-**Une condition lit un passage et se déclenche sur-le-champ ; l'accumulation vit dans l'effet, pas dans la lecture.** « Un tour interrompu coûte une vie » n'a besoin de compter jusqu'à trois nulle part : au troisième, le compteur de vies est à zéro. Ce qui a besoin de voir la séance entière est d'une autre nature — le critère de réussite d'un défi, qui reste à écrire.
+**Une condition lit un passage et se déclenche sur-le-champ ; l'accumulation vit dans l'effet, pas dans la lecture.** « Un tour interrompu coûte une vie » n'a besoin de compter jusqu'à trois nulle part : au troisième, le compteur de vies est à zéro. Ce qui a besoin de voir la séance entière est d'une autre nature — son issue (« La fin d'une séance et son issue »).
 
 **Rien ne s'écrit par feuille pour autant.** Une feuille déclare **deux unités**, celle de son chiffre et celle de ses éléments, et elles diffèrent presque toujours : la part silencieuse rend un pourcentage du tour et ses éléments sont des secondes ; la correction rend un pourcentage de mots et ses éléments sont des étiquettes. Une condition se dit alors partout pareil — quelle feuille, laquelle des trois formes, et une valeur dans l'unité concernée.
 
@@ -664,7 +664,7 @@ Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. 
 
 **Bloquer, c'est une règle dont l'effet est que le passage ne se ferme pas.** Pas un mécanisme neuf, et donc branchable sur n'importe quelle feuille : un défi peut bloquer sur la prononciation comme sur la correction.
 
-**« Ne pas passer » se dit de trois choses**, à ne pas confondre. Une **feuille** ne passe pas quand sa note est sous la barre A–B : c'est une lecture, il ne s'ensuit rien. Un **passage** ne passe pas quand une règle l'a déclaré à refaire — quelle feuille elle lit est écrit par l'activité, la correction hors défi. Une **activité** ne passe pas quand elle se termine sans être réussie : zéro vie, ou son critère de réussite non atteint.
+**« Ne pas passer » se dit de trois choses**, à ne pas confondre. Une **feuille** ne passe pas quand sa note est sous la barre A–B : c'est une lecture, il ne s'ensuit rien. Un **passage** ne passe pas quand une règle l'a déclaré à refaire — quelle feuille elle lit est écrit par l'activité, la correction hors défi. Une **activité** ne passe pas quand elle se termine sans être réussie : une fin sèche en raté, ou une fin ordinaire dont la note ne passe pas (« La fin d'une séance et son issue »).
 
 Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond pas au fond et ne pose pas de question neuve ; le passage **reste ouvert**, ce qu'on attend ensuite étant une reprise de la même chose ; et rien n'avance tant qu'il ne se ferme pas.
 
@@ -701,6 +701,26 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 **Deux portes, dans cet ordre.** Celle des mots d'abord — on n'analyse pas le son d'une phrase dont les mots vont changer — puis celle du son. Les deux moments où l'app peut agir sont exactement ceux-là : au retour de l'appel, elle connaît le verdict de correction et tout ce qui se calcule sur l'audio et le texte ; à la fin de l'analyse, elle connaît le reste. Si les reformulations s'épuisent, le passage est raté et les redites ne sont jamais entamées.
 
 L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris — et le passage est enregistré comme raté. C'est ce qui alimente les règles : perdre une vie, durcir, ouvrir ou non le niveau suivant.
+
+## La fin d'une séance et son issue
+
+**Un effet de règle est un patch, ou la fin.** Deux, et pas une seule. Finir ne peut pas être un levier : il faudrait un côté dur, et finir n'est ni plus dur ni plus facile que continuer — c'est une porte qu'on franchit une fois, pas une position. Et le faire passer par les vies obligerait un défi « dix passages et c'est fini » à s'inventer une vie unique, donc à afficher un cœur à quelqu'un qui n'en a pas, alors que les vies n'existent que là où il y a un enjeu.
+
+**Les vies à zéro mettent fin, et c'est une propriété déclarée du levier, pas une règle.** Aucun des trois déclencheurs ne lit une position de levier — ils lisent une horloge, une feuille ou un compte de passages — donc « quand il ne reste plus de vie » n'est pas écrivable en règle, et n'a pas à l'être.
+
+**L'effet « finir » porte l'issue qu'il ouvre** : *réussi*, *raté*, ou *la note décide*. Zéro vie finit en raté. « Tu as obtenu la clé » finit en réussi, l'objectif atteint suffisant dans un jeu. « Au passage 10 » laisse la note décider, puisqu'on est allé au bout et qu'il reste à savoir comment.
+
+**L'issue se lit alors dans cet ordre.**
+
+1. **Aucune fin n'est tombée** — l'apprenant a laissé en route. Pas d'issue du tout : c'est une activité à reprendre, l'état ordinaire de toutes sauf celle qu'on a. La note se calcule et ne conclut rien.
+2. **Une fin sèche est tombée** — réussi ou raté, c'est dit. La note s'affiche et ne décide pas.
+3. **Une fin ordinaire est tombée** — la note de la séance à la barre A–B décide, comme partout.
+
+**Ça bouche un trou que la note seule ne voyait pas : la quantité.** Un A sur deux passages puis on ferme, c'est une note excellente et un défi qui n'a rien prouvé. « Assez de passages » n'est donc pas un critère de réussite mais une **condition de fin**, et n'atteindre aucune fin, c'est n'avoir aucune issue. Un défi dit combien il en veut en écrivant sa règle de fin, comme il dit tout le reste.
+
+**Il n'y a donc pas de champ « critère de réussite ».** Il se dissout en deux choses déjà là : la barre A–B, qui ne se règle jamais, et ce que les règles de fin déclarent. Un défi plus exigeant monte ses sensibilités, il ne déplace pas la barre — c'est ce que le doc dit déjà du déverrouillage d'un niveau.
+
+**L'arcade ne réussit ni ne rate**, elle rend un score : sa fin est zéro vie, et ce qui compte est le nombre que le résultat porte. Comment ce score se calcule reste à écrire.
 
 ## La pression
 
@@ -854,7 +874,7 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **Comment un personnage obtient sa voix.** L'invariant seul est tranché : aucun nom de voix écrit en dur. Et si c'est la piste de la propriété déclarée qui gagne, d'où vient cette propriété — table par fournisseur, ou chiffre mesuré.
 - **Ce qui empêche la persona d'atteindre la reconstruction d'`intended`**, un même appel faisant les deux.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers — et **ce que ces crans font varier**, les poids étant constants pendant une partie.
-- **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode. C'est lui qui lit la séance entière ; les conditions, elles, restent sur le passage. C'est un **champ** de la définition et non un déclencheur, comme ce qui ouvre la séance (« Quand une règle se déclenche »).
+- **Ce qui ouvre une séance**, mode par mode : un champ de la définition, puisque le début n'a rien à éprouver (« Quand une règle se déclenche »). La fin et l'issue, elles, sont écrites.
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
 - **La liste des leviers de chaque format**, close pour aucun, et le détail de ce que chaque position produit — sa valeur par défaut et sa phrase lisible, qu'exige le mode arcade. Leur forme est écrite (« Ce qui fait un levier ») et ceux de la conversation sont énumérés (« Les leviers qui pressent chaque aptitude »). À vérifier en les détaillant : la **préparation**, nommée en passant parmi les aides qu'un curseur retire, n'a ni levier ni définition — soit c'est un temps de réflexion avant de parler et il manque, soit c'est un mot lâché.
 - **Quels préréglages chaque mode offre**, et ce que chacun pose. Le curseur d'aptitude n'en est qu'un.
