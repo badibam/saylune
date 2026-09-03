@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -58,13 +58,14 @@ Ce que ça change à l'atomicité de l'activité, qui reste vraie mais pour une 
 
 ## Les champs qui manquent
 
-Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque cinq, et un sixième change de type.
+Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque six, et un septième change de type.
 
 - **La consigne** — du texte libre, posé au départ et injecté dans le prompt, jamais réécrit ensuite. À ne pas confondre avec la **matière**, qui dit de quoi ça parle et que l'IA peut écrire après coup : une consigne « pousse-le sur le passé, il l'évite » peut donner une conversation dont la matière finit par être « son déménagement ». Les confondre ferait qu'un titre écrit par l'IA écrase la consigne. Nom proposé : `brief` — `seed` évoque une graine de tirage aléatoire, ce que ce n'est pas.
 - **Les règles** — une liste, qui absorbe la rampe, les conditions de fin et les conditions branchées sur une feuille (« Les règles »).
 - **Le journal des changements appliqués**, sans quoi une séance dont un tirage ou l'IA a modifié les réglages ne se recalcule plus.
 - **L'origine**, ci-dessus.
-- **Les consignes par marquage jugé** — du texte libre, une par marquage au plus, distinct du `brief` de l'activité (« Ce qui est jugé, ce qui est calculé »). Les poids et les sensibilités, eux, ne sont pas un champ neuf : ce sont des positions de leviers, donc des réglages.
+- **Les consignes par marquage jugé** — du texte libre, une par marquage au plus, distinct du `brief` de l'activité (« Ce qui est jugé, ce qui est calculé »).
+- **L'arbre des poids** — ce sur quoi la séance regarde, fixé à l'écriture. Les sensibilités, elles, ne sont pas un champ neuf : ce sont des positions de leviers, donc des réglages (« Ce qui fait un levier »).
 - **Le résultat doit pouvoir porter un nombre.** Il porte aujourd'hui un verdict, un juge, une date et du texte libre ; un score d'arcade est un nombre, et le ranger dans du texte libre le rendrait inexploitable.
 
 Et **`mode` n'est pas un champ** : « arcade », « campagne », « défi », « custom » sont des noms d'usage sur des combinaisons de ces axes-là.
@@ -89,6 +90,39 @@ Deux raisons concrètes de tenir cette homogénéité. L'arcade doit **annoncer 
 
 Ce qui est écrit en code aujourd'hui — une position par aptitude — est exactement ce que ce doc dit de ne pas stocker, et c'est à refaire.
 
+### Ce qui fait un levier
+
+**Des positions déclarées et fermées, et un côté dur.** Les deux ensemble : sans positions déclarées il n'y a ni phrase à afficher ni valeur à valider, et sans côté dur la notification ne peut pas annoncer *ça se durcit* ou *ça s'allège*.
+
+Le test écarte deux choses qu'on rangerait là par réflexe.
+
+**La voix n'en est pas un.** Entre deux voix il n'y a ni dur ni facile, et ses positions ne sont pas déclarées — elles arrivent du catalogue du fournisseur, qui change avec la clé. Comment un personnage obtient sa voix reste ouvert (« Le personnage ») ; quel que soit le mécanisme retenu, ce ne sera pas un levier.
+
+**Le registre non plus.** Il est ordonné — familier, courant, soutenu — mais aucun bout n'est le difficile : le soutenu demande du vocabulaire et des tournures, le familier des idiomes et des réductions qu'aucun manuel ne donne, et c'est le milieu qui est facile. Il vit donc dans la consigne de pertinence, avec la longueur imposée et le mot interdit.
+
+**Ce qui ne se règle pas par un levier doit se dire là où on serait allé chercher le levier.** L'écran custom montre des leviers : qui veut imposer un registre y cherchera un curseur, ne le trouvera pas, et conclura que ça ne se fait pas. Le catalogue donné au modèle pour qu'il écrive une définition a le même trou en pire — il inventera un levier. Il faut donc une entrée pour la consigne elle-même, disant ce qu'on peut y mettre.
+
+**Deux formes, et la seconde n'est pas une version dégradée de la première.**
+
+- **À marches** — une liste fermée de positions nommées, chacune avec sa phrase écrite d'avance. L'écho, l'avance, la capture.
+- **À nombre** — une unité, un minimum, un maximum, un pas, et une phrase à trou : « tu as {n} vies », « le tour part après {n} secondes de silence ». Les vies, les tentatives, les seuils, les durées.
+
+Forcer les nombres en marches coûte tout de suite. « Vies : peu / normal / beaucoup » interdit à un défi d'en demander quatre, et ment à l'écran, où l'apprenant voit trois cœurs et pas le mot *normal*. Rien ne se perd en échange : un nombre est ordonné tout seul, donc la direction se calcule pareil dans les deux formes, et le menu envoyé au modèle ne change pas — il choisit entre des patchs tout faits, jamais une valeur.
+
+**Un levier peut en appeler un autre, et la coupe suit une seule règle : zéro éteint le levier quand c'est vrai, sinon deux leviers.** Zéro réécoute *est* la réécoute interdite, zéro reformulation permise *est* le petit bouton qui n'apparaît pas : un levier suffit. Le seuil de silence, lui, n'a aucune valeur qui voudrait dire « pas de seuil » — zéro enverrait le tour aussitôt — et ce qui sépare la position 2 de la position 3 n'est pas x mais le fait que le tour parte tout seul. Deux leviers, donc, et le seuil est **sans objet** aux positions 1 et 2.
+
+**Sans objet ne veut pas dire absent.** La valeur reste sur la ligne, elle n'est pas lue, et elle est là si la capture remonte en 3. Elle s'affiche, grisée, en portant sa raison — la règle du projet pour toute option éteinte (`../reference.md`). Un patch qui déplace un levier sans objet ne change rien à l'écran et annonce un durcissement qui n'a pas lieu : c'est une erreur d'écriture du défi, pas un cas à traiter.
+
+**La sensibilité est un levier, le poids n'en est pas un.** Aller vers sévère durcit, toujours et pour tout le monde ; monter le poids de la mélodie durcit la séance de qui l'a mauvaise et allège celle de qui l'a bonne, donc sa direction dépend de l'apprenant, que le levier ne connaît pas et n'a pas à connaître. C'est cohérent avec ce que chacun fait : la sensibilité dit *combien on exige*, le poids dit *sur quoi on regarde*, et viser autre chose n'est ni plus dur ni plus facile. Ça corrige une phrase que ce doc portait, où les deux étaient des positions de leviers.
+
+Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette feuille — indulgent, normal et sévère ne posent pas les mêmes bornes sur un pourcentage de sons et sur des demi-tons. Et **l'arbre des poids est un champ à part**, ce qu'il voulait être de toute façon : une structure à branches dont les poids se multiplient en descendant ne rentre pas dans une liste plate de positions sans clés bricolées.
+
+**Les poids sont constants pour toute la séance, et aucun patch n'en déplace.** Ce qu'on vise se décide à l'écriture du défi et ne bouge plus. Sinon la note de fin serait une moyenne de mesures prises sous des règles différentes, illisible pour l'apprenant comme pour un classement — c'est l'argument servi partout ici : une note ne se lit pas sans la combinaison qui l'a produite, donc il faut qu'il y en ait une.
+
+**Le prix est réel** : un défi qui ouvre ses exigences une par une — « fais-toi comprendre », puis « et la grammaire », puis « et ne t'arrête plus » — ne peut pas ne noter que ce qui était demandé au moment où on parlait. L'exercice à étages reste écrivable, mais par les **conditions**, qui ne passent pas par le poids : « à partir du tour 4, une faute de grammaire te fait reprendre ta phrase » ne touche aucun poids. Ce qui s'ouvre en cours de route est ce qui bloque, pas ce qui compte.
+
+**À vérifier quand l'arcade s'écrira** : sa rampe monte un cran entier en cours de partie. Si passer d'*easy* à *hard* veut dire regarder plus de choses, elle déplace des poids, ce qui est interdit ici — les quatre crans ne feraient alors varier que la sévérité et les aides.
+
 Le détail de ce que chaque levier produit est à préciser.
 
 ## Les règles
@@ -109,6 +143,14 @@ règle
 **Annoncer dit aussi le sens du changement.** Lire « deux tentatives permises » ne dit pas si on vient de monter ou de descendre, et ce n'est pas la même nouvelle. Les positions d'un levier sont ordonnées et chaque levier sait de quel côté est le dur — c'est déjà ce qui fait qu'un curseur qu'on monte retire une aide ou durcit un jugement —, donc un patch connaît sa direction par comparaison et la notification annonce *ça se durcit* ou *ça s'allège*, plus la phrase.
 
 **Sauf la consigne, qui s'annonce sans direction.** C'est du texte libre : rien ne peut comparer deux consignes et dire laquelle est plus dure. Elle s'annonce donc en distinguant seulement les deux cas, *consigne modifiée* avec son texte, ou *consigne retirée*. Ne rien dire serait pire — une exigence qui apparaît ou disparaît en silence rend la note incompréhensible.
+
+**Un patch porte une seconde phrase, de mise en scène, écrite d'avance.** La phrase mécanique est déclarée avec le levier, donc une seule fois pour toute l'app : « cinq secondes de silence » ne peut pas se dire *le barman s'impatiente* dans un pub et *le recruteur attend* dans un entretien. La face qui joue la scène dépend de la scène, donc elle vit sur le patch, dans la règle qui l'écrit.
+
+**Les deux s'affichent, et la narrative ne remplace jamais la mécanique.** Qui ne lit que *« le barman semble pressé »* ne sait pas que son tour part maintenant tout seul au bout de cinq secondes, et croira à un bug la première fois que ça lui arrive — or toute la valeur de la phrase mécanique est qu'il puisse reconstruire pourquoi sa note a bougé. La mécanique est donc obligatoire, et une conversation libre n'affiche qu'elle, n'ayant pas de fiction ; la narrative est facultative, et une définition qui ne l'écrit pas est sèche, pas cassée. Les deux vont dans le même sens : *le barman se détend* posé sur un patch qui durcit est un mensonge, et la direction, que la mécanique connaît, permet de le voir à l'écriture.
+
+**Elle n'est pas produite par le modèle.** Elle s'affiche à côté d'une affirmation mécanique, donc un texte inventé au moment où ça tombe peut la contredire ; et les patchs sont déclarés d'avance de toute façon, y compris quand c'est le modèle qui choisit lequel s'applique. Il garde tout le reste : il **joue** le changement dans son tour, où il est libre et où c'est gratuit.
+
+Ça donne à l'arcade ce qui lui manquait. Elle devait annoncer chaque changement en une phrase ; elle en a deux, une qui dit la règle et une qui dit le monde, sans quoi monter d'un cran ne ressemble qu'à un compteur.
 
 **Une règle ne se retire pas ; ce qu'elle a fait se défait.** Un patch déplace un levier dans les deux sens, donc alléger est un patch comme un autre. Un patch qui porterait sur les règles elles-mêmes ferait un second étage sans phrase lisible, et plus personne ne saurait ce qu'une définition fait sans l'exécuter. Une règle qui ne doit plus s'appliquer est une règle dont le déclencheur ne se déclenche plus.
 
@@ -544,7 +586,9 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 
 **Une feuille sous consigne n'est pas vérifiée par le banc**, qui éprouve le critère par défaut. Coût connu, pas un défaut à réparer.
 
-Deux défis que ça écrit sans champ neuf. « 100 % passé » est une consigne sur le marquage, et pèse la feuille *à côté* : *I'll go there* s'y range, ce qui ne ment pas sur la langue — la phrase est de l'anglais parfait qui ne convient pas ici, et la correction ne la voit pas. Et le **mot interdit** est une consigne du même marquage : il n'a pas de feuille à lui, une feuille qui n'existe que si quelqu'un la configure ne passant pas les trois conditions.
+Trois défis que ça écrit sans champ neuf. « 100 % passé » est une consigne sur le marquage, et pèse la feuille *à côté* : *I'll go there* s'y range, ce qui ne ment pas sur la langue — la phrase est de l'anglais parfait qui ne convient pas ici, et la correction ne la voit pas. Le **mot interdit** est une consigne du même marquage : il n'a pas de feuille à lui, une feuille qui n'existe que si quelqu'un la configure ne passant pas les trois conditions. Et le **registre** — *« tu parles à un client »* — est de la même famille, comme la longueur imposée.
+
+**C'est donc la consigne de pertinence qui porte tout ce qu'un défi exige de la situation**, et il faut le dire là où on serait allé chercher un levier : l'écran custom et le catalogue donné au modèle (« Ce qui fait un levier »).
 
 ### Les conditions attachées à une feuille
 
@@ -661,7 +705,7 @@ Le marquage a quitté cette liste : il est invariant, donc il n'est plus un levi
 - *Leviers* : la capture, en trois positions (« La capture »).
 
 **Pertinence**
-- *Leviers* : le registre imposé, ou une contrainte du même genre ; la longueur imposée.
+- *Leviers* : aucun, et ce n'est pas un trou. Le registre, la longueur imposée, le mot interdit n'ont pas de côté dur, donc ils ne sont pas des leviers (« Ce qui fait un levier ») : ils s'écrivent dans la **consigne**, qui est justement ce que cette aptitude porte. C'est là qu'elle se règle. Il lui reste ce que toute feuille a, sa sensibilité et son poids.
 
 ### Comment les curseurs se composent
 
@@ -689,9 +733,11 @@ Rencontrer quelqu'un plutôt que choisir un thème. La version la plus bête est
 
 **La voix d'un personnage ne sert jamais d'étalon, et c'est ce qui rend l'idée gratuite.** Le personnage dit *ses* tours ; le modèle à imiter dit *la phrase de l'apprenant*. Ce sont deux énoncés différents, donc les deux voix se séparent sans rien casser : un personnage peut avoir n'importe quelle voix, y compris une qui échoue à l'étalonnage, puisqu'elle ne mesure rien. Une voix difficile à suivre devient alors un levier de compréhension, ce qui est l'intérêt même. En échange, **la voix de conversation cesse d'être un réglage global** et devient une position de levier sur l'activité ; la voix de référence, elle, reste le réglage de l'apprenant.
 
-**Un personnage déclare ce qu'il lui faut d'une voix, jamais laquelle** — rapide, régionale, âgée, difficile à suivre. C'est la règle du projet : ce qu'un fournisseur rend en plus ne peut pas devenir une condition. L'app résout contre le catalogue du fournisseur choisi, qu'elle récupère déjà à chaque ouverture de l'écran ; rien ne correspond, l'option s'éteint **en portant sa raison**. Le défi « voix difficile » survit donc au changement de fournisseur, parce qu'il demande une propriété et pas un nom.
+**Ce qui est tranché est l'invariant, pas le mécanisme.** Un défi n'écrit jamais `eleven-gb-daniel` en dur : ce qu'un fournisseur expose ne peut pas devenir une condition, sinon le défi meurt le jour où on change de clé.
 
-D'où vient la propriété reste ouvert. Deux sources : une **table par fournisseur** écrite à la main, et un chiffre **mesuré** — le test de voix calcule la divergence d'une voix aux autres, 11,5 % pour `eleven-us-sarah` contre 18 % pour `eleven-gb-daniel` (`../../TODO.md`). Portée de ce chiffre : il dit à quel point le réseau acoustique lit cette voix comme atypique, **pas** à quel point un humain peine à la suivre. C'est un candidat de proxy, non mesuré contre la difficulté réelle.
+**Comment un personnage obtient sa voix reste ouvert.** Une piste, et ce n'en est qu'une : il déclare ce qu'il lui faut — rapide, régionale, âgée, difficile à suivre — et l'app résout contre le catalogue du fournisseur choisi, qu'elle récupère déjà à chaque ouverture de l'écran ; rien ne correspond, l'option s'éteint en portant sa raison. D'autres formes tiennent l'invariant aussi bien : une voix nommée avec un repli, ou un choix fait une fois par l'apprenant pour chaque personnage. Quelle que soit celle qui gagne, **ce n'est pas un levier** — entre deux voix il n'y a ni dur ni facile (« Ce qui fait un levier »).
+
+Si c'est la piste de la propriété qui est retenue, d'où vient cette propriété reste ouvert à son tour. Deux sources : une **table par fournisseur** écrite à la main, et un chiffre **mesuré** — le test de voix calcule la divergence d'une voix aux autres, 11,5 % pour `eleven-us-sarah` contre 18 % pour `eleven-gb-daniel` (`../../TODO.md`). Portée de ce chiffre : il dit à quel point le réseau acoustique lit cette voix comme atypique, **pas** à quel point un humain peine à la suivre. C'est un candidat de proxy, non mesuré contre la difficulté réelle.
 
 **Plusieurs personnages.** L'activité pointe une **distribution**, pas un interlocuteur ; chaque énoncé porte **qui parle**, le champ locuteur cessant de valoir apprenant-ou-IA pour devenir une identité ; la synthèse choisit une voix **par énoncé**, ce que le cache encaisse déjà puisqu'il est indexé par texte et par voix. Côté modèle, l'IA rend la clé du personnage qui parle : le retour énuméré le moins cher qui soit.
 
@@ -755,12 +801,13 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
 - **La liste fermée des sortes de déclencheurs** d'une règle. Ce qu'un déclencheur lit est tranché — un élément, le chiffre d'une feuille, ou sa note à la barre A–B.
-- **D'où vient la propriété d'une voix** — table écrite par fournisseur, ou chiffre mesuré — pour qu'un personnage demande « difficile à suivre » sans nommer personne.
+- **Les parties du `brief` et leurs lecteurs.** Il en a plusieurs — le modèle qui joue, les juges qui notent — et tout ne doit pas aller à tout le monde : *« tu es un vendeur, le client est pressé »* est vrai pour les deux, *« pousse-le sur le passé, il l'évite »* est une instruction de mise en scène qui n'a rien à faire chez un juge, qui marquerait des choses que personne ne lui demandait.
+- **Comment un personnage obtient sa voix.** L'invariant seul est tranché : aucun nom de voix écrit en dur. Et si c'est la piste de la propriété déclarée qui gagne, d'où vient cette propriété — table par fournisseur, ou chiffre mesuré.
 - **Ce qui empêche la persona d'atteindre la reconstruction d'`intended`**, un même appel faisant les deux.
-- **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers.
+- **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers — et **ce que ces crans font varier**, les poids étant constants pendant une partie.
 - **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode. C'est lui qui lit la séance entière ; les conditions, elles, restent sur le passage.
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
-- **La liste des leviers de chaque format**, close pour aucun, et le détail de ce que chaque position produit — y compris sa correction lisible, qu'exige le mode arcade.
+- **La liste des leviers de chaque format**, close pour aucun, et le détail de ce que chaque position produit — y compris sa phrase lisible, qu'exige le mode arcade. Leur forme, elle, est écrite (« Ce qui fait un levier »).
 - **Le score** : propre à l'arcade ou pas, et à quoi ressemble son écran.
 - **Garder le nom du préréglage** d'une séance réglée à la main. Aucun lecteur n'en a besoin aujourd'hui — l'origine suffit là où ça compte — donc pas de champ pour l'instant.
 - **Le déroulé de chaque module**, et son écran. Le cadre est commun — l'activité, ses champs, ses statuts, son résultat — le déroulé ne l'est pas.

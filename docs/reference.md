@@ -277,7 +277,7 @@ Réglage **global unique**, exposé à l'utilisateur. Il gouverne deux choses, q
 
 Par défaut, **le modèle à imiter est la voix de la conversation** — c'est celle qu'on entend déjà, et rien ne justifie d'en présenter une autre. Les dissocier reste possible pour qui le veut : les briques *conversation* et *synthèse* sont indépendantes, unifiées par le seul paramètre d'accent.
 
-**Une activité peut porter sa propre voix de conversation, et ça ne touche pas la mesure.** Un personnage dit *ses* tours ; le modèle à imiter dit *la phrase de l'apprenant*. Deux énoncés différents, donc deux voix qui se séparent sans conflit : la voix de référence reste le réglage global, et **la voix d'un personnage ne sert jamais d'étalon**, donc elle n'a aucun test à passer. Une voix difficile à suivre devient alors un levier de compréhension. Un personnage déclare d'ailleurs ce qu'il lui faut d'une voix, jamais laquelle — ce qu'un fournisseur expose ne peut pas devenir une condition (`design/activity-model.md`).
+**Une activité peut porter sa propre voix de conversation, et ça ne touche pas la mesure.** Un personnage dit *ses* tours ; le modèle à imiter dit *la phrase de l'apprenant*. Deux énoncés différents, donc deux voix qui se séparent sans conflit : la voix de référence reste le réglage global, et **la voix d'un personnage ne sert jamais d'étalon**, donc elle n'a aucun test à passer. Une voix difficile à suivre devient alors un levier de compréhension. Ce qu'un fournisseur expose ne peut pas devenir une condition, donc un personnage n'est jamais attaché en dur à un nom de voix ; comment il en obtient une reste ouvert (`design/activity-model.md`).
 
 ## Les clés d'API
 
