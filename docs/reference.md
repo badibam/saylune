@@ -61,7 +61,7 @@ Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir
 - **Compréhension** — suivre quelqu'un à sa vitesse, avec ses réductions, sans texte.
 - **Formulation** — la phrase bien formée, et la règle appliquée en parlant plutôt que sue.
 - **Fluidité** — trouver ses mots assez vite, enchaîner, ne pas s'arrêter au milieu.
-- **Richesse** — le mot précis, le registre, la nuance. La seule dont l'échec est invisible : rien ne signale qu'on vient de dire une version pauvre de son idée.
+- **Richesse** — le mot précis, le registre, la nuance. La seule dont l'échec est invisible : rien ne signale qu'on vient de dire une version pauvre de son idée. Elle se juge sur le même marquage que la formulation, qui dit si c'est de l'anglais là où la richesse dit si c'est l'anglais qui convient ici.
 
 Les réglages sont **fixés pour toute la durée** de la conversation. Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui tisse les cinq dans une seule conversation.
 
@@ -71,21 +71,21 @@ Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur de
 
 Le mécanisme tient en trois étages : la **mesure**, que rien ne règle ; la **marque**, qui l'affiche telle quelle ; la **note**, qui l'agrège et où les réglages entrent seuls, la sévérité décidant où tombent les bornes A–E. **La note vit sur la mesure, pas sur l'aptitude** : une aptitude est un regroupement de mesures, chacune avec sa sensibilité et son poids, ce qui est la seule façon qu'un défi ne note que l'accent tonique sans que « élocution B » veuille dire deux choses (`design/activity-model.md`). Le reste se lit sur la note : **A ou B, ça va** — sur un tour c'est ce qui décide s'il faut redire, sur une activité si c'est réussi. Cette barre ne se règle pas ; ce qui se règle est ce qu'il faut faire pour l'atteindre (`design/activity-model.md`).
 
-**La formulation se marque par groupe de mots, sur quatre crans** — natif, maladroit, fautif, ne se dit pas — le correct étant l'absence de marque. C'est la seule mesure du projet qui va dans les deux sens : il n'y a pas de modèle unique de la bonne phrase, donc on peut dépasser le simplement correct, là où pour le son être sur le modèle est déjà le mieux qu'on puisse faire. Le cran se souligne toujours, d'une couleur qui vient de lui seul (`design/activity-model.md`).
+**Formulation et richesse sortent d'un seul marquage par groupe de mots**, où chaque groupe porte une étiquette et une seule, le correct étant l'absence de marque. La formulation demande *est-ce que c'est de l'anglais* — deux étiquettes, *mal formé* et *ne se dit pas*. La richesse demande *est-ce l'anglais qui convient ici* — trois étiquettes, *inadéquat*, *plat*, *juste*. C'est la seule mesure du projet qui ait un bon côté : il n'y a pas de modèle unique de la bonne phrase, donc on peut dépasser le simplement correct, là où pour le son être sur le modèle est déjà le mieux qu'on puisse faire. La formulation se souligne en vaguelette, la richesse s'encadre (`design/activity-model.md`).
 
 **Monter un curseur retire une aide, ou durcit un jugement**, et les deux n'ont pas le même plafond : retirer une aide converge vers le réel, durcir un jugement le dépasse. Les effets se cumulent d'une aptitude à l'autre, et c'est voulu — une note ne se lit jamais sans la combinaison qui l'a produite.
 
-## La porte grammaticale
+## La porte de reformulation
 
-**Grammaire et prononciation ne se marquent pas côte à côte : la grammaire est une porte devant l'analyse sonore.**
+**Ce qui va être réécrit et la prononciation ne se marquent pas côte à côte : il y a une porte devant l'analyse sonore.**
 
-- Grammaire correcte → l'analyse sonore est visible immédiatement.
-- Grammaire fautive → la marque grammaticale seule, **aucune analyse sonore**.
-- Une fois la grammaire corrigée et la phrase redite → l'analyse sonore apparaît, sur ce nouvel énoncé.
+- Rien à reformuler → l'analyse sonore est visible immédiatement.
+- Une reformulation attendue → la marque seule, **aucune analyse sonore**.
+- Une fois la phrase reformulée et redite → l'analyse sonore apparaît, sur ce nouvel énoncé.
 
-La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire : elle va disparaître. La conséquence technique suit — **sur un tour grammaticalement fautif, l'analyse sonore ne tourne pas du tout.** Elle n'est pas cachée, elle n'est pas calculée.
+La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire : elle va disparaître. La conséquence technique suit — **sur un tour à reformuler, l'analyse sonore ne tourne pas du tout.** Elle n'est pas cachée, elle n'est pas calculée.
 
-**La porte suit ce qui va être réécrit, pas la grammaire absolue.** Un tour la ferme quand quelque chose s'apprête à en produire une version corrigée — c'est la raison même de la porte. Elle ne se lit donc pas au marquage, qui est invariant, mais à la note de formulation du tour : la porte se ferme sur le tour qui ne passe pas la barre. Coût assumé au réglage le plus lâche : le modèle dira d'une voix native une tournure maladroite qu'on a choisi de ne pas reprendre.
+**La porte suit ce qui va être réécrit, et rien d'autre.** Elle ne se lit donc pas au marquage, qui est invariant, mais à la note d'une feuille à la barre A–B. **Quelle feuille la ferme n'est pas câblée** : c'est une règle du défi, et le registre en fait partie de plein droit — un tour à refaire parce que le ton est à côté est un tour dont les mots vont changer. Hors défi, c'est la justesse. Ce qui ne peut jamais la fermer, c'est une marque qui appelle une redite plutôt qu'une reformulation : les sons, l'accent, la mélodie laissent la phrase intacte, donc il n'y a rien à réécrire. Coût assumé au réglage le plus lâche : le modèle dira d'une voix native une tournure qu'on a choisi de ne pas reprendre.
 
 **Le cran « ne se dit pas » ferme la porte quel que soit le réglage.** Une phrase qui ne se dit pas devrait être synthétisée pour être analysée, donc entendue comme modèle à imiter. Tout le montage repose sur le fait que le modèle est la vérité ; un modèle qui prononce une non-phrase empoisonne ça.
 
@@ -115,7 +115,7 @@ La syllabe **porte** l'accent et la hauteur, mais elle n'est la portée d'aucun 
 
 **Les trois se jugent par comparaison au modèle, jamais dans l'absolu.** Ce n'est pas une précaution, c'est la forme même de l'analyse : rien d'extérieur aux deux enregistrements n'est jamais consulté — ni dictionnaire de prononciation, ni lexique de dialecte, ni référentiel de justesse. La seule question posée est *en quoi cette prise s'écarte-t-elle de celle-là*, et ce qu'on compare est la lecture de l'apprenant à la lecture du modèle, par la même machine, dont le biais est donc le même des deux côtés et s'annule.
 
-**Les trois s'ancrent aux mêmes caractères du texte affiché** — chaque son connaît les lettres qu'il couvre, chaque syllabe sa sous-chaîne, et la mélodie se pose sur ces mêmes groupes. Ce sont trois propriétés d'une seule chaîne, pas trois analyses à superposer. C'est ce qui rend possible de les marquer **d'un seul mouvement**, et la forme retenue le fait : **la couleur ne porte jamais l'échelle**, qui est portée par la forme — les lettres teintées pour le son, un filet dessous pour l'accent, une ligne derrière le texte pour la mélodie. Trois échelles lues d'un coup d'œil sans qu'aucune ne se déguise en une autre. La couleur porte le côté et la distance au neutre : l'alarme partout, et le vert du cran haut de formulation, seule mesure qui ait un bon côté. La formulation se souligne alors **en vaguelette**, pour ne pas se confondre avec le filet droit de l'accent, qui tombe au même endroit.
+**Les trois s'ancrent aux mêmes caractères du texte affiché** — chaque son connaît les lettres qu'il couvre, chaque syllabe sa sous-chaîne, et la mélodie se pose sur ces mêmes groupes. Ce sont trois propriétés d'une seule chaîne, pas trois analyses à superposer. C'est ce qui rend possible de les marquer **d'un seul mouvement**, et la forme retenue le fait : **la couleur ne porte jamais l'échelle**, qui est portée par la forme — les lettres teintées pour le son, un filet dessous pour l'accent, une ligne derrière le texte pour la mélodie. Trois échelles lues d'un coup d'œil sans qu'aucune ne se déguise en une autre. La couleur porte le côté et la distance au neutre : l'alarme partout, et le vert de l'étiquette *juste* de la richesse, seule mesure qui ait un bon côté. La formulation se souligne alors **en vaguelette**, pour ne pas se confondre avec le filet droit de l'accent qui tombe au même endroit, et la richesse **s'encadre**.
 
 Trois irrégularités à prévoir : une lettre peut porter deux sons, une lettre peut n'en porter aucun, et **un son peut ne porter aucune lettre**. La troisième est mesurée à 1,4 % des sons du banc, et se sépare en deux causes qui n'appellent pas le même geste — la lettre déjà prise par le son voisin (le `x` de `boxes`, qui écrit /k/ puis /s/), et la voyelle que l'orthographe n'écrit pas du tout (le schwa de `doesn't`). Le marquage doit servir les deux, sans quoi une faute trouvée reste invisible.
 
@@ -223,7 +223,7 @@ La conversation dépend de services distants, et chacun peut manquer — réseau
 
 L'analyse compare l'audio de l'apprenant au modèle synthétisé pour un **texte donné**. En conversation libre, ce texte n'est pas connu d'avance, et c'est la seule contrainte de la chaîne qu'on ne peut pas contourner : les mesures fines n'existent que là où le texte est écrit d'avance.
 
-La porte grammaticale en retire déjà la moitié du problème — sur un tour fautif, il n'y a pas d'analyse, et la phrase corrigée est redite contre un texte certain. Reste le tour grammaticalement propre.
+La porte de reformulation en retire déjà la moitié du problème — sur un tour à réécrire, il n'y a pas d'analyse, et la phrase corrigée est redite contre un texte certain. Reste le tour qu'on garde tel quel.
 
 **Décision** : le texte vient de la transcription, que le LLM peut corriger à partir du contexte de la conversation. La répartition des rôles est une règle : **le STT transcrit la bouche, le LLM décide l'intention.** La normalisation appartient au LLM, qui a le contexte et une instruction — jamais au STT, qui la ferait en silence et sans contexte ; un STT qui répare la grammaire d'office efface le signal d'apprentissage avant tout jugement, et sa fidélité verbatim est un critère de choix (cf. `../TODO.md`, chantier 2).
 
