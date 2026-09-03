@@ -82,7 +82,9 @@ Deux raisons concrètes de tenir cette homogénéité. L'arcade doit **annoncer 
 
 **Le curseur d'aptitude est un préréglage parmi d'autres, pas la forme générale.** *Élocution 2* en est un ; *easy* et *hard* en arcade en sont d'autres, qui nomment une combinaison entière ; une brique de lieu ou de personnage en est un troisième, qui apporte aussi de la consigne et des règles. **Quels préréglages chaque mode offre reste à écrire**, et rien n'oblige un mode à en avoir un par aptitude.
 
-Un préréglage peut déplacer des **sensibilités** en plus des leviers d'aides — c'est ce qui rend *durcir* exprimable, et c'est possible depuis que la sensibilité est un levier. Il ne touche jamais un **poids**, qui dit sur quoi on regarde et non combien on exige. Et il est un **gabarit appliqué à la création**, comme une définition : ce qui reste sur la ligne, ce sont les positions.
+Un préréglage peut déplacer des **sensibilités** en plus des leviers d'aides — c'est ce qui rend *durcir* exprimable, et c'est possible depuis que la sensibilité est un levier. Il peut aussi poser des **poids**, ce que la brique *Règles* fait déjà (« Les briques ») ; ce qui reste interdit est qu'un **patch** en déplace un pendant la séance. Il est un **gabarit appliqué à la création**, comme une définition : ce qui reste sur la ligne ensuite, ce sont les positions.
+
+**Un curseur d'aptitude, lui, ne pose que de la pression** — les aides qu'on retire et la sévérité —, jamais le poids de son aptitude. Ce sont deux questions : *combien j'exige* et *sur quoi on regarde*, et on peut vouloir une élocution qui compte beaucoup mais jugée avec indulgence. Le poids se pose dans l'arbre.
 
 **Les leviers sont propres à un format.** Ceux listés plus bas sont ceux de la conversation ; un jeu de tuiles apporte les siens. Un curseur est donc un préréglage sur les leviers **d'un format**, et « élocution 2 » ne nomme pas la même chose d'un format à l'autre — deux notes venues de formats différents ne se comparent pas par la position d'un curseur.
 
