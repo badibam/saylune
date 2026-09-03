@@ -65,7 +65,7 @@ Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir
 
 Les réglages sont **fixés pour toute la durée** de la conversation. Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui tisse les cinq dans une seule conversation.
 
-Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur des **leviers**, qui sont les vrais paramètres et ce qui se stocke. Ce que chaque aptitude fait mesurer et par quels leviers elle se presse est écrit dans `design/activity-model.md`, avec qui a le droit d'en décider — l'apprenant, le module, l'IA — et ce que chacun ne décide jamais.
+Un curseur d'aptitude n'est pas un paramètre : c'est un **préréglage** sur des **leviers**, qui sont les vrais paramètres et ce qui se stocke. Et ce n'est qu'un préréglage parmi d'autres — *easy* et *hard* en arcade en sont, chaque mode aura les siens. Ce que chaque aptitude fait mesurer et par quels leviers elle se presse est écrit dans `design/activity-model.md`, avec qui a le droit d'en décider — l'apprenant, le module, l'IA — et ce que chacun ne décide jamais.
 
 **Aucun réglage ne touche une marque.** La même faute produit la même marque quels que soient les réglages ; ce qu'ils gouvernent, c'est ce qu'on en **fait** — s'il faut redire, si ça compte dans la note. La raison est qu'une marque dont l'absence dépendrait du réglage du jour ne transporte plus rien : rien ne la distingue alors d'une approbation.
 

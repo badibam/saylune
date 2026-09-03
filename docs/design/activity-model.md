@@ -12,6 +12,8 @@ Deux fois de suite, une notion familière s'est révélée n'être qu'un nom pos
 
 Le **curseur d'aptitude** d'abord : ce qui se règle, ce sont des leviers, et « élocution 2 » est un nom sur un jeu de positions. Le **mode** ensuite : ce qui se décrit, c'est d'où viennent les réglages, s'il y a une rampe, et ce qui met fin ; « arcade » est un nom sur une combinaison de ces trois-là.
 
+Une troisième fois depuis, et sur le premier des deux : le curseur d'aptitude n'est pas la forme générale des raccourcis, c'en est un. *Easy* et *hard* en arcade en sont d'autres, et chaque mode aura les siens.
+
 À chaque fois, prendre le nom pour le modèle obligeait à décrire deux fois la même séance et à tenir les deux descriptions d'accord. Et à chaque fois le symptôme était le même : une combinaison légitime devenait impossible à exprimer — une campagne ne pouvait pas contenir un niveau d'arcade, parce que les deux étaient des valeurs du même champ.
 
 C'est la règle à appliquer au prochain paquet qui se présentera sous un nom rond.
@@ -76,7 +78,11 @@ Et **`mode` n'est pas un champ** : « arcade », « campagne », « défi », «
 
 Deux raisons concrètes de tenir cette homogénéité. L'arcade doit **annoncer chaque changement en une phrase**, ce qui exige que toute entrée porte une phrase lisible pour chacune de ses positions — une rampe n'en a pas. Et l'état effectif se calcule depuis les réglages et les règles : mettre une règle dans les réglages ferait chercher l'entrée du calcul là où il range sa sortie.
 
-**Un curseur d'aptitude n'est pas un paramètre, c'est un préréglage** — un nom donné à un ensemble de positions. C'est le mode custom qui le prouve, puisqu'il expose chaque levier séparément : si les curseurs étaient le modèle, il faudrait une deuxième façon de décrire la même séance, et les tenir d'accord.
+**Ce qui se règle sans passer par un levier est un préréglage** — un nom donné à un paquet : des positions, et éventuellement des fragments de consigne et des règles. C'est le mode custom qui le prouve, puisqu'il expose chaque levier séparément : si les préréglages étaient le modèle, il faudrait une deuxième façon de décrire la même séance, et les tenir d'accord.
+
+**Le curseur d'aptitude est un préréglage parmi d'autres, pas la forme générale.** *Élocution 2* en est un ; *easy* et *hard* en arcade en sont d'autres, qui nomment une combinaison entière ; une brique de lieu ou de personnage en est un troisième, qui apporte aussi de la consigne et des règles. **Quels préréglages chaque mode offre reste à écrire**, et rien n'oblige un mode à en avoir un par aptitude.
+
+Un préréglage peut déplacer des **sensibilités** en plus des leviers d'aides — c'est ce qui rend *durcir* exprimable, et c'est possible depuis que la sensibilité est un levier. Il ne touche jamais un **poids**, qui dit sur quoi on regarde et non combien on exige. Et il est un **gabarit appliqué à la création**, comme une définition : ce qui reste sur la ligne, ce sont les positions.
 
 **Les leviers sont propres à un format.** Ceux listés plus bas sont ceux de la conversation ; un jeu de tuiles apporte les siens. Un curseur est donc un préréglage sur les leviers **d'un format**, et « élocution 2 » ne nomme pas la même chose d'un format à l'autre — deux notes venues de formats différents ne se comparent pas par la position d'un curseur.
 
@@ -827,7 +833,8 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers — et **ce que ces crans font varier**, les poids étant constants pendant une partie.
 - **Le critère de réussite d'un défi**, et ce qui met fin à une séance mode par mode. C'est lui qui lit la séance entière ; les conditions, elles, restent sur le passage.
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
-- **La liste des leviers de chaque format**, close pour aucun, et le détail de ce que chaque position produit — y compris sa phrase lisible, qu'exige le mode arcade. Leur forme, elle, est écrite (« Ce qui fait un levier »).
+- **La liste des leviers de chaque format**, close pour aucun, et le détail de ce que chaque position produit — sa valeur par défaut et sa phrase lisible, qu'exige le mode arcade. Leur forme est écrite (« Ce qui fait un levier ») et ceux de la conversation sont énumérés (« Les leviers qui pressent chaque aptitude »). À vérifier en les détaillant : la **préparation**, nommée en passant parmi les aides qu'un curseur retire, n'a ni levier ni définition — soit c'est un temps de réflexion avant de parler et il manque, soit c'est un mot lâché.
+- **Quels préréglages chaque mode offre**, et ce que chacun pose. Le curseur d'aptitude n'en est qu'un.
 - **Le score** : propre à l'arcade ou pas, et à quoi ressemble son écran.
 - **Garder le nom du préréglage** d'une séance réglée à la main. Aucun lecteur n'en a besoin aujourd'hui — l'origine suffit là où ça compte — donc pas de champ pour l'instant.
 - **Le déroulé de chaque module**, et son écran. Le cadre est commun — l'activité, ses champs, ses statuts, son résultat — le déroulé ne l'est pas.
