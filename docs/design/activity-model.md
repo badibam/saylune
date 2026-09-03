@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, et par celle qui a écrit la fin d'une séance et son issue. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, par celle qui a écrit la fin d'une séance et son issue, et par celle qui a fait des définitions de la donnée et posé l'histoire comme une campagne à mémoire déclarée. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -36,7 +36,13 @@ Les trois sont nommés en code (`Prescriber`) et **seul l'apprenant en est un po
 
 Trois choses que la première passe confondait en une.
 
-Une **définition** est une activité écrite d'avance : son format, ses réglages de départ, ses règles — ce qui change en cours de route, ce qui met fin et avec quelle issue. Elle est **écrite en dur dans le code, et fixe**. On la rejoue autant qu'on veut.
+Une **définition** est une activité écrite d'avance, et **c'est de la donnée, pas du code**. On la rejoue autant qu'on veut.
+
+Elle porte : une **identité** et une **version** ; son **format** ; son **contenu** — ce qui ouvre la séance, le `brief`, les personnages ; ses **consignes**, au plus deux, une par marquage jugé ; ses **positions de leviers de départ**, sensibilités comprises ; son **arbre des poids**, constant pour toute la séance ; ses **règles** ; et ses **questions**, auxquelles le modèle répond en fin de séance (« L'histoire »).
+
+**Ce qui reste du code, c'est le catalogue** — les leviers avec leurs positions, l'arbre des feuilles, les sortes de déclencheurs, les sortes d'effets. Rien de ce qu'une définition contient n'est de la logique : des positions déclarées, des poids sur un arbre déclaré, du texte libre, et des règles faites de sortes énumérées. Une histoire de vingt scènes écrite en Kotlin serait du contenu qu'on ne peut ni corriger, ni traduire, ni partager, et il faudrait recompiler l'app pour changer une réplique. Et le doc veut déjà qu'un modèle puisse écrire une définition contre le catalogue, ce qui n'a aucun sens si sa sortie doit être compilée.
+
+**Où vit cette donnée reste ouvert** — fichiers livrés avec l'app, ou table. Ce qui est acquis quel que soit le choix : les réglages d'une exécution sont copiés sur sa ligne, donc une définition qui change ne réécrit jamais le passé ; et l'**origine** doit nommer la définition **et sa version**, sans quoi une mise à jour qui corrige une scène rend incomparables deux parties qui se croient les mêmes.
 
 Une **exécution** est une ligne en base : une partie jouée, un essai, une conversation. C'est ce que le code appelle une activité, et c'est la seule des trois qui se stocke.
 
@@ -796,6 +802,28 @@ Et **une redite ne compte que pour ce qu'elle sert à corriger**, l'élocution e
 Quatre crans, en gradation, qui portent sur la **séance entière** et pas sur une aptitude : il y a une note ; la note reste ; la note est comparée aux autres ; la série des notes est traitée — courbe, niveau, diplôme.
 
 **C'est un concept pour parler d'une activité, pas une pièce du modèle.** Rien ne porte ces crans, et ce qu'ils décrivent tombe de la combinaison choisie : un défi rend une note, une campagne la compare aux précédentes, l'arcade la range dans un classement.
+
+## L'histoire
+
+Un mode histoire tire sur tout ce que le modèle a de mou, donc il sert de banc d'essai. **Une histoire est un bloc à accès ordonné — une campagne — et chaque scène est une définition.**
+
+Pas une activité unique dont les scènes seraient des étapes : le `brief` est posé au départ et aucun patch ne le touche, donc une activité ne peut changer ni de lieu, ni de personnage, ni d'objectif. La rendre modifiable défairait ce qui garantit qu'une séance a une seule situation, donc une seule note lisible. Et une scène **est** une définition terme à terme — un lieu, des gens, une consigne, des règles, une condition de fin : ce n'est pas qu'on fait entrer l'histoire dans le modèle, c'est que le modèle décrivait déjà une scène sans le savoir.
+
+Le fil se coupe donc entre deux scènes, et c'est plutôt souhaitable : dans un jeu, une scène se termine.
+
+### Ce qui se souvient
+
+**Une définition déclare des questions ; le modèle y répond en fin de séance, et les scènes suivantes reçoivent les réponses.** Sans ça rien ne passe d'une scène à l'autre que réussi ou raté, et le barman de la scène 4 ne peut pas demander *« alors, tu l'as retrouvée, la meunière ? »*.
+
+Zéro objet neuf : l'exécution porte son origine, donc on sait de quel bloc elle vient, et son résultat porte déjà du texte.
+
+**Le texte libre du résultat devient ces réponses, et rien d'autre.** Un défi qui veut un commentaire de fin déclare la question — *« qu'est-ce qui a marché, qu'est-ce qui a coincé ? »* — et une activité qui n'en déclare aucune n'a pas de texte. Un mécanisme au lieu d'un champ fourre-tout.
+
+**Une question déclare son format** : texte libre, oui/non, ou une liste fermée. Le texte libre nourrit le prompt des scènes suivantes ; **une réponse fermée se lit par du code**, donc elle branche — *« a-t-il la clé ? oui »* ouvre la scène 5, sinon la 5 bis. C'est le fait testable obtenu sans effet neuf ni objet neuf : ce qui le lit est l'ordre du bloc, qui dérive déjà de ce que les scènes ont rendu. Une même scène pose ses questions fermées pour brancher et ses questions ouvertes pour que le barman sache de quoi il parle.
+
+**La question est déclarée par la scène qui la produit**, jamais par celle qui en a besoin : seul le modèle qui était là peut y répondre. Le prix est un prix d'auteur — en écrivant la scène 2, il faut prévoir ce qui comptera à la scène 5 — et c'est le travail normal quand on écrit une histoire.
+
+Deux limites à connaître. **Le modèle écrit sa propre mémoire**, et rien ne la vérifie : même famille que `intended`. Les questions bornent la dérive sans la supprimer — il répond à ce qu'on lui demande, donc la clé ne disparaît pas parce qu'il l'a jugée secondaire. Et **ça grossit** : à la scène 12 on transporte les réponses de onze scènes. Seules les questions déclarées voyagent, ce qui borne, mais pas toujours assez.
 
 ## Le personnage
 
