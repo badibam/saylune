@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, et par celle qui a étendu le silence aux deux bords. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, et par celle qui a écrit le remplissage et les reprises. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -252,7 +252,7 @@ Prix assumé : la feuille des redites mélange ce qu'a causé le son et ce qu'on
 
 #### La formulation
 
-Le juge marque des groupes de mots à quatre crans, et rien n'énumère ceux qui vont bien : il n'y a donc pas de « tous les empans du passage » comme il y a « tous les sons du passage ». **Le dénominateur est les mots du passage**, comptés par l'app.
+Le juge marque des groupes de mots à quatre crans, et rien n'énumère ceux qui vont bien : il n'y a donc pas de « tous les empans du passage » comme il y a « tous les sons du passage ». **Le dénominateur est les mots retenus du passage**, comptés par l'app — le remplissage et les morceaux abandonnés en sortent (« Le remplissage et les reprises »).
 
 Faire découper toute la phrase par le juge est écarté : couper du correct n'est vérifiable par personne — *to the market* fait un morceau ou trois selon l'habitude de coupe, et le chiffre bougerait avec elle. Marquer *I go* comme groupe verbal fautif, ça, se vérifie. Le juge garde donc le travail qu'il fait déjà pour l'écran, l'app compte, et elle compte dans l'unité qui sert déjà au poids par longueur.
 
@@ -279,7 +279,7 @@ Les deux feuilles sont deux lectures d'**un seul passage du juge**, qui marque u
 
 #### La fluidité — le débit et les silences
 
-**Le débit se mesure sur le temps de parole**, silences exclus : les mots divisés par le temps où la bouche articule. Ce n'est pas une version approchée du débit sur la durée du tour, c'est une autre mesure — l'une dit à quelle vitesse le tour avance, l'autre à quelle vitesse on enchaîne. C'est la seconde qui parle d'anglais oral, un francophone lent étant souvent quelqu'un qui détache ses mots au lieu de les lier.
+**Le débit se mesure sur le temps de parole**, silences exclus : les mots retenus divisés par le temps où la bouche articule. Ce n'est pas une version approchée du débit sur la durée du tour, c'est une autre mesure — l'une dit à quelle vitesse le tour avance, l'autre à quelle vitesse on enchaîne. C'est la seconde qui parle d'anglais oral, un francophone lent étant souvent quelqu'un qui détache ses mots au lieu de les lier.
 
 Elle existe donc **aux trois positions de capture**, et sort de la liste des mesures réservées à la capture automatique, qui n'en garde qu'une : la part silencieuse. Ça compte, l'app étant en position 1 aujourd'hui : sans ça la fluidité n'aurait que ce que le juge lit dans le texte, et rien qui se mesure dans le temps.
 
@@ -307,6 +307,41 @@ Deux causes d'interruption, une seule feuille : le silence de plus de x en posit
 
 Et ce qui compte comme silence ne demande aucun chiffre neuf : c'est ce que le découpage en segments appelle déjà silence, un tour étant une liste de segments dont les silences sont gardés comme durées (`../reference.md`).
 
+#### Le remplissage et les reprises
+
+**Les répétitions et les faux départs font une seule feuille.** Répéter, c'est repartir avec les mêmes mots : même geste, une phrase commencée puis reprise. Les séparer demanderait de dire à partir de quel mot changé on quitte l'une pour l'autre, et aucun défi ne veut peser cette différence-là.
+
+**Les deux feuilles sont jugées, jamais calculées sur une liste de mots.** *euh* et *um* n'ont pas d'autre emploi, mais *I mean*, *like*, *well*, *actually* sont tous de vrais mots — « I mean what I say » et « it was, I mean, hard » ne diffèrent que par l'emploi. Ce n'est donc pas le mot qui décide, et seul le juge voit l'emploi. Elles prennent par là une consigne, ce qu'une feuille calculée ne peut pas prendre : « aucun mot du genre *I mean* » s'écrit telle quelle.
+
+**Le juge souligne, l'app compte** — la même répartition que pour la formulation, et dans la même passe : deux sortes de marque de plus sur une phrase qu'il lit déjà, pas un appel de plus. Un cran par phrase, « il bafouille beaucoup », est écarté pour la raison habituelle : personne ne peut le vérifier, là où « ces quatre mots-là » se regarde.
+
+Sur *« It was, like, um, I went to the— I was going to the store »* : quatorze mots prononcés, deux de remplissage, quatre abandonnés, huit retenus.
+
+- **Le remplissage** — la part des mots prononcés employés comme remplissage. Binaire par mot, ici 2/14.
+- **Les reprises** — la part des mots prononcés appartenant à un morceau abandonné. Binaire par mot, ici 4/14.
+
+Compter les mots abandonnés plutôt que le nombre de reprises suit la règle générale — jamais un nombre d'occurrences — et gradue ce que le nombre écrase : se reprendre après trois mots n'est pas se reprendre après huit.
+
+**Deux dénominateurs, et c'est l'application directe de « le dénominateur est ce que la feuille lit ».** Ces deux feuilles lisent tout ce qui est sorti de la bouche, les quatorze ; la formulation, le poids par longueur et le débit lisent les mots retenus, les huit. Les mélanger casse dans les deux sens. La grammaire sur les quatorze ferait qu'hésiter améliore sa note — *« Yesterday I go to the market »* donne deux fautes sur six mots, 33 %, et la même phrase avec deux *um* donne deux sur huit, 25 %. Le remplissage sur les huit pourrait dépasser 100 %, *« um um um um I went »* donnant quatre mots de remplissage pour deux retenus, et une part qui dépasse 100 % n'est plus une part.
+
+Le débit se compte donc sur les mots retenus, rapportés à tout le temps de parole, hésitations comprises : chercher ses mots à voix haute ralentit le débit, et c'est exactement ce que la fluidité doit voir. Le silence, lui, ne bouge pas — un *um* est de la parole. Quelqu'un qui remplit ses blancs a une part silencieuse basse et un remplissage haut, deux feuilles qui disent chacune quelque chose de vrai.
+
+**La voix modèle ne dit que les mots retenus.** Lui faire dire *« It was, like, um, I went to the... »* est exclu : le modèle est ce qu'on donne à imiter, et tout le montage repose sur le fait qu'il est la vérité.
+
+**L'apprenant, lui, s'aligne sur tout ce qu'il a dit.** Sans les hésitations dans le texte, ces bouts d'audio n'ont aucune lettre en face et deviennent des sons en trop, donc des gros ratés par nature : hésiter coûterait une note de prononciation. **On aligne sur les quatorze, on compare sur les huit.**
+
+**Découper l'audio de l'apprenant pour n'en garder que les huit mots est refusé** par un invariant déjà écrit : rien ne se fait à un seul des deux audios (`../reference.md`). Et ça empirerait le problème de couture ci-dessous, en collant bout à bout deux morceaux que personne n'a prononcés à la suite.
+
+**La couture de l'analyse gagne donc un paramètre** — `examine(said, model, text, kept)`. `text` reste la chaîne affichée, celle où toutes les marques s'indexent, et elle porte maintenant les hésitations ; `kept` dit les morceaux qui comptent, ceux sur lesquels le modèle a été synthétisé. Sans hésitation, `kept` couvre tout le texte et le comportement est celui d'aujourd'hui. C'est le seul endroit où « deux enregistrements de la même phrase » (`analysis/Analysis.kt`) cesse d'être exact : les deux audios ne portent plus le même texte, l'un contenant l'autre.
+
+**Prix assumé : aux coutures, un ou deux sons sont comparés hors de leur contexte.** Le *I* retenu qui suit un *the* abandonné n'a pas devant lui ce que le modèle a devant le sien, et un son est influencé par celui qui le précède. Ça ne se propage pas — une faute ne contamine pas la suite de la phrase (`../analysis.md`, brique 11) — et la redite l'annule, une phrase dite d'un trait n'ayant plus de couture. C'est une raison de plus de faire redire un tour hésitant.
+
+**Le bafouillage ne ferme pas la porte grammaticale.** Elle existe parce que la phrase va être *réécrite* : les mots changent, donc l'analyse porterait sur du texte mort. Ici les mots retenus sont les bons, ils ont seulement été dits en trébuchant. L'analyse tourne, au prix des coutures.
+
+**Ce qui est écarté reste affiché, grisé et entre crochets** — `I am [um] twenty five years old`. Les crochets disent ce que la pâleur seule ne dit pas : ce morceau n'est pas dans la phrase. C'est la vérité du calcul — ni analysé, ni lu par la formulation, ni à redire — et c'est ce qui explique pourquoi ces lettres n'ont aucune couleur. Sans eux, l'apprenant voit un trou sans sa raison.
+
+Rien à régler pour les redites : le fil ne montre que la dernière tentative (`../reference.md`), donc une redite propre n'affiche aucun crochet et une redite hésitante affiche les siens. Les crochets appartiennent à la tentative, pas au passage.
+
 ### L'agrégation se fait une fois, à plat
 
 **Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
@@ -317,7 +352,7 @@ Avec élocution 2 (sons 1, mélodie 1) et formulation 1, sur deux passages dont 
 
 **Une feuille absente sort de la somme, elle ne vaut jamais zéro.** C'était déjà la règle pour la fluidité ; elle vaut pour toutes.
 
-**Chaque feuille pèse par la longueur du passage** — et pour la compréhension, par celle du tour de l'IA, qui est la matière qu'elle couvre. Proportionnel à la longueur est un peu arbitraire, un contour mélodique étant un contour qu'il soit long ou court ; c'est uniforme, et le tenir sur une longue phrase est effectivement plus de travail. La longueur se compte en **mots** plutôt qu'en sons : un passage dont la porte a coupé l'analyse n'a pas de sons et a toujours des mots.
+**Chaque feuille pèse par la longueur du passage** — et pour la compréhension, par celle du tour de l'IA, qui est la matière qu'elle couvre. Proportionnel à la longueur est un peu arbitraire, un contour mélodique étant un contour qu'il soit long ou court ; c'est uniforme, et le tenir sur une longue phrase est effectivement plus de travail. La longueur se compte en **mots retenus** plutôt qu'en sons : un passage dont la porte a coupé l'analyse n'a pas de sons et a toujours des mots.
 
 **Entre feuilles, la moyenne décide seule** : pas de plancher qui plafonnerait la note dès qu'une feuille comptée passe sous la barre. Une bonne feuille peut donc en masquer une mauvaise, et c'est accepté — dans un défi, peu de feuilles comptent, et la sensibilité de chacune dit à quel point elle est facile à tenir. Ça ne touche pas le plafond posé *à l'intérieur* de la formulation, où les fautes bornent le cran haut.
 
@@ -401,9 +436,9 @@ Ce qui suit est la grille du **format conversation** ; un autre format apporte l
 
 Ce découpage-là plutôt qu'une liste de causes — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. La nature de l'empan est **fermée par construction**, tout empan étant une pièce de la phrase, et bien plus stable à juger : dire qu'un empan est un groupe verbal se vérifie, dire qu'une faute est d'aspect plutôt que de temps se discute. Coût assumé, c'est plus grossier — « I go there yesterday » et « I goed there » tombent au même endroit. La finesse est ailleurs, dans la consigne.
 
-**Fluidité** — la part silencieuse du tour ; le débit ; le tour interrompu ; les mots de remplissage ; les répétitions ; les reprises et faux départs. La première n'existe qu'en capture automatique ; le débit se mesure sur le temps de parole, et le tour interrompu se lit aux trois positions, le plafond de durée existant partout.
+**Fluidité** — la part silencieuse du tour ; le débit ; le tour interrompu ; le remplissage ; les reprises. La première n'existe qu'en capture automatique ; le débit se mesure sur le temps de parole, et le tour interrompu se lit aux trois positions, le plafond de durée existant partout.
 
-Les trois dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. C'est un critère de choix de plus pour le banc de fidélité (`../../TODO.md`, chantier 2), qui ne le devait jusqu'ici qu'à la grammaire.
+Les deux dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. Et depuis qu'on aligne l'apprenant sur tout ce qu'il a dit, un nettoyage silencieux fait aussi rater le placement des sons dans un audio qui, lui, contient les hésitations. Le critère de fidélité verbatim du banc (`../../TODO.md`, chantier 2) ne pesait jusqu'ici que sur la grammaire ; il pèse maintenant sur la mesure des sons.
 
 **Richesse** — la variété du lexique ; sa rareté ; l'adéquation du registre ; la complexité de la phrase.
 
@@ -413,11 +448,11 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 
 ## Ce qui est jugé, ce qui est calculé
 
-**Trois jugements viennent du modèle de langue** — le marquage des empans de formulation, dont l'app tire deux feuilles, l'adéquation du registre, la pertinence de la réponse. Tout le reste se calcule : un écart de répartition, un silence, un débit, un rapport, une table de fréquence.
+**Trois jugements viennent du modèle de langue** — le marquage des empans, dont l'app tire quatre feuilles, l'adéquation du registre, la pertinence de la réponse. Tout le reste se calcule : un écart de répartition, un silence, un débit, un rapport, une table de fréquence.
 
 **Le juge rend un cran, jamais un pourcentage.** « 72 % de pertinence » n'est vérifiable par personne, et la finesse vient du comptage, comme pour les sons. Les échelles qui suivent sont **proposées, pas tranchées** — seuls les crans de formulation le sont.
 
-- **empan de formulation** — les quatre crans ci-dessus, par groupe de mots.
+- **empan** — un groupe de mots et sa sorte : l'un des quatre crans de formulation, du remplissage, ou un morceau abandonné. Les sortes s'excluent, un mot n'étant jamais deux.
 - **registre** — un cran par passage, avec un bon côté comme la formulation : remarquablement dans le ton / rien / approximatif / hors registre. Le bon côté se justifie pour la même raison que là-bas : il n'y a pas un seul ton correct, donc on peut dépasser l'acceptable.
 - **pertinence** — un cran par passage, et **pas de bon côté** : répond / répond à moitié / à côté. Contrairement au ton, il n'y a qu'une chose à faire, répondre à ce qui a été dit ; rien au-dessus.
 
@@ -627,7 +662,7 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Ce que vaut une feuille, pour ce qui reste.** La forme est écrite pour l'élocution, pour la formulation, et pour le débit et les silences (« Des marques au chiffre d'une feuille »). Restent les mots de remplissage, les répétitions et les faux départs, puis la richesse et la compréhension.
+- **Ce que vaut une feuille, pour ce qui reste.** La forme est écrite pour l'élocution, pour la formulation, pour le débit et les silences, et pour le remplissage et les reprises (« Des marques au chiffre d'une feuille »). Restent la richesse et la compréhension.
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
 - **La liste fermée des sortes de déclencheurs** d'une règle. Ce qu'un déclencheur lit est tranché — un élément, le chiffre d'une feuille, ou sa note à la barre A–B.
