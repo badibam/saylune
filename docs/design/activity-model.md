@@ -249,6 +249,24 @@ Les deux feuilles sont deux lectures d'**un seul passage du juge**, qui marque u
 
 **Une consigne peut faire marquer un empan, jamais le déplacer au cran « ne se dit pas ».** Ce cran est réservé à ce qui n'existe pas dans la langue, et c'est lui qui ferme la porte quel que soit le réglage. Le déclencher sur de l'anglais correct que la consigne n'a pas demandé mentirait sur la langue, et empoisonnerait le modèle à imiter — *I'll go there* se dit très bien.
 
+#### La fluidité — le débit et les silences
+
+**Le débit se mesure sur le temps de parole**, silences exclus : les mots divisés par le temps où la bouche articule. Ce n'est pas une version approchée du débit sur la durée du tour, c'est une autre mesure — l'une dit à quelle vitesse le tour avance, l'autre à quelle vitesse on enchaîne. C'est la seconde qui parle d'anglais oral, un francophone lent étant souvent quelqu'un qui détache ses mots au lieu de les lier.
+
+Elle existe donc **aux trois positions de capture**, et sort de la liste des mesures réservées à la capture automatique, qui n'en garde que trois : le délai avant de parler, les silences intérieurs, le silence final. Ça compte, l'app étant en position 1 aujourd'hui : sans ça la fluidité n'aurait que ce que le juge lit dans le texte, et rien qui se mesure dans le temps.
+
+**Les silences intérieurs font une seule feuille, la part silencieuse** — le temps de silence divisé par la durée du tour, du premier mot au dernier. Un tour de 21 s portant 6 s de silence vaut 29 %, que ce soit un blanc unique ou douze petits. L'app ne prétend pas savoir lequel des deux est le pire : parler haché et chercher un mot une fois sont deux défauts différents, et aucun n'est clairement plus grave.
+
+Prendre le silence comme élément et sa durée comme valeur donnerait une moyenne de durées, et **un tour sans aucun silence n'aurait pas d'élément, donc pas de feuille** : le tour le plus fluide possible ne serait pas noté. Disqualifiant.
+
+Couper en deux feuilles comme les sons demanderait deux choses qui manquent. Le critère de coupe est que deux défis veuillent des choses **opposées** — « fais-toi comprendre » et « gomme ton accent » se contredisent —, alors que « ne t'arrête pas longtemps » et « ne t'arrête pas du tout » vont dans le même sens. Et la ligne du gros blanc ne viendrait de nulle part, là où celle des gros ratés était déjà à l'écran.
+
+**Le gros blanc reste lisible par une condition**, qui va voir les éléments de la feuille — les silences avec leurs durées. Sa ligne est alors un choix de défi, cinq secondes pour l'un et trois pour l'autre, et non une propriété de la langue gravée dans la mesure.
+
+**Le dénominateur est la durée du tour, du premier mot au dernier** : le délai avant de parler et le silence final en sont exclus, chacun ayant sa feuille. Sinon le même silence serait compté deux fois par deux feuilles dont les poids s'additionnent, la collision déjà écartée pour le délai avant de parler.
+
+Et ce qui compte comme silence ne demande aucun chiffre neuf : c'est ce que le découpage en segments appelle déjà silence, un tour étant une liste de segments dont les silences sont gardés comme durées (`../reference.md`).
+
 ### L'agrégation se fait une fois, à plat
 
 **Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
@@ -335,7 +353,7 @@ Ce qui suit est la grille du **format conversation** ; un autre format apporte l
 
 Ce découpage-là plutôt qu'une liste de causes — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. La nature de l'empan est **fermée par construction**, tout empan étant une pièce de la phrase, et bien plus stable à juger : dire qu'un empan est un groupe verbal se vérifie, dire qu'une faute est d'aspect plutôt que de temps se discute. Coût assumé, c'est plus grossier — « I go there yesterday » et « I goed there » tombent au même endroit. La finesse est ailleurs, dans la consigne.
 
-**Fluidité** — le délai avant de parler ; le nombre et la longueur des silences intérieurs ; le silence final ; le débit ; les mots de remplissage ; les répétitions ; les reprises et faux départs. Les quatre premières n'existent qu'en capture automatique.
+**Fluidité** — le délai avant de parler ; la part silencieuse du tour ; le silence final ; le débit ; les mots de remplissage ; les répétitions ; les reprises et faux départs. Les trois premières n'existent qu'en capture automatique ; le débit se mesure sur le temps de parole et existe partout.
 
 Les trois dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. C'est un critère de choix de plus pour le banc de fidélité (`../../TODO.md`, chantier 2), qui ne le devait jusqu'ici qu'à la grammaire.
 
