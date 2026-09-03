@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -109,9 +109,15 @@ Le test écarte deux choses qu'on rangerait là par réflexe.
 
 Forcer les nombres en marches coûte tout de suite. « Vies : peu / normal / beaucoup » interdit à un défi d'en demander quatre, et ment à l'écran, où l'apprenant voit trois cœurs et pas le mot *normal*. Rien ne se perd en échange : un nombre est ordonné tout seul, donc la direction se calcule pareil dans les deux formes, et le menu envoyé au modèle ne change pas — il choisit entre des patchs tout faits, jamais une valeur.
 
+**Le maximum d'un levier à nombre peut être « pas de maximum ».** Les écoutes et les tentatives se laissent volontiers illimitées, et un très grand nombre à la place mentirait à l'écran comme la marche nommée mentait plus haut.
+
 **Un levier peut en appeler un autre, et la coupe suit une seule règle : zéro éteint le levier quand c'est vrai, sinon deux leviers.** Zéro réécoute *est* la réécoute interdite, zéro reformulation permise *est* le petit bouton qui n'apparaît pas : un levier suffit. Le seuil de silence, lui, n'a aucune valeur qui voudrait dire « pas de seuil » — zéro enverrait le tour aussitôt — et ce qui sépare la position 2 de la position 3 n'est pas x mais le fait que le tour parte tout seul. Deux leviers, donc, et le seuil est **sans objet** aux positions 1 et 2.
 
 **Sans objet ne veut pas dire absent.** La valeur reste sur la ligne, elle n'est pas lue, et elle est là si la capture remonte en 3. Elle s'affiche, grisée, en portant sa raison — la règle du projet pour toute option éteinte (`../reference.md`). Un patch qui déplace un levier sans objet ne change rien à l'écran et annonce un durcissement qui n'a pas lieu : c'est une erreur d'écriture du défi, pas un cas à traiter.
+
+**Chaque levier déclare aussi qui le tient : l'app, ou le modèle.** Les vies, le seuil de silence, la capture, les tentatives permises, la durée du tour sont **exécutés** — l'app les fait, donc ils sont vrais. La longueur et la complexité du tour de l'IA, l'écho, l'explication de la faute sont **demandés** : l'app les écrit dans le prompt et rien ne vérifie qu'ils sont tenus, ce dont le projet a déjà la preuve sous les yeux avec `intended`, qui arrive en texte libre sans toujours respecter sa consigne (`../../TODO.md`).
+
+Trois choses en découlent, et aucune n'est un détail. Une **condition ne peut pas lire un levier demandé**, faute de fait à lire. Le **banc ne peut pas l'éprouver**. Et sa **notification annonce quelque chose qui pourrait ne pas arriver** — *« il va parler plus dense »*, et il parle pareil ; on l'affiche quand même, se taire laisserait l'apprenant sans rien pour comprendre ce qui a été tenté. Surtout, ça dit la vérité à qui écrit un défi : monter la complexité n'est pas une garantie, c'est une demande.
 
 **La sensibilité est un levier, le poids n'en est pas un.** Aller vers sévère durcit, toujours et pour tout le monde ; monter le poids de la mélodie durcit la séance de qui l'a mauvaise et allège celle de qui l'a bonne, donc sa direction dépend de l'apprenant, que le levier ne connaît pas et n'a pas à connaître. C'est cohérent avec ce que chacun fait : la sensibilité dit *combien on exige*, le poids dit *sur quoi on regarde*, et viser autre chose n'est ni plus dur ni plus facile. Ça corrige une phrase que ce doc portait, où les deux étaient des positions de leviers.
 
@@ -363,7 +369,13 @@ C'est la seule aptitude qui ne porte pas sur ce que l'apprenant produit. Les qua
 
 **L'objet est le dernier tour de l'IA ; le contexte est la conversation.** Deux choses différentes. Ce qu'il fallait prendre, c'est ce qui vient d'être dit — répondre à la question d'il y a deux tours est *à côté*, même si le thème général tient encore. Mais le juge a besoin du fil pour résoudre les pronoms et les ellipses : *« And did she like it? » — « She loved it »* ne se juge pas sans savoir qui est *she*. C'est la règle déjà écrite pour toute mesure — lire ce dans quoi l'apprenant se trouve est permis, ce n'est pas juger dessus.
 
-Le doc l'avait d'ailleurs déjà tranché sans le dire : le poids de la compréhension se prend sur la longueur **du tour de l'IA**, « qui est la matière qu'elle couvre ».
+**Le suivi pèse sur la difficulté du tour de l'IA, que le modèle rend avec sa réponse.** La longueur seule était grossière : *« Fancy a cuppa? »* est plus dur que quarante mots simples. Et la position du levier de complexité ne la remplace pas — elle demande un niveau, elle ne promet pas que chaque phrase soit dure, et la variation à l'intérieur d'une séance est réelle. C'est donc une réponse par phrase.
+
+**La difficulté remplace la longueur, et la longueur fait partie de ce que le modèle doit peser en la rendant.** Garder les deux compterait deux fois la même chose, un tour long étant noté plus dur précisément parce qu'il est long. D'où une symétrie utile : les mêmes trois dimensions des deux côtés — longueur, vocabulaire, structure demandées par les leviers, le même trio rendu par le cran.
+
+Quatre choses à tenir avec lui. C'est un **poids, jamais une feuille** : il dit ce qu'on a envoyé, pas ce que l'apprenant a fait, et en feuille il noterait quelqu'un sur la difficulté de ce qu'il a reçu. C'est un **cran**, le retour le moins cher qui soit, une clé énumérée dans un appel qu'on fait déjà. Il **se stocke avec la version de ce qui l'a produit**, étant un jugement que rien ne rejoue à l'identique. Et ses limites s'écrivent avec lui, sinon elles se redécouvrent : personne ne le vérifie, il ne se rejoue pas à l'identique, et c'est le modèle qui note ce qu'il vient d'écrire.
+
+Une porte signalée sans être franchie : comparer le cran rendu à la position des leviers dirait si le modèle a obéi, ce que le drapeau *demandé* dit justement qu'on ne sait pas. **Non mesuré**, et rien ne s'en décide aujourd'hui.
 
 Deux cas de bord. Un tour de l'IA qui contient plusieurs choses — une remarque et une question — demande au juge de peser s'il a pris **ce qui appelait une réponse** ; c'est un jugement, pas une règle. Et un passage sans tour de l'IA devant lui — l'apprenant qui parle en premier — n'a rien à avoir compris : **la feuille est absente**.
 
@@ -450,7 +462,7 @@ Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont l
 
 **Une feuille absente sort de la somme, elle ne vaut jamais zéro.** C'était déjà la règle pour la fluidité ; elle vaut pour toutes.
 
-**Chaque feuille pèse par la longueur du passage** — et pour la compréhension, par celle du tour de l'IA, qui est la matière qu'elle couvre. Proportionnel à la longueur est un peu arbitraire, un contour mélodique étant un contour qu'il soit long ou court ; c'est uniforme, et le tenir sur une longue phrase est effectivement plus de travail. La longueur se compte en **mots retenus** plutôt qu'en sons : un passage dont la porte a coupé l'analyse n'a pas de sons et a toujours des mots.
+**Chaque feuille pèse par la longueur du passage** — sauf le suivi, qui pèse sur la difficulté du tour de l'IA, la matière qu'il couvre (« La compréhension »). Proportionnel à la longueur est un peu arbitraire, un contour mélodique étant un contour qu'il soit long ou court ; c'est uniforme, et le tenir sur une longue phrase est effectivement plus de travail. La longueur se compte en **mots retenus** plutôt qu'en sons : un passage dont la porte a coupé l'analyse n'a pas de sons et a toujours des mots.
 
 **Entre feuilles, la moyenne décide seule** : pas de plancher qui plafonnerait la note dès qu'une feuille comptée passe sous la barre. Une bonne feuille peut donc en masquer une mauvaise, et c'est accepté — dans un défi, peu de feuilles comptent, et la sensibilité de chacune dit à quel point elle est facile à tenir.
 
@@ -578,6 +590,8 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 - **empan** — un groupe de mots et son étiquette, une seule : *ne se dit pas*, *mal formé*, *à côté*, *plat*, *juste*, du remplissage, ou un morceau abandonné. Un mot n'en porte jamais deux (« Les étiquettes de l'empan »).
 - **suivi** — un cran par passage, et **pas de bon côté** : *clairement en rapport* / *incertain* / *à côté*. Il n'y a qu'une chose à faire, prendre ce qui a été dit ; rien au-dessus (« La compréhension »).
 
+**Un troisième cran revient du modèle et n'est pas une mesure : la difficulté de son propre tour**, qui sert de poids au suivi (« La compréhension »). Il ne dit rien de l'apprenant, donc il n'a pas de feuille, pas de sensibilité et pas de consigne.
+
 **Seul un marquage jugé prend une consigne** — du texte libre qui entre dans le critère que le juge lit, et non une feuille : plusieurs feuilles se lisent d'un même passage du juge, et il n'y a rien à quoi des consignes séparées s'attacheraient. Il n'y en a donc que deux dans toute l'app, celle du marquage des empans et celle du suivi. Un marquage calculé n'en prend pas : il n'y a pas de phrase à reformuler dans un écart de répartition. **Le poids choisit parmi ce qui est mesuré, la consigne reformule ce qui est jugé.** Un défi « prononce tous les -ed finaux » ne s'écrit donc pas en consigne sur les sons, que l'écart au modèle voit déjà, mais en creusant l'arbre pour ne peser que ces sons-là.
 
 **La consigne fait partie de la situation, pas des réglages.** C'est ce qui la rend compatible avec l'invariance : deux personnes dans la même activité reçoivent le même traitement, et c'est ça que l'invariance protège. Elle n'a ni positions ni phrase lisible par position, donc elle ne va pas dans la liste des leviers — c'est un champ à part, un `brief` par marquage jugé.
@@ -689,10 +703,16 @@ Deux lignes sont neuves. **Le module ne peut pas adoucir un verdict** — un mod
 Ce que chaque aptitude fait mesurer est dans « La grille des mesures » ; ici ne sont que les **leviers** qui modulent la pression sur elle, ceux du **format conversation**. Un autre format apporte les siens, et aucune de ces listes n'est close. Un levier commun à toutes ne se répète pas : **chaque feuille a sa sensibilité et son poids**, par construction de l'arbre.
 
 **Élocution**
-- *Leviers* : voir le texte, ou redire sa phrase de tête ; un temps limité, posé en pourcentage de la durée du texte synthétisé, et dépasser oblige à réessayer.
+- *Leviers* : les **écoutes du modèle** avant de redire, un nombre dont zéro veut dire *de mémoire* et le haut *illimité* ; la **cadence imposée**, un interrupteur et un pourcentage de la durée du modèle.
+
+Voir ou non le texte de sa propre phrase n'est pas un levier : quand on redit, l'analyse est à l'écran et ses marques sont posées sur les lettres, donc cacher le texte cacherait les marques. L'aide qui se retire vraiment ici est d'entendre le modèle, qui est le remède de toute faute sonore.
+
+La cadence porte sur **tout tour analysé**, pas seulement sur une redite : le modèle est synthétisé pour toute phrase qu'on analyse. Ce qui change est ce que l'apprenant en voit — sur un tour spontané le modèle n'existe qu'après coup, donc c'est un verdict *« trop lent, refais »* ; sur une redite il est déjà là, et un décompte est possible. Le nom évite une collision : **le débit** est une feuille de fluidité, ce qu'on fait spontanément, là où la cadence est une exigence de coller à la vitesse du modèle.
 
 **Compréhension**
-- *Leviers* : la complexité du tour de l'IA — longueur, vocabulaire, structure ; le texte affiché ou flouté ; la réécoute, autorisée ou non, et combien de fois ; le bruit et la qualité du canal, jusqu'à simuler un mauvais réseau qui coupe des mots.
+- *Leviers* : la **longueur** du tour de l'IA et sa **complexité** — vocabulaire, structure — deux leviers, tous deux *demandés* ; le tour de l'IA en trois marches, **texte affiché**, **seulement qui parle**, **rien** ; la **réécoute**, un nombre dont zéro veut dire interdite ; le **bruit et la qualité du canal**, jusqu'à simuler un mauvais réseau qui coupe des mots.
+
+La marche du milieu prend son sens à plusieurs personnages : on sait que c'est Vera qui parle sans lire ce qu'elle dit.
 
 Le bruit s'applique **à la lecture**, jamais au rendu mis en cache : le même fichier sert d'étalon à la mesure, et le bruiter fausserait l'écart.
 

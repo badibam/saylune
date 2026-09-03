@@ -344,6 +344,8 @@ Il y a deux manières d'être agnostique et elles sont opposées. La première n
 
 Contrepartie assumée : le jeu de fonctionnalités **dépend du fournisseur choisi**. Un utilisateur verra des options éteintes qu'un autre a. Une option indisponible doit donc **porter sa raison** dans l'interface — sinon elle passe pour un bug, et c'est l'app qu'on accusera, pas le service.
 
+**Et ce n'est pas seulement le jeu d'options qui en dépend : ce que valent les chiffres en dépend aussi.** Un jugement rendu par le modèle de langue — un marquage, un cran — n'est pas le même d'un fournisseur à l'autre, donc deux apprenants sur deux clés différentes n'ont pas des notes strictement comparables. **C'est admis, et ce n'est pas une objection recevable contre une brique.** La règle qui protège la lecture est ailleurs et suffit : une note ne se lit jamais sans la combinaison qui l'a produite, et tout ce qui est stocké porte la version de ce qui l'a produit.
+
 ## Indexer des chemins nommés, jamais `git add -A`
 
 Ces deux formes indexent ce qui **se trouve** dans l'arbre, y compris ce que personne n'y a mis — et un intrus qui n'est pas un fichier ordinaire fait échouer l'indexation entière, avec un message qui nomme l'intrus sans dire d'où il vient (« ne peut ajouter que des fichiers normaux, des liens symboliques ou des répertoires »).
