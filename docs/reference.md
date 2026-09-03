@@ -179,7 +179,9 @@ Ce qui s'y dit est noté contre un texte de référence **connu d'avance** — c
 
   Le prix se paie ailleurs, sur l'**affichage** et non sur la charge : mesuré sur de la parole d'apprenant réelle, la majorité des mots portent quelque chose (`../TODO.md`). Une marque binaire ne transporte alors plus rien — tout est colorié, donc rien n'est signalé. Le marquage **gradue** donc au lieu de colorier ou non, et c'est en service : une rampe d'ambre à rouge à mesure que l'écart grandit, à teinte claire fixe pour qu'elle se lise comme une seule famille. Sous la bande de bruit la lettre garde l'encre neutre — une teinte y serait un mensonge de précision, le bruit propre de la machine étant lui-même de cette largeur.
 
-**La redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative, et la réponse de l'IA se refait sur elle — garder une réponse à une phrase que personne ne lit plus n'aurait pas de sens. Les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue (`design/activity-model.md`).
+**La redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative. Les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue (`design/activity-model.md`).
+
+**La réponse de l'IA ne se refait que si elle n'a pas encore été dite.** Quand la conversation attend sur la phrase, l'IA n'a joué qu'un écho, et sa vraie réponse se fabrique sur la version corrigée. Quand elle a poursuivi, elle a parlé : redire est alors un exercice, qui ouvre l'analyse du son sans rien rejouer du fil. Refaire une réponse déjà prononcée serait la dédire.
 
 ## Les deux tuyaux
 

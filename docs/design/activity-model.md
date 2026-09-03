@@ -106,9 +106,17 @@ règle
 
 **Un patch a exactement la forme des réglages** — des clés et des positions — et hérite donc des phrases lisibles déclarées avec chaque levier. Appliquer, c'est superposer ; annoncer, c'est lire la phrase ; proposer à l'IA, c'est envoyer les phrases et attendre une clé.
 
+**Annoncer dit aussi le sens du changement.** Lire « deux tentatives permises » ne dit pas si on vient de monter ou de descendre, et ce n'est pas la même nouvelle. Les positions d'un levier sont ordonnées et chaque levier sait de quel côté est le dur — c'est déjà ce qui fait qu'un curseur qu'on monte retire une aide ou durcit un jugement —, donc un patch connaît sa direction par comparaison et la notification annonce *ça se durcit* ou *ça s'allège*, plus la phrase.
+
+**Sauf la consigne, qui s'annonce sans direction.** C'est du texte libre : rien ne peut comparer deux consignes et dire laquelle est plus dure. Elle s'annonce donc en distinguant seulement les deux cas, *consigne modifiée* avec son texte, ou *consigne retirée*. Ne rien dire serait pire — une exigence qui apparaît ou disparaît en silence rend la note incompréhensible.
+
+**Une règle ne se retire pas ; ce qu'elle a fait se défait.** Un patch déplace un levier dans les deux sens, donc alléger est un patch comme un autre. Un patch qui porterait sur les règles elles-mêmes ferait un second étage sans phrase lisible, et plus personne ne saurait ce qu'une définition fait sans l'exécuter. Une règle qui ne doit plus s'appliquer est une règle dont le déclencheur ne se déclenche plus.
+
 Trois choses tombent de cette forme.
 
 **La rampe cesse d'être un champ** : c'est une règle dont le quand est « tous les N passages », le quoi un cran de plus, le qui « écrit ». **Et les conditions aussi** : « une feuille sous la barre → une vie » est une règle dont le patch retire une vie. Deux champs se replient en une liste.
+
+**Et une condition s'allume et s'éteint comme n'importe quoi d'autre, parce que c'est un levier à deux positions** : active — « un silence de plus de cinq secondes coûte une vie » — et inactive — « les silences ne coûtent plus rien ». Deux textes plutôt que la négation du premier, qui donnerait du français bancal alors que tout l'intérêt de ces phrases est de se lire. Un patch la déplace, la notification lit la phrase, et la direction se sait : active est le côté dur.
 
 **Le menu d'un tour est calculé, pas maintenu** : c'est l'ensemble des choix offerts par les règles qui se déclenchent maintenant. La plupart des tours il est vide, et on n'envoie rien.
 
@@ -313,7 +321,15 @@ Les trois autres lectures sont pires. La **première** rend la redite sans effet
 
 **Proposé, non tranché : la dernière tentative ne porterait que les feuilles que la redite sert à corriger** — l'élocution et la formulation —, la fluidité et la richesse lisant la **première**, parce qu'une phrase répétée n'est plus de la parole spontanée et que c'est la parole spontanée qu'elles mesurent. C'est une lecture précise de la règle déjà écrite plus bas, qui dit qu'une redite ne compte que pour l'élocution ; elle n'a pas été éprouvée.
 
-**Une redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative, et la réponse de l'IA se refait sur elle — sans quoi la conversation garderait une réponse à une phrase que personne ne lit plus. Mais les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue, et le compte des essais est une feuille. Ça tranche ce que `../reference.md` laissait ouvert sur le sort de la phrase initiale.
+**Une redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative. Mais les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue, et le compte des essais est une feuille. Ça tranche ce que `../reference.md` laissait ouvert sur le sort de la phrase initiale.
+
+**Deux boutons, et c'est eux qui ferment le passage.** Le gros bouton dit une chose neuve et fait avancer la conversation ; un petit bouton posé sur la phrase la reprend, exactement comme pour la prononciation. **Le passage se ferme à l'appui sur le gros bouton** — l'app n'a rien à deviner de ce qui vient d'être dit, c'est un fait d'interface. Le budget épuisé fait disparaître le petit bouton, et il n'y a pas de reprise qui ne compterait pas : les tentatives plafonnent les reprises, un point c'est tout, et qui veut la liberté ne contraint pas les tentatives.
+
+**En « attend », le gros bouton n'est pas disponible.** Sinon on sortirait d'un passage bloqué en disant simplement autre chose, et les tentatives cesseraient d'être la seule sortie.
+
+**Et redire ne veut pas dire la même chose selon l'avance.** En « attend », l'IA n'a pas encore parlé : sa réponse se fabrique sur la version corrigée, et redire **corrige l'échange**. En « poursuit », elle a parlé, et refaire sa réponse serait la dédire, ce que le projet refuse partout : redire est alors un **exercice**, qui n'appelle aucune réponse neuve. Ce qu'il rapporte reste réel — la note du passage s'améliore, et la porte du son s'ouvre, donc l'analyse de prononciation devient possible là où un tour fautif ne l'aurait jamais eue.
+
+Reste le cas où la phrase corrigée dit autre chose que ce que l'IA avait compris, sa réponse devenant absurde. La redite ne fabrique pas ce risque, elle le révèle : l'app répond à l'intention, et se tromper d'intention est le cas déjà écrit de `../reference.md`. Le remède est celui de n'importe quelle conversation — le dire au tour suivant.
 
 **Le nombre de tentatives est lui-même une feuille** : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la justesse d'emblée. Reformuler et redire ne se comptent pas ensemble — deux feuilles, une par compteur, du même découpage que les leviers.
 
@@ -450,6 +466,8 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 ### La sortie d'un passage bloqué
 
 **Les tentatives s'épuisent, et c'est la seule sortie.** Pas de geste d'abandon à part : les tentatives permises sont déjà un levier, donc la sortie est déjà réglable, et un deuxième mécanisme ne ferait que doubler celui-là.
+
+**En « poursuit », les règles se déclenchent à l'appui sur le gros bouton**, qui ferme le passage et commence le tour suivant du même geste. Elles tombent donc juste avant la réponse de l'IA à ce tour-là, ce que le doc exige d'une règle. Un tour de retard, jamais au mauvais moment.
 
 **Deux portes, dans cet ordre.** Celle des mots d'abord — on n'analyse pas le son d'une phrase dont les mots vont changer — puis celle du son. Les deux moments où l'app peut agir sont exactement ceux-là : au retour de l'appel, elle connaît le verdict de formulation et tout ce qui se calcule sur l'audio et le texte ; à la fin de l'analyse, elle connaît le reste. Si les reformulations s'épuisent, le passage est raté et les redites ne sont jamais entamées.
 
