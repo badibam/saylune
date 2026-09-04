@@ -661,7 +661,11 @@ Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont l
 
 ### Le passage
 
-**Le passage est l'unité de la note : un énoncé et toutes ses redites.** Le mot est neuf parce que « tour » désigne déjà un tour de parole — un enregistrement, un énoncé, une position de capture — et confondre les deux se paierait au premier commit.
+**Le passage est l'unité de la note : un énoncé et toutes ses redites.** Le mot est neuf parce que « tour » désigne déjà un tour de parole — un enregistrement, un énoncé, une position de capture — et confondre les deux se paierait au premier commit. C'est aussi pourquoi « le tour ne passe pas » ne veut rien dire ici : ce qui passe ou ne passe pas est un passage.
+
+**Quatre états, et il n'y en a pas d'autre.** Un passage est **ouvert** quand rien n'est à refaire, **à reformuler** quand les mots doivent changer, **à redire** quand ils ne changent pas et que c'est la façon de dire qui est reprise, ou **clos**. Et clos de deux façons : **réparé**, la dernière tentative passant la barre, ou **non réparé**, les tentatives s'étant épuisées avant.
+
+**« Raté » n'est pas un état de passage.** C'est un terme d'issue d'activité, à côté de *réussi* et de *la note décide*, et l'employer ici mélange deux plans. Ce qui se dit d'un passage est *non réparé*, et ce n'est pas non plus un état stocké : il se dérive de la note du nœud lu et du compte des tentatives, tous deux déjà là. On stocke ce qui dépend de quelque chose qui ne se retrouvera pas, et ça ne dépend que des lignes.
 
 **La note du passage est celle de la dernière tentative**, et les tentatives permises sont un levier qui peut valoir 1. **Deux leviers en fait, un par compteur** — tant de reformulations, tant de redites — et ils ne se volent rien : un défi qui ne vise que la prononciation garde ses redites intactes quoi qu'il arrive du côté des mots. La dernière est ce qu'on sait dire maintenant. Conséquence à dire à l'apprenant plutôt qu'à lui laisser découvrir : une tentative de trop, après une réussite, peut faire baisser la note.
 
@@ -674,6 +678,8 @@ Les trois autres lectures sont pires. La **première** rend la redite sans effet
 **Deux boutons, et c'est eux qui ferment le passage.** Le gros bouton dit une chose neuve et fait avancer la conversation ; un petit bouton posé sur la phrase la reprend, exactement comme pour la prononciation. **Le passage se ferme à l'appui sur le gros bouton** — l'app n'a rien à deviner de ce qui vient d'être dit, c'est un fait d'interface. Le budget épuisé fait disparaître le petit bouton, et il n'y a pas de reprise qui ne compterait pas : les tentatives plafonnent les reprises, un point c'est tout, et qui veut la liberté ne contraint pas les tentatives.
 
 **En « attend », le gros bouton n'est pas disponible.** Sinon on sortirait d'un passage bloqué en disant simplement autre chose, et les tentatives cesseraient d'être la seule sortie.
+
+**Il revient quand les tentatives s'épuisent**, sinon rien n'avance. Ce qui se dit alors franchement plutôt que de se découvrir à l'usage : **« attend » ne garantit pas la réparation, il garantit qu'on dépense ses tentatives.** Un passage à reformuler peut se clore sans avoir été reformulé.
 
 **Et redire ne veut pas dire la même chose selon l'avance.** En « attend », l'IA n'a pas encore parlé : sa réponse se fabrique sur la version corrigée, et redire **corrige l'échange**. En « poursuit », elle a parlé, et refaire sa réponse serait la dédire, ce que le projet refuse partout : redire est alors un **exercice**, qui n'appelle aucune réponse neuve. Ce qu'il rapporte reste réel — la note du passage s'améliore, et la porte du son s'ouvre, donc l'analyse de prononciation devient possible là où un tour mal formé ne l'aurait jamais eue.
 
@@ -877,7 +883,61 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 
 **Deux portes, dans cet ordre.** Celle des mots d'abord — on n'analyse pas le son d'une phrase dont les mots vont changer — puis celle du son. Les deux moments où l'app peut agir sont exactement ceux-là : au retour de l'appel, elle connaît le verdict de correction et tout ce qui se calcule sur l'audio et le texte ; à la fin de l'analyse, elle connaît le reste. Si les reformulations s'épuisent, le passage est raté et les redites ne sont jamais entamées.
 
-L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris — et le passage est enregistré comme raté. C'est ce qui alimente les règles : perdre une vie, durcir, ouvrir ou non le niveau suivant.
+L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris — et le passage se clôt **non réparé**. C'est ce qui alimente les règles : perdre une vie, durcir, ouvrir ou non le niveau suivant.
+
+**Et elle n'a rien à refabriquer pour ça.** L'appel avait rendu la continuation et l'écho de reprise ensemble ; en « attend », seul l'écho avait été joué. Quand les tentatives s'épuisent, l'app joue la continuation qu'elle tenait. Aucun second appel, rien de rétracté — c'est ce qui rend cette sortie gratuite.
+
+### Le déroulé d'un passage
+
+Ce que les sections précédentes disent chacune de son côté, mis bout à bout. Rien de neuf ici, sauf de voir dans quel ordre ça tombe.
+
+```
+PASSAGE ouvert.  tentative ← 1
+
+boucle sur les tentatives :
+
+  - le micro s'arme, après `preparation` s'il y en a (sauf en capture au doigt)
+  - l'apprenant parle → un TOUR
+  - le tour part : gros bouton, seuil de silence, ou plafond de durée
+  - reconnaissance → transcription
+  - UN SEUL APPEL au modèle
+      → intended, marquage des empans, suivi, continuation,
+        difficulté du tour, écho de reprise si quelque chose est marqué,
+        choix dans le menu si une règle en offre un
+
+  ── fin de tentative, premier temps : au retour de l'appel ──
+  - l'app calcule les feuilles jugées et celles qui se lisent sur l'audio
+    et le texte : correction, pertinence, suivi, remplissage, reprises,
+    part silencieuse, débit, tour interrompu
+  - les règles de ce moment qui lisent ces feuilles se déclenchent
+  - À REFORMULER si une aptitude des mots ne passe pas, ou sur un empan
+    « ne se dit pas » → l'analyse du son NE TOURNE PAS
+  - ce que l'app joue : la continuation, ou l'écho si le passage est
+    à reformuler et que `avance.mots` est sur « attend »
+
+  ── second temps : à la fin de l'analyse, si elle a tourné ──
+  - l'app calcule les feuilles du son : gros ratés, masse, mélodie, accent
+  - les règles de ce moment qui lisent ces feuilles se déclenchent
+  - À REDIRE si une aptitude de la façon de dire ne passe pas
+    → notification : écoute le modèle et redis
+
+  ── sortie de tentative ──
+  - à refaire, et le compteur correspondant n'est pas épuisé
+      → petit bouton, tentative++
+  - à reformuler et reformulations épuisées → l'app joue la continuation
+      qu'elle tenait ; le gros bouton revient ; les redites ne sont
+      jamais entamées ; le passage se clora NON RÉPARÉ
+  - à redire et redites épuisées → le gros bouton revient ;
+      le passage se clora NON RÉPARÉ
+  - rien à refaire → le gros bouton est disponible ; RÉPARÉ
+
+FERMETURE, au gros bouton :
+  - note du passage ← celle de la dernière tentative
+  - moment « fermeture du passage » : patchs, rampe, vies, fin de séance
+  - l'IA répondra au tour suivant en connaissant déjà ce qui a changé
+```
+
+**Il y a donc deux épuisements et non un**, celui des reformulations et celui des redites, et ils ne tombent pas au même endroit : le premier avant que l'analyse du son ait tourné, le second après. Le doc n'écrivait que le premier.
 
 ## La fin d'une séance et son issue
 
