@@ -251,7 +251,7 @@ Ce qui le remplacera n'est pas décidé. Une piste : **marquer le mot** — un t
 
 La conversation s'affiche en texte : on ne colorie pas une portion de son.
 
-Les tours de l'IA sont **floutables** — un réglage d'écoute, indépendant de tout le reste. Les lire au lieu de les écouter fait sortir la compréhension orale par la fenêtre.
+Les tours de l'IA sont **floutables** — non pas un réglage d'écoute à part, mais un **levier de compréhension à trois marches** : texte affiché, seulement qui parle, rien (`design/activity-model.md`). Les lire au lieu de les écouter fait sortir la compréhension orale par la fenêtre.
 
 Le flou ne gêne pas la reprise : la marque est sur le tour de **l'utilisateur**, et on redit dessus sans jamais avoir à déflouter la réponse de l'IA.
 

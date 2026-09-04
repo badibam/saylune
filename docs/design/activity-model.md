@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, par celle qui a écrit la fin d'une séance et son issue, et par celle qui a fait des définitions de la donnée posé l'histoire comme une campagne à mémoire déclarée, ouvert les règles au modèle des deux côtés, et donné aux consignes une durée et trois lecteurs. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, par celle qui a écrit la fin d'une séance et son issue, et par celle qui a fait des définitions de la donnée posé l'histoire comme une campagne à mémoire déclarée, ouvert les règles au modèle des deux côtés, et donné aux consignes une durée et trois lecteurs, puis le 2026-09-04 par celle qui a inventorié l'état d'une séance en trois natures et écrit ce que le modèle reçoit. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -78,6 +78,20 @@ Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque six, et 
 
 Et **`mode` n'est pas un champ** : « arcade », « campagne », « défi », « custom » sont des noms d'usage sur des combinaisons de ces axes-là.
 
+## L'état d'une séance
+
+Ce qui existe à un instant donné dans une activité donnée. L'inventaire sert deux choses à la fois : savoir ce qu'une reprise doit pouvoir reconstituer, et savoir ce que le prompt a le droit de dire.
+
+**Trois natures, et il n'y en a pas de quatrième.** C'est le critère du projet appliqué à l'état entier — on stocke ce qui dépend de quelque chose qui ne se retrouvera pas, on recalcule ce qui ne dépend que des lignes (`../reference.md`).
+
+- **Déclaré** — l'entrée figée, jamais réécrite. De la définition : l'origine, le format, ce qui ouvre la séance, le `brief`, la distribution, les consignes de départ, les positions de leviers de départ, l'arbre des poids, les règles, les questions. De l'apprenant et non de la définition : l'accent, donc la voix de référence, et les fournisseurs choisis par maillon, qui décident quelles briques sont allumées.
+- **Enregistré** — ce qui ne se recalcule pas : les énoncés et leur audio, les mesures de chaque tentative, le journal de ce qu'un tirage ou l'IA a choisi, et les faits portés par chaque tour — quelle position de capture était en vigueur, comment il s'est fini et par laquelle des deux horloges.
+- **Dérivé** — recalculable à tout instant depuis les deux autres : les positions effectives des leviers, les consignes en vigueur et ce qui reste de leur durée, les feuilles, les notes, le compte de passages et de tentatives, le blocage, la porte du son, l'avancement, l'issue, et les deux horloges qui tournent, le temps écoulé n'étant que maintenant moins le départ.
+
+**Une quatrième nature a été essayée et ne tient pas.** « Éphémère » devait ranger ce qui n'existe que le temps d'un tour — les horloges, le menu, le message qu'une règle vient de poser —, et aucun des trois ne s'y range : les horloges laissent une trace enregistrée, le menu se recalcule depuis les règles et l'état, le message est écrit dans la règle donc il est déclaré. Durer peu n'est pas une nature ; c'est une propriété à l'intérieur du dérivé, dont certaines parties se recalculent par passage et d'autres par tentative.
+
+**La position déclarée d'un levier et sa position effective sont deux choses**, et les confondre est ce qui fait paraître contradictoire que les réglages soient fixes pour toute la durée pendant que les vies se perdent. La définition écrit la première, qui ne bouge jamais ; les patchs déplacent la seconde, qui est ce que l'apprenant vit.
+
 ## Les réglages
 
 **Ce qui se stocke est une liste ouverte de positions de leviers, et rien d'autre.** Le critère est qu'elles répondent toutes à la même question : *où en est ce paramètre en ce moment*. Une rampe n'y répond pas, elle dit comment ça va changer ; une origine non plus, elle dit d'où les réglages viennent. Ces choses-là ont leurs champs à elles.
@@ -98,7 +112,7 @@ Un préréglage peut déplacer des **sensibilités** en plus des leviers d'aides
 
 **Les réglages sont fixes pour toute la durée.** Ce qui bouge pendant une séance est l'**état effectif**, calculé depuis les réglages, les règles, le journal et l'avancement. L'arcade n'est donc pas une exception : sa rampe est une règle, une donnée fixe qui décrit une variation.
 
-**Les vies sont un levier** : trois vies pressent l'apprenant comme un seuil de silence court.
+**Les vies sont un levier** : trois vies pressent l'apprenant comme un seuil de silence court. Et **sa position est le nombre restant**, pas une allocation posée à côté d'un compteur — la définition écrit sa position de départ, un patch la déplace d'un cran, zéro met fin. C'est ce qui fait qu'il n'y a pas d'objet compteur de vies, donc pas de sorte d'effet « retirer une vie » à côté de « poser un patch » (« L'état d'une séance »).
 
 **Le curseur de difficulté de l'arcade nomme une combinaison entière**, il n'en fait pas partie. Sa rampe est donc une règle qui monte **un cran entier**, pas une suite de changements levier par levier.
 
@@ -174,6 +188,8 @@ paquet    : [ effet, effet, ... ]          # un effet : patch, fin, ou message a
 
 **Elle n'est pas produite par le modèle.** Elle s'affiche à côté d'une affirmation mécanique, donc un texte inventé au moment où ça tombe peut la contredire ; et les patchs sont déclarés d'avance de toute façon, y compris quand c'est le modèle qui choisit lequel s'applique. Il garde tout le reste : il **joue** le changement dans son tour, où il est libre et où c'est gratuit.
 
+**Ce qui manque se voit, mais on ne peut pas dire ce qui pourrait manquer.** Le catalogue ne propose aucune liste complète des occasions de parler, et il ne le peut pas : une condition sur un élément de feuille est un espace paramétré — quelle feuille, laquelle des trois lectures, quelle valeur — et le déclencheur *le modèle juge que oui* est de la prose libre. Ce qui se dénombre, ce sont les règles qu'une définition a **écrites**, et c'est précisément ce qui sert un auteur : l'écran d'écriture affiche ses douze règles et dit lesquelles n'ont pas de phrase de mise en scène. Pas « voici tout ce qui peut arriver », mais « voici ce que tu as écrit, et voilà ce qui est nu ». Un oubli ne casse rien, la phrase mécanique tombant seule, et les rares événements génériques — perdre une vie, finir, bloquer — arrivent tout faits par une brique (« Les briques »).
+
 Ça donne à l'arcade ce qui lui manquait. Elle devait annoncer chaque changement en une phrase ; elle en a deux, une qui dit la règle et une qui dit le monde, sans quoi monter d'un cran ne ressemble qu'à un compteur.
 
 **Une règle ne se retire pas ; ce qu'elle a fait se défait.** Un patch déplace un levier dans les deux sens, donc alléger est un patch comme un autre. Un patch qui porterait sur les règles elles-mêmes ferait un second étage sans phrase lisible, et plus personne ne saurait ce qu'une définition fait sans l'exécuter. Une règle qui ne doit plus s'appliquer est une règle dont le déclencheur ne se déclenche plus.
@@ -227,6 +243,37 @@ Le dosage ne se décide pas sur ce qu'un modèle sait faire, mais sur **ce que l
 D'où la forme qui rend la liberté bon marché : **prose libre à l'aller, clés énumérées au retour.** L'app déclare ce qui est disponible — les leviers ont déjà leurs positions et leur phrase lisible —, l'IA **choisit une clé**, elle n'invente pas. Un champ, validé par appartenance. Et c'est ce que les modèles font le mieux : choisir dans une liste est fiable, calibrer une contrainte neuve ne l'est pas.
 
 **La borne n'est donc pas la liberté de l'IA, c'est la déclaration** : rien d'indéclaré ne peut être choisi, faute d'exécutant. Un menu peut couvrir tous les leviers si on veut. **Non mesuré** : choisir dans cinq options est probablement plus fiable que dans soixante, et rien ne le dit ici — offrir une liste courte est une prudence, pas un résultat.
+
+## Ce que le modèle reçoit
+
+**Un seul appel fait tous les métiers** — jouer le personnage, reconstruire `intended`, marquer les empans, juger le suivi, rendre la difficulté de son tour, et choisir dans le menu quand une règle le lui offre. Ce n'est pas le prix qui tranche : un second appel ne coûterait rien en latence, le jugement ne servant qu'à afficher des marques pendant que la réponse se synthétise et se joue, ni en argent, le modèle de langue se comptant en millièmes d'un tour à trois centimes (`character-voices.md`). Ce qui tranche est qu'un prompt bien structuré tient ses frontières. On regarde donc au cas par cas ce qui déteint, et une frontière un peu floue peut même servir la scène ; on ne cloisonne pas d'avance contre un loup qu'on n'a pas vu.
+
+**L'ordre des champs de retour est la cloison qui reste gratuite.** Le modèle écrit sa réponse en séquence et chaque champ écrit conditionne le suivant, donc `intended` rédigé avant que la voix du personnage soit prise vaut mieux que le contraire. D'où le contrat : `intended`, le marquage des empans, le suivi, `spoken`, la difficulté du tour qu'il vient d'écrire, et `title` s'il y a lieu. Le marquage absorbe `faulty`, qui était un booléen sur le tour entier (« Ce que ça change au marquage »). Le coût en latence est borné par une mesure déjà au dossier : le modèle achève son objet 0,16 s après sa première phrase (`../reference.md`), et l'ordre des champs se joue à l'intérieur de cet intervalle.
+
+**L'état n'atteint le modèle que par la porte de devant.** Il reçoit en permanence les leviers qu'il tient — les *demandés*, qui n'existent que comme instruction — et rien d'autre. Le reste, une vie perdue, un passage raté, un seuil qui se raccourcit, ne lui parvient que si une règle a décidé de le lui dire, par un message au modèle, dans les mots d'un auteur.
+
+C'est ce qui donne à l'auteur le contrôle de ce que son personnage sait. Sans règle, la faute ne change rien à la scène ; avec elle, le réceptionniste soupire et doute qu'on ait vraiment réservé. Coller l'état au prompt en permanence le ferait au contraire réagir toujours, dans toutes les scènes, sans que personne l'ait voulu — et un réceptionniste qui lâche « il vous reste une chance » casse sa propre fiction.
+
+Ça retire un champ qu'on avait posé puis repris : un drapeau *se dit au modèle* sur chaque levier. Il ne passe pas le test qui range les phrases — ce qui a une seule bonne réponse pour toute l'app est au catalogue, ce qui dépend de la scène est sur l'objet de la scène —, puisque justement la réponse dépend de la scène. Et la porte de devant fait déjà le travail, sans champ neuf.
+
+**Des tours passés, on renvoie les répliques et jamais les marques.** L'API est sans mémoire, donc toute la conversation repart à chaque appel, et ce que chaque tour passé porte est une décision. Les marques restent dehors pour la raison déjà écrite au sujet de `faulty` : un modèle qui voit ses vingt derniers verdicts devient cohérent avec eux plutôt qu'avec le tour qu'il lit. Les redites restent dehors aussi, et ce qu'on renvoie est la dernière tentative, comme l'écran — le personnage n'a pas à savoir que la phrase a été dite trois fois, et l'entendre bégayer trois fois le pousse à en parler. Contrepartie assumée : il ne rebondira pas de lui-même sur une faute qui revient, et une règle est ce qu'il faut pour ça.
+
+**Ce n'est pas la taille qui tranche**, et le chiffre se pose ici pour qu'on ne le rejoue pas : un tour dépense environ 300 caractères entre la réponse et `intended`, donc trente tours tiennent dans 2 000 à 2 500 jetons, et les empans marqués ajouteraient à peu près la moitié. C'est petit dans les deux cas. Ce qui tranche est l'ancrage, et il se mesure : repasser le même tour dans deux historiques très différents, et regarder si le marquage change.
+
+**Le détail par son ne se pose même pas.** Un tour de quinze mots fait une cinquantaine de sons, chacun avec son écart et ses lettres, soit plusieurs fois la taille du tour : le prompt s'y noierait. Et tenir compte des sons pour répondre n'est pas le travail du personnage — c'est celui du prescripteur progression, qui lit ce qui est dû et n'existe pas encore.
+
+### Les quatre parties
+
+Ordonnées par fréquence de changement, ce qui est aussi l'ordre où une instruction est le mieux suivie : ce qui gouverne le tour est le plus près de lui.
+
+1. **Le contexte de l'app** — permanent, identique pour toute activité et tout utilisateur : ce qu'est l'app, le contrat de sortie, et les invariants d'`intended` — ne jamais réparer la grammaire, les nombres en toutes lettres, ne jamais compléter un tour interrompu. C'est la constante déjà en service (`providers/ConversationPrompt.kt`).
+2. **Le contexte de l'activité** — figé au lancement : le `brief`, la distribution, les réponses des scènes précédentes, et les questions auxquelles il répondra à la fin.
+3. **L'historique** — les tours passés, répliques seules. C'est le seul morceau stable en tête et variable en queue : il ne se réécrit jamais, il s'allonge par le bout.
+4. **Le présent** — reconstruit à chaque tour : les consignes en vigueur, l'état des leviers qu'il tient, le message qu'une règle vient de poser, le menu s'il y en a un, et les faits du tour qu'on lui donne — sa transcription, et comment il s'est fini.
+
+**Les consignes sont en 4 et non en 3**, alors qu'elles ne changent qu'une poignée de fois par séance et qu'elles ont donc l'air d'appartenir au semi-stable. Posées avant l'historique, elles seraient enterrées sous trente tours au moment précis où elles doivent gouverner le tour suivant. Ce qu'on perd est un préfixe mis en cache, qui se compte en millièmes ; ce qu'on gagne est une instruction lue là où elle s'applique.
+
+**Le `brief` se coupe en deux, et pas plus** : la **situation**, vraie pour tout le monde et lisible aussi à l'écran d'avant-partie, et la **mise en scène**, qui ne s'adresse qu'au personnage et ne s'affiche jamais, sous peine de se saboter. Aller plus loin empiéterait sur les consignes, qui sont déjà un champ à part avec leurs lecteurs et leur durée. Le prix de l'appel unique est ici, et il se dit une fois : la mise en scène est dans le contexte du juge, où elle n'a rien à faire, et ce qui l'en tient à distance est une phrase disant que son critère est la consigne. Ça se vérifie au banc, ça ne se prouve pas.
 
 ## La marque est invariante, ce qu'on en fait ne l'est pas
 
@@ -647,6 +694,8 @@ Ce qui est posé ne vaut que pour la **suite** : un passage déjà dit n'est jam
 
 **Une consigne n'est qu'additive.** Pour qu'une feuille compte moins ou pas du tout, il y a le poids, et lui seul. Une consigne « ignore les temps » est le cas interdit : elle ferait adoucir un verdict par un texte, ce que le module n'a pas le droit de faire.
 
+**Une consigne est ce qu'un juge lit, et rien d'autre ne porte ce nom.** Deux choses lui ressemblent et n'en sont pas. L'**objectif** — *« obtiens le prix de la chambre »* — n'entre dans le critère d'aucun juge : il se dit dans le `brief`, se constate par le déclencheur du modèle, et se conclut par une fin ; il a deux des trois lecteurs et pas le troisième. Et les **deux phrases d'un patch** annoncent un changement au lieu de poser un critère — ce qui brouille les deux est qu'un patch peut porter une consigne, donc annoncer et installer du même geste. Sans cette ligne, la moitié du `brief` finirait en consigne, et le juge marquerait des choses que personne ne lui demandait.
+
 **Une feuille sous consigne n'est pas vérifiée par le banc**, qui éprouve le critère par défaut. Coût connu, pas un défaut à réparer.
 
 Trois défis que ça écrit sans champ neuf. « 100 % passé » est une consigne sur le marquage, et pèse la feuille *à côté* : *I'll go there* s'y range, ce qui ne ment pas sur la langue — la phrase est de l'anglais parfait qui ne convient pas ici, et la correction ne la voit pas. Le **mot interdit** est une consigne du même marquage : il n'a pas de feuille à lui, une feuille qui n'existe que si quelqu'un la configure ne passant pas les trois conditions. Et le **registre** — *« tu parles à un client »* — est de la même famille, comme la longueur imposée.
@@ -738,6 +787,8 @@ L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris �
 **Ça bouche un trou que la note seule ne voyait pas : la quantité.** Un A sur deux passages puis on ferme, c'est une note excellente et un défi qui n'a rien prouvé. « Assez de passages » n'est donc pas un critère de réussite mais une **condition de fin**, et n'atteindre aucune fin, c'est n'avoir aucune issue. Un défi dit combien il en veut en écrivant sa règle de fin, comme il dit tout le reste.
 
 **Il n'y a donc pas de champ « critère de réussite ».** Il se dissout en deux choses déjà là : la barre A–B, qui ne se règle jamais, et ce que les règles de fin déclarent. Un défi plus exigeant monte ses sensibilités, il ne déplace pas la barre — c'est ce que le doc dit déjà du déverrouillage d'un niveau.
+
+**Pas de champ ne veut pas dire pas de mécanisme.** Une réussite scriptée — *« la chambre a été réservée »* — s'écrit comme n'importe quelle fin : un déclencheur de la quatrième sorte, *le modèle juge que oui*, et l'effet *finir* portant l'issue *réussi*. Il fallait l'écrire, la phrase ci-dessus se lisant comme si seule la note pouvait conclure. Le prix est celui du déclencheur : il est **demandé**, donc personne ne vérifie que l'objectif a vraiment été atteint, et le banc ne l'éprouve pas.
 
 **Le message au modèle est de la prose injectée dans le prompt du tour suivant** — *« le barman a compris que tu lui as menti »*. C'est là où le doc dit d'être généreux : ce que personne ne relit est gratuit. Il ne double pas la phrase de mise en scène du patch — celle-là s'affiche à **l'apprenant**, celle-ci part au **modèle**, et une règle peut vouloir l'une, l'autre, ou les deux.
 
@@ -913,9 +964,8 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 - **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles.
 - **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
-- **Les parties du `brief` et leurs lecteurs.** Il en a plusieurs — le modèle qui joue, les juges qui notent — et tout ne doit pas aller à tout le monde : *« tu es un vendeur, le client est pressé »* est vrai pour les deux, *« pousse-le sur le passé, il l'évite »* est une instruction de mise en scène qui n'a rien à faire chez un juge, qui marquerait des choses que personne ne lui demandait.
 - **Comment un personnage obtient sa voix.** L'invariant seul est tranché : aucun nom de voix écrit en dur. Le mécanisme, les plafonds et ce qui reste à décider sont dans `character-voices.md` ; la question qui commande tout le reste y est BYOK ou clé hébergée.
-- **Les cloisons à l'intérieur d'un seul appel**, qui fait plusieurs métiers : jouer un personnage, reconstruire `intended`, marquer les empans, juger le suivi, rendre la difficulté de son tour. La persona ne doit pas atteindre `intended`, et l'état de la séance ne doit pas atteindre le marquage — le personnage a le droit de le connaître, le juge non, sinon la marque cesse d'être invariante. Les frontières s'écrivent dans le prompt, faute de vouloir payer un second appel en latence, et elles se vérifient : le même tour passé deux fois avec deux états très différents doit rendre le même marquage.
+- **Ce que le prompt fait tenir des frontières qu'il ne prouve pas.** La forme est écrite (« Ce que le modèle reçoit ») ; ce qui reste est de le vérifier au banc, sur les deux fuites nommées — la persona qui atteindrait `intended`, et un historique qui déplacerait le marquage.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers — et **ce que ces crans font varier**, les poids étant constants pendant une partie.
 - **Le degré de détail de l'écran d'avant-partie** (« Ce qui fait un levier »).
 - **Où vivent les définitions** — fichiers livrés avec l'app, ou table. Ce qui en dépend est déjà tranché : identité plus version sur l'origine, réglages copiés sur la ligne (« La définition, l'exécution, le bloc »).
