@@ -185,6 +185,7 @@ Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette 
 | `cadence` | marches | libre, imposée | libre | l'app |
 | `cadence.valeur` | nombre | % de la durée du modèle | — | l'app |
 | `redites-permises` | nombre | 0 à sans maximum | sans maximum | l'app |
+| `elocution.fait-refaire` | marches | non, oui | non | l'app |
 
 `cadence.valeur` est **sans objet** quand `cadence` est libre.
 
@@ -198,6 +199,7 @@ Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette 
 | `reecoute` | nombre | 0 à sans maximum ; 0 vaut *interdite* | sans maximum | l'app |
 | `bruit` | marches | aucun, présent, fort | aucun | l'app |
 | `filtre` | marches | aucun, léger, marqué | aucun | l'app |
+| `comprehension.fait-refaire` | marches | non, oui | non | l'app |
 
 Les positions de `tour-ia.complexite` sont **volontairement génériques** : c'est un levier demandé, donc le modèle l'interprète selon la scène, et des noms prescriptifs lui retireraient cette souplesse sans rien garantir en échange.
 
@@ -211,12 +213,18 @@ Les positions de `tour-ia.complexite` sont **volontairement génériques** : c'e
 |---|---|---|---|---|
 | `echo` | marches | explicite, indirect, absent | indirect | le modèle |
 | `explication` | marches | la règle et la phrase, la règle, aucune | aucune | le modèle |
-| `avance` | marches | poursuit, attend | poursuit | l'app |
 | `reformulations-permises` | nombre | 0 à sans maximum | sans maximum | l'app |
+| `correction.fait-refaire` | marches | non, oui | oui | l'app |
 
 `echo` et `explication` sont des **aides**, donc leurs positions se lisent à l'envers de l'intuition : c'est l'absence qui est le cran dur. Elles se déclarent quand même du facile au dur, comme tout le monde.
 
-**`avance` en « attend » est le cran dur parce qu'on ne sort pas d'un passage sans l'avoir réparé** : le gros bouton n'est pas disponible, donc on ne peut pas s'échapper en disant simplement autre chose. Trois choses à tenir séparées autour de là, et elles sont écrites ailleurs : perdre une vie n'est jamais automatique, c'est une condition qu'un défi écrit ; continuer ou attendre est ce levier-ci, indépendant de la première ; et la seule sortie d'un passage bloqué est l'épuisement des tentatives. La combinaison *attend* avec zéro tentative permise n'est donc pas un cul-de-sac : les tentatives sont épuisées d'emblée, le passage est raté et se ferme aussitôt, et « attend » n'attend jamais.
+**Pertinence**
+
+| clé | forme | positions | défaut | tenu par |
+|---|---|---|---|---|
+| `pertinence.fait-refaire` | marches | non, oui | non | l'app |
+
+C'est le seul levier de cette aptitude, et il ne dit rien de ce qu'elle exige : tout ce qu'elle exige vit dans la **consigne**, qu'elle est la seule à porter. Le registre, la longueur imposée, le mot interdit n'ont pas de côté dur, donc ils ne sont pas des leviers. Il lui reste par ailleurs ce que toute feuille a, sa sensibilité et son poids.
 
 **Fluidité**
 
@@ -226,12 +234,11 @@ Les positions de `tour-ia.complexite` sont **volontairement génériques** : c'e
 | `seuil-silence` | nombre | secondes | — | l'app |
 | `duree-tour` | nombre | secondes, maximum 30 | 30 | l'app |
 | `preparation` | nombre | secondes | 0 | l'app |
+| `fluidite.fait-refaire` | marches | non, oui | non | l'app |
 
 `seuil-silence` et `preparation` sont **sans objet** en capture au doigt, où c'est le pouce qui arme. Le maximum de `duree-tour` est le plafond technique, et il remonte quand le fenêtrage de l'analyse arrive.
 
 **`preparation` est le temps entre la fin de la réponse de l'IA et l'armement du micro.** Elle était nommée une fois en passant, parmi les aides qu'un curseur retire, sans levier ni définition. Elle en a une maintenant, et c'est celle-là plutôt qu'un temps de réflexion accordé *à l'intérieur* du tour : ce second sens serait une ligne interne à la mesure de fluidité, et une ligne interne ne se règle jamais — c'est déjà le sort du délai de grâce d'une seconde. Vivant hors du tour, elle ne touche aucune mesure.
-
-**Pertinence** — aucun levier, et ce n'est pas un oubli. Le registre, la longueur imposée, le mot interdit n'ont pas de côté dur, donc ils ne sont pas des leviers : ils s'écrivent dans la **consigne**, que cette aptitude est la seule à porter. Il lui reste ce que toute feuille a, sa sensibilité et son poids.
 
 **L'activité** — ne pressent aucune aptitude en particulier.
 
@@ -239,9 +246,16 @@ Les positions de `tour-ia.complexite` sont **volontairement génériques** : c'e
 |---|---|---|---|---|
 | `vies` | marches | pas de vies, comptées | pas de vies | l'app |
 | `vies.restantes` | nombre | 0 à sans maximum ; 0 met fin | — | l'app |
-| `condition.<nom>.active` | marches | inactive, active | écrit par le défi | l'app |
+| `avance.mots` | marches | poursuit, attend | poursuit | l'app |
+| `avance.son` | marches | poursuit, attend | poursuit | l'app |
 
-**Ce qui est un levier est l'interrupteur d'une condition, pas la condition.** Celle-ci est une règle ; son interrupteur est ce qu'un patch déplace, avec sa phrase lisible. Il y en a un par condition qu'un défi écrit, donc il ne se déclare pas au catalogue mais avec sa règle, et sa position de départ est celle que la définition pose.
+**Les cinq `fait-refaire` et les deux `avance` sont sur deux axes différents.** Le premier dit **si le passage est à refaire** quand une aptitude ne passe pas ; le second dit **si la conversation attend** pendant qu'on le refait. On peut vouloir marquer sans bloquer, ce qui est la conversation libre ordinaire.
+
+**`avance` en fait deux, et pour la raison qui a déjà coupé les tentatives permises** : un défi qui ne vise que la prononciation garde ses redites intactes quoi qu'il arrive du côté des mots. Bloquer sur la grammaire en laissant filer la prononciation est l'ordinaire ; l'inverse est un exercice de prononciation. Avec un seul levier, aucun des deux ne s'écrit.
+
+**Et « attendre » ne veut pas la même chose des deux côtés.** Côté mots, le verdict arrive avec la réponse, donc attendre veut dire *jouer l'écho au lieu de la continuation* — un choix entre deux choses déjà rendues, gratuit. Côté son, le verdict arrive après l'appel : retenir vraiment la réponse mettrait l'analyse dans le chemin critique de **chaque tour**, en plus des 11,0 s de médiane qui sont le premier défaut du projet. Donc côté son, attendre veut dire seulement que **le passage ne se ferme pas** — la réponse se joue, le gros bouton reste indisponible tant qu'une redite n'a pas été faite. C'est cohérent avec ce que le doc dit déjà de la redite quand l'IA a parlé : un exercice, qui ne rejoue rien du fil.
+
+**`attend` est le cran dur parce qu'on ne sort pas d'un passage sans l'avoir refait** : le gros bouton n'est pas disponible, donc on ne peut pas s'échapper en disant simplement autre chose. La combinaison *attend* avec zéro tentative permise n'est pas un cul-de-sac : les tentatives sont épuisées d'emblée, le passage se clôt non réparé aussitôt, et « attend » n'attend jamais.
 
 **Ce que l'exercice a trouvé.**
 
@@ -724,11 +738,27 @@ Les deux aptitudes issues du même marquage prennent **deux formes distinctes**,
 
 **Elle se ferme sur ce qui va être réécrit**, plus sur le marquage. La raison de la porte a toujours été qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire ; tant que marquage et réécriture allaient ensemble, « marqué » était un bon substitut. Ce n'est plus le cas depuis que la correction a des leviers séparés.
 
-**Elle n'est pas câblée sur la correction, et elle ne s'appelle plus grammaticale.** C'est une condition ordinaire, de la troisième forme — elle lit la note d'une feuille à la barre A–B —, donc **quelle feuille la ferme est écrit par les règles du défi**. Le registre en fait partie de plein droit : un tour à refaire parce que le ton est à côté est un tour dont les mots vont changer. Par défaut, hors défi, c'est la correction.
+**Elle ne s'appelle plus grammaticale, et elle a deux raisons et non une.** La première est celle d'origine : on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire, elle va disparaître. La seconde est plus dure : **on ne fait pas prononcer au modèle une phrase incorrecte**, c'est ce qu'on donne à imiter, et tout le montage repose sur le fait que le modèle est la vérité — le même argument que pour les hésitations, dont la voix modèle ne dit jamais les mots écartés.
 
-**Ce qui la ferme est toujours de la même famille : les marques qui appellent une reformulation**, où les mots changent. Celles qui appellent une redite — les sons, l'accent, la mélodie — ne peuvent pas la fermer, par construction : la phrase reste la même, il n'y a rien à réécrire.
+Les deux n'ont pas la même portée. La seconde ne vaut que pour la correction, et **c'est elle qui rend cette porte-là non désarmable**. La première vaut pour tout ce qui provoque une réécriture.
 
-**Elle lit la même barre que tout le reste** : un passage dont la note ne passe pas est un passage à refaire, donc son son ne s'analyse pas. En défi, ne pas passer force le nouvel essai ; en conversation libre ça ne force rien, mais l'app tient quand même la phrase pour une phrase à refaire — elle marque, propose de reformuler, et n'analyse pas le son. Une seule barre, deux conséquences selon le contexte.
+**Elle est donc câblée, et le ciblage passe par les poids.** Elle lit la note d'un **nœud d'aptitude** à la barre A–B, jamais une feuille désignée par une définition. Rien ne s'y perd : un défi qui ne veut viser que la mélodie met un poids sur la mélodie et zéro sur le reste de sa branche, et « élocution sous la barre » *devient* « mélodie sous la barre ». C'est ce que le doc dit déjà des poids — c'est ce qui permet de viser sans ajouter de champ —, et ça évite d'écrire deux fois le même ciblage, une fois dans l'arbre et une fois dans la porte.
+
+**Ce qui range chaque aptitude d'un côté ou de l'autre est déjà écrit : est-ce que les mots changent.** Appliqué aux cinq, ça ne laisse rien à décider :
+
+| ce qui ne passe pas | ce que ça produit | pourquoi |
+|---|---|---|
+| **correction**, ou un empan *ne se dit pas* | à reformuler | les mots changent |
+| **pertinence** | à reformuler | les mots changent |
+| **compréhension** | à reformuler | il faut répondre à autre chose |
+| **élocution** | à redire | la façon de dire change |
+| **fluidité** | à redire | la phrase est la même, dite autrement |
+
+**Ce qui reste au choix d'une activité est de quelles aptitudes elle fait refaire, jamais de quel côté ça tombe.** Le côté est un fait sur la phrase ; rouvrir ce choix rendrait possible de faire redire une phrase qu'on va réécrire, ce que la porte existe pour empêcher. Le choix se pose donc en un levier par aptitude (« Le catalogue des leviers »), et une seule est à *oui* en conversation libre : la correction.
+
+**La porte des mots est fermée dès qu'une aptitude des mots ne passe pas**, plusieurs pouvant le dire à la fois. Elles ne se disputent pas : le registre et la grammaire sont deux façons pour les mots de changer, pas deux critères concurrents.
+
+**Elle lit la même barre que tout le reste** : un passage dont la note ne passe pas est un passage à refaire, donc son son ne s'analyse pas. Ne pas passer force le nouvel essai quand `avance.mots` est sur « attend » ; sinon ça ne force rien, mais l'app tient quand même la phrase pour une phrase à refaire — elle marque, propose de reformuler, et n'analyse pas le son. Une seule barre, deux conséquences selon l'avance.
 
 **Rien de ce qui est jugé ne s'éteint quand elle se ferme.** Toutes les feuilles jugées se calculent, puisque ce sont elles qui décident si elle se ferme — l'éteindre par sa propre décision serait circulaire. Ce qui s'éteint est l'analyse du son, et elle seule.
 
@@ -737,9 +767,9 @@ Les deux aptitudes issues du même marquage prennent **deux formes distinctes**,
 |  | la porte de reformulation | *ne se dit pas* |
 |---|---|---|
 | nature | une décision — on ne travaille pas une phrase qu'on va réécrire | une impossibilité — il n'y a pas de modèle à comparer |
-| ce qui est lu | la **note** d'une feuille, à la barre A–B | un **élément** : un seul empan suffit |
-| qui décide | les règles du défi, et laquelle des feuilles la ferme | personne, c'est un fait |
-| négociable | oui, entièrement | non, il n'y a rien à négocier |
+| ce qui est lu | la **note** d'un nœud d'aptitude, à la barre A–B | un **élément** : un seul empan suffit |
+| qui décide | l'activité, en disant de quelles aptitudes elle fait refaire | personne, c'est un fait |
+| négociable | oui, sauf la correction, qu'on ne peut pas donner à imiter fausse | non, il n'y a rien à négocier |
 | ce qui se passe | l'analyse du son ne tourne pas | l'analyse du son n'a pas d'objet |
 
 Dans le premier cas la phrase **pourrait** être synthétisée et on choisit de ne pas le faire ; dans le second elle **ne peut pas** l'être, et la faire dire au modèle donnerait à imiter une non-phrase. Tout le montage repose sur le fait que le modèle est la vérité.
@@ -873,7 +903,9 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 
 **Correction** : l'appel rend **une réponse plus une ligne courte** — la continuation, et l'écho de reprise (« Ah, you mean you ARE 25 »). L'app calcule la note dès le retour et joue l'une ou l'autre. Trois conséquences : **plus rien n'est jamais remplacé**, une seule étant jouée ; c'est littéralement « l'IA joue, l'app décide », puisqu'elle fournit la matière des deux issues sans trancher ; et la ligne courte **n'est produite que si l'IA a marqué quelque chose**, ce qui la rend gratuite sur un passage propre. Un champ de retour de plus, une chaîne, sans énumération à valider — le moins cher des contrats.
 
-**Prononciation** : quand l'écart au modèle arrive, l'appel est fini et la réponse existe. Rien ne peut fournir un écho en personnage sans un second appel, écarté pour la latence. Donc la réponse est **retenue**, et une notification dit quoi reprendre — en donnant à **écouter** le modèle, qui est synthétisé de toute façon, et non en expliquant, le remède d'une faute sonore n'ayant jamais été une consigne écrite.
+**Prononciation** : quand l'écart au modèle arrive, l'appel est fini et la réponse existe. Rien ne peut fournir un écho en personnage sans un second appel, écarté pour la latence. La réponse se joue donc, et **c'est le passage qui reste ouvert** ; une notification dit de reprendre, en donnant à **écouter** le modèle, qui est synthétisé de toute façon, et non en expliquant, le remède d'une faute sonore n'ayant jamais été une consigne écrite.
+
+**Elle ne nomme rien.** La porte du son étant câblée sur l'élocution et la fluidité, ce qu'elle nommerait serait le même mot à chaque fois, donc une constante, donc rien. Ce qui montre où porter l'attention est déjà à l'écran — les marques, invariantes, et la forme de chacune disant son échelle. Et nommer la pire des marques serait une élection, que le projet ne fait nulle part.
 
 ### La sortie d'un passage bloqué
 
@@ -881,7 +913,7 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 
 **En « poursuit », les règles se déclenchent à l'appui sur le gros bouton**, qui ferme le passage et commence le tour suivant du même geste. Elles tombent donc juste avant la réponse de l'IA à ce tour-là, ce que le doc exige d'une règle. Un tour de retard, jamais au mauvais moment.
 
-**Deux portes, dans cet ordre.** Celle des mots d'abord — on n'analyse pas le son d'une phrase dont les mots vont changer — puis celle du son. Les deux moments où l'app peut agir sont exactement ceux-là : au retour de l'appel, elle connaît le verdict de correction et tout ce qui se calcule sur l'audio et le texte ; à la fin de l'analyse, elle connaît le reste. Si les reformulations s'épuisent, le passage est raté et les redites ne sont jamais entamées.
+**Deux portes, dans cet ordre.** Celle des mots d'abord — on n'analyse pas le son d'une phrase dont les mots vont changer — puis celle du son. Les deux moments où l'app peut agir sont exactement ceux-là : au retour de l'appel, elle connaît les verdicts des mots et tout ce qui se calcule sur l'audio et le texte ; à la fin de l'analyse, elle connaît le reste. Si les reformulations s'épuisent, le passage se clôt non réparé et les redites ne sont jamais entamées.
 
 L'IA repart alors du sens qu'elle avait compris — elle l'a toujours compris — et le passage se clôt **non réparé**. C'est ce qui alimente les règles : perdre une vie, durcir, ouvrir ou non le niveau suivant.
 
@@ -1010,7 +1042,7 @@ La marche du milieu prend son sens à plusieurs personnages : on sait que c'est 
 Les deux s'appliquent **à la lecture**, jamais au rendu mis en cache : le même fichier sert d'étalon à la mesure, et le bruiter fausserait l'écart.
 
 **Correction**
-- *Leviers* : **l'écho** de la faute dans la réponse de l'IA, en trois niveaux — absent (erreur ignorée, réponse normale), indication indirecte (la reprise dans sa réponse, ce que le code incite aujourd'hui), ou reformulation explicite dite comme un coach reprend son élève ; **l'avance**, la réponse poursuivant ou attendant (« Le blocage ») ; l'explication de la faute en notification, à deux niveaux — la règle à utiliser seule, ou la règle plus la phrase correcte.
+- *Leviers* : **l'écho** de la faute dans la réponse de l'IA, en trois niveaux — absent (erreur ignorée, réponse normale), indication indirecte (la reprise dans sa réponse, ce que le code incite aujourd'hui), ou reformulation explicite dite comme un coach reprend son élève ; l'explication de la faute en notification, à trois niveaux — aucune, la règle seule, ou la règle plus la phrase correcte.
 
 Le marquage a quitté cette liste : il est invariant, donc il n'est plus un levier. Les deux qui restent sont bien **deux** et non deux crans d'un seul, parce que **où** et **quoi** ne sont pas deux quantités de la même information : on peut donner l'un sans l'autre, dans les deux sens. C'est la distinction que l'analyse fait déjà pour le son, où le marquage dit où et nommer le son produit est un enrichissement séparé. Et tout en haut, ils se recouvrent : une reformulation explicite de l'IA donne déjà la phrase correcte à voix haute, que l'explication redonnerait par écrit.
 
@@ -1018,7 +1050,9 @@ Le marquage a quitté cette liste : il est invariant, donc il n'est plus un levi
 - *Leviers* : la capture, en trois positions (« La capture ») ; la **préparation**, le temps entre la fin de la réponse de l'IA et l'armement du micro.
 
 **Pertinence**
-- *Leviers* : aucun, et ce n'est pas un trou. Le registre, la longueur imposée, le mot interdit n'ont pas de côté dur, donc ils ne sont pas des leviers (« Ce qui fait un levier ») : ils s'écrivent dans la **consigne**, qui est justement ce que cette aptitude porte. C'est là qu'elle se règle. Il lui reste ce que toute feuille a, sa sensibilité et son poids.
+- *Leviers* : aucun qui la presse, et ce n'est pas un trou. Le registre, la longueur imposée, le mot interdit n'ont pas de côté dur, donc ils ne sont pas des leviers (« Ce qui fait un levier ») : ils s'écrivent dans la **consigne**, qui est justement ce que cette aptitude porte. C'est là qu'elle se règle. Il lui reste ce que toute feuille a, sa sensibilité et son poids.
+
+**Et chaque aptitude porte en plus son `fait-refaire`**, qui dit si ne pas passer met le passage à refaire ; les deux `avance` disent, à côté, si la conversation attend pendant ce temps (« Le catalogue des leviers »). Ce ne sont pas des leviers de pression sur une aptitude en particulier — ils gouvernent le fil.
 
 ### Comment les curseurs se composent
 
