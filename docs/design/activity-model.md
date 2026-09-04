@@ -169,63 +169,81 @@ Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette 
 
 ### Le catalogue des leviers
 
-**Brouillon, non tranché.** Ce tableau applique à chaque levier nommé ailleurs dans ce doc la déclaration exigée juste au-dessus : sa clé, sa forme, ses positions, sa valeur par défaut, de quel côté est le dur, et qui le tient — l'app, donc c'est vrai, ou le modèle, donc c'est demandé. Les **phrases lisibles par position**, dont tombent la notification d'arcade et l'écran d'avant-partie, sont une seconde passe. Le **défaut** est celui d'une conversation libre : ce que l'app fait quand personne n'a rien demandé.
+**Brouillon, non tranché.** Ce tableau applique à chaque levier nommé ailleurs dans ce doc la déclaration exigée juste au-dessus. Les **phrases lisibles par position**, dont tombent la notification d'arcade et l'écran d'avant-partie, sont une seconde passe. Le **défaut** est celui d'une conversation libre : ce que l'app fait quand personne n'a rien demandé.
+
+**Quatre choses à ne pas confondre, et la confusion est facile.** Une **feuille** est une mesure — ce que l'app observe de ce que l'apprenant a fait, et que personne ne règle. Un **levier** est un réglage de la séance, qui ne mesure rien. Une **sensibilité** est un levier attaché à une feuille, qui ne touche pas la mesure mais déplace ses bornes A–E : *40 % de sons ratés* est la mesure, que ce soit un C ou un E est la sensibilité. Un **poids** est lui aussi attaché à une feuille et **n'est pas un levier**, sa direction dépendant de l'apprenant ; il vit dans l'arbre des poids. Il y a donc autant de sensibilités que de feuilles, et la table des sensibilités ressemble à une liste de feuilles pour cette seule raison.
+
+**Les positions d'un levier à marches se déclarent de la plus facile à la plus dure**, donc le côté dur n'est pas un champ : c'est la dernière. Un levier **à nombre** garde le champ, son ordre étant arithmétique et non réglable — tous ceux d'aujourd'hui ont le bas pour côté dur, moins de vies et moins de temps étant plus durs, mais le débit d'un personnage aura le haut.
+
+**Le groupement par aptitude est de la présentation**, pour l'écran custom et pour ce doc. Un levier ne déclare aucune appartenance.
 
 **Élocution**
 
-| clé | forme | positions | défaut | côté dur | tenu par |
-|---|---|---|---|---|---|
-| `ecoutes-modele` | nombre | 0 à sans maximum ; 0 vaut *de mémoire* | sans maximum | bas | l'app |
-| `cadence` | marches | imposée, libre | libre | imposée | l'app |
-| `cadence.valeur` | nombre | % de la durée du modèle | — | bas | l'app |
+| clé | forme | positions | défaut | tenu par |
+|---|---|---|---|---|
+| `ecoutes-modele` | nombre | 0 à sans maximum ; 0 vaut *de mémoire* | sans maximum | l'app |
+| `cadence` | marches | libre, imposée | libre | l'app |
+| `cadence.valeur` | nombre | % de la durée du modèle | — | l'app |
+| `redites-permises` | nombre | 0 à sans maximum | sans maximum | l'app |
 
 `cadence.valeur` est **sans objet** quand `cadence` est libre.
 
 **Compréhension**
 
-| clé | forme | positions | défaut | côté dur | tenu par |
-|---|---|---|---|---|---|
-| `tour-ia.longueur` | marches | courte, moyenne, longue | moyenne | — | le modèle |
-| `tour-ia.complexite` | marches | simple, courante, dense | courante | dense | le modèle |
-| `tour-ia.affichage` | marches | le texte, seulement qui parle, rien | le texte | rien | l'app |
-| `reecoute` | nombre | 0 à sans maximum ; 0 vaut *interdite* | sans maximum | bas | l'app |
-| `canal` | marches | net, dégradé, mauvais | net | mauvais | l'app |
+| clé | forme | positions | défaut | tenu par |
+|---|---|---|---|---|
+| `tour-ia.longueur` | marches | courte, moyenne, longue | moyenne | le modèle |
+| `tour-ia.complexite` | marches | basse, moyenne, élevée | moyenne | le modèle |
+| `tour-ia.affichage` | marches | le texte, seulement qui parle, rien | le texte | l'app |
+| `reecoute` | nombre | 0 à sans maximum ; 0 vaut *interdite* | sans maximum | l'app |
+| `bruit` | marches | aucun, présent, fort | aucun | l'app |
+| `filtre` | marches | aucun, léger, marqué | aucun | l'app |
 
-`tour-ia.longueur` n'a **pas de côté dur évident** : un tour long donne plus à suivre, un tour court donne moins de contexte pour rattraper ce qu'on n'a pas pris. Si aucun bout n'est le dur, ce n'est pas un levier et la longueur rejoint la consigne — à trancher.
+Les positions de `tour-ia.complexite` sont **volontairement génériques** : c'est un levier demandé, donc le modèle l'interprète selon la scène, et des noms prescriptifs lui retireraient cette souplesse sans rien garantir en échange.
+
+**Le bruit et le filtre étaient un seul levier et en font deux**, parce qu'ils sont indépendants : une pièce calme sur une mauvaise ligne, un café bruyant sur une ligne nette. Le **bruit** est un fond sonore, donc un fichier, donc du contenu que la brique *Lieu* possède déjà ; le **filtre** est un traitement du signal — la bande passante d'un téléphone, un hachage périodique. Les deux s'appliquent **à la lecture**, jamais au rendu mis en cache, le même fichier servant d'étalon à la mesure.
+
+**Ce qui reste ouvert est la standardisation, et une moitié seulement est solide.** Une même position doit valoir une difficulté comparable d'un fond à l'autre, sinon le levier ne veut rien dire. Le **rapport signal/bruit en décibels** standardise le niveau : il se calcule et il est comparable. Il **ne standardise pas la difficulté** — un fond de conversations est bien plus dur que du bruit rose au même rapport, parce que c'est de la parole concurrente, et rien ici ne mesure cet écart. Le filtre, lui, demande sa propre liste fermée d'effets nommés portant chacun son intensité déclarée ; comment elle s'encode n'est pas décidé.
 
 **Correction**
 
-| clé | forme | positions | défaut | côté dur | tenu par |
-|---|---|---|---|---|---|
-| `echo` | marches | absent, indirect, explicite | indirect | absent | le modèle |
-| `avance` | marches | poursuit, attend | poursuit | attend | l'app |
-| `explication` | marches | aucune, la règle, la règle et la phrase | aucune | aucune | le modèle |
+| clé | forme | positions | défaut | tenu par |
+|---|---|---|---|---|
+| `echo` | marches | explicite, indirect, absent | indirect | le modèle |
+| `explication` | marches | la règle et la phrase, la règle, aucune | aucune | le modèle |
+| `avance` | marches | poursuit, attend | poursuit | l'app |
+| `reformulations-permises` | nombre | 0 à sans maximum | sans maximum | l'app |
 
-Les deux extrémités dures d'`echo` et d'`explication` sont **en bas de la liste et non en haut** : ce sont des aides, donc plus il y en a, plus c'est facile. C'est le seul groupe où le côté dur n'est pas le dernier cran.
+`echo` et `explication` sont des **aides**, donc leurs positions se lisent à l'envers de l'intuition : c'est l'absence qui est le cran dur. Elles se déclarent quand même du facile au dur, comme tout le monde.
+
+**`avance` en « attend » est le cran dur parce qu'on ne sort pas d'un passage sans l'avoir réparé** : le gros bouton n'est pas disponible, donc on ne peut pas s'échapper en disant simplement autre chose. Trois choses à tenir séparées autour de là, et elles sont écrites ailleurs : perdre une vie n'est jamais automatique, c'est une condition qu'un défi écrit ; continuer ou attendre est ce levier-ci, indépendant de la première ; et la seule sortie d'un passage bloqué est l'épuisement des tentatives. La combinaison *attend* avec zéro tentative permise n'est donc pas un cul-de-sac : les tentatives sont épuisées d'emblée, le passage est raté et se ferme aussitôt, et « attend » n'attend jamais.
 
 **Fluidité**
 
-| clé | forme | positions | défaut | côté dur | tenu par |
-|---|---|---|---|---|---|
-| `capture` | marches | doigt, armée, armée et envoi au silence | doigt | armée et envoi au silence | l'app |
-| `seuil-silence` | nombre | secondes | — | bas | l'app |
-| `duree-tour` | nombre | secondes, maximum 30 | 30 | bas | l'app |
+| clé | forme | positions | défaut | tenu par |
+|---|---|---|---|---|
+| `capture` | marches | doigt, armée, armée et envoi au silence | doigt | l'app |
+| `seuil-silence` | nombre | secondes | — | l'app |
+| `duree-tour` | nombre | secondes, maximum 30 | 30 | l'app |
+| `preparation` | nombre | secondes | 0 | l'app |
 
-`seuil-silence` est **sans objet** aux deux premières positions de `capture`. Le maximum de `duree-tour` est le plafond technique, et il remonte quand le fenêtrage de l'analyse arrive.
+`seuil-silence` et `preparation` sont **sans objet** en capture au doigt, où c'est le pouce qui arme. Le maximum de `duree-tour` est le plafond technique, et il remonte quand le fenêtrage de l'analyse arrive.
+
+**`preparation` est le temps entre la fin de la réponse de l'IA et l'armement du micro.** Elle était nommée une fois en passant, parmi les aides qu'un curseur retire, sans levier ni définition. Elle en a une maintenant, et c'est celle-là plutôt qu'un temps de réflexion accordé *à l'intérieur* du tour : ce second sens serait une ligne interne à la mesure de fluidité, et une ligne interne ne se règle jamais — c'est déjà le sort du délai de grâce d'une seconde. Vivant hors du tour, elle ne touche aucune mesure.
+
+**Pertinence** — aucun levier, et ce n'est pas un oubli. Le registre, la longueur imposée, le mot interdit n'ont pas de côté dur, donc ils ne sont pas des leviers : ils s'écrivent dans la **consigne**, que cette aptitude est la seule à porter. Il lui reste ce que toute feuille a, sa sensibilité et son poids.
 
 **L'activité** — ne pressent aucune aptitude en particulier.
 
-| clé | forme | positions | défaut | côté dur | tenu par |
-|---|---|---|---|---|---|
-| `vies` | marches | comptées, pas de vies | pas de vies | comptées | l'app |
-| `vies.restantes` | nombre | 0 à sans maximum ; 0 met fin | — | bas | l'app |
-| `reformulations-permises` | nombre | 0 à sans maximum | sans maximum | bas | l'app |
-| `redites-permises` | nombre | 0 à sans maximum | sans maximum | bas | l'app |
-| `condition.<nom>` | marches | active, inactive | écrit par le défi | active | l'app |
+| clé | forme | positions | défaut | tenu par |
+|---|---|---|---|---|
+| `vies` | marches | pas de vies, comptées | pas de vies | l'app |
+| `vies.restantes` | nombre | 0 à sans maximum ; 0 met fin | — | l'app |
+| `condition.<nom>.active` | marches | inactive, active | écrit par le défi | l'app |
 
-Il y a **un levier `condition` par condition qu'un défi écrit**, et il ne se déclare donc pas au catalogue mais avec sa règle. Sa position de départ est celle que la définition pose.
+**Ce qui est un levier est l'interrupteur d'une condition, pas la condition.** Celle-ci est une règle ; son interrupteur est ce qu'un patch déplace, avec sa phrase lisible. Il y en a un par condition qu'un défi écrit, donc il ne se déclare pas au catalogue mais avec sa règle, et sa position de départ est celle que la définition pose.
 
-**Les sensibilités** — une par feuille, toutes de la même forme : trois marches, *indulgent*, *normal*, *sévère*, défaut *normal*, tenues par l'app, le dur étant *sévère*. Ce que chaque ligne ajoute est **l'unité dans laquelle ses bornes A–E se posent**, qui est le travail encore à faire.
+**Les sensibilités** — une par feuille, toutes de la même forme : trois marches, *indulgent*, *normal*, *sévère*, défaut *normal*, tenues par l'app. Ce que chaque ligne ajoute est **l'unité dans laquelle ses bornes A–E se posent**, qui est le travail encore à faire.
 
 | clé | unité où se posent les bornes | remarque |
 |---|---|---|
@@ -250,13 +268,13 @@ Il y a **un levier `condition` par condition qu'un défi écrit**, et il ne se d
 
 **Ce que l'exercice a trouvé.**
 
-**Trois leviers nommés au singulier en sont deux chacun**, et la règle de coupe déjà écrite les découpe sans qu'on ait à en inventer une : zéro éteint le levier quand c'est vrai, sinon deux leviers. Le seuil de silence l'était déjà ; la **cadence** et les **vies** le deviennent. Dans les deux cas, aucune valeur du nombre ne veut dire *pas de contrainte* — une cadence à 0 % exigerait l'instantané et zéro vie met fin —, donc l'interrupteur est une pièce séparée. Trois cas sur trois est un signe que la règle est la bonne.
+**Trois leviers nommés au singulier en sont deux chacun**, et la règle de coupe déjà écrite les découpe sans qu'on ait à en inventer une : zéro éteint le levier quand c'est vrai, sinon deux leviers. Le seuil de silence l'était déjà ; la **cadence** et les **vies** le deviennent. Dans les deux cas, aucune valeur du nombre ne veut dire *pas de contrainte* — une cadence à 0 % exigerait l'instantané, zéro vie met fin, donc rien n'exprime « cette activité n'a pas de vies ». Trois cas sur trois est un signe que la règle est la bonne.
 
-**L'explication de la faute manquait sa position d'absence.** Le doc en nommait deux, la règle seule et la règle plus la phrase ; sans une troisième qui dit *aucune*, le défaut d'une conversation ordinaire ne s'exprime pas.
+**L'explication de la faute manquait sa position d'absence.** Le doc en nommait deux, la règle seule et la règle plus la phrase ; sans une troisième qui dit *aucune*, une conversation ordinaire, où l'app n'explique rien, n'était pas exprimable.
 
 **La sensibilité est inerte sur le tour interrompu.** Son chiffre vaut 0 ou 1 sur un passage, donc toutes les bornes possibles rendent la même paire de lettres. Ce n'est pas un défaut à réparer : cette feuille travaille par sa **condition** et par son **poids**, et le doc le dit déjà — une feuille peut n'exister que pour les conditions. Ce qu'il faut en tirer est que la sensibilité d'une feuille binaire ne se règle pas, et que l'écran custom ne doit pas offrir un curseur qui ne fait rien.
 
-**La préparation, proposée et non tranchée.** Elle n'est nommée qu'une fois, parmi les aides qu'un curseur retire, et deux lectures s'offrent. Si elle désigne un temps de réflexion *accordé à l'intérieur du tour*, elle est morte : ce serait une ligne interne à la mesure de fluidité, et le doc interdit qu'une ligne interne se règle — c'est déjà le sort du délai de grâce d'une seconde. Si elle désigne un temps *avant* que le tour commence — le micro ne s'arme que N secondes après la fin de la réponse de l'IA —, c'est un vrai levier, exécuté, dont zéro est le dur, et qui ne touche aucune mesure puisqu'il vit hors du tour. C'est la seconde lecture que je retiendrais, et elle est **sans objet en capture au doigt**, où c'est le pouce qui arme.
+**Le côté dur cesse d'être un champ sur les leviers à marches**, par la convention d'ordre posée en tête. Il ne survit que sur les leviers à nombre, dont l'ordre est arithmétique.
 
 **Et la voix quitte définitivement la liste.** « Le personnage » disait qu'elle devenait une position de levier sur l'activité ; le test la refuse — pas de positions déclarées, pas de côté dur. C'est un **champ de l'activité**, que la distribution porte déjà, et qu'aucun patch ne déplace.
 
@@ -399,7 +417,7 @@ Ce que les réglages gouvernaient — faut-il redire, est-ce que ça compte dans
 
 **Et elle ne se règle pas.** Si la sévérité et la barre bougeaient toutes les deux, deux boutons feraient la même chose et plus rien ne dirait lequel a rendu une séance dure. Ce qui se règle est la sévérité ; ce qu'il faut atteindre ne bouge jamais.
 
-Ça retire une chose qui était écrite ici : il n'y a **pas de barre de redire par échelle**, les sensibilités ne servant qu'à la note. Et **le nombre d'essais permis est un levier de l'activité**, pas de l'élocution : il dit combien de tentatives un passage accepte, jusqu'à une seule (« Le passage »).
+Ça retire une chose qui était écrite ici : il n'y a **pas de barre de redire par échelle**, les sensibilités ne servant qu'à la note. Et **le nombre d'essais permis n'est pas un levier de l'élocution** : il dit combien de tentatives un passage accepte, jusqu'à une seule (« Le passage »). Depuis qu'il y en a deux, un par sorte de réparation, chacun se range avec l'aptitude qu'il répare — les reformulations avec la correction, les redites avec l'élocution (« Le catalogue des leviers »).
 
 Deux choses restent acquises : la correction se souligne **toujours** dès qu'il y a un cran à montrer, et la rampe des sons est la même partout et tout le temps — la bande de bruit de ±5 n'est pas un réglage mais une propriété mesurée de la machine.
 
@@ -668,7 +686,7 @@ Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont l
 
 **Le passage est l'unité de la note : un énoncé et toutes ses redites.** Le mot est neuf parce que « tour » désigne déjà un tour de parole — un enregistrement, un énoncé, une position de capture — et confondre les deux se paierait au premier commit.
 
-**La note du passage est celle de la dernière tentative**, et les tentatives permises sont un levier de l'activité, qui peut valoir 1. **Deux leviers en fait, un par compteur** — tant de reformulations, tant de redites — et ils ne se volent rien : un défi qui ne vise que la prononciation garde ses redites intactes quoi qu'il arrive du côté des mots. La dernière est ce qu'on sait dire maintenant. Conséquence à dire à l'apprenant plutôt qu'à lui laisser découvrir : une tentative de trop, après une réussite, peut faire baisser la note.
+**La note du passage est celle de la dernière tentative**, et les tentatives permises sont un levier qui peut valoir 1. **Deux leviers en fait, un par compteur** — tant de reformulations, tant de redites — et ils ne se volent rien : un défi qui ne vise que la prononciation garde ses redites intactes quoi qu'il arrive du côté des mots. La dernière est ce qu'on sait dire maintenant. Conséquence à dire à l'apprenant plutôt qu'à lui laisser découvrir : une tentative de trop, après une réussite, peut faire baisser la note.
 
 Les trois autres lectures sont pires. La **première** rend la redite sans effet, donc sans intérêt. La **meilleure** laisse l'obstination atteindre A. La **moyenne des tentatives** fait baisser la note à chaque essai, c'est-à-dire punit exactement le geste que l'app existe pour provoquer.
 
@@ -938,7 +956,7 @@ Deux lignes sont neuves. **Le module ne peut pas adoucir un verdict** — un mod
 
 ### Les leviers qui pressent chaque aptitude
 
-Ce que chaque aptitude fait mesurer est dans « La grille des mesures » ; ici ne sont que les **leviers** qui modulent la pression sur elle. Aucune de ces listes n'est close. Un levier commun à toutes ne se répète pas : **chaque feuille a sa sensibilité et son poids**, par construction de l'arbre.
+Ce que chaque aptitude fait mesurer est dans « La grille des mesures » ; ici ne sont que les **leviers** qui modulent la pression sur elle, et leur déclaration complète est au « Catalogue des leviers ». Aucune de ces listes n'est close. Un levier commun à toutes ne se répète pas : **chaque feuille a sa sensibilité et son poids**, par construction de l'arbre.
 
 **Élocution**
 - *Leviers* : les **écoutes du modèle** avant de redire, un nombre dont zéro veut dire *de mémoire* et le haut *illimité* ; la **cadence imposée**, un interrupteur et un pourcentage de la durée du modèle.
@@ -948,11 +966,11 @@ Voir ou non le texte de sa propre phrase n'est pas un levier : quand on redit, l
 La cadence porte sur **tout tour analysé**, pas seulement sur une redite : le modèle est synthétisé pour toute phrase qu'on analyse. Ce qui change est ce que l'apprenant en voit — sur un tour spontané le modèle n'existe qu'après coup, donc c'est un verdict *« trop lent, refais »* ; sur une redite il est déjà là, et un décompte est possible. Le nom évite une collision : **le débit** est une feuille de fluidité, ce qu'on fait spontanément, là où la cadence est une exigence de coller à la vitesse du modèle.
 
 **Compréhension**
-- *Leviers* : la **longueur** du tour de l'IA et sa **complexité** — vocabulaire, structure — deux leviers, tous deux *demandés* ; le tour de l'IA en trois marches, **texte affiché**, **seulement qui parle**, **rien** ; la **réécoute**, un nombre dont zéro veut dire interdite ; le **bruit et la qualité du canal**, jusqu'à simuler un mauvais réseau qui coupe des mots.
+- *Leviers* : la **longueur** du tour de l'IA et sa **complexité** — vocabulaire, structure — deux leviers, tous deux *demandés* ; le tour de l'IA en trois marches, **texte affiché**, **seulement qui parle**, **rien** ; la **réécoute**, un nombre dont zéro veut dire interdite ; le **bruit** et le **filtre** du canal, jusqu'à simuler un mauvais réseau qui coupe des mots — deux leviers et non un (« Le catalogue des leviers »).
 
 La marche du milieu prend son sens à plusieurs personnages : on sait que c'est Vera qui parle sans lire ce qu'elle dit.
 
-Le bruit s'applique **à la lecture**, jamais au rendu mis en cache : le même fichier sert d'étalon à la mesure, et le bruiter fausserait l'écart.
+Les deux s'appliquent **à la lecture**, jamais au rendu mis en cache : le même fichier sert d'étalon à la mesure, et le bruiter fausserait l'écart.
 
 **Correction**
 - *Leviers* : **l'écho** de la faute dans la réponse de l'IA, en trois niveaux — absent (erreur ignorée, réponse normale), indication indirecte (la reprise dans sa réponse, ce que le code incite aujourd'hui), ou reformulation explicite dite comme un coach reprend son élève ; **l'avance**, la réponse poursuivant ou attendant (« Le blocage ») ; l'explication de la faute en notification, à deux niveaux — la règle à utiliser seule, ou la règle plus la phrase correcte.
@@ -960,14 +978,14 @@ Le bruit s'applique **à la lecture**, jamais au rendu mis en cache : le même f
 Le marquage a quitté cette liste : il est invariant, donc il n'est plus un levier. Les deux qui restent sont bien **deux** et non deux crans d'un seul, parce que **où** et **quoi** ne sont pas deux quantités de la même information : on peut donner l'un sans l'autre, dans les deux sens. C'est la distinction que l'analyse fait déjà pour le son, où le marquage dit où et nommer le son produit est un enrichissement séparé. Et tout en haut, ils se recouvrent : une reformulation explicite de l'IA donne déjà la phrase correcte à voix haute, que l'explication redonnerait par écrit.
 
 **Fluidité**
-- *Leviers* : la capture, en trois positions (« La capture »).
+- *Leviers* : la capture, en trois positions (« La capture ») ; la **préparation**, le temps entre la fin de la réponse de l'IA et l'armement du micro.
 
 **Pertinence**
 - *Leviers* : aucun, et ce n'est pas un trou. Le registre, la longueur imposée, le mot interdit n'ont pas de côté dur, donc ils ne sont pas des leviers (« Ce qui fait un levier ») : ils s'écrivent dans la **consigne**, qui est justement ce que cette aptitude porte. C'est là qu'elle se règle. Il lui reste ce que toute feuille a, sa sensibilité et son poids.
 
 ### Comment les curseurs se composent
 
-Monter un curseur fait deux choses, qui n'ont pas le même plafond. **Retirer une aide** converge vers le réel : pas de texte, pas de réécoute, pas de préparation, c'est la vie ordinaire. **Durcir un jugement** dépasse le réel : personne, dans une vraie conversation, ne marque les sons au centième ni ne refuse une tournure correcte mais maladroite. Les crans hauts ne se conçoivent donc pas de la même façon selon qu'ils enlèvent ou qu'ils exigent.
+Monter un curseur fait deux choses, qui n'ont pas le même plafond. **Retirer une aide** converge vers le réel : pas de texte, pas de réécoute, pas de temps de préparation, c'est la vie ordinaire. **Durcir un jugement** dépasse le réel : personne, dans une vraie conversation, ne marque les sons au centième ni ne refuse une tournure correcte mais maladroite. Les crans hauts ne se conçoivent donc pas de la même façon selon qu'ils enlèvent ou qu'ils exigent.
 
 **Les effets se cumulent d'une aptitude à l'autre, et c'est le principe.** Chercher le mot précis, tenir une forme imposée, traiter un tour dégradé : tout cela produit des silences, donc fait baisser la note de fluidité sans que l'apprenant soit moins fluide. La fluidité seule est facile, en combinaison elle est dure. Une note ne se lit donc jamais sans la combinaison qui l'a produite — la façon d'en tenir compte reste à définir, et plusieurs mécanismes sont possibles.
 
@@ -1086,7 +1104,8 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **Le degré de détail de l'écran d'avant-partie** (« Ce qui fait un levier »).
 - **Ce qu'on fait des réponses quand elles s'accumulent** — à la scène 12, onze scènes ont répondu. Les questions déclarées bornent, pas toujours assez (« L'histoire »).
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
-- **La liste des leviers**, close pour aucune aptitude, et le détail de ce que chaque position produit — sa valeur par défaut et sa phrase lisible, qu'exige le mode arcade. Leur forme est écrite (« Ce qui fait un levier ») et ceux de la conversation sont énumérés (« Les leviers qui pressent chaque aptitude »). À vérifier en les détaillant : la **préparation**, nommée en passant parmi les aides qu'un curseur retire, n'a ni levier ni définition — soit c'est un temps de réflexion avant de parler et il manque, soit c'est un mot lâché.
+- **Les phrases lisibles de chaque position de levier**, qu'exigent la notification d'arcade et l'écran d'avant-partie. Le reste de la déclaration est écrit (« Le catalogue des leviers »), qui reste un brouillon et dont aucune liste n'est close.
+- **Comment le bruit et le filtre du canal se standardisent**, pour qu'une même position vaille une difficulté comparable. Le rapport signal/bruit standardise le niveau et non la difficulté, une parole concurrente étant plus dure que du bruit rose au même rapport ; et le filtre demande une liste fermée d'effets nommés dont l'encodage de l'intensité n'est pas décidé (« Le catalogue des leviers »).
 - **Quels préréglages chaque mode offre**, et ce que chacun pose. Le curseur d'aptitude n'en est qu'un.
 - **Le score** : propre à l'arcade ou pas, et à quoi ressemble son écran.
 - **Garder le nom du préréglage** d'une séance réglée à la main. Aucun lecteur n'en a besoin aujourd'hui — l'origine suffit là où ça compte — donc pas de champ pour l'instant.
