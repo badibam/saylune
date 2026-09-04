@@ -290,6 +290,20 @@ paquet    : [ effet, effet, ... ]          # un effet : patch, fin, ou message a
 
 **Sauf la consigne, qui s'annonce sans direction.** C'est du texte libre : rien ne peut comparer deux consignes et dire laquelle est plus dure. Elle s'annonce donc en distinguant seulement les deux cas, *consigne modifiée* avec son texte, ou *consigne retirée*. Ne rien dire serait pire — une exigence qui apparaît ou disparaît en silence rend la note incompréhensible.
 
+**Ce n'est pas une exception, c'est une case : ce qu'un patch pose a deux propriétés indépendantes, une direction et une phrase.** Trois familles en sortent, et la quatrième combinaison n'existe pas.
+
+| | direction | phrase | ce que c'est |
+|---|---|---|---|
+| **levier** | oui | oui | la notification dit *ça se durcit* et lit la phrase |
+| **consigne**, **interrupteur de condition** | non | oui | la notification lit la phrase, sans direction |
+| **drapeau** | non | non | rien ne s'affiche ; ça se pose et ça se lit |
+
+**Un interrupteur de condition n'est donc pas un levier**, et l'affirmation « active est le côté dur » qui traînait ici est fausse depuis qu'une condition lit les deux moitiés de l'échelle : *« atteint A → gagne une vie »* est une condition dont l'activation **allège**. Il garde sa phrase, parce que *« les silences ne coûtent plus rien »* est une nouvelle qu'il faut donner, et il perd sa direction, que personne ne peut qualifier.
+
+**Trois objets à ne pas coller, et c'est facile de les coller.** L'**interrupteur** porte deux positions et chaque position porte sa phrase ; le **patch** est ce qui le déplace ; la **notification** lit la phrase de la position où on vient d'arriver. Il y a donc deux règles en jeu : celle dont le patch déplace l'interrupteur, et celle que l'interrupteur arme ou désarme.
+
+**Un drapeau est un événement nommé**, qu'un patch pose et qu'un déclencheur lit, sans rien afficher. C'est ce qui rend les embranchements d'une scène écrivables à l'intérieur d'une séance, là où les questions déclarées ne passent que d'une scène à la suivante (« Ce qui se souvient »).
+
 **Un patch porte une seconde phrase, de mise en scène, écrite d'avance.** La phrase mécanique est déclarée avec le levier, donc une seule fois pour toute l'app : « cinq secondes de silence » ne peut pas se dire *le barman s'impatiente* dans un pub et *le recruteur attend* dans un entretien. La face qui joue la scène dépend de la scène, donc elle vit sur le patch, dans la règle qui l'écrit.
 
 **La mécanique se lit après la réplique, la narrative dit laquelle des deux places elle prend.** Elles ne font pas le même travail : *« il te reste une vie »* constate ce qui vient d'arriver, donc c'est un reçu et il vient après ; *« tu te fais bousculer par un passant »* plante le décor du tour qui suit, donc lu après la réplique il fait tomber l'excuse du passant de nulle part. La phrase de mise en scène porte donc un drapeau **avant / après**, par défaut après, sur le patch où elle vit déjà. La mécanique, elle, est toujours après : elle n'a rien à mettre en place.
@@ -302,7 +316,22 @@ paquet    : [ effet, effet, ... ]          # un effet : patch, fin, ou message a
 
 Ça donne à l'arcade ce qui lui manquait. Elle devait annoncer chaque changement en une phrase ; elle en a deux, une qui dit la règle et une qui dit le monde, sans quoi monter d'un cran ne ressemble qu'à un compteur.
 
-**Une règle ne se retire pas ; ce qu'elle a fait se défait.** Un patch déplace un levier dans les deux sens, donc alléger est un patch comme un autre. Un patch qui porterait sur les règles elles-mêmes ferait un second étage sans phrase lisible, et plus personne ne saurait ce qu'une définition fait sans l'exécuter. Une règle qui ne doit plus s'appliquer est une règle dont le déclencheur ne se déclenche plus.
+**Une règle ne se retire pas ; ce qu'elle a fait se défait.** Un patch déplace un levier dans les deux sens, donc alléger est un patch comme un autre. Une règle qui ne doit plus s'appliquer est une règle qu'on **désarme par son interrupteur**, qui porte sa phrase — pas un second étage muet où plus personne ne saurait ce qu'une définition fait sans l'exécuter.
+
+**C'est aussi ce qui écrit la surcharge, et ça évite deux mécanismes.** Une même occasion qui doit produire une chose la première fois et une autre ensuite s'écrit en deux règles dont la première désarme l'une et arme l'autre. Ni plafond de déclenchements, ni ordre de déclaration qui aurait un sens : à tout instant, une seule des deux est armée.
+
+```
+R1  (armée au départ)
+    quand vies.restantes atteint 0
+    → [ message au modèle : la fausse mort,
+        patch : vies.restantes ← 1,
+        patch : R1 ← désarmée,
+        patch : R2 ← armée ]
+
+R2  (désarmée au départ)
+    quand vies.restantes atteint 0
+    → [ finir, issue = raté ]
+```
 
 Trois choses tombent de cette forme.
 
@@ -316,6 +345,20 @@ Trois choses tombent de cette forme.
 
 **Les sortes de déclencheurs sont une liste fermée et courte**, déclarées comme les positions d'un levier. La pente est d'y glisser un mini-langage de conditions ; ce jour-là, plus personne ne sait ce qu'une définition fait sans l'exécuter.
 
+### Comment les règles d'un même moment se résolvent
+
+**Par vagues.** Tous les déclencheurs sont évalués contre le **même instantané**, celui du début du moment ; puis tous les effets s'appliquent ensemble. Ce que ces effets viennent de rendre vrai ouvre la vague suivante, et ainsi de suite **jusqu'à ce que plus rien de neuf ne se déclenche**.
+
+**Une règle ne se déclenche qu'une fois par moment**, et c'est cette borne-là qui fait que ça termine : il y a un nombre fini de règles, chacune part au plus une fois, donc la cascade s'arrête, même si deux règles se relancent l'une l'autre. Une règle qui partirait deux fois dans le même instant serait de toute façon un bug d'écriture.
+
+**Ça remplace la garde d'un seul saut** que le doc posait pour les déclencheurs de levier. Elle était là contre les boucles, et cette borne-ci le fait mieux : elle termine pour une raison qu'on peut prouver au lieu d'un plafond de profondeur choisi, et elle rend écrivable la chaîne de drapeaux qu'un saut unique interdisait.
+
+**À l'intérieur d'une vague, l'ordre ne change rien**, donc l'ordre de déclaration n'a aucun sens à porter. Reste un seul cas où il mordrait : deux règles d'une même vague qui écrivent la **même clé** avec des valeurs différentes. Ce n'est pas un cas à arbitrer par une priorité, c'est une erreur d'écriture — et elle se voit à l'écriture, sans exécuter, ce qui est tout l'intérêt de cette forme.
+
+**Ce que ça coûte, dit franchement** : les systèmes d'auteur font plutôt l'inverse, en séquence, où poser une valeur puis la lire marche dans le même souffle. Ce qu'on perd est une chaîne de trois choses dans un même instant ; ce qu'on gagne est qu'une définition se lit sans être exécutée, qui est la peur écrite de ce doc. Et les beats d'une scène sont séparés par des tours de parole de toute façon, donc par des moments distincts.
+
+**La vérification terminale vient après les vagues.** Zéro vie met fin, et ça s'évalue **une fois, sur l'état stabilisé**, jamais sur la transition — sinon la fin gagnerait toujours la course contre la règle qui remplit les vies, et la mort scriptée serait inécrivable.
+
 **Une règle se résout avant que l'IA réponde**, parce qu'elle doit pouvoir fabriquer l'occasion de la contrainte qu'on vient de poser. Le cycle d'un passage est donc : il se ferme, les règles se déclenchent, l'IA répond en connaissant déjà ce qui a changé, son tour est dit, la notification affiche le changement quelques secondes hors du temps de parole, le micro s'arme. Quand c'est l'IA qui choisit, **elle choisit et répond dans le même appel** — deux sorties, pas deux allers-retours, ce qui compte quand la latence est le premier défaut du projet. Contrepartie : elle choisit en sachant ce qu'elle a envie de dire, et le menu est ce qui borne ça.
 
 ### Quand une règle se déclenche
@@ -328,15 +371,18 @@ Trois choses tombent de cette forme.
 
 **Un passage se ferme au gros bouton, pas quand un tour part.** Un passage est un énoncé et toutes ses redites, donc il contient autant de tentatives qu'on en fait, et en « attend » il ne peut pas se fermer du tout. C'est pourquoi le blocage ne peut pas attendre la fermeture : la règle qui décide d'attendre est précisément ce qui l'empêche.
 
-**Cinq sortes de déclencheur, et la liste est fermée.**
+**Six sortes de déclencheur, et la liste est fermée.**
 
 - **une horloge atteint sa valeur** — laquelle des deux, et la valeur. Les deux sont le **temps maximal d'enregistrement**, dont les 30 s ne sont que le plafond technique et jamais la valeur réglée, et le **seuil de silence** de la troisième position de capture.
 - **un nœud de l'arbre dit quelque chose** — lequel, laquelle des lectures qu'il offre (un élément, le chiffre, la note — les deux premières sur une feuille seulement), et une valeur.
 - **un compte de passages** — à tel passage, ou tous les N.
 - **le modèle juge que oui** — une phrase en prose, *« s'il dépasse les limites de la politesse »*, et il répond oui ou non.
-- **un levier a bougé** — lequel, et dans quel sens. Il lit un **changement**, jamais une position, donc il ne rouvre pas la porte que ferme « La fin d'une séance et son issue » ; et il reste fermé et déclaré, puisque les leviers le sont. Son moment est celui du patch qui a bougé le levier.
+- **un levier a bougé** — lequel, et dans quel sens. Il lit un **changement**, jamais une position. Son moment est celui du patch qui a bougé le levier.
+- **un levier atteint une valeur** — lequel, et laquelle. Le jumeau exact de la première sorte, qui lit une horloge de la même façon.
 
-La cinquième existe pour que la porte de devant soit **composable**. Réagir à la perte d'une vie, sans elle, oblige à coller le même message sur chaque règle qui en retire une, donc à le réécrire autant de fois qu'il y a de façons d'en perdre — l'exhaustivité qu'un auteur ne peut pas tenir. Avec elle, la réaction s'écrit une fois pour la scène, quelle que soit la règle qui l'a causée. Elle coûte une garde : **un déclencheur de levier n'en déclenche pas un autre**, un seul saut, sinon deux patchs se relancent l'un l'autre et plus personne ne sait ce qu'une définition fait sans l'exécuter.
+La cinquième existe pour que la porte de devant soit **composable**. Réagir à la perte d'une vie, sans elle, oblige à coller le même message sur chaque règle qui en retire une, donc à le réécrire autant de fois qu'il y a de façons d'en perdre — l'exhaustivité qu'un auteur ne peut pas tenir. Avec elle, la réaction s'écrit une fois pour la scène, quelle que soit la règle qui l'a causée.
+
+**La sixième a été ajoutée pour un cas que rien d'autre n'écrivait : la mort scriptée.** Un boss qu'on ne peut pas vaincre, dont l'issue est une fausse mort qu'on traverse — zéro vie, une scène, puis une vie qui revient. Sans elle, « quand les vies tombent à zéro » n'est pas écrivable : la cinquième se déclenche à *chaque* vie perdue, et aucune autre ne lit une position. Le doc affirmait qu'aucun déclencheur ne lit une position de levier ; c'était vrai quand il y en avait trois, et ça ne l'est plus.
 
 **Le quatrième ne coûte pas d'appel** : le modèle répond dans celui qu'on fait déjà, en un champ énuméré — le contrat le moins cher qui soit. Il porte le drapeau **demandé** avec tout ce qu'il implique : personne ne le vérifie, il ne se rejoue pas, le banc ne l'éprouve pas. Et il peut parfaitement parler de langue, c'est une app de langue ; ce qui le borne est ailleurs et suffit — **une décision du modèle ne produit jamais une marque ni une note**, les trois effets ne touchant aucun marquage. *« Elle se braque parce qu'il est trop familier »* est une conséquence d'histoire, pendant que l'empan est marqué *à côté* à l'écran : deux choses déclenchées par le même comportement, pas deux verdicts concurrents. Reste un coût d'auteur — les deux peuvent sembler se contredire à l'écran, et c'est à la scène de les accorder.
 
@@ -975,7 +1021,7 @@ FERMETURE, au gros bouton :
 
 **Un effet de règle est un patch, la fin, ou un message au modèle.** Trois, et la liste est fermée. Finir ne peut pas être un levier : il faudrait un côté dur, et finir n'est ni plus dur ni plus facile que continuer — c'est une porte qu'on franchit une fois, pas une position. Et le faire passer par les vies obligerait un défi « dix passages et c'est fini » à s'inventer une vie unique, donc à afficher un cœur à quelqu'un qui n'en a pas, alors que les vies n'existent que là où il y a un enjeu.
 
-**Les vies à zéro mettent fin, et c'est une propriété déclarée du levier, pas une règle.** Aucun des trois déclencheurs ne lit une position de levier — ils lisent une horloge, une feuille ou un compte de passages — donc « quand il ne reste plus de vie » n'est pas écrivable en règle, et n'a pas à l'être.
+**Les vies à zéro mettent fin, et c'est une propriété déclarée du levier, pas une règle.** Elle s'évalue **une fois par moment, après que toutes les vagues de règles ont fini**, sur l'état stabilisé (« Comment les règles d'un même moment se résolvent »). C'est ce qui laisse une règle remplir les vies dans le même moment sans que la fin tombe — la mort scriptée qu'on traverse.
 
 **L'effet « finir » porte l'issue qu'il ouvre** : *réussi*, *raté*, ou *la note décide*. Zéro vie finit en raté. « Tu as obtenu la clé » finit en réussi, l'objectif atteint suffisant dans un jeu. « Au passage 10 » laisse la note décider, puisqu'on est allé au bout et qu'il reste à savoir comment.
 
