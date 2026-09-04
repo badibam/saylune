@@ -243,36 +243,13 @@ Les positions de `tour-ia.complexite` sont **volontairement génériques** : c'e
 
 **Ce qui est un levier est l'interrupteur d'une condition, pas la condition.** Celle-ci est une règle ; son interrupteur est ce qu'un patch déplace, avec sa phrase lisible. Il y en a un par condition qu'un défi écrit, donc il ne se déclare pas au catalogue mais avec sa règle, et sa position de départ est celle que la définition pose.
 
-**Les sensibilités** — une par feuille, toutes de la même forme : trois marches, *indulgent*, *normal*, *sévère*, défaut *normal*, tenues par l'app. Ce que chaque ligne ajoute est **l'unité dans laquelle ses bornes A–E se posent**, qui est le travail encore à faire.
-
-| clé | unité où se posent les bornes | remarque |
-|---|---|---|
-| `sens.sons.gros-rates` | % des sons du passage | la ligne du gros raté est dans la mesure, pas ici |
-| `sens.sons.masse` | points d'écart, moyenne sur tous les sons | |
-| `sens.melodie.distance` | demi-tons | |
-| `sens.melodie.divergence` | % des transitions lues | |
-| `sens.accent` | % des mots de plus d'une syllabe que le modèle accentue nettement | feuille absente tant que la brique 7 n'est pas en service |
-| `sens.redites` | un entier par passage, au moins 1 | |
-| `sens.correction` | % des mots retenus | |
-| `sens.reformulations` | un entier par passage, au moins 1 | |
-| `sens.silence` | % de la durée du tour | feuille absente en capture au doigt |
-| `sens.debit` | mots retenus par seconde de parole | |
-| `sens.interrompu` | vrai ou faux | **rien à placer** : voir plus bas |
-| `sens.remplissage` | % des mots prononcés | |
-| `sens.reprises` | % des mots prononcés | |
-| `sens.a-cote` | % des mots retenus | |
-| `sens.plat` | % des mots retenus | bornes plus larges que *à côté*, par défaut de projet |
-| `sens.juste` | % des mots retenus | zéro doit y valoir une note correcte |
-| `sens.suivi` | un cran sur trois | |
-| `sens.ecoutes` | un entier par passage, au moins 1 | feuille absente si la réécoute est interdite ou le texte affiché |
-
 **Ce que l'exercice a trouvé.**
 
 **Trois leviers nommés au singulier en sont deux chacun**, et la règle de coupe déjà écrite les découpe sans qu'on ait à en inventer une : zéro éteint le levier quand c'est vrai, sinon deux leviers. Le seuil de silence l'était déjà ; la **cadence** et les **vies** le deviennent. Dans les deux cas, aucune valeur du nombre ne veut dire *pas de contrainte* — une cadence à 0 % exigerait l'instantané, zéro vie met fin, donc rien n'exprime « cette activité n'a pas de vies ». Trois cas sur trois est un signe que la règle est la bonne.
 
 **L'explication de la faute manquait sa position d'absence.** Le doc en nommait deux, la règle seule et la règle plus la phrase ; sans une troisième qui dit *aucune*, une conversation ordinaire, où l'app n'explique rien, n'était pas exprimable.
 
-**La sensibilité est inerte sur le tour interrompu.** Son chiffre vaut 0 ou 1 sur un passage, donc toutes les bornes possibles rendent la même paire de lettres. Ce n'est pas un défaut à réparer : cette feuille travaille par sa **condition** et par son **poids**, et le doc le dit déjà — une feuille peut n'exister que pour les conditions. Ce qu'il faut en tirer est que la sensibilité d'une feuille binaire ne se règle pas, et que l'écran custom ne doit pas offrir un curseur qui ne fait rien.
+**La sensibilité est inerte sur une feuille binaire.** Le tour interrompu vaut 0 ou 1 sur un passage, donc toutes les bornes possibles rendent la même paire de lettres et bouger le curseur ne change rien. Ce n'est pas un défaut à réparer : cette feuille travaille par sa **condition** et par son **poids**, et le doc le dit déjà — une feuille peut n'exister que pour les conditions. Ce qu'il faut en tirer est que la sensibilité d'une feuille binaire ne se règle pas, et que l'écran custom ne doit pas offrir un curseur qui ne fait rien.
 
 **Le côté dur cesse d'être un champ sur les leviers à marches**, par la convention d'ordre posée en tête. Il ne survit que sur les leviers à nombre, dont l'ordre est arithmétique.
 
