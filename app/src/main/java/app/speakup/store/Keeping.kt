@@ -2,7 +2,6 @@ package app.speakup.store
 
 import app.speakup.activity.Activity
 import app.speakup.activity.Aptitude
-import app.speakup.activity.Format
 import app.speakup.activity.Outcome
 import app.speakup.activity.Prescriber
 import app.speakup.activity.Settings
@@ -26,7 +25,6 @@ import java.io.File
 
 internal fun Activity.row() = ActivityRow(
     id = id,
-    format = format.name,
     matter = matter,
     settings = settings?.let { levels ->
         JSONObject().apply {
@@ -43,7 +41,6 @@ internal fun Activity.row() = ActivityRow(
 
 internal fun ActivityRow.activity() = Activity(
     id = id,
-    format = Format.valueOf(format),
     matter = matter,
     settings = settings?.let { stored ->
         val json = JSONObject(stored)

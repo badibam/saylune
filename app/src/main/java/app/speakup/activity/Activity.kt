@@ -21,7 +21,6 @@ import java.util.UUID
  * with a class that never meets it costs more at every reading than it saves once.
  */
 data class Activity(
-    val format: Format,
     /**
      * What the activity is about, as free text.
      *
@@ -58,7 +57,6 @@ data class Activity(
          * exists -- a conversation is never a suggestion waiting to be taken up.
          */
         fun conversation(now: Long = System.currentTimeMillis()) = Activity(
-            format = Format.Conversation,
             status = Status.Running,
             createdAt = now,
             startedAt = now,
@@ -66,15 +64,6 @@ data class Activity(
         )
     }
 }
-
-/**
- * What kind of activity it is.
- *
- * The conversation is the only one named, and that is not a placeholder: the design leaves
- * the catalogue of activities and how each one runs to be specified, and says the separate
- * activities stay in the model ready to be filled rather than built.
- */
-enum class Format { Conversation }
 
 /**
  * Where an activity has got to.

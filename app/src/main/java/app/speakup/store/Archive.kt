@@ -14,6 +14,8 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Update
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -33,7 +35,6 @@ import kotlinx.coroutines.flow.Flow
 @Entity(tableName = "activities")
 data class ActivityRow(
     @PrimaryKey val id: String,
-    val format: String,
     val matter: String,
     /** The levels, written out. Null while nothing sets them. */
     val settings: String?,
@@ -114,11 +115,11 @@ interface ArchiveDao {
      * the ordinary state of every conversation but the one being had, and hiding them would
      * hide the whole list. Sorting and filtering it is for later.
      */
-    @Query("SELECT * FROM activities WHERE format = 'Conversation' ORDER BY createdAt DESC")
+    @Query("SELECT * FROM activities ORDER BY createdAt DESC")
     fun conversations(): Flow<List<ActivityRow>>
 
     /** The most recent one, to reopen at launch. Null the very first time. */
-    @Query("SELECT * FROM activities WHERE format = 'Conversation' ORDER BY createdAt DESC LIMIT 1")
+    @Query("SELECT * FROM activities ORDER BY createdAt DESC LIMIT 1")
     suspend fun latest(): ActivityRow?
 
     @Query("SELECT * FROM activities WHERE id = :id")
@@ -132,19 +133,49 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 1)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 2)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
 
     companion object {
 
+        /**
+         * Drops `format`, which named a kind of activity there was only ever one of.
+         *
+         * An activity is a conversation and nothing else: what looked like other formats --
+         * reading a text aloud, repeating after a model -- are moments inside a conversation
+         * rather than shapes beside it, so a column every row filled the same way described an
+         * intention and not the model (`docs/design/activity-model.md`).
+         *
+         * The table is rebuilt rather than altered: `ALTER TABLE ... DROP COLUMN` arrived in
+         * SQLite 3.35, and `minSdk` 26 ships 3.18.
+         */
+        private val DROP_FORMAT = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE `activities_new` (`id` TEXT NOT NULL, `matter` TEXT NOT NULL, " +
+                        "`settings` TEXT, `status` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                        "`startedAt` INTEGER, `endedAt` INTEGER, `prescriber` TEXT NOT NULL, " +
+                        "`outcome_verdict` TEXT, `outcome_judge` TEXT, `outcome_at` INTEGER, " +
+                        "`outcome_says` TEXT, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "INSERT INTO `activities_new` SELECT `id`, `matter`, `settings`, `status`, " +
+                        "`createdAt`, `startedAt`, `endedAt`, `prescriber`, `outcome_verdict`, " +
+                        "`outcome_judge`, `outcome_at`, `outcome_says` FROM `activities`",
+                )
+                db.execSQL("DROP TABLE `activities`")
+                db.execSQL("ALTER TABLE `activities_new` RENAME TO `activities`")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
-            ).build().also { instance = it }
+            ).addMigrations(DROP_FORMAT).build().also { instance = it }
         }
     }
 }
