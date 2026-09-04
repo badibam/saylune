@@ -167,7 +167,98 @@ Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette 
 
 **L'écran d'avant-partie tombe de tout ça sans rien coûter.** Chaque position déclare sa phrase lisible — écrite pour les notifications de l'arcade —, donc l'écran qui montre ce qui attend l'apprenant avant qu'il lance **se génère** : ce qu'on lui demande, ce qu'on lui enlève, ce qui lui fera perdre, ce qui met fin, et les consignes. Zéro texte à écrire par activité, et ça rejoint le fait qu'accepter et lancer sont deux gestes. **Ce qu'il montre exactement reste ouvert** : « ce qui s'écarte du défaut » ne marche pas, une conversation libre ayant ses leviers là où l'apprenant les a laissés et une scène ayant les siens — il n'y a pas d'ordinaire à quoi comparer.
 
-Le détail de ce que chaque levier produit est à préciser.
+### Le catalogue des leviers
+
+**Brouillon, non tranché.** Ce tableau applique à chaque levier nommé ailleurs dans ce doc la déclaration exigée juste au-dessus : sa clé, sa forme, ses positions, sa valeur par défaut, de quel côté est le dur, et qui le tient — l'app, donc c'est vrai, ou le modèle, donc c'est demandé. Les **phrases lisibles par position**, dont tombent la notification d'arcade et l'écran d'avant-partie, sont une seconde passe. Le **défaut** est celui d'une conversation libre : ce que l'app fait quand personne n'a rien demandé.
+
+**Élocution**
+
+| clé | forme | positions | défaut | côté dur | tenu par |
+|---|---|---|---|---|---|
+| `ecoutes-modele` | nombre | 0 à sans maximum ; 0 vaut *de mémoire* | sans maximum | bas | l'app |
+| `cadence` | marches | imposée, libre | libre | imposée | l'app |
+| `cadence.valeur` | nombre | % de la durée du modèle | — | bas | l'app |
+
+`cadence.valeur` est **sans objet** quand `cadence` est libre.
+
+**Compréhension**
+
+| clé | forme | positions | défaut | côté dur | tenu par |
+|---|---|---|---|---|---|
+| `tour-ia.longueur` | marches | courte, moyenne, longue | moyenne | — | le modèle |
+| `tour-ia.complexite` | marches | simple, courante, dense | courante | dense | le modèle |
+| `tour-ia.affichage` | marches | le texte, seulement qui parle, rien | le texte | rien | l'app |
+| `reecoute` | nombre | 0 à sans maximum ; 0 vaut *interdite* | sans maximum | bas | l'app |
+| `canal` | marches | net, dégradé, mauvais | net | mauvais | l'app |
+
+`tour-ia.longueur` n'a **pas de côté dur évident** : un tour long donne plus à suivre, un tour court donne moins de contexte pour rattraper ce qu'on n'a pas pris. Si aucun bout n'est le dur, ce n'est pas un levier et la longueur rejoint la consigne — à trancher.
+
+**Correction**
+
+| clé | forme | positions | défaut | côté dur | tenu par |
+|---|---|---|---|---|---|
+| `echo` | marches | absent, indirect, explicite | indirect | absent | le modèle |
+| `avance` | marches | poursuit, attend | poursuit | attend | l'app |
+| `explication` | marches | aucune, la règle, la règle et la phrase | aucune | aucune | le modèle |
+
+Les deux extrémités dures d'`echo` et d'`explication` sont **en bas de la liste et non en haut** : ce sont des aides, donc plus il y en a, plus c'est facile. C'est le seul groupe où le côté dur n'est pas le dernier cran.
+
+**Fluidité**
+
+| clé | forme | positions | défaut | côté dur | tenu par |
+|---|---|---|---|---|---|
+| `capture` | marches | doigt, armée, armée et envoi au silence | doigt | armée et envoi au silence | l'app |
+| `seuil-silence` | nombre | secondes | — | bas | l'app |
+| `duree-tour` | nombre | secondes, maximum 30 | 30 | bas | l'app |
+
+`seuil-silence` est **sans objet** aux deux premières positions de `capture`. Le maximum de `duree-tour` est le plafond technique, et il remonte quand le fenêtrage de l'analyse arrive.
+
+**L'activité** — ne pressent aucune aptitude en particulier.
+
+| clé | forme | positions | défaut | côté dur | tenu par |
+|---|---|---|---|---|---|
+| `vies` | marches | comptées, pas de vies | pas de vies | comptées | l'app |
+| `vies.restantes` | nombre | 0 à sans maximum ; 0 met fin | — | bas | l'app |
+| `reformulations-permises` | nombre | 0 à sans maximum | sans maximum | bas | l'app |
+| `redites-permises` | nombre | 0 à sans maximum | sans maximum | bas | l'app |
+| `condition.<nom>` | marches | active, inactive | écrit par le défi | active | l'app |
+
+Il y a **un levier `condition` par condition qu'un défi écrit**, et il ne se déclare donc pas au catalogue mais avec sa règle. Sa position de départ est celle que la définition pose.
+
+**Les sensibilités** — une par feuille, toutes de la même forme : trois marches, *indulgent*, *normal*, *sévère*, défaut *normal*, tenues par l'app, le dur étant *sévère*. Ce que chaque ligne ajoute est **l'unité dans laquelle ses bornes A–E se posent**, qui est le travail encore à faire.
+
+| clé | unité où se posent les bornes | remarque |
+|---|---|---|
+| `sens.sons.gros-rates` | % des sons du passage | la ligne du gros raté est dans la mesure, pas ici |
+| `sens.sons.masse` | points d'écart, moyenne sur tous les sons | |
+| `sens.melodie.distance` | demi-tons | |
+| `sens.melodie.divergence` | % des transitions lues | |
+| `sens.accent` | % des mots de plus d'une syllabe que le modèle accentue nettement | feuille absente tant que la brique 7 n'est pas en service |
+| `sens.redites` | un entier par passage, au moins 1 | |
+| `sens.correction` | % des mots retenus | |
+| `sens.reformulations` | un entier par passage, au moins 1 | |
+| `sens.silence` | % de la durée du tour | feuille absente en capture au doigt |
+| `sens.debit` | mots retenus par seconde de parole | |
+| `sens.interrompu` | vrai ou faux | **rien à placer** : voir plus bas |
+| `sens.remplissage` | % des mots prononcés | |
+| `sens.reprises` | % des mots prononcés | |
+| `sens.a-cote` | % des mots retenus | |
+| `sens.plat` | % des mots retenus | bornes plus larges que *à côté*, par défaut de projet |
+| `sens.juste` | % des mots retenus | zéro doit y valoir une note correcte |
+| `sens.suivi` | un cran sur trois | |
+| `sens.ecoutes` | un entier par passage, au moins 1 | feuille absente si la réécoute est interdite ou le texte affiché |
+
+**Ce que l'exercice a trouvé.**
+
+**Trois leviers nommés au singulier en sont deux chacun**, et la règle de coupe déjà écrite les découpe sans qu'on ait à en inventer une : zéro éteint le levier quand c'est vrai, sinon deux leviers. Le seuil de silence l'était déjà ; la **cadence** et les **vies** le deviennent. Dans les deux cas, aucune valeur du nombre ne veut dire *pas de contrainte* — une cadence à 0 % exigerait l'instantané et zéro vie met fin —, donc l'interrupteur est une pièce séparée. Trois cas sur trois est un signe que la règle est la bonne.
+
+**L'explication de la faute manquait sa position d'absence.** Le doc en nommait deux, la règle seule et la règle plus la phrase ; sans une troisième qui dit *aucune*, le défaut d'une conversation ordinaire ne s'exprime pas.
+
+**La sensibilité est inerte sur le tour interrompu.** Son chiffre vaut 0 ou 1 sur un passage, donc toutes les bornes possibles rendent la même paire de lettres. Ce n'est pas un défaut à réparer : cette feuille travaille par sa **condition** et par son **poids**, et le doc le dit déjà — une feuille peut n'exister que pour les conditions. Ce qu'il faut en tirer est que la sensibilité d'une feuille binaire ne se règle pas, et que l'écran custom ne doit pas offrir un curseur qui ne fait rien.
+
+**La préparation, proposée et non tranchée.** Elle n'est nommée qu'une fois, parmi les aides qu'un curseur retire, et deux lectures s'offrent. Si elle désigne un temps de réflexion *accordé à l'intérieur du tour*, elle est morte : ce serait une ligne interne à la mesure de fluidité, et le doc interdit qu'une ligne interne se règle — c'est déjà le sort du délai de grâce d'une seconde. Si elle désigne un temps *avant* que le tour commence — le micro ne s'arme que N secondes après la fin de la réponse de l'IA —, c'est un vrai levier, exécuté, dont zéro est le dur, et qui ne touche aucune mesure puisqu'il vit hors du tour. C'est la seconde lecture que je retiendrais, et elle est **sans objet en capture au doigt**, où c'est le pouce qui arme.
+
+**Et la voix quitte définitivement la liste.** « Le personnage » disait qu'elle devenait une position de levier sur l'activité ; le test la refuse — pas de positions déclarées, pas de côté dur. C'est un **champ de l'activité**, que la distribution porte déjà, et qu'aucun patch ne déplace.
 
 ## Les règles
 
@@ -920,7 +1011,7 @@ Deux limites à connaître. **Le modèle écrit sa propre mémoire**, et rien ne
 
 Rencontrer quelqu'un plutôt que choisir un thème. La version la plus bête est qu'**un personnage est un `brief`** — du texte dans le prompt, zéro pièce neuve. Elle manque peu : un personnage porte aussi une **voix** et des **positions de leviers** (débit, vocabulaire, complexité du tour, c'est-à-dire les leviers de compréhension). Or un `brief` plus une voix plus des positions, c'est **une définition**. Le personnage n'est donc pas un objet neuf : une rencontre est le lancement d'une définition, un recueil de personnages est un bloc à accès libre.
 
-**La voix d'un personnage ne sert jamais d'étalon, et c'est ce qui rend l'idée gratuite.** Le personnage dit *ses* tours ; le modèle à imiter dit *la phrase de l'apprenant*. Ce sont deux énoncés différents, donc les deux voix se séparent sans rien casser : un personnage peut avoir n'importe quelle voix, y compris une qui échoue à l'étalonnage, puisqu'elle ne mesure rien. Une voix difficile à suivre devient alors un levier de compréhension, ce qui est l'intérêt même. En échange, **la voix de conversation cesse d'être un réglage global** et devient une position de levier sur l'activité ; la voix de référence, elle, reste le réglage de l'apprenant.
+**La voix d'un personnage ne sert jamais d'étalon, et c'est ce qui rend l'idée gratuite.** Le personnage dit *ses* tours ; le modèle à imiter dit *la phrase de l'apprenant*. Ce sont deux énoncés différents, donc les deux voix se séparent sans rien casser : un personnage peut avoir n'importe quelle voix, y compris une qui échoue à l'étalonnage, puisqu'elle ne mesure rien. Une voix difficile à suivre devient alors un levier de compréhension, ce qui est l'intérêt même. En échange, **la voix de conversation cesse d'être un réglage global** et devient un champ de l'activité, que la distribution porte ; la voix de référence, elle, reste le réglage de l'apprenant. Un champ et non une position de levier : le test l'a refusée, faute de positions déclarées et de côté dur (« Le catalogue des leviers »).
 
 **Ce qui est tranché est l'invariant, pas le mécanisme.** Un défi n'écrit jamais `eleven-gb-daniel` en dur : ce qu'un fournisseur expose ne peut pas devenir une condition, sinon le défi meurt le jour où on change de clé.
 
