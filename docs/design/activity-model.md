@@ -50,6 +50,8 @@ Trois raisons, dont deux sont l'argument ci-dessus retourné d'un cran. **La ver
 
 **Un fichier porte ses traductions, en table langue → texte.** Une définition mélange deux langues par construction : le `brief` et la mise en scène qui partent au modèle sont en anglais, langue de la conversation et du critère du juge ; ce que l'apprenant lit est dans sa langue d'interface. Un fichier par langue dupliquerait la prose anglaise et la ferait diverger d'une copie à l'autre ; des clés vers `res/` casseraient l'autoportance, donc l'argument du partage. C'est un **écart délibéré à la facette `android`**, déclaré au manifeste : sa norme d'i18n a été écrite pour le texte d'**interface**, et la prose d'une scène est du **contenu** — aucun jeu ne livre ses dialogues en ressources de plateforme. Le prix est réel : une plateforme de traduction ne lit pas ce format.
 
+**La conversation libre est elle-même une définition livrée avec l'app.** Une activité est toujours une conversation, et les définitions sont déjà des fichiers livrés : celle-là porte donc ses positions de leviers de départ, son arbre des poids et ses règles comme n'importe quelle autre. Ça retire un « par défaut » qu'il aurait fallu câbler ailleurs, et ça retire surtout le besoin de dire « hors défi » — **« défi » n'est pas un terme du modèle**, c'est un nom d'usage sur une combinaison, comme « arcade » et comme « mode ». Ce qui distingue deux activités est leurs réglages, leur arbre des poids et leurs règles, et rien d'autre.
+
 Une **exécution** est une ligne en base : une partie jouée, un essai, une conversation. C'est ce que le code appelle une activité, et c'est la seule des trois qui se stocke.
 
 Un **bloc** est un groupe nommé de définitions, avec une seule propriété qui le distingue : l'accès y est **dans l'ordre**, c'est une campagne, ou **libre**, c'est un recueil de défis. Une forme, un drapeau — mais **deux portes distinctes dans l'app** : « poursuivre la campagne » et « choisir un défi » ne sont pas le même geste.
@@ -891,7 +893,9 @@ Trois défis que ça écrit sans champ neuf. « 100 % passé » est une consigne
 
 Ce qui rend une contrainte dure n'est pas la note — noyée dans une moyenne pondérée par la longueur, une occurrence coûte quelques centièmes de lettre — mais une **condition branchée sur la feuille**, qui se déclenche sur-le-champ.
 
-**Une condition est une règle**, pas un mécanisme à part : son déclencheur lit l'arbre des notes, et son effet est un patch, c'est-à-dire n'importe quel levier déplacé. Il n'y a donc pas d'effets à énumérer — retirer une vie est une position de levier comme une autre, et une vie perdue et une fin sont la même chose vue deux fois, la fin étant zéro vie.
+**Une condition est une règle**, pas un mécanisme à part : son déclencheur lit l'arbre des notes, et son effet est un patch, c'est-à-dire n'importe quel levier déplacé.
+
+**C'est donc un terme étroit** — une des six sortes de règle, celle qui lit l'arbre — et il faut s'y tenir. Le doc l'emploie ailleurs au sens large, « les conditions de fin », qui sont des règles et pas des conditions. Confondre les deux fait affirmer d'une règle quelconque ce qui n'est vrai que de celle-ci, à commencer par « elle ne lit jamais autre chose que l'arbre ». Il n'y a donc pas d'effets à énumérer — retirer une vie est une position de levier comme une autre, et une vie perdue et une fin sont la même chose vue deux fois, la fin étant zéro vie.
 
 **Perdre une vie n'est jamais automatique.** Rater un passage ne coûte rien par soi-même : ça coûte une vie parce qu'un défi a écrit la règle qui le dit. Un autre en demandera trois, un autre rien. Et les vies n'existent que là où il y a un enjeu — une conversation libre n'en a pas, donc un passage raté y est un fait enregistré et rien d'autre.
 
