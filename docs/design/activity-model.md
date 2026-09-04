@@ -292,7 +292,9 @@ paquet    : [ effet, effet, ... ]          # un effet : patch, fin, ou message a
 
 **Sauf la consigne, qui s'annonce sans direction.** C'est du texte libre : rien ne peut comparer deux consignes et dire laquelle est plus dure. Elle s'annonce donc en distinguant seulement les deux cas, *consigne modifiée* avec son texte, ou *consigne retirée*. Ne rien dire serait pire — une exigence qui apparaît ou disparaît en silence rend la note incompréhensible.
 
-**Ce n'est pas une exception, c'est une case : ce qu'un patch pose a deux propriétés indépendantes, une direction et une phrase.** Trois familles en sortent, et la quatrième combinaison n'existe pas.
+#### Les trois familles
+
+**La consigne n'est pas une exception, c'est une case : ce qu'un patch pose a deux propriétés indépendantes, une direction et une phrase.** Trois familles en sortent, et la quatrième combinaison n'existe pas.
 
 | | direction | phrase | ce que c'est |
 |---|---|---|---|
@@ -339,7 +341,7 @@ Trois choses tombent de cette forme.
 
 **La rampe cesse d'être un champ** : c'est une règle dont le quand est « tous les N passages », le quoi un cran de plus, le qui « écrit ». **Et les conditions aussi** : « une feuille sous la barre → une vie » est une règle dont le patch retire une vie. Deux champs se replient en une liste.
 
-**Et une condition s'allume et s'éteint comme n'importe quoi d'autre, parce que c'est un levier à deux positions** : active — « un silence de plus de cinq secondes coûte une vie » — et inactive — « les silences ne coûtent plus rien ». Deux textes plutôt que la négation du premier, qui donnerait du français bancal alors que tout l'intérêt de ces phrases est de se lire. Un patch la déplace, la notification lit la phrase, et la direction se sait : active est le côté dur.
+**Et une condition s'allume et s'éteint comme n'importe quoi d'autre, par un interrupteur à deux positions** : active — « un silence de plus de cinq secondes coûte une vie » — et inactive — « les silences ne coûtent plus rien ». Deux textes plutôt que la négation du premier, qui donnerait du français bancal alors que tout l'intérêt de ces phrases est de se lire. Un patch le déplace et la notification lit la phrase — mais sans direction, l'interrupteur n'étant pas un levier (« Les trois familles »).
 
 **Le menu d'un tour est calculé, pas maintenu** : c'est l'ensemble des choix offerts par les règles qui se déclenchent maintenant. La plupart des tours il est vide, et on n'envoie rien.
 
@@ -897,7 +899,7 @@ Ce qui rend une contrainte dure n'est pas la note — noyée dans une moyenne po
 
 **C'est donc un terme étroit** — une des six sortes de règle, celle qui lit l'arbre — et il faut s'y tenir. Le doc l'emploie ailleurs au sens large, « les conditions de fin », qui sont des règles et pas des conditions. Confondre les deux fait affirmer d'une règle quelconque ce qui n'est vrai que de celle-ci, à commencer par « elle ne lit jamais autre chose que l'arbre ». Il n'y a donc pas d'effets à énumérer — retirer une vie est une position de levier comme une autre, et une vie perdue et une fin sont la même chose vue deux fois, la fin étant zéro vie.
 
-**Perdre une vie n'est jamais automatique.** Rater un passage ne coûte rien par soi-même : ça coûte une vie parce qu'un défi a écrit la règle qui le dit. Un autre en demandera trois, un autre rien. Et les vies n'existent que là où il y a un enjeu — une conversation libre n'en a pas, donc un passage raté y est un fait enregistré et rien d'autre.
+**Perdre une vie n'est jamais automatique.** Un passage non réparé ne coûte rien par soi-même : ça coûte une vie parce qu'une définition a écrit la règle qui le dit. Une autre en demandera trois, une autre rien. Et les vies n'existent que là où il y a un enjeu — une conversation libre n'en a pas, donc un passage non réparé y est un fait enregistré et rien d'autre.
 
 Une condition **lit le résultat d'un nœud, elle ne change pas ce qu'il mesure**. Elle se branche donc aussi bien sur une feuille calculée : un silence de plus de cinq secondes coûte une vie.
 
@@ -927,7 +929,7 @@ Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. 
 
 **Bloquer, c'est une règle dont l'effet est que le passage ne se ferme pas.** Pas un mécanisme neuf, et donc branchable sur n'importe quelle feuille : un défi peut bloquer sur la prononciation comme sur la correction.
 
-**« Ne pas passer » se dit de trois choses**, à ne pas confondre. Une **feuille** ne passe pas quand sa note est sous la barre A–B : c'est une lecture, il ne s'ensuit rien. Un **passage** ne passe pas quand une règle l'a déclaré à refaire — quelle feuille elle lit est écrit par l'activité, la correction hors défi. Une **activité** ne passe pas quand elle se termine sans être réussie : une fin sèche en raté, ou une fin ordinaire dont la note ne passe pas (« La fin d'une séance et son issue »).
+**« Ne pas passer » se dit de trois choses**, à ne pas confondre. Une **feuille** ne passe pas quand sa note est sous la barre A–B : c'est une lecture, il ne s'ensuit rien. Un **passage** ne passe pas quand une aptitude dont l'activité fait refaire tombe sous la barre — la correction seule en conversation libre. Une **activité** ne passe pas quand elle se termine sans être réussie : une fin sèche en raté, ou une fin ordinaire dont la note ne passe pas (« La fin d'une séance et son issue »).
 
 Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond pas au fond et ne pose pas de question neuve ; le passage **reste ouvert**, ce qu'on attend ensuite étant une reprise de la même chose ; et rien n'avance tant qu'il ne se ferme pas.
 
@@ -941,7 +943,7 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 |---|---|---|
 | la porte se ferme | l'analyse du son de cette tentative | automatique, dès que le passage est déclaré à refaire |
 | une reprise est proposée | l'écran | automatique |
-| la conversation attend | le fil — le passage ne se ferme pas, l'IA n'avance pas | le levier d'avance, posé par une règle |
+| la conversation attend | le fil — le passage ne se ferme pas | `avance.mots` ou `avance.son`, selon le côté |
 
 **Les deux dernières sont indépendantes**, et ça se voit dans les deux sens. Porte fermée sans attendre est la conversation libre ordinaire : la phrase est marquée, ses sons ne sont pas analysés, l'IA répond et le fil continue. Attendre sans fermer la porte est le blocage sur la prononciation : les mots ne changent pas, donc l'analyse a tourné — c'est même elle qui a rendu le verdict — et c'est la réponse qui est retenue.
 
