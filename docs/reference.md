@@ -14,6 +14,7 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 - `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : la définition, l'exécution et le bloc, les réglages comme positions de leviers, les règles qui les font changer, les prescripteurs, la pression et ses leviers, la grille des mesures et l'arbre de poids qui en fait des notes A–E, le blocage, le personnage, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `design/terminal-ui.md` — l'interface en registre terminal : le registre retenu et pourquoi pas la console, la palette indexée à fond sombre, la police et sa grille, le doigt, les images, le thème qui porte la grille, et ce qui est écarté.
+- `design/character-voices.md` — comment un personnage obtient sa voix : le couple public qui se fige au codage, les plafonds du BYOK, les modifieurs de livraison, et ce que l'hébergement d'une clé change — coûts au caractère, jeton éphémère, et le compteur qu'il retire.
 - `design/added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
 
 ## Le geste
