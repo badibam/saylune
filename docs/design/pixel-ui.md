@@ -60,7 +60,7 @@ Les cadres, les panneaux et les marges se calent sur la cellule dans les deux di
 
 **Deux registres, une seule teinte.** Le prune, teinte 301, en nuit ou en pâle. Seule la clarté bascule, et les tons de décor courent en sens inverse : sur fond sombre un panneau s'éclaircit, sur fond clair il s'assombrit.
 
-Le prune parce que **c'est la seule teinte froide qu'aucune mesure n'a réservée** : l'ambre et le rouge sont l'alarme, le vert sert deux fois (la cible d'accent, l'étiquette *juste*), le bleu deux fois aussi (les deux contours). Un fond dans une de ces familles ferait passer une mesure pour une nuance du fond.
+Le prune parce que **c'est la seule teinte froide qu'aucune mesure n'a réservée** : l'ambre et le rouge sont l'alarme, le vert sert deux fois (la cible d'accent, l'étiquette *juste*), et le bleu porte le contour du modèle de mélodie. Un fond dans une de ces familles ferait passer une mesure pour une nuance du fond.
 
 | | prune de nuit | prune pâle |
 |---|---|---|
