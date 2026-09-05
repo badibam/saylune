@@ -12,7 +12,9 @@ import app.speakup.embedded.Grid
 import app.speakup.embedded.Join
 import app.speakup.embedded.Overlap
 import app.speakup.embedded.Pitch
+import app.speakup.embedded.Segment
 import app.speakup.embedded.Sound
+import app.speakup.embedded.Stress
 import app.speakup.embedded.Syllables
 import app.speakup.embedded.Readout
 import app.speakup.debug.Trace
@@ -50,6 +52,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         val matrix: AcousticMatrix,
         val alphabet: Alphabet,
         val affinity: Affinity,
+        val probe: Stress.Probe,
         /** What produced every reading this engine gives. See [stamp]. */
         val version: String,
     )
@@ -151,14 +154,13 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                 "spreads" to Readout.spreads(reading.gaps, sounds, step),
             )
 
-            // The melody, syllable by syllable. Stress stays false on both sides, and that
-            // is not an omission to fill in later with something plausible: every way of
-            // reading it has been measured and none holds -- naming the strong syllable on
-            // each side costs 24.9 % false alarm, and the three profile channels see 3, 14
-            // and 6 faults of 70 at 5 % (`../../../../../../TODO.md`). Inventing a stress
-            // would put a false accent on the screen; leaving it false leaves the two
-            // rulers unlit, which is what "not measured" looks like.
-            val melody = melody(text, sounds, reading.gaps, model, said, step)
+            // The melody, syllable by syllable, and the stress of each, by the frozen
+            // probe -- both read on the model's syllables, which the montage in service
+            // already locates in the learner's recording.
+            val melody = melody(
+                sounds, reading.gaps, segments, model, said,
+                modelReading.hidden, saidReading.hidden, engine.probe, step,
+            )
 
             Analysed(
                 marking = TurnMarking(
@@ -201,22 +203,25 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         (span.first * step * 1000).toInt()..((span.last + 1) * step * 1000).toInt()
 
     /**
-     * Brick 10: one pitch per syllable, on either side, anchored to the letters.
+     * Bricks 10 and 7: one pitch and one stress flag per syllable, on either side.
      *
      * The learner is read on the **model's** syllables. The model is the source of truth and
      * the montage in service already says where each of its sounds sits in the learner's
-     * recording, so the melody costs no montage of its own -- it reads positions and never
-     * labels, which is the one thing the forced alignment gives away for free.
+     * recording, so both bricks cost no montage of their own -- they read positions and
+     * never labels, which is the one thing the forced alignment gives away for free.
      *
      * A syllable no sound of which was compared is left out rather than guessed at: its
      * place in the learner's audio is precisely what is missing.
      */
     private fun melody(
-        text: String,
         sounds: List<Sound>,
         gaps: List<Overlap.Gap>,
+        segments: List<Segment>,
         model: File,
         said: File,
+        modelHidden: FloatArray,
+        saidHidden: FloatArray,
+        probe: Stress.Probe,
         step: Float,
     ): List<Syllable> {
         val cuts = Syllables.cut(sounds).filter { it.spots.isNotEmpty() }
@@ -241,6 +246,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
         val modelLine = Pitch.semitones(mine)
         val saidLine = Pitch.semitones(theirs)
+        val flags = Stress.flags(kept, sounds, segments, spanOf, modelHidden,
+                                 saidHidden, probe)
         val out = kept.indices.mapNotNull { i ->
             // A model syllable nothing voiced has no contour to be departed from, so it is
             // no more a mark than a silence is: it drops out of both lines at once.
@@ -250,8 +257,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     end = kept[i].spots.max() + 1,
                     modelPitch = it,
                     learnerPitch = saidLine[i],
-                    modelStressed = false,
-                    learnerStressed = false,
+                    modelStressed = flags[i].first,
+                    learnerStressed = flags[i].second,
                 )
             }
         }
@@ -262,6 +269,10 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             "worst gap in semitones" to out.mapNotNull { s ->
                 s.learnerPitch?.let { kotlin.math.abs(s.modelPitch - it) }
             }.maxOrNull()?.let { "%.1f".format(it) },
+            "stress marked on the model" to
+                out.count { it.modelStressed }.toString(),
+            "stress marked on the take" to
+                out.count { it.learnerStressed }.toString(),
         )
         return out
     }
@@ -277,8 +288,13 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         )
         val vocab = File(weights.parentFile, VOCAB)
         if (!vocab.isFile) throw IllegalStateException("$VOCAB is missing beside $weights")
+        val probeFile = File(weights.parentFile, PROBE)
+        if (!probeFile.isFile) throw IllegalStateException(
+            "$PROBE is missing beside $weights -- bench/probe.py --json writes it"
+        )
 
         val alphabet = Alphabet.read(vocab)
+        val probe = Stress.Probe.read(probeFile)
         val affinity = context.assets.let { assets ->
             val letters = File(context.cacheDir, LETTERS).also { copy(LETTERS, it) }
             val groups = File(context.cacheDir, GROUPS).also { copy(GROUPS, it) }
@@ -294,8 +310,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     unknown.joinToString(" ")
             )
         }
-        return Engine(AcousticMatrix(weights, THREADS), alphabet, affinity,
-                      version = stamp(weights, vocab))
+        return Engine(AcousticMatrix(weights, THREADS), alphabet, affinity, probe,
+                      version = stamp(weights, vocab, probeFile))
     }
 
     /**
@@ -315,12 +331,15 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
      * file, and it changes without the bytes changing -- the wisdom is explicit that identity
      * is the content.
      */
-    private fun stamp(weights: File, vocab: File): String {
+    private fun stamp(weights: File, vocab: File, probeFile: File): String {
         val head = ByteArray(HEAD_BYTES)
         val read = weights.inputStream().use { it.read(head) }.coerceAtLeast(0)
         return listOf(
             "w:${weights.length()}-${digest(head.copyOf(read))}",
             "a:${digest(vocab.readBytes())}",
+            // Small enough to hash whole, and it decides the stress marks as
+            // surely as the weights decide the sounds.
+            "p:${digest(probeFile.readBytes())}",
             "app:${BuildConfig.VERSION_NAME}",
         ).joinToString("/")
     }
@@ -362,6 +381,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         const val HEAD_BYTES = 64 * 1024
 
         const val VOCAB = "vocab.json"
+        const val PROBE = "probe.json"
         const val LETTERS = "affinity.json"
         const val GROUPS = "affinity-groups.json"
         const val REDUCTIONS = "affinity-reductions.json"

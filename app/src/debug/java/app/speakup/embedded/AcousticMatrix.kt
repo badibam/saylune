@@ -41,9 +41,13 @@ class AcousticMatrix(weights: File, threads: Int) {
         loadMillis = (System.nanoTime() - started) / 1_000_000
     }
 
-    /** The matrix of one file, and what the pass cost. */
+    /**
+     * The matrix of one file, the hidden layer the stress probe reads, and what the pass
+     * cost. The graph renders both in one pass (`bench/export.py`), so nothing is computed
+     * twice and the layer rows line up with the matrix rows, frame for frame.
+     */
     class Reading(val frames: Int, val symbols: Int, val values: FloatArray,
-                  val millis: Long, val seconds: Float)
+                  val hidden: FloatArray, val millis: Long, val seconds: Float)
 
     fun read(wav: File): Reading {
         val audio = samples(wav)
@@ -54,16 +58,27 @@ class AcousticMatrix(weights: File, threads: Int) {
             longArrayOf(1, prepared.size.toLong()))
         input.use { tensor ->
             session.run(mapOf("input_values" to tensor)).use { result ->
+                // Fails by name rather than by index: a weights file exported before the
+                // probe's layer existed would otherwise fail one array lookup later with
+                // nothing to say what is missing.
+                require(result.size() >= 2) {
+                    "the weights render no hidden layer -- re-export them (bench/export.py)"
+                }
                 @Suppress("UNCHECKED_CAST")
                 val batch = result[0].value as Array<Array<FloatArray>>
                 val rows = batch[0]
+                @Suppress("UNCHECKED_CAST")
+                val hiddenRows = (result[1].value as Array<Array<FloatArray>>)[0]
                 val millis = (System.nanoTime() - started) / 1_000_000
                 val symbols = rows[0].size
                 val values = FloatArray(rows.size * symbols)
+                val width = hiddenRows[0].size
+                val hidden = FloatArray(rows.size * width)
                 for (frame in rows.indices) {
                     rows[frame].copyInto(values, frame * symbols)
+                    hiddenRows[frame].copyInto(hidden, frame * width)
                 }
-                return Reading(rows.size, symbols, values, millis,
+                return Reading(rows.size, symbols, values, hidden, millis,
                                audio.size / SAMPLE_RATE.toFloat())
             }
         }

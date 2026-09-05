@@ -28,6 +28,7 @@ from pathlib import Path
 import atomic
 import matrix
 import phrases
+import probe
 import turn
 
 HERE = Path(__file__).resolve().parent
@@ -67,6 +68,19 @@ def main(argv=None):
         into / "vocab.json",
         json.dumps({name: index for index, name in enumerate(matrix.symbols())},
                    indent=2, ensure_ascii=False) + "\n")
+
+    # What the stress port reads: the frozen probe, and the hidden layer of each
+    # recording. The states come from PyTorch, as the matrices do -- the port is
+    # checked against the bench alone, and `concord.py`/`hear.py --graph` hold
+    # the exported graph to the same reading, so the two checks join up.
+    tools = probe.frozen()
+    atomic.write_text(
+        into / "probe.json",
+        json.dumps({"layer": tools[4], "mean": tools[0].tolist(),
+                    "deviation": tools[1].tolist(), "weight": tools[2].tolist(),
+                    "bias": tools[3]}, ensure_ascii=False) + "\n")
+    for name, wav in (("model.hidden", model), ("said.hidden", learner)):
+        shapes[name] = freeze(into, name, probe.hidden(wav, tools[4]))
 
     expected = turn.read(options.take, options.model, options.candidate)
     if expected is None:

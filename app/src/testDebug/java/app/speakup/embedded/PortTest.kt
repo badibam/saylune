@@ -129,6 +129,24 @@ class PortTest {
                          row.getInt("end"), got.spots.max() + 1)
         }
 
+        // The stress flags, the same arithmetic `turn.py` wrote the expected booleans
+        // with. The hidden layers are frozen beside the matrices for the same reason the
+        // matrices are: the port is judged against the bench alone, and `concord.py` holds
+        // the exported graph to the same reading, so the two checks join up.
+        val probe = Stress.Probe.read(resource(turn, "probe.json"))
+        val modelHidden = floats(turn, "model.hidden")
+        val saidHidden = floats(turn, "said.hidden")
+        val spanOf = reading.gaps.associate { it.rank to (it.at to it.span) }
+        val flags = Stress.flags(cut, sounds, segments, spanOf, modelHidden,
+                                 saidHidden, probe)
+        for (index in 0 until wantedCut.length()) {
+            val row = wantedCut.getJSONObject(index)
+            assertEquals("${turn.name}: syllable $index modelStressed",
+                         row.getBoolean("modelStressed"), flags[index].first)
+            assertEquals("${turn.name}: syllable $index learnerStressed",
+                         row.getBoolean("learnerStressed"), flags[index].second)
+        }
+
         val gutters = expected.getJSONArray("gutters")
         assertEquals("${turn.name}: number of gutters", gutters.length(), drawn.gutters.size)
         for (index in 0 until gutters.length()) {
@@ -149,6 +167,16 @@ class PortTest {
         val values = FloatArray(count * width)
         for (index in values.indices) values[index] = bytes.float
         return Frames(count, width, values)
+    }
+
+    /** The same little-endian file, kept raw: the probe reads it as one flat layer. */
+    private fun floats(turn: File, name: String): FloatArray {
+        val bytes = ByteBuffer.wrap(resource(turn, name).readBytes()).order(ByteOrder.LITTLE_ENDIAN)
+        val count = bytes.int
+        val width = bytes.int
+        val values = FloatArray(count * width)
+        for (index in values.indices) values[index] = bytes.float
+        return values
     }
 
     private fun resource(turn: File, name: String): File {

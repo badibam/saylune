@@ -21,8 +21,8 @@
       "end": 6,
       "modelPitch": 1.274,
       "learnerPitch": -0.789,
-      "modelStressed": false,
-      "learnerStressed": false
+      "modelStressed": true,
+      "learnerStressed": true
     },
     {
       "start": 6,

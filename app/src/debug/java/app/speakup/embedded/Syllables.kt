@@ -19,6 +19,18 @@ package app.speakup.embedded
 object Syllables {
 
     /**
+     * The words English leaves unstressed by default. A function word has no stress choice
+     * to be wrong about, so the stress brick never marks it -- the same list the bench
+     * reads (`bench/syllables.py`), and the same reason.
+     */
+    val FUNCTION = setOf(
+        "a", "am", "an", "and", "are", "as", "at", "be", "but", "by", "can", "do",
+        "for", "from", "has", "have", "he", "her", "his", "i", "if", "in", "is",
+        "it", "me", "my", "no", "not", "of", "on", "or", "she", "so", "that",
+        "the", "there", "this", "to", "was", "we", "will", "would", "you", "your",
+    )
+
+    /**
      * The vowels of the vocabulary in service. Beside the cut rather than beside any one
      * reading, since every brick that counts syllables needs the same list -- and a
      * candidate model with another alphabet needs its own.
