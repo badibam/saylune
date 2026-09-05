@@ -2,7 +2,31 @@
 
 Comment un personnage obtient sa voix, question laissée ouverte par `activity-model.md` (« Le personnage ») et par `../reference.md` (« L'accent »). Ce qui y était tranché ne bouge pas : **aucun nom de voix écrit en dur**, parce que ce qu'un fournisseur expose ne peut pas devenir une condition ; et **la voix d'un personnage ne sert jamais d'étalon**, ce qui la dispense de tout test.
 
-Ce doc ajoute le mécanisme, vérifié chez ElevenLabs le 2026-09-04, et les plafonds chiffrés qu'il rencontre. Il ne tranche pas : il rend la question décidable, et il montre que la réponse **bifurque sur qui paye la clé**.
+Ce doc ajoute le mécanisme, vérifié chez ElevenLabs le 2026-09-04, et les plafonds chiffrés qu'il rencontre. Il montrait que la réponse **bifurque sur qui paye la clé** ; la bifurcation est tranchée depuis, et la réponse est **les deux**.
+
+## La réponse : deux sortes de voix, deux modes qui coexistent (2026-09-05)
+
+**Une voix est un fournisseur et un slug**, ce que le code fait déjà (`eleven-us-eric`, `azure-us-jenny`). Rien d'autre n'est nécessaire pour la nommer.
+
+**Deux rôles, deux listes, et ils ne se croisent jamais.** La **voix de référence** — celle qui dit la phrase de l'apprenant, donc l'étalon de toute la mesure — est choisie **de son côté**, chez son fournisseur, et elle doit passer l'étalonnage. Les **voix de personnages** viennent du mode, et ne passent aucun test, puisqu'elles ne mesurent rien.
+
+**Les voix génériques.** Un petit nombre — **quatre en première implémentation, deux d'homme et deux de femme** —, que l'apprenant choisit chez son fournisseur par le sélecteur qui existe déjà. Génériques veut dire **interchangeables** : un défi générique demande *une voix générique*, éventuellement d'un genre quand la scène le demande, et l'app en tire une au hasard sinon. **Une définition ne nomme donc aucune voix**, et l'invariant est tenu sans aucune machinerie de résolution — pas de propriétés déclarées, pas de catalogue à interroger, pas de liste classée de couples.
+
+**Les voix spécifiques** sont collectées côté projet, chez le fournisseur qu'il choisit, et une définition les nomme par leur slug. **L'invariant ne s'applique pas à elles**, et c'est sa portée qui le dit : son problème était le roulement d'un tiers — un slug qui disparaît quand la clé change. Sur un fournisseur que le projet tient, le slug est stable par construction.
+
+**Les deux modes.**
+
+- **(a) L'apprenant met sa clé.** Voix génériques, donc accès aux défis génériques seuls.
+- **(b) L'apprenant achète un pack de crédits.** Rien à configurer, tous les défis, avec les voix définies côté projet.
+
+**Ce que ça supprime.** Toute la boucle d'ajout d'une voix partagée à une collection — `POST /v1/voices/add`, la correspondance couple public → identifiant local, les emplacements par plan, la sélection qui pourrit, la bibliothèque de l'utilisateur écrite sans qu'il l'ait demandé — **ne sert plus**. En (a) il n'y a pas de voix de bibliothèque ; en (b) les voix vivent dans le compte du projet et y sont ajoutées à la main, une fois. **L'app n'ajoute jamais de voix.** La section « Ce qui se fige au codage » et les plafonds ci-dessous restent au dossier pour le jour où quelqu'un rouvrirait cette porte ; ils ne décrivent plus le montage.
+
+**En V1, il n'y a que le mode (a).** Ce qu'il faut prévoir est l'extension, et elle est mince : un fournisseur de plus dans `Provider`, dont le `needs` est un jeton de compte au lieu d'une clé — ce que ce doc écrivait déjà.
+
+**Deux conséquences du mode (b), à poser maintenant parce qu'elles coûtent cher rétroactivement.**
+
+- **`TetheredNet` se déclare.** Le mode (b) dépend d'un service que le projet seul fait tourner. F-Droid ne l'interdit pas, il exige la déclaration — et une anti-feature non déclarée est un motif de rejet.
+- **Le paiement se fait hors de l'app.** Google Play Billing est une dépendance propriétaire, que la facette `fdroid` interdit sans condition. Le pack de crédits s'achète ailleurs, ou par un mécanisme libre.
 
 ## Ce qui se fige au codage, et ce qui se résout chez l'utilisateur
 
@@ -57,8 +81,9 @@ En dessous, **le seul compteur est l'émission des jetons**, et sa granularité 
 
 ## Ce qui n'est pas décidé
 
-- **BYOK ou hébergé**, et donc si les plafonds de voix sont ceux de l'utilisateur ou ceux du projet. Tout le reste en dépend.
-- **La granularité du jeton**, si l'hébergé se fait : par séance ou par réplique, latence contre compteur.
+*Les trois premiers ne concernent plus que le mode (b), donc ils attendent avec lui.*
+
+- **La granularité du jeton** : par séance ou par réplique, latence contre compteur.
 - **La latence de v3 en direct**, non mesurée, qui décide si les balises expressives sont jouables en conversation.
 - **Ce que fait une voix retirée de la bibliothèque** pour qui l'avait déjà ajoutée. Non vérifié.
 - **Les conditions d'usage** posées par l'auteur d'une voix communautaire, commercial ou non, si le dépôt public entre en jeu.
