@@ -104,6 +104,30 @@ La boucle tourne de bout en bout sur l'appareil (SM-G975F, LineageOS) : capture,
 
    Ce qui vivait dans `NOTES.md` là-dessus est traité (2026-09-01) : la variété de modules est cadrée par les blocs et les définitions, le **sélecteur** et la file des suggestions sont le même écran, et la proposition qui n'interrompt pas est le statut `suggérée`. Elle ne vaut plus « qu'un tour », en revanche : ignorée, elle reste en attente au lieu de disparaître.
 
+   **Ce qui entre dans la première implémentation, et ce qui attend** (arrêté le 2026-09-05).
+
+   **On implémente le système complet, pas une version minimale.** Le critère de ce qui reste dehors n'est donc pas « est-ce que la conversation libre s'en sert » — c'est **ce qui n'est pas défini et coûterait cher à définir**. Une pièce définie s'écrit même si rien ne l'appelle encore ; une pièce floue attend, et son absence se prévoit au lieu de se découvrir.
+
+   **Ce qui reste dehors, et pourquoi.**
+
+   - **Les modules autres que la conversation libre.** Un mode est une couche d'accès écrite en dur (`docs/design/activity-model.md`), donc les autres écrans sont des fiches d'UI sur le même moteur. **Seule la discussion libre est codée** ; la présence des autres s'anticipe, leur déroulé attend. Tombent avec eux l'**écran d'avant-partie** — celui qu'on voit en choisissant un défi, à préciser —, l'**écran de résultat**, l'**écran custom**, et l'**UI du score**. Le score lui-même se définit, c'est facile ; c'est son écran qui attend.
+   - **Le bruit et le filtre du canal.** Le système s'implémente, **les deux leviers ne s'utilisent pas** : ni fichier de fond sonore, ni liste d'effets, tant que la standardisation d'une position en difficulté comparable n'existe pas.
+   - **Le mode payant.** Seules les **voix génériques** existent — quatre, choisies par l'apprenant chez son fournisseur. L'extension est mince et prévue : un fournisseur de plus dont le `needs` est un jeton (`docs/design/character-voices.md`).
+   - **Les sons de l'app**, dont rien n'est décidé et qui entrent en concurrence avec le canal principal.
+   - **La purge**, indépendante de tout sauf de la couture cache/base déjà tranchée plus haut.
+   - **Le validateur de définitions**, mais **écrit en stub** : le point d'appel existe, il ne vérifie rien. Un stub se remplit ; un point d'appel absent se cherche.
+
+   **Ce qui entre malgré son flou, et à quel prix.**
+
+   - **Les séries de toutes les feuilles** — la plus grosse inconnue, et elle est dedans. On pose **une passe de valeurs raisonnables**, et **l'usage est le banc**. Le banc de calibration hors de l'app (`NOTES.md`) reste possible, mais plus tard : avant un dépôt public, pas avant la version que je teste moi.
+   - **Ce que chaque mesure lit de l'audio, segment par segment.** À spécifier **avant** d'implémenter, pas différé.
+   - **Les glyphes de la police** — accents, cadres, descendantes —, sans quoi il n'y a pas de charpente ; et la **charpente persistante** elle-même, ligne d'état et barre d'actions.
+   - **Tout le troisième rang**, qui n'est pas cher : les colonnes des trois marquages, les phrases lisibles de chaque position, l'arbre des poids de la conversation libre, la norme de la correction, la frontière d'`intended`, le seuil de 200 ms, la liste de ce qui doit être agrégeable.
+
+   **Deux choses à discuter avant de commencer** : les déclencheurs de suggestion, et le remplacement de la phrase dans le fil que le design laisse ouvert.
+
+   **Non-problème, noté pour ne pas y revenir** : l'accumulation des réponses de scène en scène.
+
 5. **Le repli d'octave écrase les intonations larges, et le plafond du détecteur est à peine plus haut qu'elles** (mesuré le 2026-09-01).
 
    **Le ventilateur était une fausse piste, écartée par la mesure.** Deux prises de la même phrase, dite de la même façon, ventilateur éteint puis allumé : les deux courbes sont quasi identiques et **aucune n'est plate** — l'apprenant monte régulièrement de −9,85 à +10,53 demi-tons. Le détecteur lit bien la voix. L'hypothèse qu'un bruit stationnaire plus périodique qu'une voyelle capture l'autocorrélation était cohérente et fausse ; elle est notée ici pour qu'on ne la refasse pas.
