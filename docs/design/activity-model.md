@@ -448,6 +448,8 @@ Ordonnées par fréquence de changement, ce qui est aussi l'ordre où une instru
 
 **La même faute produit la même marque, à n'importe quel moment, quels que soient les réglages.** Aucun levier ne touche jamais une marque. C'est l'exigence de `../reference.md` tenue jusqu'au bout : une marque dont la couleur ou la présence dépendrait du réglage du jour ne transporte plus rien, puisque son absence ne se distingue pas d'une approbation.
 
+**Cet invariant a été écrit contre les réglages, et sa portée s'arrête là.** Il dit qu'aucun levier ne déplace une marque ; il ne dit pas que le marquage est reproductible. Les trois marquages jugés viennent d'un modèle de langue non déterministe : la même phrase resoumise peut rendre des empans différents, et aucune architecture ne l'empêche. Ce n'est pas une violation, c'est une garantie que l'invariant n'a jamais donnée — à ne pas le citer un jour comme s'il l'avait donnée. Ce que cette variance vaut réellement est une inconnue nommée, et elle se lit à l'usage (`../../TODO.md`).
+
 Il y a donc **trois étages, et un seul où les réglages entrent**.
 
 - **La mesure** — l'écart au modèle pour le son, le cran de correction pour un groupe de mots. Aucun réglage ne la touche.
@@ -922,6 +924,8 @@ Dans le premier cas la phrase **pourrait** être synthétisée et on choisit de 
 **Et rien d'autre ne s'arrête.** L'IA répond, le fil continue, la marque s'affiche et la reformulation est proposée. Le canal du son reste vide en portant sa raison, pour cette tentative-là seulement : la reformulation est un énoncé neuf, dont le modèle se synthétise et dont les sons s'analysent normalement.
 
 **Point ouvert : ce qui tombe d'un côté ou de l'autre dépend d'une décision du modèle de langue.** *I walk to school yesterday.* Le STT transcrit la bouche, donc *walk* ; le modèle décide l'intention, et avec *yesterday* il peut écrire *walked*. S'il écrit *walked*, la grammaire est correcte, la porte est ouverte, et l'analyse voit un /t/ manquant : faute de prononciation. S'il écrit *walk*, la grammaire est fautive, la porte se ferme, et rien du son ne s'analyse : faute de correction. Le même énoncé, deux traitements opposés, et ce qui tranche n'est contrôlé par personne.
+
+**Et la portée est plus large que cet aiguillage : le juge juge sa propre reconstruction.** `intended` est écrit par le même appel qui pose les empans, donc un modèle qui répare en reconstruisant a effacé la faute **avant** de la juger — et rien en aval ne peut le voir, ni l'écran, ni la note, ni une condition. Chaque note de correction est donc conditionnelle à une fidélité que personne ne vérifie. La fuite est vue une fois, et se lit à l'usage (`../../TODO.md`).
 
 **La marque porte sur un élément, la note agrège sur le passage.** C'est vrai des trois échelles du son comme des crans de correction : l'accent d'un mot est au bon endroit ou pas, mais un passage en contient plusieurs et la note les compte.
 
