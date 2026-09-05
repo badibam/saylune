@@ -152,7 +152,7 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 
 **Les deux marques qui valent pour le tour entier se posent au bout de sa ligne d'étiquette**, calées à droite : la pastille du suivi, puis le débit. Ça ne prend aucune colonne au texte et n'ajoute aucune ligne, l'étiquette existant déjà et sa moitié droite étant vide. En contrepartie, cette ligne devient structurelle : elle ne peut plus disparaître de la charpente.
 
-- **La pastille est un disque de cinq pixels** dans une cellule.
+- **La pastille est un disque de neuf pixels, halo d'un pixel compris** — le halo tient de la même recette que celui de la mélodie, mélangé vers le fond — et le tout occupe les onze pixels de la cellule.
 - **Le débit s'écrit en caractères** — `>><<` `><` `=` `<->` `<-->` — centré dans un champ de quatre colonnes, pour que la pastille ne bouge pas quand le cran change.
 - **Un emplacement vide dit *non mesuré***, et non *rien à signaler* (`activity-model.md`).
 
