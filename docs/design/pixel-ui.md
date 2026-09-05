@@ -112,9 +112,9 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 
 **Le tour de l'IA s'affiche brouillé par défaut.** L'oreille est le canal principal, et un texte lisible préempterait l'écoute — c'est le flou déjà prévu (« les tours de l'IA sont floutables ») qui devient un brouillage.
 
-**La table d'association échange chaque lettre avec une lettre de sa propre famille de forme** — les ascendantes entre elles, les descendantes entre elles, les autres entre elles — à table fixe. Le mot garde donc sa silhouette : sa longueur, sa ponctuation, le rythme de ses ascendantes et descendantes. Le panneau se lit comme du texte sans se lire : on sent qu'il y avait une phrase, on ne la déchiffre pas. Les capitales restent capitales, les espaces et la ponctuation ne bougent pas. Pas de glyphe à dessiner : la substitution suffit.
+**Le brouillage recouvre l'espace de chaque lettre de carrés de 2 pixels disposés au hasard** — l'épaisseur du trait, sur la même grille que tout le reste. Ce qui survit est le support : la hauteur et la largeur de la lettre — les ascendantes restent hautes, les descendantes basses —, la longueur des mots, la ponctuation et les retours à la ligne. Le panneau se lit comme du texte sans qu'aucune lettre ne se lise : on sent qu'il y avait une phrase, on ne déchiffre rien. Les lettres seules se couvrent, les espaces et la ponctuation ne bougent pas.
 
-**La table est fixe** — le même texte se brouille pareil partout et tout le temps, comme une marque. Le réglage brouillé/net reste à l'apprenant, et le brouillage est l'état par défaut.
+**Le brouillage est fixe** — la même lettre se couvre toujours pareil, donc le même texte se brouille pareil partout et tout le temps, comme une marque. Le réglage brouillé/net reste à l'apprenant, et le brouillage est l'état par défaut.
 
 ## Le tour marqué
 
