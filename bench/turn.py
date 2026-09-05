@@ -20,12 +20,14 @@ are the shape the app already writes beside its own turns -- without them the
 labelled set cannot be put through the same reading as a take recorded on the
 phone, and a take read back wrong cannot be told from a take read back right.
 
-Two channels of `TurnMarking` are left empty on purpose. Brick 8 now cuts the
-syllables (`syllables.cut`), so their extents exist -- but a syllable the app
-draws carries four more fields, and every one of them is brick 7 or brick 10:
-which syllable the stress sits on, on each side, and the pitch of each. Filling
-the extents and inventing the rest would put made-up stress on the screen, so
-the channel stays empty until there is something true to put in it.
+The syllable channel is filled for real now. Brick 8 cuts the syllables
+(`syllables.cut`), brick 10 reads a pitch on each, and brick 7 flags which
+syllable the stress sits on, on each side: the frozen probe's parts, read on
+the **nucleus** span -- the model's own segment, and where that same sound sits
+in the take. A word is eligible only when the model's elected syllable leads
+the runner-up by the measured bar (`probe.BAR`, `../docs/analysis.md`): a word
+the model does not stress clearly cannot be got wrong, and no mark is drawn on
+it.
 """
 
 import argparse
@@ -39,6 +41,7 @@ import melody
 import overlap
 import phrases
 import placed
+import probe
 import syllables
 
 HERE = Path(__file__).resolve().parent
@@ -162,6 +165,55 @@ def read(take, model_slug, voice):
         # move the anchor: the sound itself claimed nothing.
         if sound.spots:
             claimed = max(sound.spots)
+    # Brick 7: which syllable carries the stress, on each side, by the frozen
+    # probe. Read on the nucleus alone, not the whole syllable -- the model's
+    # own segment on its side, and where that same sound sits in the take on
+    # the other, which the aligned montage already knows. A word is eligible
+    # when the model's elected syllable leads the runner-up by BAR, and a word
+    # of one syllable or a function word has no stress choice to be wrong
+    # about.
+    tools = probe.frozen()
+    layer = int(tools[4])
+    model_hidden = probe.hidden(model, layer)
+    take_hidden = probe.hidden(learner, layer)
+
+    def stress_flags():
+        out = {}
+        runs = []
+        for piece in cuts:
+            if runs and runs[-1][0].word == piece.word:
+                runs[-1].append(piece)
+            else:
+                runs.append([piece])
+        for group in runs:
+            word = (group[0].word or "").strip(".,!?'").lower()
+            if word in syllables.FUNCTION or len(group) < 2:
+                continue
+            model_places, take_places = [], []
+            for piece in group:
+                low, high = piece.sounds
+                heads = matrix.nuclei([s.symbol for s in sounds[low:high]])
+                if not heads or low + heads[0] not in placed_at:
+                    model_places = []
+                    break
+                rank = low + heads[0]
+                model_places.append(model_grid[rank][1:])
+                take_places.append(placed_at[rank][1])
+            if not model_places:
+                continue
+            theirs = probe.parts(model_hidden, model_places, tools)
+            mine = probe.parts(take_hidden, take_places, tools)
+            if theirs is None or mine is None:
+                continue
+            ranked = sorted(theirs)[::-1]
+            if ranked[0] - ranked[1] < probe.BAR:
+                continue
+            model_at = max(range(len(theirs)), key=theirs.__getitem__)
+            take_at = max(range(len(mine)), key=mine.__getitem__)
+            for place, piece in enumerate(group):
+                out[piece] = (place == model_at, place == take_at)
+        return out
+
     # Brick 10: one pitch per syllable, on either side, in semitones centred on
     # each side's own middle. The learner is read on the **model's** syllables --
     # the model counts them, and the aligned montage already says where each of
@@ -183,14 +235,14 @@ def read(take, model_slug, voice):
         theirs.append(melody.over(take_pitch, take_step,
                                   min(h[1][0] for h in held) * step_s,
                                   max(h[1][1] for h in held) * step_s))
+    flags = stress_flags()
     model_line = melody.centred(mine)
     take_line = melody.centred(theirs)
     tuned = [{"start": min(piece.spots), "end": max(piece.spots) + 1,
               "modelPitch": round(here, 3),
               "learnerPitch": None if there is None else round(there, 3),
-              # Both false, and not an omission: every way of reading the stress
-              # has been measured and none holds (`../TODO.md`).
-              "modelStressed": False, "learnerStressed": False}
+              "modelStressed": flags.get(piece, (False, False))[0],
+              "learnerStressed": flags.get(piece, (False, False))[1]}
              for piece, here, there in zip(cuts, model_line, take_line)
              if here is not None]
 
