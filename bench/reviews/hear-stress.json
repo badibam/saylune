@@ -107,7 +107,8 @@
     "part": [
       1.0,
       0.0
-    ]
+    ],
+    "oreille 1": 0
   },
   "SX409/azure-us-jenny#4": {
     "tag": "SX409/azure-us-jenny",
@@ -160,7 +161,8 @@
       0.9953,
       0.0047,
       0.0
-    ]
+    ],
+    "oreille 1": 1
   },
   "SX409/azure-us-jenny#27": {
     "tag": "SX409/azure-us-jenny",
@@ -253,7 +255,8 @@
       0.9116,
       0.0882,
       0.0002
-    ]
+    ],
+    "oreille 1": 1
   },
   "SX409/FLBW0#28": {
     "tag": "SX409/FLBW0",
@@ -680,7 +683,8 @@
       0.0,
       0.8978,
       0.0
-    ]
+    ],
+    "oreille 1": 0
   },
   "SX205/azure-us-jenny#8": {
     "tag": "SX205/azure-us-jenny",
@@ -752,7 +756,8 @@
       1.0,
       0.0,
       0.0
-    ]
+    ],
+    "oreille 1": 0
   },
   "SX205/azure-us-jenny#37": {
     "tag": "SX205/azure-us-jenny",
@@ -807,7 +812,8 @@
     "part": [
       0.0015,
       0.9985
-    ]
+    ],
+    "oreille 1": 0
   },
   "SX205/eleven-gb-daniel#17": {
     "tag": "SX205/eleven-gb-daniel",
@@ -860,7 +866,8 @@
       0.9999,
       0.0001,
       0.0
-    ]
+    ],
+    "oreille 1": 0
   },
   "SX205/eleven-gb-daniel#36": {
     "tag": "SX205/eleven-gb-daniel",
@@ -961,14 +968,15 @@
       "lari",
       "ty"
     ],
-    "oreille": 0,
+    "oreille": 2,
     "sonde": 2,
     "part": [
       0.0,
       0.0,
       1.0,
       0.0
-    ]
+    ],
+    "oreille 1": 0
   },
   "SX283/MJJG0#5": {
     "tag": "SX283/MJJG0",
@@ -1022,12 +1030,13 @@
       "pro",
       "mote"
     ],
-    "oreille": 0,
+    "oreille": 1,
     "sonde": 1,
     "part": [
       0.0,
       1.0
-    ]
+    ],
+    "oreille 1": 0
   },
   "SX283/eleven-gb-daniel#5": {
     "tag": "SX283/eleven-gb-daniel",
@@ -1103,7 +1112,8 @@
     "part": [
       0.0,
       1.0
-    ]
+    ],
+    "oreille 1": 1
   },
   "SX283/MDLD0#5": {
     "tag": "SX283/MDLD0",
@@ -1145,7 +1155,8 @@
       0.0,
       0.9945,
       0.0
-    ]
+    ],
+    "oreille 1": 3
   },
   "SX283/MDLD0#26": {
     "tag": "SX283/MDLD0",
@@ -1179,7 +1190,8 @@
     "part": [
       0.0,
       1.0
-    ]
+    ],
+    "oreille 1": 1
   },
   "SX409/eleven-gb-daniel#0": {
     "tag": "SX409/eleven-gb-daniel",
@@ -1382,7 +1394,8 @@
     "part": [
       0.0,
       1.0
-    ]
+    ],
+    "oreille 1": 1
   },
   "SX199/eleven-gb-daniel#17": {
     "tag": "SX199/eleven-gb-daniel",
@@ -1439,7 +1452,8 @@
       0.0,
       1.0,
       0.0
-    ]
+    ],
+    "oreille 1": 1
   },
   "SX36/FELC0#0": {
     "tag": "SX36/FELC0",
@@ -1524,7 +1538,7 @@
       "ri",
       "ty"
     ],
-    "oreille": 0,
+    "oreille": 2,
     "sonde": 2,
     "part": [
       0.0,
@@ -1532,7 +1546,8 @@
       1.0,
       0.0,
       0.0
-    ]
+    ],
+    "oreille 1": 0
   },
   "SX205/MREB0#0": {
     "tag": "SX205/MREB0",
@@ -1604,7 +1619,8 @@
     "part": [
       0.8536,
       0.1464
-    ]
+    ],
+    "oreille 1": 1
   },
   "SX205/MREB0#28": {
     "tag": "SX205/MREB0",
