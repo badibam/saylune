@@ -1,6 +1,6 @@
 # Le modèle d'activité
 
-Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, par celle qui a écrit la fin d'une séance et son issue, et par celle qui a fait des définitions de la donnée posé l'histoire comme une campagne à mémoire déclarée, ouvert les règles au modèle des deux côtés, et donné aux consignes une durée et trois lecteurs, puis le 2026-09-04 par celle qui a inventorié l'état d'une séance en trois natures et écrit ce que le modèle reçoit, et par celle qui a logé les définitions dans des fichiers, fait de l'ouverture un paquet d'effets et donné aux règles de quoi faire parler l'IA, par celle qui a ouvert les conditions à tout l'arbre et aux deux moitiés de l'échelle, par celle qui a retiré la notion de format, et par celle qui a écrit le catalogue des leviers, puis le 2026-09-05 par celle qui a nommé les états d'un passage et déroulé un passage entier, câblé la porte sur les aptitudes et coupé l'avance en deux, résolu les règles par vagues et donné au drapeau sa famille, et fait de la conversation libre une définition livrée. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
+Conçu le 2026-09-01, élagué le même jour de ce qui est construit, repris le 2026-09-01 après une deuxième passe qui a défait deux fausses pièces, puis le 2026-09-02 par la passe qui a descendu la note sur la mesure et écrit la grille, par celle qui a écrit ce que vaut une feuille pour toute l'élocution, puis le 2026-09-03 par celle qui a posé le tour interrompu, par celle qui a étendu le silence aux deux bords, par celle qui a écrit le remplissage et les reprises, et par celle qui a refondu la correction et la pertinence autour d'un seul marquage — la première absolue, la seconde seule à porter la consigne — puis par celle qui a écrit la compréhension et arrêté les cinq noms d'aptitude, et par celle qui a dit ce qui fait un levier et sorti les poids des réglages, puis par celle qui a énuméré les leviers de la conversation et pesé la compréhension sur la difficulté, par celle qui a dit quand une règle se déclenche, par celle qui a écrit la fin d'une séance et son issue, et par celle qui a fait des définitions de la donnée posé l'histoire comme une campagne à mémoire déclarée, ouvert les règles au modèle des deux côtés, et donné aux consignes une durée et trois lecteurs, puis le 2026-09-04 par celle qui a inventorié l'état d'une séance en trois natures et écrit ce que le modèle reçoit, et par celle qui a logé les définitions dans des fichiers, fait de l'ouverture un paquet d'effets et donné aux règles de quoi faire parler l'IA, par celle qui a ouvert les conditions à tout l'arbre et aux deux moitiés de l'échelle, par celle qui a retiré la notion de format, et par celle qui a écrit le catalogue des leviers, puis le 2026-09-05 par celle qui a nommé les états d'un passage et déroulé un passage entier, câblé la porte sur les aptitudes et coupé l'avance en deux, résolu les règles par vagues et donné au drapeau sa famille, et fait de la conversation libre une définition livrée, puis par celle qui a fait de la note un nombre, de la sensibilité une série où une position est une fenêtre, et d'un marquage une seule feuille dont les étiquettes sont les crans. Ce qui reste ici est la part du modèle d'activité qui n'a pas encore de code, plus ce qu'elle laisse ouvert.
 
 Ce qui est parti et où le lire : l'**énoncé**, l'**activité** et **ce qui se stocke** sont dans `../reference.md` pour la règle et dans le code pour la forme (`activity/Activity.kt`, `conversation/TurnPipeline.kt`, `store/`). La suppression de la **session** et de la **parenthèse** est actée dans `../reference.md`. Les commits sont la carte.
 
@@ -265,7 +265,7 @@ C'est le seul levier de cette aptitude, et il ne dit rien de ce qu'elle exige : 
 
 **L'explication de la faute manquait sa position d'absence.** Le doc en nommait deux, la règle seule et la règle plus la phrase ; sans une troisième qui dit *aucune*, une conversation ordinaire, où l'app n'explique rien, n'était pas exprimable.
 
-**La sensibilité est inerte sur une feuille binaire.** Le tour interrompu vaut 0 ou 1 sur un passage, donc toutes les bornes possibles rendent la même paire de lettres et bouger le curseur ne change rien. Ce n'est pas un défaut à réparer : cette feuille travaille par sa **condition** et par son **poids**, et le doc le dit déjà — une feuille peut n'exister que pour les conditions. Ce qu'il faut en tirer est que la sensibilité d'une feuille binaire ne se règle pas, et que l'écran custom ne doit pas offrir un curseur qui ne fait rien.
+**Une feuille binaire n'a pas de sensibilité du tout.** Le tour interrompu vaut 0 ou 1 sur un passage : toutes les bornes possibles rendent la même paire de lettres, et un chiffre à deux valeurs ferait de toute façon un mauvais membre de moyenne — tout ou rien, aucune gradation. Elle **ne donne donc pas de note** et travaille par ses conditions seules (« Ce qui ne donne pas de note »). Ni sensibilité ni poids : deux champs qui n'ont pas d'objet plutôt que d'être déclarés inertes, et l'écran custom n'a aucun curseur à y offrir.
 
 **Le côté dur cesse d'être un champ sur les leviers à marches**, par la convention d'ordre posée en tête. Il ne survit que sur les leviers à nombre, dont l'ordre est arithmétique.
 
@@ -470,11 +470,19 @@ Deux choses restent acquises : la correction se souligne **toujours** dès qu'il
 
 **La note ne vit pas sur l'aptitude, elle vit sur la mesure.** Un défi qui ne noterait que l'accent tonique rendrait sinon une note « élocution » qui ne veut pas dire la même chose que celle du défi d'à côté, sans que rien à l'écran ne le dise. C'est la troisième application de la règle qui ouvre ce doc : « élocution B » est un nom sur un jeu de mesures, comme « élocution 2 » était un nom sur un jeu de leviers. L'aptitude reste un tiroir — pour choisir, pour afficher — et n'est plus l'unité de la note.
 
-**La lettre est toujours une note, jamais une mesure.** Elle est contextuelle par construction, puisque la sévérité déplace ses bornes ; une mesure, elle, ne bouge pas. Les deux ne doivent donc jamais porter les mêmes noms — c'est la confusion que ce doc portait, où les crans de correction étaient écrits en A–E comme la note. **On garde les nombres et les crans en base, jamais les lettres** : les bornes pourront bouger sans abîmer les vieilles séances.
+**Une note est un nombre de 0 à 1 ; la lettre en est l'affichage.** Les lettres découpent l'échelle en cinquièmes égaux — E jusqu'à 0,20, D jusqu'à 0,40, C jusqu'à 0,60, B jusqu'à 0,80, A au-dessus —, donc **la barre A/B vaut 0,60**, par construction et non par mesure. Chaque bande se lit en quarts : le quart bas donne le modifieur `−`, le quart haut le `+`, la moitié centrale la lettre nue. Quinze valeurs affichables, ce qui est un bon grain pour un écran sans devenir un chiffre déguisé.
+
+**Le modifieur est d'affichage seulement** : rien ne le stocke, et une **condition nomme une lettre**, jamais un `B+`. Qui veut plus fin lit le chiffre de la feuille, qui est fait pour ça.
+
+Moyenner des lettres a été essayé et ne tient pas. Deux passages, l'un à 8 % de sons ratés et l'autre à 1 %, tombent tous deux en A et rendraient la même note ; et un dixième de pourcent de plus ferait basculer la note du passage d'un demi-cran. Des paliers plats séparés par des falaises. C'est aussi ce qui fait tenir la phrase de ce doc qui dit que **c'est la sensibilité qui rend les feuilles comparables** — traduire « 8 % de sons ratés » et « 3 demi-tons d'écart » en un même repère demande mieux que cinq valeurs. Le prix est réel : l'apprenant ne peut plus recalculer sa note de tête depuis les lettres affichées, un A cachant où il se situe dans le A. C'est du même genre que ce que le doc accepte déjà — une note ne se lit pas sans la combinaison qui l'a produite.
+
+**La lettre est toujours une note, jamais une mesure.** Elle est contextuelle par construction, puisque la sensibilité déplace ses bornes ; une mesure, elle, ne bouge pas. Les deux ne doivent donc jamais porter les mêmes noms. **On garde les nombres et les crans en base, jamais les lettres** : les bornes pourront bouger sans abîmer les vieilles séances.
 
 ### L'arbre des poids
 
 **Ce qui se note est un arbre, à profondeur libre.** Aptitude, mesure, découpage plus fin ne sont pas trois natures : ce sont des nœuds, et la profondeur dit seulement à quel grain on peut peser. La question « est-ce une mesure ou une catégorie de mesure ? » ne se pose donc jamais, et démultiplier revient à creuser une branche, jamais à changer de mécanisme. **Rien n'oblige un nœud de premier niveau à être une aptitude** — l'arbre ne connaît que des poids.
+
+**La note d'un nœud est la moyenne pondérée de ses enfants présents**, et rien d'autre : pas de plancher, pas de bonus, pas de formule propre à une aptitude.
 
 Deux réglages par nœud, et ils ne font pas la même chose :
 
@@ -483,243 +491,309 @@ Deux réglages par nœud, et ils ne font pas la même chose :
 
 Un défi qui ne note que l'accent tonique est donc un poids à 1 et des poids à 0, pas un mécanisme à part. C'est ce qui permet de viser sans ajouter de champ : quoi qu'on note, l'information est déjà là.
 
+**Peser une feuille qui rend presque toujours la même valeur déplace toute l'échelle du nœud**, et ça se dit à qui écrit un arbre plutôt que de s'interdire. Une feuille qui vaut 1,00 sur presque tous les passages est un 20/20 permanent : à poids égal avec une feuille qui bouge, la note du nœud ne descend plus sous la moitié, donc la barre à 0,60 ne se franchit presque plus par le bas. Une feuille qui vaut 0 presque toujours fait l'inverse, et un passage parfait plafonne aux deux tiers. Dans les deux cas c'est rattrapable en resserrant les séries des autres feuilles, mais les lettres affichées veulent alors dire autre chose qu'ailleurs.
+
 ### Ce qu'une feuille déclare
 
-**Un défi s'écrit contre une liste, jamais contre le code.** Sans ça, poser une condition — la feuille *part silencieuse*, forme élément, cinq secondes — demande de savoir que cette feuille existe, comment elle s'appelle, et que ses éléments sont des secondes et non des pourcentages. C'est-à-dire de lire le calcul.
+**Un défi s'écrit contre une liste, jamais contre le code.** Sans ça, poser une condition — la feuille *le plus long silence*, cinq secondes — demande de savoir que cette feuille existe, comment elle s'appelle, et que son chiffre est en secondes et non en pourcentage. C'est-à-dire de lire le calcul.
 
-**L'arbre des feuilles est donc déclaré en un endroit**, et chaque feuille y dit cinq choses :
+**L'arbre des feuilles est donc déclaré en un endroit**, et chaque feuille y dit :
 
 - son **nom** et sa place dans l'arbre ;
-- l'**unité de son chiffre** — un pourcentage de sons, des demi-tons, des mots par seconde, un entier ;
-- l'**unité de ses éléments**, presque jamais la même — des secondes, un cran, un vrai/faux, des points ;
-- la **liste ordonnée de ses crans**, quand ses éléments sont des crans ;
-- si elle **prend une consigne**, c'est-à-dire si elle est jugée ou calculée.
+- ses **éléments** — ce qu'elle lit : les sons du passage, les mots retenus, les mots prononcés, le temps du tour, ou le passage entier quand elle n'a qu'un élément ;
+- **comment un élément prend sa valeur** — une colonne, une rampe, un vrai/faux, ou rien quand il n'y a qu'un élément ;
+- l'**unité de son chiffre** — une part, des demi-tons, des secondes, un pourcentage d'écart ;
+- sa **direction**, quand le chiffre garde une unité brute ;
+- sa **série**, sur laquelle la sensibilité pioche ;
+- si elle **prend une consigne**, c'est-à-dire si elle est jugée ou calculée ;
+- si elle **donne une note** — certaines n'existent que pour les conditions.
 
-Un défi se réduit alors à quatre choses posées sur cette liste : des poids sur les nœuds, une sensibilité par feuille, des consignes sur les feuilles jugées, des conditions. Rien n'y est un branchement de code neuf, et une définition écrite par un modèle devient possible sans lui donner le code — on lui donne le catalogue, il rend ces quatre choses.
+Un défi se réduit alors à quatre choses posées sur cette liste : des poids sur les nœuds, une position de sensibilité par feuille, des consignes sur les marquages jugés, des conditions. Rien n'y est un branchement de code neuf, et une définition écrite par un modèle devient possible sans lui donner le code — on lui donne le catalogue, il rend ces quatre choses.
 
-**Ce que le catalogue ne donne pas** : de quoi écrire un défi *sensé*. Savoir qu'une feuille existe ne dit pas ce qu'un chiffre y vaut, et où chaque sensibilité pose ses bornes reste à écrire.
+### Une feuille, c'est trois choses
 
-### Des marques au chiffre d'une feuille
+Un **jeu d'éléments**, une **façon de donner une valeur à un élément**, une **série**. La troisième est toujours la même ; c'est la deuxième qui change de forme.
 
-**Une feuille est la moyenne de ses éléments.** Une part et une moyenne sont la même chose — une proportion, c'est la moyenne d'un 0/1 —, donc il n'y a qu'une recette. Ce qui change d'une feuille à l'autre n'est pas la formule mais **ce que vaut un élément** : 0 ou 1 quand la question est fermée, une quantité brute quand elle est graduée. Et une feuille qui ne rend qu'un chiffre pour tout le passage — le débit, le délai avant de parler — est le même cas avec un seul élément.
+- **colonne** — une valeur par cran, pour les marquages jugés : `plat` vaut 0,50, `ok` vaut 0,90.
+- **rampe** — une courbe sur une quantité, pour les sons : 0 point d'écart vaut 1,00, 30 points valent 0.
+- **vrai/faux** — pour les binaires : l'appui est au bon endroit, ou il ne l'est pas.
 
-**Jamais un nombre d'occurrences.** Deux gros ratés dans *Where is it?* et deux dans *I was thinking about going to the market* ne valent pas la même chose : sur quatre mots dont deux abîmés, personne ne rattrape le sens ; sur neuf, le contexte répare. Et la raison mécanique est déjà écrite plus haut — chaque feuille pèse par la longueur du passage, donc un nombre ferait compter la longueur deux fois, une fois parce qu'une phrase longue a mécaniquement plus de ratés, une fois par le poids. Une proportion multipliée par la longueur redonne le nombre.
+**Le chiffre est la moyenne des éléments.** Une part et une moyenne sont la même chose — une proportion, c'est la moyenne d'un 0/1 —, donc il n'y a qu'une recette.
+
+**Quand la feuille n'a qu'un seul élément, il n'y a rien à moyenner** : le chiffre garde son unité brute, et la série la lit directement. Une rampe ne sert qu'à ramener des éléments hétérogènes sur une échelle commune avant de les moyenner ; sans moyenne, elle n'a pas d'objet. C'est le cas du plus long silence, du débit et du suivi.
+
+**La valeur d'un élément est toujours une qualité entre 0 et 1, le haut étant le bon bout.** D'où le fait que la **direction** ne se déclare que pour les feuilles dont le chiffre garde une unité brute — la mélodie, la continuité, le plus long silence et le débit, où bas est bon.
+
+**Jamais un nombre d'occurrences dans une note.** Deux gros ratés dans *Where is it?* et deux dans *I was thinking about going to the market* ne valent pas la même chose : sur quatre mots dont deux abîmés, personne ne rattrape le sens ; sur neuf, le contexte répare. Le nombre ne disparaît pas pour autant, il change d'endroit — « zéro faute franche » est une **condition** branchée sur les éléments.
 
 **Le dénominateur est ce que la feuille lit**, pas tout le passage : sur un défi qui ne pèse que les *th*, un raté sur les quatre *th* de la phrase fait 25 %, pas 3 %. Le poids choisit les colonnes, le dénominateur suit le poids.
 
-**Les comptes sont hors du poids par longueur.** Le nombre de tentatives, le nombre d'écoutes, les faux départs ne sont ni une part ni une moyenne : ce sont des entiers. Les peser par la longueur ferait que deux redites sur une phrase longue comptent plus que deux redites sur une courte, alors que redire deux fois est redire deux fois — et si la longueur jouait, elle jouerait à l'envers, la phrase courte étant la plus facile à reprendre. Un passage compte donc une fois pour ces feuilles-là, quelle que soit sa longueur.
+### La sensibilité est une série, et une position est une fenêtre
 
-**Le nombre ne disparaît pas pour autant, il change d'endroit.** « Zéro faute franche » compte des occurrences : c'est une condition branchée sur la feuille, pas une note. Les deux lisent la même chose et n'en font pas le même usage.
+**Ce que l'app lit pour transformer un chiffre en note est une table de quatre bornes**, dans l'unité de la feuille, lue telle quelle. Aucun calcul entre feuilles : chaque borne en jeu est une valeur écrite à la main.
 
-**Le chiffre d'une feuille est dans son unité à elle** — un pourcentage pour les gros ratés, des demi-tons pour la mélodie, des mots par seconde pour le débit, un entier pour les tentatives. Rien ne les rend comparables avant le passage en A–E, donc **c'est la sensibilité qui rend les feuilles comparables**. Elle n'est pas un curseur de 1 à 5 partagé : c'est un jeu de bornes propre à chaque feuille, dans son unité. « Ce défi est plus sévère » se traduit feuille par feuille.
+Une transformation unique — « sévère, c'est les bornes divisées par deux » — a été essayée et ne tient pas. Le même geste durcit sainement les gros ratés, où 8 % deviennent 4 %, et casse la mélodie, où 2 demi-tons deviennent 1, c'est-à-dire sous la bande de bruit de la machine : personne ne peut plus y atteindre A, et pour une raison qui n'a rien à voir avec sa mélodie. Les deux ne parlent pas la même langue au moment où la transformation s'applique — c'est exactement ce que ce doc dit en écrivant que rien ne rend les feuilles comparables avant le passage en A–E.
 
-**Et la sensibilité déplace les bornes A–E, jamais une ligne interne à la mesure.** Si les deux se réglaient, durcir la ligne ferait monter la proportion et baisser la borne A ferait tomber la note : deux boutons, un seul effet, et plus rien ne dirait lequel a rendu une séance dure. C'est l'argument déjà servi pour refuser que la barre « A ou B » se règle en même temps que la sévérité. Une ligne appartient à la mesure, comme la bande de bruit.
+**Mais les tables ne s'écrivent pas séparément : une feuille déclare une série, et une position de sensibilité est une fenêtre de quatre bornes consécutives.**
+
+```
+intelligibilité (part des sons intelligibles)
+  série :  0,80   0,88   0,93   0,96   0,98   0,99
+    indulgente → (0,80  0,88  0,93  0,96)
+    normale    → (0,88  0,93  0,96  0,98)
+    sévère     → (0,93  0,96  0,98  0,99)
+```
+
+Trois choses en découlent.
+
+**« Sévère » veut dire la même chose partout : un cran de sensibilité vaut une lettre.** Ce qui valait B en normale vaut C en sévère, sur les sons comme sur le silence comme sur le débit. C'est sans unité par construction, là où « divisé par deux » ne l'était pas : on ne calcule rien entre deux unités, on décale d'un rang dans une liste.
+
+**Rien n'est calculé, tout est écrit**, donc un bord impossible se voit **en écrivant la série**, pas à l'exécution sur un apprenant qui ne comprend pas pourquoi il n'atteint jamais A.
+
+**Une position de plus coûte un nombre, pas quatre.** La question « combien de positions » cesse d'être un arbitrage entre expressivité et travail ; elle se décidera quand les séries seront écrites.
+
+**Colonnes et rampes ne sont pas la sensibilité.** Elles appartiennent à la feuille et ne se règlent pas — c'est la même règle que pour la ligne des 30 points sur les gros ratés. Si les deux se réglaient, durcir la rampe et baisser la borne A feraient la même chose, et plus rien ne dirait lequel a rendu une séance dure. Un défi qui veut sa propre ligne la pose en **condition**, qui lit les éléments avec leur valeur réelle.
+
+**L'effet de la série change selon le nombre de valeurs que le chiffre peut prendre**, mais pas son mécanisme. Sur une feuille qui moyenne des dizaines d'éléments, le chiffre est continu et les quatre bornes découpent des bandes. Sur une feuille à un seul élément, elles reviennent à poser une lettre sur des valeurs — *« à partir de trois secondes, c'est un C »*.
+
+**Deux feuilles sur les mêmes éléments ne se justifient que si deux défis veulent l'ordre inverse.** Une série est monotone : elle rééchelonne, elle ne réordonne jamais. Donc si aucun couple d'apprenants ne se classe à l'envers d'une lecture à l'autre, une seule feuille et une sensibilité suffisent. Ce test est ce qui décide, branche par branche, ci-dessous.
 
 #### Les sons
 
-**La branche se coupe en deux feuilles**, parce que deux défis veulent des choses opposées. « Fais-toi comprendre » ne compte que ce qui change le mot ; « gomme ton accent » compte tout, et un apprenant parfaitement compréhensible à l'accent épais réussit le premier et échoue le second. Un seul chiffre servant les deux serait réglé par un curseur qui déciderait laquelle des deux questions on pose, c'est-à-dire une feuille à deux sens, ce que la grille interdit.
+**Deux feuilles, sur les mêmes éléments, lues par deux rampes.** C'est le test d'inversion qui les sépare, et il passe. Deux apprenants, cinquante sons chacun : **A** a un accent épais mais reste parfaitement compréhensible, tous ses sons à une vingtaine de points d'écart et aucun au-delà de la ligne du gros raté ; **B** a un accent propre mais deux sons complètement faux qui changent le mot, quarante-huit sons à trois points et deux à quatre-vingt-quinze. Sur la moyenne des écarts, A vaut 0,80 et B vaut 0,93 ; sur la marche, A vaut 1,00 et B vaut 0,96. L'ordre s'inverse, donc aucun réglage d'une feuille unique ne rend les deux verdicts.
 
-- **Les gros ratés** — la part des sons où le mot a changé. **Binaire par son** : un son à 95 ne compte pas plus qu'un son à 40, la question étant fermée. Graduer reprendrait le travail de l'autre feuille, et les deux diraient la même chose en moins net.
-- **La masse des écarts** — la moyenne des écarts sur tous les sons, gros ratés compris. Aucune ligne, donc aucun seuil à trouver.
+- **L'intelligibilité** — rampe en marche d'escalier à 30 points : le mot a changé, ou il n'a pas changé. Le chiffre est la part des sons intelligibles. Graduer reprendrait le travail de l'autre feuille, et les deux diraient la même chose en moins net. Sa série est **tassée en haut**, un gros raté étant rare et grave.
+- **La proximité** — rampe continue sur l'écart, gros ratés compris. Aucune ligne, donc aucun seuil à trouver, et sa série est **étalée**, l'écart moyen bougeant sur toute la plage d'un apprenant à l'autre.
 
-**La ligne du gros raté est celle où la rampe sature, 30 points, et c'est la même pour la feuille et pour l'écran.** Ailleurs, deux lettres peintes du même rouge plein compteraient différemment dans la note, et l'apprenant n'aurait aucun moyen de voir la différence sur laquelle la note agit. Avec cette ligne, rouge plein veut dire gros raté, et ça se lit à l'œil sans explication.
+Ce sont les deux défis opposés du projet : *« fais-toi comprendre »* ne compte que ce qui change le mot, *« gomme ton accent »* compte tout.
 
-Ce que le banc pin, et ce qu'il ne pin pas : sur le jeu étiqueté, les témoins sont à 0,3 point, les demi-fautes sous 25, les fautes franches au-dessus de 93 (`../analysis.md`). La ligne est donc quelque part entre 26 et 92, où n'importe quelle valeur sépare aussi bien les deux populations. **30 n'est pas mesuré** : il vient de l'écran, où il avait été posé pour que l'image cesse de changer là où la différence cesse de vouloir dire quelque chose. Ce qui resserrerait l'intervalle, ce sont des fautes vraiment intermédiaires, que le jeu d'essai n'a pas — il n'a que des franches et des demies.
+**« Points » est l'écart ramené sur 100.** À chaque son, l'analyse compare deux répartitions — la ressemblance à tous les sons de l'anglais telle que le réseau la lit chez l'apprenant, et la même chez le modèle. L'écart est la distance entre ces deux formes. Ce n'est pas une note de prononciation, c'est une distance entre deux lectures de la même machine.
 
-Effet à connaître : `09-walkin`, le /ŋ/ de *walking* dit /n/, tombe sous la ligne. Il compte dans la masse des écarts et pas dans l'intelligibilité, ce qui est le bon comportement — on comprend *walkin'*.
+**La ligne du gros raté est celle où la rampe de l'écran sature, 30 points, et c'est la même pour la feuille et pour l'écran.** Ailleurs, deux lettres peintes du même rouge plein compteraient différemment dans la note, et l'apprenant n'aurait aucun moyen de voir la différence sur laquelle la note agit.
 
-**Un son ajouté ou manquant est un gros raté par nature, pas par franchissement de ligne.** Il n'a aucun point, n'ayant rien en face de lui à comparer (`embedded/Marks.kt`), et l'écran le peint déjà au bout saturé de la rampe : ce n'est pas un degré de faux, c'est une chose qui est là et ne devrait pas y être, ou l'inverse.
+Ce que le banc épingle, et ce qu'il n'épingle pas : sur le jeu étiqueté, les témoins sont à 0,3 point, les demi-fautes sous 25, les fautes franches au-dessus de 93 (`../analysis.md`). La ligne est donc quelque part entre 26 et 92, où n'importe quelle valeur sépare aussi bien les deux populations. **30 n'est pas mesuré** : il vient de l'écran, où il avait été posé pour que l'image cesse de changer là où la différence cesse de vouloir dire quelque chose. Ce qui resserrerait l'intervalle, ce sont des fautes vraiment intermédiaires, que le jeu d'essai n'a pas.
+
+Effet à connaître : `09-walkin`, le /ŋ/ de *walking* dit /n/, tombe sous la ligne. Il compte dans la proximité et pas dans l'intelligibilité, ce qui est le bon comportement — on comprend *walkin'*.
+
+**Un son ajouté ou manquant vaut zéro dans les deux feuilles, par nature et pas par franchissement de ligne.** Il n'a aucun point, n'ayant rien en face de lui à comparer (`embedded/Marks.kt`), et l'écran le peint déjà au bout saturé de la rampe : ce n'est pas un degré de faux, c'est une chose qui est là et ne devrait pas y être, ou l'inverse.
 
 #### La mélodie
 
-Deux feuilles, sur le même modèle que les sons.
+**Une seule feuille : la distance.** À chaque syllabe, l'écart de hauteur entre les deux courbes, chaque côté ramené d'abord à sa propre médiane, et la **moyenne simple** de ces écarts, en demi-tons. Le chiffre garde donc son unité et la série se lit en demi-tons.
 
-- **La distance** — à chaque syllabe, l'écart de hauteur entre les deux courbes, chaque côté ramené d'abord à sa propre médiane, et la **moyenne simple** de ces écarts, en demi-tons.
-- **La grosse divergence** — la part des transitions où l'apprenant ne fait pas le mouvement du modèle. D'une syllabe à la suivante : si le modèle bouge moins que la bande de bruit, la transition n'est pas lue du tout ; sinon on lit `r`, le mouvement de l'apprenant divisé par celui du modèle, avec son signe. `r = 1`, il fait le mouvement exact ; `r = 0`, il est plat ; `r` négatif, il fait l'inverse.
-
-Trois méthodes écartées, chacune par un cas du banc plutôt que par goût. **La corrélation** ignore l'amplitude, donc qui fait la bonne forme deux fois trop petite obtient un score parfait — or le cas 22 du banc, la phrase dite plate à la française, est étiqueté comme une faute : la seule faute de mélodie que le projet ait étiquetée disqualifie toute méthode qui normalise l'amplitude. **La moyenne des carrés** laisse une divergence isolée écraser le reste, ce qui est le travail de la feuille voisine. **Le recalage temporel élastique** sert à comparer deux courbes décalées dans le temps ; ici elles sont déjà alignées syllabe par syllabe, même texte — et il pardonnerait à qui met sa montée sur la mauvaise syllabe, ce qui est justement une faute.
-
-Pourquoi `r` plutôt qu'un seuil en demi-tons : trois demi-tons sont énormes là où le modèle ne bouge pas et négligeables là où il monte de quinze. `r` est sans unité et ses repères se lisent en français — zéro, il ne bouge pas ; négatif, il fait l'inverse. Les deux prises du banc tombent chacune d'un côté : le 22 donne `r` proche de zéro, le 21, montant là où le modèle descend, donne `r` négatif.
+Trois méthodes écartées, chacune par un cas du banc plutôt que par goût. **La corrélation** ignore l'amplitude, donc qui fait la bonne forme deux fois trop petite obtient un score parfait — or le cas 22 du banc, la phrase dite plate à la française, est étiqueté comme une faute : la seule faute de mélodie que le projet ait étiquetée disqualifie toute méthode qui normalise l'amplitude. **La moyenne des carrés** laisse une divergence isolée écraser le reste. **Le recalage temporel élastique** sert à comparer deux courbes décalées dans le temps ; ici elles sont déjà alignées syllabe par syllabe, même texte — et il pardonnerait à qui met sa montée sur la mauvaise syllabe, ce qui est justement une faute.
 
 **Portée : toute la phrase, et ce n'est pas mesuré.** La brique 10 ne lit aujourd'hui que la région voisée finale et n'en rend qu'une pente (`../analysis.md`) ; le contour par syllabe existe dans le chemin d'affichage (`marking/TurnMarking.kt`) et n'a jamais été confronté à des étiquettes. On l'étend quand même : une échelle qui ne parle que là où elle est sûre laisse passer les fautes qu'elle est là pour attraper, et l'emphase — *I said it IS important* — ne vit pas à la fin de la phrase.
 
-**Gardé de côté** : `r` proche de zéro et `r` négatif ne disent pas la même chose — l'aplatissement est le trait systématique du francophone, l'inversion change le sens et elle est rare. En faire deux feuilles reste possible, c'est ce que l'arbre permet ; ça n'a pas été tranché.
+**Une seconde feuille reste candidate et n'est pas livrée : les mouvements.** Elle serait à la mélodie ce que l'intelligibilité est aux sons — une lecture en marche d'escalier, le mouvement fait ou non — et le test d'inversion passe au moins sur le papier : qui fait tous les mouvements à moitié d'amplitude passe devant qui est parfait sur cinq et plat sur trois selon la part des mouvements faits, et derrière selon la moyenne des écarts. Deux défis opposés, *« colle au contour »* et *« fais les mouvements »*.
 
-#### L'accent lexical et les tentatives
+Deux raisons de ne pas la livrer. Elle **ne lit pas les mêmes éléments** que la distance, contrairement aux deux feuilles des sons, donc le parallèle est plus faible. Et **rien n'est mesuré** : le banc porte deux prises étiquetées de mélodie en tout, contre un jeu entier côté sons. Livrer deux feuilles là-dessus, c'est décider avant de mesurer.
 
-**L'accent** — élément le mot, binaire : l'appui est tombé sur la bonne syllabe ou ailleurs. Le dénominateur n'est pas « les mots » : un monosyllabe n'a pas de choix d'accent, et un mot outil n'a pas d'appui net même chez le modèle, ce qui demande le seuil « le modèle a-t-il un accent net » que `../analysis.md` réclame déjà. Ce sont donc **les mots de plus d'une syllabe que le modèle accentue nettement**. La brique n'étant pas en service, la feuille est **absente** et sort de la somme au lieu de valoir zéro.
+**La piste retenue pour elle, si elle s'ouvre : la forme générale de la phrase.** Réduire la mélodie à un petit nombre de mouvements plutôt qu'un par syllabe, ce qui est la façon dont l'intonation fonctionne — quelques mouvements porteurs par énoncé. Les **plages sont celles que délimitent les accents du modèle**, une hauteur représentative par plage, et on compare les mouvements d'une plage à la suivante. Un point de conception décide le reste : **on découpe sur le modèle et on lit l'apprenant sur les mêmes plages** — découper les deux séparément donnerait des découpes incomparables, et pardonnerait de mettre sa montée sur la mauvaise syllabe. La largeur des plages porte la tolérance, sans qu'on ait à la régler comme telle. Et cette feuille mesurerait les **mouvements généraux**, jamais où sont tombés les appuis, qui est le travail de l'accent lexical.
 
-**Les tentatives** — un entier par passage, hors du poids par longueur. Ce sont des **tentatives** et non des redites : la feuille vaut au moins 1 et existe sur tous les passages. Compter des redites la mettrait à zéro presque partout, et une feuille à zéro partout tire la moyenne vers le haut sans rien dire.
+**Le rythme est retiré, y compris des candidates.** Le défaut qu'il visait — ne pas comprimer les syllabes inaccentuées, le trait syllabique du français — **se voit déjà dans les sons** : un schwa dit en voyelle pleine est un autre son, donc un écart au modèle. Ce qu'il ajouterait est le contraste de durée sans changement de phonème, ce qui est marginal, et il chevaucherait l'accent lexical, l'appui se signalant par la durée autant que par la hauteur.
 
-**Il y en a deux, et elles se séparent par ce qui doit changer dans la phrase** : les **reformulations**, où les mots changent, et les **redites**, où ils ne changent pas et où c'est la façon de dire qui est reprise. Un blocage sur le débit ou sur un silence fait redire la même phrase, donc compte en redite — la liste est fermée par construction, une phrase changeant ses mots ou ne les changeant pas.
+#### L'accent lexical
 
-Prix assumé : la feuille des redites mélange ce qu'a causé le son et ce qu'ont causé le débit ou un silence. Un défi qui veut peser « bonne prononciation du premier coup » compte donc aussi les redites de débit.
+**Un marquage au niveau du mot, binaire : l'appui est tombé sur la bonne syllabe ou ailleurs.** Le dénominateur n'est pas « les mots » : un monosyllabe n'a pas de choix d'accent, et un mot outil n'a pas d'appui net même chez le modèle. Ce sont donc **les mots de plus d'une syllabe que le modèle accentue nettement**, ce qui demande le seuil « le modèle a-t-il un accent net » que `../analysis.md` réclame déjà. La feuille n'existe pas sans ce seuil, qui définit ses éléments.
+
+La brique n'étant pas en service, la feuille est **absente** et sort de la somme au lieu de valoir zéro.
 
 #### La correction
 
-Le juge marque des groupes de mots, et rien n'énumère ceux qui vont bien : il n'y a donc pas de « tous les empans du passage » comme il y a « tous les sons du passage ». **Le dénominateur est les mots retenus du passage**, comptés par l'app — le remplissage et les morceaux abandonnés en sortent (« Le remplissage et les reprises »).
+**Un marquage jugé, donc une feuille, et les crans sont les étiquettes.** Le juge marque des groupes de mots ; l'app déplie chaque empan en ses mots et fait la moyenne. Le dénominateur est **les mots retenus du passage** — le remplissage et les morceaux abandonnés en sortent.
+
+| cran | ce qui le décide |
+|---|---|
+| `ok` | rien à signaler |
+| `mal formé` | la phrase n'est pas bien montée — *I go there yesterday*, *I make my homework* |
+| `ne se dit pas` | ça n'existe pas dans la langue |
+
+**Une seule feuille et non une par étiquette, parce que les étiquettes se partagent les mêmes mots.** Un mot en porte une au plus, donc leurs parts sont des tranches d'un même gâteau et non des mesures indépendantes. En faire des feuilles séparées obligeait chacune à rendre un chiffre même quand rien n'était marqué de sa couleur — et une étiquette rare se retrouvait à sa valeur extrême sur presque tous les passages, déplaçant toute l'échelle du nœud. La colonne dit ce que chaque cran vaut, et une tranche vide ne vaut plus rien du tout : elle n'existe simplement pas.
+
+**La colonne s'ancre par une phrase** : *un passage entièrement fait de ça vaudrait…* C'est ce qui la rend écrivable et mesurable, là où une pondération posée dans le vide ne le serait pas.
 
 Faire découper toute la phrase par le juge est écarté : couper du correct n'est vérifiable par personne — *to the market* fait un morceau ou trois selon l'habitude de coupe, et le chiffre bougerait avec elle. Marquer *I go* comme groupe verbal mal formé, ça, se vérifie. Le juge garde donc le travail qu'il fait déjà pour l'écran, l'app compte, et elle compte dans l'unité qui sert déjà au poids par longueur.
 
-En mots, deux fautes dans *Where is it?* et deux dans une phrase de vingt ne rendent pas le même chiffre — le même argument que pour les sons. Et deux empans qui se recouvrent ne comptent pas deux fois : **un mot prend le pire cran qu'il porte**, et il compte une fois.
+**Deux empans qui se recouvrent ne comptent pas deux fois** : un mot prend le pire cran qu'il porte, et il compte une fois. La précédence est `ne se dit pas`, puis `mal formé`, puis `ok`.
 
-**Prix assumé : les sous-feuilles par nature d'empan partagent ce dénominateur.** La sous-feuille « groupe verbal » lit la part des mots du passage tombant dans un groupe verbal marqué, et non un taux de réussite sur les groupes verbaux — l'app ne connaît pas ceux qui vont bien, et les connaître demanderait le découpage qu'on vient d'écarter.
+**La correction pose une seule question — est-ce que c'est de l'anglais ? — et c'est un jugement absolu, donc elle ne prend aucune consigne.** Une consigne est toujours une exigence de situation ; elle appartient donc entièrement à la pertinence. *« Parle au passé »* ne fait pas de *I'll go there* une phrase mal formée, c'est de l'anglais irréprochable qui ne convient pas ici.
 
-**La correction pose une seule question — est-ce que c'est de l'anglais ? — et rend une seule feuille**, qui porte le nom de l'aptitude : la part des mots retenus dans un empan marqué. Binaire par mot, la question étant fermée.
+**Mais « absolu » ne veut pas dire indépendant de toute norme.** Rien n'est correct dans l'abstrait : *I ain't got none* est fautif en anglais standard et bien formé dans plusieurs dialectes, *Going out later?* n'a ni sujet ni auxiliaire et c'est de l'oral normal, et *I'm doing good* a déjà été laissé passer par le juge *au motif que c'est familier* (`../../TODO.md`). Ce qui est vrai, et qui est ce dont le projet a besoin, c'est que **la norme est fixée par l'app et identique pour toutes les activités** : aucune consigne, aucune scène, aucun défi ne la déplace. C'est cette invariance-là — et pas une indépendance à toute norme — qui rend la correction **vérifiable au banc sur des phrases isolées**, ce dont le banc grammatical a besoin (`../../TODO.md`, chantier 2).
 
-**C'est un jugement absolu, et elle ne prend donc aucune consigne.** « Est-ce de l'anglais » est un fait sur la langue, vrai indépendamment de qui parle à qui : aucune situation ne le déplace. Une consigne, elle, est toujours une exigence de situation — elle appartient donc entièrement à la pertinence. *« Parle au passé »* ne fait pas de *I'll go there* une phrase mal formée, c'est de l'anglais irréprochable qui ne convient pas ici.
+Cette norme n'est **écrite nulle part** aujourd'hui, et c'est un trou : elle est celle que le modèle se donne tout seul. Elle doit vivre dans le contexte permanent du prompt, et deux choses au moins s'y tranchent — la **variété** (au plus simple, celle de l'accent choisi, qui décide déjà la voix) et le fait que **l'oral n'est pas de l'écrit**.
 
-Ça règle une contorsion que le doc portait : il fallait poser la consigne sur la correction, marquer *I'll go there*, puis expliquer que la marque montrait la consigne « au lieu de mentir sur la langue ». Il n'y a plus rien à expliquer.
+**Pas de cran au-dessus d'`ok`.** *Une construction difficile montée juste* — *« If I'd known, I would have told you »* contre *« I didn't know, so I didn't tell you »* — est une notion réelle et n'a **aucune norme fixe** : difficile dépend de qui parle, et l'app n'a pas de niveau d'apprenant. L'étiquette casserait donc la propriété qui fait exister cette aptitude. Une construction ambitieuse et réussie se fait marquer `juste`, du côté de la pertinence, où le critère est situationnel par construction.
 
-Et ça donne une propriété qui vaut cher : **la correction est toujours à son critère par défaut, donc toujours vérifiable au banc**, sur des phrases isolées. Le doc note ailleurs qu'une feuille sous consigne échappe au banc ; celle-ci n'y échappe jamais. C'est exactement ce dont le banc grammatical a besoin (`../../TODO.md`, chantier 2).
+**Aucun découpage par cause** — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. Et **aucun découpage par nature d'empan** non plus : viser une partie de la phrase est un acte de situation, donc ça se dit en consigne côté pertinence, et une préposition fautive se retrouve marquée des deux côtés, ce qui est déjà permis. Coût assumé, c'est grossier — *« I go there yesterday »* et *« I goed there »* tombent au même endroit.
 
-**Elle ne se découpe pas non plus par nature d'empan.** Le groupe verbal, le groupe nominal, la préposition, le circonstanciel, la proposition entière : cette liste fermée disparaît. Sans consigne, ces sous-feuilles seraient le seul moyen de viser quelque chose dans la correction — or viser est toujours un acte de situation. *« Travaille tes prépositions »* est donc une consigne côté pertinence, et une préposition fautive se retrouve marquée des deux côtés, ce qui est déjà permis. Une liste fermée de moins à tenir, et une étiquette de moins à demander au juge.
-
-Ce qui laisse la correction avec **un seul chiffre, absolu, qu'on ne peut que rendre plus ou moins sévère.** Tout ce qu'un défi veut viser, exiger ou souligner vit dans l'autre aptitude.
-
-**Deux étiquettes, qui pèsent pareil dans la feuille et ne déclenchent pas la même chose.**
-
-- **mal formé** — la phrase n'est pas bien montée : *I go there yesterday*, *I make my homework*.
-- **ne se dit pas** — ça n'existe pas dans la langue.
-
-**Pas deux feuilles pour autant.** *Ne se dit pas* est rare, donc une feuille à elle vaudrait 0 % partout — et ici 0 % est le bon bout, donc tout le monde y serait en A tout le temps, ce qui ne fait que diluer les autres. Et elle n'a pas besoin d'un poids : elle a besoin de son effet, qui ne voyage pas dans une note. Un défi qui veut qu'elle coûte plus cher branche une **condition** sur l'élément.
-
-**Ce qui a quitté la correction, c'est le choix.** *Maladroit* et *natif* n'étaient pas des degrés de correction, c'étaient des jugements sur ce qui **convient**, et ils sont maintenant la pertinence.
-
-**Et la règle qui conditionnait le côté positif disparaît.** Elle existait quand justesse et naturel étaient deux feuilles d'une même aptitude tirées d'un même marquage : sans elle, une tournure brillante compensait un verbe cassé à l'intérieur d'un seul chiffre. Deux aptitudes séparées font passer cette compensation par les poids, que quelqu'un règle et qui se lisent — ce que le doc accepte partout ailleurs (« entre feuilles, la moyenne décide seule »).
+**`ne se dit pas` a un effet qui ne transite par aucune note** : au moins un empan de ce cran ferme la porte du son, toujours (« La porte de reformulation »).
 
 #### La pertinence
 
-**La pertinence pose l'autre question — as-tu visé juste ?** Juste par rapport à la situation, à qui écoute, à ce qui a été demandé, et à ce qu'on voulait dire soi-même. Même marquage par groupes de mots, même dénominateur, trois étiquettes, et **trois feuilles, une par étiquette**, chacune binaire par mot.
+**L'autre question — as-tu visé juste ?** Juste par rapport à la situation, à qui écoute, à ce qui a été demandé, et à ce qu'on voulait dire soi-même. Même marquage, même dénominateur, même forme : **une feuille, dont les crans sont les étiquettes.**
 
-- **à côté** — ne vise pas ce qu'il fallait : le ton, la situation, la consigne. *Hey mate* à un client, *I entered the shop* en bavardant, un présent quand le passé était demandé.
-- **plat** — vise bon mais mollement : vague, basique, ou repris alors qu'un autre mot était disponible. *I did a thing*, *nice* pour la troisième fois.
-- **juste** — vise et touche : la tournure que le natif aurait choisie. *I popped into the shop*.
+| cran | ce qui le décide | valeur d'exemple |
+|---|---|---|
+| `juste` | vise et touche : la tournure que le natif aurait choisie — *I popped into the shop* | 1,00 |
+| `ok` | correct, sans plus | 0,90 |
+| `plat` | vise bon mais mollement : vague, basique, ou repris — *I did a thing*, *nice* pour la troisième fois | 0,50 |
+| `à côté` | ne vise pas ce qu'il fallait : le ton, la situation, la consigne — *Hey mate* à un client | 0,10 |
 
-**Trois feuilles plutôt qu'une feuille signée**, parce qu'une feuille signée obligerait à inventer une pondération entre les étiquettes — un demi pour l'une, un pour l'autre — que personne ne saurait justifier, et le doc a déjà refusé ça. Avec trois feuilles, un défi qui veut que *à côté* compte trois fois plus que *plat* met 3 et 1, et celui qui ne veut rien récompenser met 0 sur *juste*. Rien de tout ça n'était écrivable autrement.
+Sur *« Yeah, I went there last summer. It was nice »* — neuf mots, rien à côté, un mot mou : `(8 × 0,90 + 0,50) / 9 = 0,86`. Sur un passage où une tournure heureuse porte quatre mots sur dix : `(6 × 0,90 + 4 × 1,00) / 10 = 0,94`.
 
-**Le poids dit combien la feuille compte, les bornes disent combien on en tolère**, et ce sont deux questions différentes. *Plat* est bien négatif, seulement moins que *à côté* — et ce « moins » s'écrit en bornes A–E plus larges, une fois, comme défaut du projet. Pas en valeur, et pas dans un poids qu'un défi devrait penser à monter.
+**Une feuille signée avait été refusée, et la raison a changé.** L'objection était qu'il faudrait inventer une pondération entre les étiquettes que personne ne saurait justifier. Elle valait quand rien ne permettait de la poser ; la colonne est ce mécanisme, elle s'ancre par une phrase et elle se mesure comme le reste. Et ce qui oblige à rouvrir est plus fort que l'objection : **les étiquettes sont des parts d'un même gâteau**. Trois feuilles séparées forçaient `juste` à rendre 0 % quand rien n'était marqué — donc, son bon bout étant le haut, la pire note possible, alors qu'il ne s'était rien passé de mauvais. Toute une machinerie a été construite puis démontée pour contourner ça : un bonus qui n'entrait qu'au numérateur, un coefficient par nœud, des poids nuls par défaut, une direction par feuille. **Six pièces disparaissent avec la colonne.**
 
-**Un mot porte au plus une des trois étiquettes**, et une précédence fixe suffit à le garantir : *à côté* devant *plat* devant *juste*. C'est la règle déjà écrite pour la correction — un mot prend le pire cran qu'il porte et compte une fois. Le juge n'arbitre pas, l'app applique. Le cas qui décide est le groupe idiomatique mais hors ton : *crack on with it* dit à un client est de l'anglais précis, et faux ici ; l'exclusion le range en *à côté*, ce qui est le bon verdict.
+**Un mot porte au plus un cran**, et une précédence fixe suffit à le garantir : `à côté` devant `plat` devant `juste`. Le cas qui décide est le groupe idiomatique mais hors ton : *crack on with it* dit à un client est de l'anglais précis, et faux ici ; l'exclusion le range en `à côté`, ce qui est le bon verdict. Prix assumé : *stuff*, vague **et** trop familier, se range en `à côté` et n'apparaît pas comme mollesse. C'est le bon compromis quand même, l'étiquetage ne dépendant jamais des réglages.
 
-**Prix assumé : un mot peut s'échapper de la feuille qu'un défi pèse.** Un défi qui ne vise que la platitude verra *stuff*, vague **et** trop familier, étiqueté *à côté*, donc absent de sa feuille. C'est le bon compromis quand même : l'étiquetage ne dépend jamais des réglages, ce qui est l'invariant de fond du projet.
+**C'est elle qui porte la consigne**, donc tout ce qu'un défi veut exiger. La consigne se pose sur le **marquage** et non sur une feuille, et il peut y en avoir plusieurs à la fois, chacune avec sa durée (« Ce qui est jugé, ce qui est calculé »). Elle ne peut **qu'endurcir** : la précédence va de `à côté` vers `juste`, donc une consigne fait passer des groupes vers le cran plus sévère, jamais vers le plus doux. « Ignore les répétitions » reste inécrivable, ce qui est la règle.
 
-**Les bornes de *juste* ne se posent pas comme les deux autres.** Elle vaut zéro sur presque tous les passages — on ne place pas une tournure remarquable à chaque phrase. Posées comme celles de *plat*, ses bornes mettraient tout le monde en E tout le temps et plomberaient la pertinence pour rien : zéro doit y être une note correcte, et la moindre trouvaille faire monter. C'est un cas concret pour « où chaque sensibilité pose ses bornes », qui reste à écrire.
+**C'est la seule mesure du projet qui ait un bon côté**, et la raison tient à la nature des choses : pour le son, le modèle est la vérité, donc on ne peut pas faire mieux que lui. Pour une phrase il n'y a pas de modèle unique, donc on peut dépasser le simplement correct. Le cran haut est ce qui donne un sens à A.
 
-**La consigne se pose sur le marquage, pas sur une feuille.** Les trois ne sont pas trois jugements mais trois lectures d'un seul passage du juge, qui marque une fois ; il n'y a donc rien à quoi une consigne *par feuille* s'attacherait. Elles s'écrivent comme quelqu'un les écrirait : *« tu parles à un client, tiens-toi au passé, préfère les verbes à particule »* — et rien n'empêche qu'il y en ait plusieurs sur ce marquage, chacune avec sa durée (« Ce qui est jugé, ce qui est calculé »). Le doc le disait déjà de la correction sans en tirer la conséquence — *« leurs consignes lui sont donc données ensemble »*.
+**Le cran haut ne vaut que s'il est rare.** C'est l'argument déjà fait contre le marquage tout-ou-rien : quand tout est colorié, plus rien n'est signalé. Un juge qui en donne un passage sur deux le rend décoratif, et la consigne doit donc être exigeante. **Non mesuré** : personne ne sait à quelle fréquence ce juge-là en donnera.
 
-Deux choses en tombent. **La consigne ne touche jamais la correction**, bien qu'elle partage le marquage, ses deux étiquettes étant absolues. Et **elle ne peut qu'endurcir** : la précédence va de *à côté* vers *juste*, donc une consigne fait passer des groupes vers l'étiquette plus sévère, jamais vers la plus douce. « Ignore les répétitions » reste inécrivable, ce qui est la règle.
-
-**Le registre, la variété, la rareté et la complexité de la phrase n'ont pas de feuille à elles.** Le registre est ce que *à côté* dit ; la répétition, la vaguerie et la platitude de construction sont ce que *plat* dit. Une feuille par notion aurait compté deux fois les mêmes mots.
+**Le registre, la variété, la rareté et la complexité de la phrase n'ont pas de cran à eux.** Le registre est ce que `à côté` dit ; la répétition, la vaguerie et la platitude de construction sont ce que `plat` dit. Un cran par notion aurait compté deux fois les mêmes mots.
 
 **Un même mot peut être marqué par la correction et par la pertinence**, et son poids s'ajoute dans les deux. *« I make a thing »* est mal formé **et** plat : ce sont deux défauts réels, pas un compté deux fois. C'est la seule exception au principe qu'aucun mot n'entre dans deux feuilles dont les poids s'additionnent, et elle est assumée.
 
 #### La compréhension
 
-C'est la seule aptitude qui ne porte pas sur ce que l'apprenant produit. Les quatre autres mesurent des sons, des mots, des silences ; comprendre est ce qui **entre**, et l'app n'a aucune fenêtre dessus — elle ne peut que déduire de la réponse. Deux feuilles, une jugée et une calculée.
+C'est la seule aptitude qui ne porte pas sur ce que l'apprenant produit. Les quatre autres mesurent des sons, des mots, des silences ; comprendre est ce qui **entre**, et l'app n'a aucune fenêtre dessus — elle ne peut que déduire de la réponse.
 
-**Le suivi** — un cran par passage, jugé, sur trois positions ordonnées et **sans bon côté** : *clairement en rapport*, *incertain*, *à côté*. Il n'y a qu'une chose à faire, prendre ce qui a été dit ; rien au-dessus, donc *clairement en rapport* est le cas normal et pas un exploit.
+**Une feuille, le suivi : un cran par passage, jugé.** C'est la seule feuille du projet dont la finesse ne peut pas venir du comptage — toutes les autres moyennent des dizaines d'éléments, donc un jugement grossier répété donne un chiffre fin. Ici il y a un seul élément, donc la précision *est* celle du cran. C'est pourquoi il en porte six, là où trois suffisaient partout ailleurs.
 
-**Le cran *incertain* est ce qui fait tenir la feuille.** Sans lui, la réponse plausible qui n'engage rien — *« Did you manage to get the tickets? » — « Yeah, exactly »* — devait être comptée bonne ou fausse, et les deux étaient faux. Quelqu'un peut tenir une conversation entière sur *yeah*, *right*, *I think so*, et sortir avec un A. Ce cran est le seul moyen de le voir.
+**Un seul axe : ce que la réponse prouve d'avoir pris.** Sur le tour *« I finally got the tickets, but only for the Sunday matinée »* :
 
-**Ce qui est jugé n'est pas la qualité de la réponse mais ce qu'elle montre d'avoir pris.** *« Yes, I go yesterday at the shop and I buy two »* est mal dit et parfaitement en rapport ; *« I like the cinema very much »* est correct et à côté. Confondre les deux ferait de cette feuille un doublon de la correction. Et ce qui se marque n'est jamais la brièveté : *« Did you get the tickets? » — « Yeah »* est spécifique à ce qui a été demandé, donc en rapport.
+| cran | ce qui le décide | exemple |
+|---|---|---|
+| `entre les lignes` | répond à ce qui était sous-entendu, pas dit | *« Don't worry, I'll drive you home »* sur *« …though the last train's at eleven »* |
+| `précis` | reprend un élément que seul quelqu'un qui a entendu pouvait reprendre | *« Sunday? I thought you wanted the evening one »* |
+| `en rapport` | répond à ce que le tour disait, sans reprendre de détail | *« Oh nice, are you going? »* |
+| `sur le sujet` | accroche le thème, pas le tour | *« Yeah, tickets are so expensive these days »* |
+| `vague` | aurait marché quoi qu'on lui dise | *« Yeah, exactly »* |
+| `à côté` | preuve négative : répond à autre chose | *« I went to the cinema last week »* |
 
-**L'objet est le dernier tour de l'IA ; le contexte est la conversation.** Deux choses différentes. Ce qu'il fallait prendre, c'est ce qui vient d'être dit — répondre à la question d'il y a deux tours est *à côté*, même si le thème général tient encore. Mais le juge a besoin du fil pour résoudre les pronoms et les ellipses : *« And did she like it? » — « She loved it »* ne se juge pas sans savoir qui est *she*. C'est la règle déjà écrite pour toute mesure — lire ce dans quoi l'apprenant se trouve est permis, ce n'est pas juger dessus.
+**Un axe et un seul.** Un cran *partiel* — a pris une part du tour, raté l'autre — a été essayé et retiré : il mesure **combien du tour a été couvert**, pas la force de la preuve, donc il mettait deux axes dans une échelle qui ne se lisait plus. Le cas qu'il servait, le tour de l'IA qui porte une remarque *et* une question, revient à ce qu'il était : un **jugement** du juge, qui pèse si l'apprenant a pris ce qui appelait une réponse.
 
-**Le suivi pèse sur la difficulté du tour de l'IA, que le modèle rend avec sa réponse.** La longueur seule était grossière : *« Fancy a cuppa? »* est plus dur que quarante mots simples. Et la position du levier de complexité ne la remplace pas — elle demande un niveau, elle ne promet pas que chaque phrase soit dure, et la variation à l'intérieur d'une séance est réelle. C'est donc une réponse par phrase.
+**Le cran `vague` est ce qui fait tenir la feuille.** Sans lui, la réponse plausible qui n'engage rien devait être comptée bonne ou fausse, et les deux étaient faux. Quelqu'un peut tenir une conversation entière sur *yeah*, *right*, *I think so*, et sortir avec un A.
 
-**La difficulté remplace la longueur, et la longueur fait partie de ce que le modèle doit peser en la rendant.** Garder les deux compterait deux fois la même chose, un tour long étant noté plus dur précisément parce qu'il est long. D'où une symétrie utile : les mêmes trois dimensions des deux côtés — longueur, vocabulaire, structure demandées par les leviers, le même trio rendu par le cran.
+**Le haut est offert sur tous les tours**, ce qui compte : tout tour porte du contenu précis, donc `précis` est atteignable partout. Un cran du **milieu** parfois indisponible ne gênerait personne ; c'est seulement un cran du **haut** indisponible qui punirait tout le monde pour une occasion que personne ne lui a donnée. C'est aussi pourquoi `entre les lignes` se pose **juste au-dessus** de `précis` et non loin devant : un tour sans sous-entendu plafonne à `précis`, et ce manque doit coûter presque rien.
 
-Quatre choses à tenir avec lui. C'est un **poids, jamais une feuille** : il dit ce qu'on a envoyé, pas ce que l'apprenant a fait, et en feuille il noterait quelqu'un sur la difficulté de ce qu'il a reçu. C'est un **cran**, le retour le moins cher qui soit, une clé énumérée dans un appel qu'on fait déjà. Il **se stocke avec la version de ce qui l'a produit**, étant un jugement que rien ne rejoue à l'identique. Et ses limites s'écrivent avec lui, sinon elles se redécouvrent : personne ne le vérifie, il ne se rejoue pas à l'identique, et c'est le modèle qui note ce qu'il vient d'écrire.
+**Ce qui est jugé n'est pas la qualité de la réponse mais ce qu'elle montre d'avoir pris.** *« Yes, I go yesterday at the shop and I buy two »* est mal dit et parfaitement en rapport ; *« I like the cinema very much »* est correct et à côté. Confondre les deux ferait de cette feuille un doublon de la correction. Et ce qui se marque n'est jamais la brièveté : *« Did you get the tickets? » — « Yeah »* est spécifique à ce qui a été demandé.
 
-Une porte signalée sans être franchie : comparer le cran rendu à la position des leviers dirait si le modèle a obéi, ce que le drapeau *demandé* dit justement qu'on ne sait pas. **Non mesuré**, et rien ne s'en décide aujourd'hui.
+**L'objet est le dernier tour de l'IA ; le contexte est la conversation.** Répondre à la question d'il y a deux tours est `à côté`, même si le thème général tient encore. Mais le juge a besoin du fil pour résoudre les pronoms et les ellipses : *« And did she like it? » — « She loved it »* ne se juge pas sans savoir qui est *she*.
 
-Deux cas de bord. Un tour de l'IA qui contient plusieurs choses — une remarque et une question — demande au juge de peser s'il a pris **ce qui appelait une réponse** ; c'est un jugement, pas une règle. Et un passage sans tour de l'IA devant lui — l'apprenant qui parle en premier — n'a rien à avoir compris : **la feuille est absente**.
+**Le suivi pèse sur la difficulté du tour de l'IA, que le modèle rend avec sa réponse.** La longueur seule était grossière : *« Fancy a cuppa? »* est plus dur que quarante mots simples. Et la position du levier de complexité ne la remplace pas — elle demande un niveau, elle ne promet pas que chaque phrase soit dure. C'est donc une réponse par phrase.
 
-**Le marquage est une pastille en marge**, devant la phrase. C'est la seule mesure qui rende un verdict sur tout le passage, et la position le dit sans qu'on ait à l'apprendre : toutes les autres marquent des mots. Rien quand c'est clairement en rapport — le correct est l'absence de marque, comme partout —, **jaune** pour *incertain*, **rouge** pour *à côté*. Pas de vert : il est réservé à l'étiquette *juste*, seule chose du projet qui ait un bon côté, et le peindre ici en ferait une récompense pour un tour ordinaire. Un **cercle vide** dit *non mesuré*, là où l'absence de pastille dirait *il a compris*.
+**La difficulté remplace la longueur, et la longueur fait partie de ce que le modèle doit peser en la rendant.** Garder les deux compterait deux fois la même chose. D'où une symétrie utile : les mêmes trois dimensions des deux côtés — longueur, vocabulaire, structure demandées par les leviers, le même trio rendu par le cran.
 
-**Le nombre d'écoutes** — un entier par passage, hors du poids par longueur, exactement comme les tentatives. Comprendre à la première écoute et comprendre à la troisième ne sont pas la même chose, et rien d'autre ne porte cette distinction.
+Quatre choses à tenir avec lui. C'est un **poids, jamais une feuille** : il dit ce qu'on a envoyé, pas ce que l'apprenant a fait. C'est un **cran**, le retour le moins cher qui soit. Il **se stocke avec la version de ce qui l'a produit**. Et ses limites s'écrivent avec lui : personne ne le vérifie, il ne se rejoue pas à l'identique, et c'est le modèle qui note ce qu'il vient d'écrire.
 
-Le levier « réécoute autorisée, et combien de fois » ne remplace pas cette feuille, il la borne : c'est le même couple que les tentatives permises et le nombre de tentatives. **Mais elle est absente quand la réécoute n'est pas permise**, et quand le texte affiché la rend sans objet : tout le monde y est alors à 1, et une feuille constante partout tire la moyenne sans rien dire. Rien ne s'agrège entre ces réglages.
+Deux cas de bord. Un passage **sans tour de l'IA devant lui** — l'apprenant qui parle en premier — n'a rien à avoir compris : la feuille est **absente**. Et le **nombre d'écoutes** du tour de l'IA ne donne pas de note : c'est un compte, il vit dans les conditions (« Ce qui ne donne pas de note »).
 
-**Le suivi, lui, n'est jamais absent pour cause de texte affiché.** Voir le tour de l'IA est une aide en moins à trouver, pas une mesure qui disparaît : il reste à comprendre la langue, et quelqu'un qui lit la question et répond à côté ne l'a pas comprise. Une note ne se lit jamais sans la combinaison qui l'a produite, et ça suffit.
+**Le marquage du suivi est une pastille en marge**, devant la phrase. C'est la seule mesure qui rende un verdict sur tout le passage, et la position le dit sans qu'on ait à l'apprendre : toutes les autres marquent des mots. Rien pour `précis` et `en rapport` — le correct est l'absence de marque, comme partout —, **vert** pour `entre les lignes`, **jaune** pour `sur le sujet` et pour `vague`, **rouge** pour `à côté`. Un **cercle vide** dit *non mesuré*, là où l'absence de pastille dirait *il a compris*.
 
-#### La fluidité — le débit et les silences
+**Le vert marque le bon côté partout où il existe** — le cran `juste` de la pertinence et `entre les lignes` ici. C'est un amendement à la règle qui le réservait à `juste`, écrite quand la pertinence était la seule mesure à avoir un haut.
 
-**Le débit se mesure sur le temps de parole**, silences exclus : les mots retenus divisés par le temps où la bouche articule. Ce n'est pas une version approchée du débit sur la durée du tour, c'est une autre mesure — l'une dit à quelle vitesse le tour avance, l'autre à quelle vitesse on enchaîne. C'est la seconde qui parle d'anglais oral, un francophone lent étant souvent quelqu'un qui détache ses mots au lieu de les lier.
+**Le suivi n'est jamais absent pour cause de texte affiché.** Voir le tour de l'IA est une aide en moins à trouver, pas une mesure qui disparaît : il reste à comprendre la langue, et quelqu'un qui lit la question et répond à côté ne l'a pas comprise.
 
-Elle existe donc **aux trois positions de capture**, et sort de la liste des mesures réservées à la capture automatique, qui n'en garde qu'une : la part silencieuse. Ça compte, l'app étant en position 1 aujourd'hui : sans ça la fluidité n'aurait que ce que le juge lit dans le texte, et rien qui se mesure dans le temps.
+#### La fluidité
 
-**Le silence, de bout en bout, fait une seule feuille, la part silencieuse** — le temps de silence divisé par la durée du tour entier, de l'armement du micro à l'envoi. Elle couvre les trois moments où l'app garde du silence : avant le premier mot, entre les mots, après le dernier. Un tour de 21 s portant 6 s de silence vaut 29 %, que ce soit un blanc unique ou douze petits, au début, au milieu ou à la fin. L'app ne prétend pas savoir lequel est le pire : parler haché, chercher un mot une fois, tarder à démarrer ou tarder à rendre la parole sont des défauts différents, et aucun n'est clairement plus grave.
+Quatre feuilles qui donnent une note, et **rien n'y est compté deux fois** : `continuité` possède tout le silence, `le plus long silence` possède le blocage, le `débit` ne lit que le temps où la bouche articule, et `le remplissage et les reprises` possède les hésitations.
 
-**Un délai de grâce d'une seconde s'applique aux deux bords, jamais à l'intérieur.** Sans lui, le temps normal de réagir et de cliquer — le même pour tout le monde, qu'on ait dit un mot ou vingt — pèserait proportionnellement bien plus sur un tour court que sur un tour long : deux secondes de réflexe sur *« Yes, I did »* font 50 %, les mêmes deux secondes devant une réponse de vingt secondes ne font presque rien, pour un comportement identique. Le silence initial et le silence final comptent donc chacun leur durée moins une seconde, jamais moins que zéro ; un silence intérieur, lui, compte en entier — c'est justement le temps qu'on cherche à voir. Un tour où personne ne traîne, ni pour démarrer ni pour rendre la parole, vaut alors 0 %, quelle que soit sa longueur. La seconde n'est pas mesurée : comme la ligne des 30 points sur les gros ratés, elle vient d'un jugement plutôt que d'un banc, posée à hauteur d'un temps de réaction ordinaire.
+**La continuité** — la part du tour passée en silence, **moins celle du modèle sur la même phrase**. Le chiffre est en points de pourcentage, et il peut être négatif.
 
-**La grâce ne touche pas ce qu'une condition lit.** Les éléments de la feuille restent les silences avec leur durée réelle, non réduite — un silence de 6 s reste un silence de 6 s pour qui cherche un gros blanc. Elle ne joue que dans le chiffre de la feuille elle-même.
+Comparer au modèle fait un vrai travail : ce qui reste chez lui n'est pas rien, ce sont les **pauses prosodiques légitimes**, à la virgule, en fin de proposition. Le modèle s'arrête là, l'apprenant a le droit aussi. Et l'écart s'écrit en **différence** et non en rapport, pour la raison qui a déjà arrêté `r` en mélodie : la part silencieuse du modèle peut tomber à un ou deux pour cent sur une phrase courte, et un rapport y devient hypersensible — le même apprenant à 20 % donnerait un rapport de 10 ou de 40 selon le dénominateur.
 
-Prendre le silence comme élément et sa durée comme valeur donnerait une moyenne de durées, et **un tour sans aucun silence n'aurait pas d'élément, donc pas de feuille** : le tour le plus fluide possible ne serait pas noté. Disqualifiant.
+Se taire **moins** que le modèle n'est pas une faute de fluidité, et rien n'a besoin d'être écrêté pour ça : un écart négatif tombe au-dessus de la borne A, donc dans la même bande que zéro. C'est une asymétrie voulue avec le débit, où les deux côtés comptent — ne pas faire la pause de la virgule est une affaire de prosodie, pas de fluidité.
 
-Couper en deux feuilles comme les sons demanderait deux choses qui manquent. Le critère de coupe est que deux défis veuillent des choses **opposées** — « fais-toi comprendre » et « gomme ton accent » se contredisent —, alors que « ne t'arrête pas longtemps » et « ne t'arrête pas du tout » vont dans le même sens. Et la ligne du gros blanc ne viendrait de nulle part, là où celle des gros ratés était déjà à l'écran.
+**Un seuil de 200 ms décide ce qui compte comme silence, et il n'est pas arbitraire.** Les occlusives contiennent du silence : le /p/ de *stop*, le /t/ de *what* ferment la bouche pendant 50 à 150 ms. Sans seuil, une phrase riche en /p t k/ paraîtrait moins continue qu'une phrase pleine de voyelles — **pour son texte, pas pour son locuteur**, et comme cette feuille se lit dans l'absolu, ce biais ne s'annulerait nulle part. Avec seuil, elle compte des **pauses**, pas du silence acoustique. Ce seuil est partagé avec le débit, qui exclut exactement ce qu'elle compte.
 
-**Le gros blanc reste lisible par une condition**, qui va voir les éléments de la feuille — les silences avec leurs durées. Sa ligne est alors un choix de défi, cinq secondes pour l'un et trois pour l'autre, et non une propriété de la langue gravée dans la mesure.
+**Un délai de grâce d'une seconde s'applique aux deux bords, jamais à l'intérieur.** Sans lui, le temps normal de réagir et de cliquer — le même pour tout le monde, qu'on ait dit un mot ou vingt — pèserait bien plus sur un tour court que sur un tour long : deux secondes de réflexe sur *« Yes, I did »* font 50 %, les mêmes deux secondes devant une réponse de vingt secondes ne font presque rien, pour un comportement identique. La seconde n'est pas mesurée : comme la ligne des 30 points, elle vient d'un jugement, posée à hauteur d'un temps de réaction ordinaire. Et **elle ne touche pas ce qu'une condition lit** : un silence de 6 s reste un silence de 6 s pour qui cherche un gros blanc.
 
-**Le dénominateur est la durée du tour entière, de l'armement du micro à l'envoi.** Une seule feuille couvre tout le silence du tour, donc aucun silence n'est jamais compté par deux feuilles dont les poids s'additionneraient.
+**Le silence final compte, et c'est voulu : rendre la parole est un acte.** Dans une conversation réelle, on signale qu'on a fini — la voix qui retombe, le silence qu'on laisse à l'autre — et tarder à le faire est un vrai défaut, pas du bruit à retirer.
 
-**Le silence final compte, et c'est voulu : rendre la parole est un acte.** Dans une conversation réelle, on signale qu'on a fini — la voix qui retombe, le silence qu'on laisse à l'autre — et tarder à le faire est un vrai défaut, pas du bruit à retirer. Le clic en est le geste ; la grâce d'une seconde absorbe le temps normal de l'appuyer, et au-delà, le temps qui reste compte pareil qu'un silence intérieur.
+**Le plus long silence** — un seul élément, sa durée en secondes, et la série se lit en secondes : *« à partir de trois secondes, c'est un C »*.
 
-**En position 3, une hésitation qui dépasse x se voit à trois endroits.** Le silence est compté dans la part silencieuse, plafonné à x comme tout silence de cette position ; le tour est marqué interrompu ; et la phrase tronquée, souvent incomplète, se fait marquer par le juge de correction.
+Elle se sépare de la continuité par le test d'inversion, et il passe : **A** passe 40 % du tour en silence mais que des petites pauses, jamais plus de 0,8 s ; **B** en passe 25 % dont un blanc de 5 s d'un seul tenant. La continuité met A derrière, le plus long silence met B derrière. Deux défis opposés : *« ne laisse pas de trous »* et *« ne reste jamais bloqué »*. Le doc affirmait que ces deux-là allaient dans le même sens ; c'était trop vite dit.
 
-**Le tour interrompu est une feuille**, et elle se lit sur un passage : ce tour a-t-il été envoyé, oui ou non. Un seul élément, vrai ou faux. La part des tours interrompus d'une séance n'est pas la feuille, c'est ce que l'agrégation en fait — une feuille se calcule toujours sur un passage, et confondre les deux plans se paie vite.
+Prendre les silences comme éléments et faire leur moyenne ne marcherait pas : un tour sans aucun silence n'aurait pas d'élément, donc pas de feuille, et le tour le plus fluide possible ne serait pas noté. Une part du temps passée dans un blanc ne marcherait pas non plus, parce qu'elle serait diluée par la longueur du tour — le même blanc de 5 s ferait 50 % dans un tour de 10 s et 17 % dans un tour de 30 s, pour le même comportement. Le pire silence, lui, ne dépend de rien d'autre que de lui-même.
 
-Deux causes d'interruption, une seule feuille : le silence de plus de x en position 3, et le plafond de durée du tour, qui existe aux trois positions. C'est pourquoi elle est mesurable partout, et vaut « non » presque toujours là où aucun temps n'est imposé — presque, et non par construction. **Elle est hors du poids par longueur**, comme les tentatives : être interrompu est un fait, il ne compte pas double parce que la phrase était longue.
+Ce qu'elle ignore, assumé : deux blancs de 5 s valent un seul. C'est la continuité qui porte l'accumulation.
 
-Et ce qui compte comme silence ne demande aucun chiffre neuf : c'est ce que le découpage en segments appelle déjà silence, un tour étant une liste de segments dont les silences sont gardés comme durées (`../reference.md`).
+**Le débit** — l'écart de vitesse au modèle, en pourcentage, sur les seuls mots retenus.
+
+```
+v     = temps de parole de l'apprenant ÷ temps de parole du modèle
+écart = (le plus grand de v et 1/v) − 1
+```
+
+**Comparé au modèle et non dans l'absolu**, ce qui remet le débit sous la règle générale du projet — *le modèle est la vérité, s'en écarter se marque* — à laquelle il n'avait aucune raison d'échapper. Le texte étant le même des deux côtés, il n'y a **rien à compter**, ni mots ni syllabes : l'unité s'annule, et la question « combien de mots par seconde parle un bon apprenant », qui n'a pas de réponse indépendante du texte, disparaît.
+
+**Symétrique par construction** : deux fois plus lent et deux fois plus rapide donnent tous les deux 100 %. **Le signe ne se perd pas**, il change d'usage — il n'entre pas dans la note, il s'affiche (*« tu parles 30 % trop lentement »*) et une condition peut le lire, ce qui est le seul endroit où *trop lent* et *trop rapide* se distinguent. **Hypothèse à vérifier** : que les deux côtés soient également gênants. La lenteur est le défaut du francophone, l'excès de vitesse est rare. Si la mesure dit qu'ils ne se valent pas, la série devient asymétrique — deux listes au lieu d'une, une extension et non une refonte.
+
+**Le temps de parole exclut les silences des deux côtés**, donc le silence n'est jamais compté deux fois. Ce qui veut dire que **détacher ses mots au lieu de les lier** — le défaut francophone que le doc voulait voir ici — se fait voir par la **continuité**, sous forme de petites pauses, ce qui est plus juste : détacher ses mots, c'est littéralement en fabriquer. Le débit garde ce qu'il est seul à voir : **articuler lentement à l'intérieur des mots**, voyelles étirées et consonnes sur-prononcées, qui ne produit aucun silence.
+
+**Et il ne lit que les mots retenus.** Le temps de parole brut de l'apprenant contient ses *um* et ses morceaux abandonnés, que le modèle ne dit pas : un tour hésitant aurait donc un temps gonflé, un gros écart de vitesse, et serait pénalisé sur le débit **en plus** de sa propre feuille. Le doc voulait ça quand rien d'autre ne voyait les hésitations ; maintenant qu'elles ont leur feuille, la raison est servie une fois. L'alignement sait où tombe chaque mot, donc la durée des seuls mots retenus se calcule sans découper l'audio.
+
+**Deux mises en garde communes au débit et à la continuité.** Toutes deux prennent le modèle pour référence, et **les deux côtés ne passent pas par la même machine** — contrairement aux sons, où le biais s'annule parce que c'est le même réseau qui lit les deux enregistrements. La vitesse et le taux de pause d'une voix de synthèse sont un **choix de fournisseur**. À mesurer sur le catalogue : si les voix divergent trop, la référence bouge sous les pieds de la mesure, et il faudra soit normaliser, soit revenir à un absolu.
 
 #### Le remplissage et les reprises
 
-**Les répétitions et les faux départs font une seule feuille.** Répéter, c'est repartir avec les mêmes mots : même geste, une phrase commencée puis reprise. Les séparer demanderait de dire à partir de quel mot changé on quitte l'une pour l'autre, et aucun défi ne veut peser cette différence-là.
+**Une feuille, dont les crans partagent les mots prononcés.** Même forme que les marquages de la correction et de la pertinence, et pour la même raison : un mot prononcé est retenu, ou abandonné, ou du remplissage — trois tranches d'un même gâteau.
 
-**Les deux feuilles sont jugées, jamais calculées sur une liste de mots.** *euh* et *um* n'ont pas d'autre emploi, mais *I mean*, *like*, *well*, *actually* sont tous de vrais mots — « I mean what I say » et « it was, I mean, hard » ne diffèrent que par l'emploi. Ce n'est donc pas le mot qui décide, et seul le juge voit l'emploi. Elles prennent par là une consigne, ce qu'une feuille calculée ne peut pas prendre : « aucun mot du genre *I mean* » s'écrit telle quelle.
-
-**Le juge souligne, l'app compte** — la même répartition que pour la correction, et dans la même passe : deux sortes de marque de plus sur une phrase qu'il lit déjà, pas un appel de plus. Un cran par phrase, « il bafouille beaucoup », est écarté pour la raison habituelle : personne ne peut le vérifier, là où « ces quatre mots-là » se regarde.
+| cran | ce qui le décide |
+|---|---|
+| `retenu` | fait partie de la phrase |
+| `abandonné` | appartient à un morceau repris — *I went to the—* |
+| `remplissage` | *um*, *like*, *I mean* employés comme béquille |
 
 Sur *« It was, like, um, I went to the— I was going to the store »* : quatorze mots prononcés, deux de remplissage, quatre abandonnés, huit retenus.
 
-- **Le remplissage** — la part des mots prononcés employés comme remplissage. Binaire par mot, ici 2/14.
-- **Les reprises** — la part des mots prononcés appartenant à un morceau abandonné. Binaire par mot, ici 4/14.
+**Ça règle les deux dénominateurs.** Le doc devait expliquer pourquoi le remplissage se comptait sur les quatorze et la grammaire sur les huit, et pourquoi une part pouvait dépasser 100 % si on se trompait de dénominateur. Ici il n'y a qu'une feuille, sur les quatorze, et rien à réconcilier.
 
-Compter les mots abandonnés plutôt que le nombre de reprises suit la règle générale — jamais un nombre d'occurrences — et gradue ce que le nombre écrase : se reprendre après trois mots n'est pas se reprendre après huit.
+**Répéter et repartir sont un seul cran.** Répéter, c'est repartir avec les mêmes mots : même geste. Les séparer demanderait de dire à partir de quel mot changé on quitte l'un pour l'autre, et aucun défi ne veut peser cette différence-là.
 
-**Deux dénominateurs, et c'est l'application directe de « le dénominateur est ce que la feuille lit ».** Ces deux feuilles lisent tout ce qui est sorti de la bouche, les quatorze ; la correction, le poids par longueur et le débit lisent les mots retenus, les huit. Les mélanger casse dans les deux sens. La grammaire sur les quatorze ferait qu'hésiter améliore sa note — *« Yesterday I go to the market »* donne deux fautes sur six mots, 33 %, et la même phrase avec deux *um* donne deux sur huit, 25 %. Le remplissage sur les huit pourrait dépasser 100 %, *« um um um um I went »* donnant quatre mots de remplissage pour deux retenus, et une part qui dépasse 100 % n'est plus une part.
+**Le juge souligne, l'app compte** — la même répartition que pour la correction, et dans la même passe : des marques de plus sur une phrase qu'il lit déjà, pas un appel de plus. Un cran par phrase, « il bafouille beaucoup », est écarté pour la raison habituelle : personne ne peut le vérifier, là où « ces quatre mots-là » se regarde.
 
-Le débit se compte donc sur les mots retenus, rapportés à tout le temps de parole, hésitations comprises : chercher ses mots à voix haute ralentit le débit, et c'est exactement ce que la fluidité doit voir. Le silence, lui, ne bouge pas — un *um* est de la parole. Quelqu'un qui remplit ses blancs a une part silencieuse basse et un remplissage haut, deux feuilles qui disent chacune quelque chose de vrai.
+**C'est jugé et jamais calculé sur une liste de mots.** *euh* et *um* n'ont pas d'autre emploi, mais *I mean*, *like*, *well*, *actually* sont tous de vrais mots — *« I mean what I say »* et *« it was, I mean, hard »* ne diffèrent que par l'emploi. Ce n'est donc pas le mot qui décide, et seul le juge voit l'emploi. La feuille prend par là une **consigne**, ce qu'une feuille calculée ne peut pas prendre : *« aucun mot du genre I mean »* s'écrit telle quelle.
 
-**La voix modèle ne dit que les mots retenus.** Lui faire dire *« It was, like, um, I went to the... »* est exclu : le modèle est ce qu'on donne à imiter, et tout le montage repose sur le fait qu'il est la vérité.
+**La voix modèle ne dit que les mots retenus.** Lui faire dire *« It was, like, um, I went to the… »* est exclu : le modèle est ce qu'on donne à imiter, et tout le montage repose sur le fait qu'il est la vérité.
 
 **L'apprenant, lui, s'aligne sur tout ce qu'il a dit.** Sans les hésitations dans le texte, ces bouts d'audio n'ont aucune lettre en face et deviennent des sons en trop, donc des gros ratés par nature : hésiter coûterait une note de prononciation. **On aligne sur les quatorze, on compare sur les huit.**
 
-**Découper l'audio de l'apprenant pour n'en garder que les huit mots est refusé** par un invariant déjà écrit : rien ne se fait à un seul des deux audios (`../reference.md`). Et ça empirerait le problème de couture ci-dessous, en collant bout à bout deux morceaux que personne n'a prononcés à la suite.
+**Découper l'audio de l'apprenant pour n'en garder que les huit mots est refusé** par un invariant déjà écrit : rien ne se fait à un seul des deux audios (`../reference.md`). Et ça empirerait le problème de couture ci-dessous.
 
 **La couture de l'analyse gagne donc un paramètre** — `examine(said, model, text, kept)`. `text` reste la chaîne affichée, celle où toutes les marques s'indexent, et elle porte maintenant les hésitations ; `kept` dit les morceaux qui comptent, ceux sur lesquels le modèle a été synthétisé. Sans hésitation, `kept` couvre tout le texte et le comportement est celui d'aujourd'hui. C'est le seul endroit où « deux enregistrements de la même phrase » (`analysis/Analysis.kt`) cesse d'être exact : les deux audios ne portent plus le même texte, l'un contenant l'autre.
 
 **Prix assumé : aux coutures, un ou deux sons sont comparés hors de leur contexte.** Le *I* retenu qui suit un *the* abandonné n'a pas devant lui ce que le modèle a devant le sien, et un son est influencé par celui qui le précède. Ça ne se propage pas — une faute ne contamine pas la suite de la phrase (`../analysis.md`, brique 11) — et la redite l'annule, une phrase dite d'un trait n'ayant plus de couture. C'est une raison de plus de faire redire un tour hésitant.
 
-**Le bafouillage ne ferme pas la porte de reformulation.** Elle existe parce que la phrase va être *réécrite* : les mots changent, donc l'analyse porterait sur du texte mort. Ici les mots retenus sont les bons, ils ont seulement été dits en trébuchant. L'analyse tourne, au prix des coutures.
+**Le bafouillage ne ferme pas la porte du son.** Elle existe parce que la phrase va être *réécrite* : les mots changent, donc l'analyse porterait sur du texte mort. Ici les mots retenus sont les bons, ils ont seulement été dits en trébuchant. L'analyse tourne, au prix des coutures.
 
-**Ce qui est écarté reste affiché, grisé et entre crochets** — `I am [um] twenty five years old`. Les crochets disent ce que la pâleur seule ne dit pas : ce morceau n'est pas dans la phrase. C'est la vérité du calcul — ni analysé, ni lu par la correction, ni à redire — et c'est ce qui explique pourquoi ces lettres n'ont aucune couleur. Sans eux, l'apprenant voit un trou sans sa raison.
+**Ce qui est écarté reste affiché, grisé et entre crochets** — `I am [um] twenty five years old`. Les crochets disent ce que la pâleur seule ne dit pas : ce morceau n'est pas dans la phrase. C'est la vérité du calcul — ni analysé, ni lu par la correction, ni à redire — et c'est ce qui explique pourquoi ces lettres n'ont aucune couleur. Rien à régler pour les redites : le fil ne montre que la dernière tentative, donc une redite propre n'affiche aucun crochet.
 
-Rien à régler pour les redites : le fil ne montre que la dernière tentative (`../reference.md`), donc une redite propre n'affiche aucun crochet et une redite hésitante affiche les siens. Les crochets appartiennent à la tentative, pas au passage.
+**Ces crans ne survivent qu'à une reconnaissance verbatim.** Un moteur qui nettoie les *euh* et les bégaiements les rend muets sans jamais le dire, et la fluidité paraîtra excellente. Et depuis qu'on aligne l'apprenant sur tout ce qu'il a dit, un nettoyage silencieux fait aussi rater le placement des sons dans un audio qui, lui, contient les hésitations. Le critère de fidélité verbatim du banc (`../../TODO.md`, chantier 2) ne pesait jusqu'ici que sur la grammaire ; il pèse maintenant sur la mesure des sons.
+
+#### Ce qui ne donne pas de note
+
+**Certaines feuilles se calculent et n'entrent dans aucune note.** Elles existent pour les **conditions**, qui les lisent comme n'importe quelle autre feuille. Ni sensibilité, ni poids : deux champs qui n'ont pas d'objet, plutôt que d'être déclarés inertes.
+
+- **Le tour interrompu** — ce tour a-t-il été envoyé, oui ou non. Un seul élément, vrai ou faux. Deux causes d'interruption et une seule feuille : le silence de plus de x en troisième position de capture, et le plafond de durée du tour, qui existe aux trois positions. Un chiffre à deux valeurs ferait un mauvais membre de moyenne — tout ou rien, aucune gradation, et son poids ferait basculer l'aptitude entière d'un coup.
+- **Les comptes** — les redites, les reformulations, le nombre d'écoutes du tour de l'IA. Ce sont des entiers, ils ne se normalisent pas, et surtout ils **montent à chaque tentative** : pesés dans une aptitude qui fait refaire, la note ne peut plus repasser la barre et l'apprenant brûle ses tentatives sans issue. Un défi qui veut la réussite d'emblée l'écrit en **condition** — *« au-delà de deux tentatives, perds une vie »* — et pas en poids.
+
+**La part des tours interrompus d'une séance n'est pas la feuille**, c'est ce qu'une lecture en fait : une feuille se calcule toujours sur un passage, et confondre les deux plans se paie vite.
 
 ### L'agrégation se fait une fois, à plat
 
 **Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
 
-La raison est qu'une cascade de moyennes redistribue en silence des poids que personne n'a réglés, dès qu'une feuille manque — et il en manque tout le temps : la fluidité n'a rien à lire en capture manuelle, un passage dont la porte de reformulation s'est fermée n'a aucune mesure de son.
+La raison est qu'une cascade de moyennes redistribue en silence des poids que personne n'a réglés, dès qu'une feuille manque — et il en manque tout le temps : l'accent lexical n'est pas en service, un passage dont la porte du son s'est fermée n'a aucune mesure de son.
 
-Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont le second a la porte fermée — passage 1 : sons 40, mélodie 80, correction 90 ; passage 2 : correction 50. En cascade, le passage 1 vaut 70, le passage 2 vaut 50 puisque sa moyenne se renormalise sur ce qui reste, et la séance 60. À plat, (40 + 80 + 90 + 50) / 4 = 65. L'écart n'est pas l'arrondi : dans la cascade, la correction a fini par peser deux tiers de la séance et l'élocution un tiers, l'inverse exact du 2:1 demandé, parce qu'au passage 2 elle était seule et a pris tout le passage pour elle.
+Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont le second a la porte fermée — passage 1 : sons 40, mélodie 80, correction 90 ; passage 2 : correction 50. En cascade, le passage 1 vaut 70, le passage 2 vaut 50 puisque sa moyenne se renormalise sur ce qui reste, et la séance 60. À plat, (40 + 80 + 90 + 50) / 4 = 65. L'écart n'est pas l'arrondi : dans la cascade, la correction a fini par peser deux tiers de la séance et l'élocution un tiers, l'inverse exact du 2:1 demandé.
 
-**Une feuille absente sort de la somme, elle ne vaut jamais zéro.** C'était déjà la règle pour la fluidité ; elle vaut pour toutes.
+**Une feuille absente sort de la somme, elle ne vaut jamais zéro.**
 
-**Chaque feuille pèse par la longueur du passage** — sauf le suivi, qui pèse sur la difficulté du tour de l'IA, la matière qu'il couvre (« La compréhension »). Proportionnel à la longueur est un peu arbitraire, un contour mélodique étant un contour qu'il soit long ou court ; c'est uniforme, et le tenir sur une longue phrase est effectivement plus de travail. La longueur se compte en **mots retenus** plutôt qu'en sons : un passage dont la porte a coupé l'analyse n'a pas de sons et a toujours des mots.
+**Chaque feuille pèse par la longueur du passage** — sauf le suivi, qui pèse sur la difficulté du tour de l'IA, la matière qu'il couvre. Proportionnel à la longueur est un peu arbitraire, un contour mélodique étant un contour qu'il soit long ou court ; c'est uniforme, et le tenir sur une longue phrase est effectivement plus de travail. La longueur se compte en **mots retenus** plutôt qu'en sons : un passage dont la porte a coupé l'analyse n'a pas de sons et a toujours des mots.
 
 **Entre feuilles, la moyenne décide seule** : pas de plancher qui plafonnerait la note dès qu'une feuille comptée passe sous la barre. Une bonne feuille peut donc en masquer une mauvaise, et c'est accepté — dans un défi, peu de feuilles comptent, et la sensibilité de chacune dit à quel point elle est facile à tenir.
 
@@ -737,7 +811,7 @@ Les trois autres lectures sont pires. La **première** rend la redite sans effet
 
 **Proposé, non tranché : la dernière tentative ne porterait que les feuilles que la redite sert à corriger** — l'élocution et la correction —, la fluidité et la pertinence lisant la **première**, parce qu'une phrase répétée n'est plus de la parole spontanée et que c'est la parole spontanée qu'elles mesurent. C'est une lecture précise de la règle déjà écrite plus bas, qui dit qu'une redite ne compte que pour l'élocution ; elle n'a pas été éprouvée.
 
-**Une redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative. Mais les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue, et le compte des essais est une feuille. Ça tranche ce que `../reference.md` laissait ouvert sur le sort de la phrase initiale.
+**Une redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative. Mais les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue, et le compte des essais se lit par les conditions. Ça tranche ce que `../reference.md` laissait ouvert sur le sort de la phrase initiale.
 
 **Deux boutons, et c'est eux qui ferment le passage.** Le gros bouton dit une chose neuve et fait avancer la conversation ; un petit bouton posé sur la phrase la reprend, exactement comme pour la prononciation. **Le passage se ferme à l'appui sur le gros bouton** — l'app n'a rien à deviner de ce qui vient d'être dit, c'est un fait d'interface. Le budget épuisé fait disparaître le petit bouton, et il n'y a pas de reprise qui ne compterait pas : les tentatives plafonnent les reprises, un point c'est tout, et qui veut la liberté ne contraint pas les tentatives.
 
@@ -749,28 +823,18 @@ Les trois autres lectures sont pires. La **première** rend la redite sans effet
 
 Reste le cas où la phrase corrigée dit autre chose que ce que l'IA avait compris, sa réponse devenant absurde. La redite ne fabrique pas ce risque, elle le révèle : l'app répond à l'intention, et se tromper d'intention est le cas déjà écrit de `../reference.md`. Le remède est celui de n'importe quelle conversation — le dire au tour suivant.
 
-**Le nombre de tentatives est lui-même une feuille** : réussir du premier coup et réussir au troisième ne sont pas la même chose. Poids à 0 le plus souvent, monté par un défi qui veut la réussite d'emblée. Reformuler et redire ne se comptent pas ensemble — deux feuilles, une par compteur, du même découpage que les leviers.
+**Le nombre de tentatives se compte, et il ne donne pas de note** : réussir du premier coup et réussir au troisième ne sont pas la même chose, mais un compte monte à chaque essai, donc pesé dans une aptitude qui fait refaire il enferme l'apprenant — plus il répare, plus il s'enfonce, sans sortie (« Ce qui ne donne pas de note »). Un défi qui veut la réussite d'emblée l'écrit en **condition**. Reformuler et redire se comptent séparément, du même découpage que les leviers.
 
 ### Les étiquettes de l'empan
 
-Le juge marque **par groupe de mots**, une seule fois pour les deux aptitudes, et chaque empan porte **une** étiquette. Deux vont à la correction, trois à la pertinence, et le neutre ne se marque pas :
+Le juge marque **par groupe de mots**, une seule fois pour les deux aptitudes, et chaque empan porte **une** étiquette par aptitude. L'app déplie ensuite chaque empan en ses mots, et un mot qui ne porte rien vaut `ok`, qui est un cran comme les autres et non une absence :
 
-- **ne se dit pas** — hors de la langue. *(correction)*
-- **mal formé** — la phrase n'est pas bien montée. *(correction)*
-- **à côté** — ne vise pas ce qu'il fallait. *(pertinence)*
-- **plat** — vague, basique, ou repris. *(pertinence)*
-- *(rien)*.
-- **juste** — vise et touche. *(pertinence)*
+- correction — `ne se dit pas`, `mal formé`, `ok`. **Absolues** : aucune consigne ne les déplace.
+- pertinence — `à côté`, `plat`, `ok`, `juste`. **Situationnelles**, et la consigne façonne où passe leur frontière.
 
-Les deux de la correction sont **absolues** : aucune consigne ne les déplace. Les trois de la pertinence sont **situationnelles**, et la consigne façonne où passe leur frontière.
+**Deux échelles, deux feuilles, et pas une feuille par étiquette.** Les étiquettes d'une même échelle se partagent les mêmes mots : ce sont des tranches d'un gâteau, pas des mesures indépendantes. Le calcul est écrit en « La correction » et « La pertinence ».
 
-**C'est la seule mesure du projet qui ait un bon côté**, et la raison tient à la nature des deux : pour le son, le modèle est la vérité, donc on ne peut pas faire mieux que lui — être dessus est l'attendu, et sous la bande de bruit rien ne se distingue. Pour une phrase il n'y a pas de modèle unique, donc on peut dépasser le simplement correct. Le cran haut est ce qui donne un sens à A : sans lui, A et B disaient tous deux « rien à signaler » et la différence n'était observable nulle part.
-
-**Le juge rend le cran, et rien de plus fin.** Sur trois mots, « haut de plat » n'est pas un jugement que quelqu'un pourrait vérifier. La finesse ne se perd pas, elle change d'endroit : elle vient du comptage — combien de groupes marqués, à quel cran, sur quelle longueur de phrase. Un passage se note donc finement en agrégeant beaucoup de jugements grossiers, exactement comme le fait déjà l'élocution. Coût assumé : un passage de trois mots portant un seul groupe marqué a une note très grossière. C'est une grossièreté vraie, pas une fausse précision.
-
-**Le cran haut ne vaut que s'il est rare.** C'est l'argument déjà fait contre le marquage tout-ou-rien : quand tout est colorié, plus rien n'est signalé. Un juge qui en donne un passage sur deux le rend décoratif, et la consigne doit donc être exigeante. **Non mesuré** : personne ne sait à quelle fréquence ce juge-là en donnera.
-
-**Le calcul est écrit** en « La correction » et « La pertinence » : une feuille pour la correction, trois pour la pertinence, une par étiquette.
+**Le juge rend le cran, et rien de plus fin.** Sur trois mots, « haut de plat » n'est pas un jugement que quelqu'un pourrait vérifier. La finesse ne se perd pas, elle change d'endroit : elle vient du comptage — combien de mots à quel cran, sur quelle longueur de phrase. Un passage se note donc finement en agrégeant beaucoup de jugements grossiers, exactement comme le fait déjà l'élocution. Coût assumé : un passage de trois mots portant un seul groupe marqué a une note très grossière. C'est une grossièreté vraie, pas une fausse précision.
 
 Ça absorbe un chantier qui traînait à part (`../../TODO.md`, point 6) : le verdict grammatical était un booléen sur le tour entier, ce qui écrasait le fait qu'un passage puisse porter plusieurs fautes et empêchait de marquer la portion concernée. Un cran par groupe de mots règle les deux.
 
@@ -790,15 +854,17 @@ Les deux aptitudes issues du même marquage prennent **deux formes distinctes**,
 
 **Elle ne s'appelle plus grammaticale, et elle a deux raisons et non une.** La première est celle d'origine : on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire, elle va disparaître. La seconde est plus dure : **on ne fait pas prononcer au modèle une phrase incorrecte**, c'est ce qu'on donne à imiter, et tout le montage repose sur le fait que le modèle est la vérité — le même argument que pour les hésitations, dont la voix modèle ne dit jamais les mots écartés.
 
-Les deux n'ont pas la même portée. La seconde ne vaut que pour la correction, et **c'est elle qui rend cette porte-là non désarmable**. La première vaut pour tout ce qui provoque une réécriture.
+Les deux n'ont pas la même portée, et elles ne se lisent pas au même endroit.
 
-**Elle est donc câblée, et le ciblage passe par les poids.** Elle lit la note d'un **nœud d'aptitude** à la barre A–B, jamais une feuille désignée par une définition. Rien ne s'y perd : un défi qui ne veut viser que la mélodie met un poids sur la mélodie et zéro sur le reste de sa branche, et « élocution sous la barre » *devient* « mélodie sous la barre ». C'est ce que le doc dit déjà des poids — c'est ce qui permet de viser sans ajouter de champ —, et ça évite d'écrire deux fois le même ciblage, une fois dans l'arbre et une fois dans la porte.
+**La seconde est absolue et se lit sur un élément : au moins un mot `mal formé` ou `ne se dit pas` ferme la porte, toujours.** Une seule faute suffit, parce que la raison est un fait et non un dosage — la phrase à faire prononcer au modèle est incorrecte, point. Rien ne se règle là, et surtout **la note de correction n'a pas à être calibrée pour que la porte tombe juste** : la porte ne la lit pas. Ça libère la série de la correction, qui n'a plus qu'à noter.
+
+**La première est réglable et se lit sur une note.** Elle lit un **nœud d'aptitude** à la barre A–B, jamais une feuille désignée par une définition. Rien ne s'y perd : un défi qui ne veut viser que la mélodie met un poids sur la mélodie et zéro sur le reste de sa branche, et « élocution sous la barre » *devient* « mélodie sous la barre ». C'est ce que le doc dit déjà des poids — c'est ce qui permet de viser sans ajouter de champ —, et ça évite d'écrire deux fois le même ciblage, une fois dans l'arbre et une fois dans la porte.
 
 **Ce qui range chaque aptitude d'un côté ou de l'autre est déjà écrit : est-ce que les mots changent.** Appliqué aux cinq, ça ne laisse rien à décider :
 
 | ce qui ne passe pas | ce que ça produit | pourquoi |
 |---|---|---|
-| **correction**, ou un empan *ne se dit pas* | à reformuler | les mots changent |
+| **correction** — un seul mot marqué suffit | à reformuler | les mots changent |
 | **pertinence** | à reformuler | les mots changent |
 | **compréhension** | à reformuler | il faut répondre à autre chose |
 | **élocution** | à redire | la façon de dire change |
@@ -812,17 +878,17 @@ Les deux n'ont pas la même portée. La seconde ne vaut que pour la correction, 
 
 **Rien de ce qui est jugé ne s'éteint quand elle se ferme.** Toutes les feuilles jugées se calculent, puisque ce sont elles qui décident si elle se ferme — l'éteindre par sa propre décision serait circulaire. Ce qui s'éteint est l'analyse du son, et elle seule.
 
-**Et *ne se dit pas* n'est pas une porte, c'est une absence de sol.** Les deux se ressemblent à l'écran et n'ont rien à voir :
+**Trois choses se ressemblent à l'écran et n'ont rien à voir.**
 
-|  | la porte de reformulation | *ne se dit pas* |
-|---|---|---|
-| nature | une décision — on ne travaille pas une phrase qu'on va réécrire | une impossibilité — il n'y a pas de modèle à comparer |
-| ce qui est lu | la **note** d'un nœud d'aptitude, à la barre A–B | un **élément** : un seul empan suffit |
-| qui décide | l'activité, en disant de quelles aptitudes elle fait refaire | personne, c'est un fait |
-| négociable | oui, sauf la correction, qu'on ne peut pas donner à imiter fausse | non, il n'y a rien à négocier |
-| ce qui se passe | l'analyse du son ne tourne pas | l'analyse du son n'a pas d'objet |
+|  | la porte réglable | `mal formé` | `ne se dit pas` |
+|---|---|---|---|
+| nature | une décision — on ne travaille pas une phrase qu'on va réécrire | un refus — on ne donne pas à imiter une phrase fausse | une impossibilité — il n'y a pas de modèle à comparer |
+| ce qui est lu | la **note** d'un nœud d'aptitude, à la barre A–B | un **élément** : un seul mot suffit | un **élément** : un seul mot suffit |
+| qui décide | l'activité, en disant de quelles aptitudes elle fait refaire | personne, c'est un fait | personne, c'est un fait |
+| négociable | oui | non | non |
+| ce qui se passe | l'analyse du son ne tourne pas | l'analyse du son ne tourne pas | l'analyse du son n'a pas d'objet |
 
-Dans le premier cas la phrase **pourrait** être synthétisée et on choisit de ne pas le faire ; dans le second elle **ne peut pas** l'être, et la faire dire au modèle donnerait à imiter une non-phrase. Tout le montage repose sur le fait que le modèle est la vérité.
+Dans les deux premiers cas la phrase **pourrait** être synthétisée et on choisit de ne pas le faire ; dans le troisième elle **ne peut pas** l'être, et la faire dire au modèle donnerait à imiter une non-phrase. Tout le montage repose sur le fait que le modèle est la vérité.
 
 **On ne peut pas retirer l'empan et synthétiser le reste**, comme on retire un *um* du texte de référence. Un bafouillage est **hors** de la phrase ; un empan qui ne se dit pas est **dedans**, et demande à être remplacé. Le retirer laisserait *« I have [ ] years »*, que le modèle dirait *« I have years »* — une autre phrase, cassée elle aussi.
 
@@ -844,34 +910,62 @@ Trois conditions pour qu'une feuille existe, et elles tiennent ensemble :
 
 Aucune branche n'est close.
 
-**Élocution** — les gros ratés et la masse des écarts, deux feuilles sur les mêmes sons ; la distance des courbes et la part des mouvements non faits, deux feuilles sur la mélodie ; l'accent lexical, par mot ; le nombre de redites. Ce que vaut un élément et ce qui fait le dénominateur, feuille par feuille, est en « Des marques au chiffre d'une feuille ». *Candidate* : le rythme, les durées relatives comparées au modèle. La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer.
+**Chaque ligne dit ce que la feuille lit, comment un élément prend sa valeur, l'unité de son chiffre, et l'échelle où sa série se place.** Les valeurs des échelles sont des ordres de grandeur, à mesurer.
 
-**Correction** — une feuille, sans découpage et sans consigne : un jugement absolu sur la langue. Plus le nombre de reformulations.
+**Élocution**
 
-Aucun découpage par cause — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. Et aucun découpage par nature d'empan non plus : viser une partie de la phrase est un acte de situation, donc ça se dit en consigne côté pertinence. Coût assumé, c'est grossier — « I go there yesterday » et « I goed there » tombent au même endroit.
+| feuille | éléments | valeur d'un élément | chiffre | échelle de la série |
+|---|---|---|---|---|
+| intelligibilité | les sons | marche à 30 points | part des sons intelligibles | 0,80 → 1,00, tassée en haut |
+| proximité | les sons | rampe continue, 0 → 100 points | moyenne | 0,65 → 1,00, étalée |
+| mélodie | les syllabes | — | écart moyen, en **demi-tons** | 0 → ~6 *(bas est bon)* |
+| accent lexical | les mots de plus d'une syllabe que le modèle accentue nettement | vrai/faux | part des mots bien accentués | 0,70 → 1,00 |
 
-**Fluidité** — la part silencieuse du tour ; le débit ; le tour interrompu ; le remplissage ; les reprises. La première n'existe qu'en capture automatique ; le débit se mesure sur le temps de parole, et le tour interrompu se lit aux trois positions, le plafond de durée existant partout.
+La branche creuse gratuitement : la grille des sons est un inventaire fermé déjà attaché à chaque marque, donc un défi « travaille tes *th* » est un poids posé sur deux colonnes, sans juge et sans liste à inventer. *Candidate, non livrée* : les mouvements de la mélodie (« La mélodie »).
 
-Les deux dernières **ne survivent qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements les rend muettes sans jamais le dire, et la fluidité paraîtra excellente. Et depuis qu'on aligne l'apprenant sur tout ce qu'il a dit, un nettoyage silencieux fait aussi rater le placement des sons dans un audio qui, lui, contient les hésitations. Le critère de fidélité verbatim du banc (`../../TODO.md`, chantier 2) ne pesait jusqu'ici que sur la grammaire ; il pèse maintenant sur la mesure des sons.
+**Correction et pertinence** — deux feuilles sur un seul marquage jugé.
 
-**Pertinence** — trois feuilles sur le même marquage que la correction, une par étiquette : **à côté**, **plat**, **juste**. C'est elle qui porte la consigne, donc tout ce qu'un défi veut exiger. La variété, la rareté, le registre et la complexité de la phrase n'ont pas de feuille à elles : elles sont ce que ces trois étiquettes disent (« La pertinence »).
+| feuille | éléments | valeur d'un élément | chiffre | échelle de la série |
+|---|---|---|---|---|
+| correction | les mots retenus | colonne : `ok` / `mal formé` / `ne se dit pas` | moyenne | 0,80 → 1,00, tassée en haut |
+| pertinence | les mots retenus | colonne : `juste` / `ok` / `plat` / `à côté` | moyenne | 0,40 → 1,00 |
 
-**Compréhension** — le **suivi**, un cran par passage ; le **nombre d'écoutes** du tour de l'IA, absent quand la réécoute n'est pas permise.
+La correction est un jugement **absolu** contre une norme fixée par l'app, sans découpage et sans consigne ; la pertinence est **situationnelle** et porte tout ce qu'un défi veut exiger. La variété, la rareté, le registre et la complexité de la phrase n'ont pas de cran à eux : elles sont ce que `plat` et `à côté` disent.
 
-Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se lit qu'une fois**, par la fluidité : en faire aussi une mesure de compréhension compterait deux fois le même silence, avec deux poids qui s'additionnent sans que personne l'ait voulu. Et **l'allongement de syllabe** — « I waaaant », une hésitation portée par la durée — tomberait sur le même signal que le rythme de l'élocution ; il reste dehors tant que rien ne dit lequel des deux le lit.
+**Compréhension**
+
+| feuille | éléments | valeur d'un élément | chiffre | échelle de la série |
+|---|---|---|---|---|
+| suivi | le passage (un seul) | colonne : six crans | la valeur du cran | 0 → 1,00 |
+
+**Fluidité**
+
+| feuille | éléments | valeur d'un élément | chiffre | échelle de la série |
+|---|---|---|---|---|
+| continuité | le temps du tour, seuil à 200 ms | silence ou parole | écart au modèle, en **points de %** | −5 → ~40 *(bas est bon)* |
+| le plus long silence | un seul | — | durée, en **secondes** | 1 → ~8 *(bas est bon)* |
+| débit | un seul | — | écart de vitesse au modèle, en **%** | 8 → ~85 *(bas est bon)* |
+| remplissage et reprises | les mots prononcés | colonne : `retenu` / `abandonné` / `remplissage` | moyenne | 0,70 → 1,00 |
+
+La dernière **ne survit qu'à une reconnaissance verbatim** : un moteur qui nettoie les *euh* et les bégaiements la rend muette sans jamais le dire, et la fluidité paraîtra excellente. Et depuis qu'on aligne l'apprenant sur tout ce qu'il a dit, un nettoyage silencieux fait aussi rater le placement des sons dans un audio qui, lui, contient les hésitations. Le critère de fidélité verbatim du banc (`../../TODO.md`, chantier 2) ne pesait jusqu'ici que sur la grammaire ; il pèse maintenant sur la mesure des sons.
+
+**Ce qui se calcule sans donner de note** — le tour interrompu, le nombre de redites, de reformulations et d'écoutes. Les conditions les lisent (« Ce qui ne donne pas de note »).
+
+Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se lit qu'une fois**, par la continuité : en faire aussi une mesure de compréhension compterait deux fois le même silence, avec deux poids qui s'additionnent sans que personne l'ait voulu. Et **l'allongement de syllabe** — « I waaaant », une hésitation portée par la durée — n'a plus de feuille pour le lire depuis que le rythme est retiré ; il reste dehors.
 
 ## Ce qui est jugé, ce qui est calculé
 
-**Deux jugements viennent du modèle de langue** — le marquage des empans, dont l'app tire six feuilles, et le suivi de ce qui a été dit. Tout le reste se calcule : un écart de répartition, un silence, un débit, un rapport.
+**Trois marquages viennent du modèle de langue** — les empans de langue, dont l'app tire la correction et la pertinence ; le bafouillage, dont elle tire le remplissage et les reprises ; et le suivi de ce qui a été dit. Tout le reste se calcule : un écart de répartition, un silence, un débit, un rapport.
 
 **Le juge rend un cran, jamais un pourcentage.** « 72 % de suivi » n'est vérifiable par personne, et la finesse vient du comptage, comme pour les sons. Les échelles qui suivent sont tranchées.
 
-- **empan** — un groupe de mots et son étiquette, une seule : *ne se dit pas*, *mal formé*, *à côté*, *plat*, *juste*, du remplissage, ou un morceau abandonné. Un mot n'en porte jamais deux (« Les étiquettes de l'empan »).
-- **suivi** — un cran par passage, et **pas de bon côté** : *clairement en rapport* / *incertain* / *à côté*. Il n'y a qu'une chose à faire, prendre ce qui a été dit ; rien au-dessus (« La compréhension »).
+- **empan de langue** — un groupe de mots, une étiquette de correction (`ne se dit pas`, `mal formé`, `ok`) et une de pertinence (`à côté`, `plat`, `ok`, `juste`). Un mot ne porte jamais deux étiquettes de la même échelle (« Les étiquettes de l'empan »).
+- **bafouillage** — chaque mot prononcé est `retenu`, `abandonné` ou `remplissage` (« Le remplissage et les reprises »).
+- **suivi** — un cran par passage, sur un seul axe, *ce que la réponse prouve d'avoir pris* : `entre les lignes` / `précis` / `en rapport` / `sur le sujet` / `vague` / `à côté` (« La compréhension »).
 
 **Un troisième cran revient du modèle et n'est pas une mesure : la difficulté de son propre tour**, qui sert de poids au suivi (« La compréhension »). Il ne dit rien de l'apprenant, donc il n'a pas de feuille, pas de sensibilité et pas de consigne.
 
-**Seul un marquage jugé prend des consignes** — du texte libre qui entre dans le critère que le juge lit, et non une feuille : plusieurs feuilles se lisent d'un même passage du juge, et il n'y a rien à quoi des consignes par feuille s'attacheraient. Il n'y a donc que deux endroits où elles s'accrochent, le marquage des empans et le suivi.
+**Seul un marquage jugé prend des consignes** — du texte libre qui entre dans le critère que le juge lit, et non une feuille : deux feuilles se lisent d'un même passage du juge sur les empans, et il n'y a rien à quoi une consigne par feuille s'attacherait. Il y a donc trois endroits où elles s'accrochent, les empans de langue, le bafouillage et le suivi. Sur les empans, une consigne ne touche que la **pertinence** : les crans de correction sont absolus.
 
 **Un marquage en porte plusieurs à la fois, chacune avec sa durée** — éternelle, ou un nombre de passages. Un patch en pose et en retire, donc une consigne arrive en cours de séance : *« au passage 4, tu lui mens sur tes intentions, pour trois passages »*. Une seule place remplacée à chaque fois ne marcherait pas dès que deux consignes n'ont pas la même durée — il faudrait réécrire le texte fusionné à chaque expiration. Le juge les reçoit toutes ensemble, et elles ne peuvent qu'endurcir, chacune comme l'ensemble.
 
@@ -887,7 +981,7 @@ Ce qui est posé ne vaut que pour la **suite** : un passage déjà dit n'est jam
 
 **Une feuille sous consigne n'est pas vérifiée par le banc**, qui éprouve le critère par défaut. Coût connu, pas un défaut à réparer.
 
-Trois défis que ça écrit sans champ neuf. « 100 % passé » est une consigne sur le marquage, et pèse la feuille *à côté* : *I'll go there* s'y range, ce qui ne ment pas sur la langue — la phrase est de l'anglais parfait qui ne convient pas ici, et la correction ne la voit pas. Le **mot interdit** est une consigne du même marquage : il n'a pas de feuille à lui, une feuille qui n'existe que si quelqu'un la configure ne passant pas les trois conditions. Et le **registre** — *« tu parles à un client »* — est de la même famille, comme la longueur imposée.
+Trois défis que ça écrit sans champ neuf. « 100 % passé » est une consigne sur le marquage, et fait tomber les mots concernés au cran `à côté` : *I'll go there* s'y range, ce qui ne ment pas sur la langue — la phrase est de l'anglais parfait qui ne convient pas ici, et la correction ne la voit pas. Le **mot interdit** est une consigne du même marquage : il n'a pas de feuille à lui, une feuille qui n'existe que si quelqu'un la configure ne passant pas les trois conditions. Et le **registre** — *« tu parles à un client »* — est de la même famille, comme la longueur imposée.
 
 **C'est donc la consigne de pertinence qui porte tout ce qu'un défi exige de la situation**, et il faut le dire là où on serait allé chercher un levier : l'écran custom et le catalogue donné au modèle (« Ce qui fait un levier »).
 
@@ -905,11 +999,19 @@ Une condition **lit le résultat d'un nœud, elle ne change pas ce qu'il mesure*
 
 **Trois formes, et il n'y en a pas d'autre.** Une condition lit :
 
-- **un élément** — au moins un élément atteint ou dépasse une valeur : un silence de plus de cinq secondes, un empan au cran « ne se dit pas », un son au-delà de la ligne du gros raté ;
+- **un élément** — au moins un élément atteint ou dépasse une valeur : un silence de plus de cinq secondes, un mot au cran `ne se dit pas`, un son au-delà de la ligne du gros raté ;
 - **le chiffre de la feuille** — plus de 30 % du tour passé en silence ;
 - **la note**, à la lettre que la condition nomme, **dans les deux sens** — tombé en D, ou atteint A.
 
-Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. La troisième **suit la sensibilité**, qui est précisément ce qui déplace les bornes A–E : monter la sévérité rend la condition plus fréquente sans qu'on la touche, et c'est un service — un défi dit « plus dur » d'un seul geste. La porte de reformulation est de cette troisième forme, et quelle feuille elle lit est écrit par le défi.
+**Ce que la première forme peut dire dépend de la nature de l'élément**, et il n'y a rien de plus à déclarer, la feuille le disant déjà : un élément **vrai/faux** ou porteur d'un **cran** ne laisse rien à choisir — « au moins un mot `ne se dit pas` », sans valeur ; un élément qui porte une **quantité** prend un seuil — « un silence de plus de cinq secondes », « un son au-delà de la ligne du gros raté ».
+
+**La lecture par élément n'a pas de dénominateur, et c'est voulu** : c'est le seul endroit du projet où un fait absolu se lit. « Au moins un mot `à côté` » se déclenche pareil sur un passage de trois mots et sur un de trente ; qui veut la proportion lit le **chiffre**. C'est la règle déjà écrite — jamais un nombre d'occurrences dans une note, et le nombre ne disparaît pas pour autant, il vit dans la condition.
+
+**Sur un marquage, l'élément est le mot et jamais l'empan.** Un empan n'apporte rien de plus pour l'existence — il a toujours au moins un mot, donc « au moins un empan » et « au moins un mot » se déclenchent dans les mêmes cas — et sa **longueur** n'est pas lisible, parce qu'elle dépend de l'habitude de coupe du juge : *to the market* fait un empan de trois mots ou trois empans d'un mot, et une condition qui lirait la longueur serait vraie dans un cas et fausse dans l'autre.
+
+**Une condition sur un cran fréquent se déclenche presque toujours.** « Au moins un mot `plat` » est vrai à chaque passage ou presque, donc elle ne dit rien. C'est un conseil à qui écrit un défi, pas un interdit : un défi très strict peut vouloir exactement ça.
+
+Les deux premières formes portent leur seuil et ne bougent pas quand le défi durcit. La troisième **suit la sensibilité**, qui est précisément ce qui déplace les bornes A–E : monter la sévérité rend la condition plus fréquente sans qu'on la touche, et c'est un service — un défi dit « plus dur » d'un seul geste. La porte de reformulation est de cette troisième forme, et quelle feuille elle lit est écrit par le défi.
 
 **La barre A–B ne borne pas les conditions, et l'y avoir enfermées était une erreur de portée.** L'invariant qui fixe la barre a été écrit pour la **lecture d'un résultat** — l'activité est-elle réussie, le niveau suivant s'ouvre-t-il —, où deux boutons qui bougent rendraient le résultat illisible. Une condition n'est pas un résultat : *« quand il tombe en D, le barman fronce les sourcils »* ne se compare à rien, ne débloque rien, n'entre dans aucun classement. Son seuil est de la même famille que les cinq secondes de silence, une valeur que l'auteur choisit. **Ce qui reste à la barre est le verdict** : ce qui décide qu'un passage se refait ou qu'une activité est réussie. Au-delà, la barre est une convention plutôt qu'une règle.
 
@@ -919,11 +1021,11 @@ Les deux premières portent leur seuil et ne bougent pas quand le défi durcit. 
 
 **Une condition ne lit jamais autre chose que l'arbre.** Un fait porté par le tour — sa position de capture, comment il s'est fini — n'est pas lisible tel quel : il faut la feuille qui le lit, et c'est ce qui permet d'écrire un défi contre le catalogue plutôt que contre le code. La feuille du tour interrompu existe pour cette raison.
 
-**Le poids gouverne la note, la condition lit sans passer par lui.** Une feuille à 0 n'est pas éteinte : elle se calcule, et une condition la lit. Une feuille peut donc n'exister que pour les conditions et n'entrer dans aucune note nulle part — le tour interrompu pèse 0 en conversation libre, où aucun temps n'est imposé, et le défi qui veut de la réactivité lui met un poids, lui branche une condition, ou les deux.
+**Le poids gouverne la note, la condition lit sans passer par lui.** Une feuille à 0 n'est pas éteinte : elle se calcule, et une condition la lit. Certaines feuilles ne donnent d'ailleurs **aucune note** et n'existent que pour ça — le tour interrompu et les comptes (« Ce qui ne donne pas de note »).
 
 **Une condition lit un passage et se déclenche sur-le-champ ; l'accumulation vit dans l'effet, pas dans la lecture.** « Un tour interrompu coûte une vie » n'a besoin de compter jusqu'à trois nulle part : au troisième, le compteur de vies est à zéro. Ce qui a besoin de voir la séance entière est d'une autre nature — son issue (« La fin d'une séance et son issue »).
 
-**Rien ne s'écrit par feuille pour autant.** Une feuille déclare **deux unités**, celle de son chiffre et celle de ses éléments, et elles diffèrent presque toujours : la part silencieuse rend un pourcentage du tour et ses éléments sont des secondes ; la correction rend un pourcentage de mots et ses éléments sont des étiquettes. Une condition se dit alors partout pareil — quel nœud, laquelle des formes disponibles sur lui, et une valeur dans l'unité concernée.
+**Rien ne s'écrit par feuille pour autant.** Une feuille déclare ce que ses éléments sont et l'unité de son chiffre, et les deux diffèrent presque toujours : la continuité rend des points de pourcentage et ses éléments sont du temps ; la correction rend une moyenne et ses éléments sont des mots portant un cran. Une condition se dit alors partout pareil — quel nœud, laquelle des formes disponibles sur lui, et une valeur dans l'unité concernée.
 
 ## Le blocage
 
@@ -991,8 +1093,8 @@ boucle sur les tentatives :
 
   ── fin de tentative, premier temps : au retour de l'appel ──
   - l'app calcule les feuilles jugées et celles qui se lisent sur l'audio
-    et le texte : correction, pertinence, suivi, remplissage, reprises,
-    part silencieuse, débit, tour interrompu
+    et le texte : correction, pertinence, suivi, remplissage et reprises,
+    continuité, plus long silence, débit, tour interrompu
   - les règles de ce moment qui lisent ces feuilles se déclenchent
   - À REFORMULER si une aptitude des mots ne passe pas, ou sur un empan
     « ne se dit pas » → l'analyse du son NE TOURNE PAS
@@ -1000,7 +1102,8 @@ boucle sur les tentatives :
     à reformuler et que `avance.mots` est sur « attend »
 
   ── second temps : à la fin de l'analyse, si elle a tourné ──
-  - l'app calcule les feuilles du son : gros ratés, masse, mélodie, accent
+  - l'app calcule les feuilles du son : intelligibilité, proximité,
+    mélodie, accent lexical
   - les règles de ce moment qui lisent ces feuilles se déclenchent
   - À REDIRE si une aptitude de la façon de dire ne passe pas
     → notification : écoute le modèle et redis
@@ -1219,13 +1322,19 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 
 ## Ce qui reste à spécifier
 
-- **Où chaque sensibilité pose ses bornes A–E**, dans l'unité propre à chaque feuille. Écrit nulle part, et c'est ce qui rend les feuilles comparables entre elles. **Combien de positions** une sensibilité offre s'y décide aussi, et pas avant : le nombre est une conséquence de la finesse à laquelle des bornes se distinguent vraiment. Une pression concrète vers plus de trois — l'arcade monte quatre crans entiers, et si ces crans ne font varier que la sévérité et les aides, trois marches ne les portent pas.
-- **Ce qu'on fait des feuilles qu'une tentative de plus n'améliore pas**, maintenant qu'une aptitude qui fait refaire lit sa note entière. Le nombre d'écoutes ne redescend jamais, et les compteurs de tentatives montent à chaque essai : pesés dans une aptitude qui fait refaire, la note ne peut plus repasser la barre et l'apprenant brûle ses tentatives sans issue. La réponse posée est qu'**un compte ne se pèse pas dans la note** ; comment ça s'écrit se décide avec les bornes, les deux tenant au même endroit.
-- **Les deux valeurs de la mélodie** : la bande de bruit sous laquelle un mouvement n'en est pas un, et la ligne sur `r`. Plus l'extension de la brique 10 de la région voisée finale à chaque syllabe, qu'aucune étiquette du banc ne couvre.
+- **La série de chaque feuille** — la liste ordonnée de valeurs, dans son unité, dont les fenêtres sont les positions de sensibilité. La forme est écrite et l'échelle de chacune est posée (« La grille des mesures ») ; les valeurs, non. C'est ce qui rend les feuilles comparables entre elles, et ça se trouve au **banc de calibration**, feuille par feuille, sur des prises enregistrées selon des critères. **Combien de positions** s'y décide aussi et pas avant — une position de plus ne coûte plus qu'un nombre, donc la question a cessé d'être un arbitrage.
+- **Les colonnes** — ce que vaut chaque cran, pour les trois marquages jugés. Chacune s'ancre par une phrase : *un passage entièrement fait de ça vaudrait…*
+- **Le seuil de silence à 200 ms**, partagé par la continuité et par le débit, à placer au-dessus de la plus longue fermeture d'occlusive. Et le **seuil « le modèle accentue-t-il nettement ce mot »**, qui définit les éléments de l'accent lexical : cette feuille n'existe pas sans lui.
+- **L'écart de vitesse et de pause entre les voix du catalogue.** Le débit et la continuité prennent le modèle pour référence, et les deux côtés ne passent pas par la même machine : si les voix divergent trop, la référence bouge sous les pieds de la mesure.
+- **La fréquence des crans hauts** — `juste` et `entre les lignes`. Un juge qui en donne un passage sur deux les rend décoratifs.
+- **La symétrie du débit** : trop lent et trop rapide sont-ils également gênants. Sinon la série devient asymétrique, deux listes au lieu d'une.
+- **La norme de la correction**, qui n'est écrite nulle part — d'où *I'm doing good*. Elle vit dans le contexte permanent du prompt, et deux choses au moins s'y tranchent : la **variété** (au plus simple, celle de l'accent choisi) et le fait que **l'oral n'est pas de l'écrit**.
+- **L'arbre des poids de la conversation libre**, à écrire : c'est une définition livrée comme les autres.
+- **Les valeurs de la mélodie**, si la feuille des mouvements s'ouvre : la bande de bruit sous laquelle un mouvement n'en est pas un, et ce qui compte comme mouvement fait. Plus l'extension de la brique 10 de la région voisée finale à toute la phrase, qu'aucune étiquette du banc ne couvre.
 - **Comment un personnage obtient sa voix.** L'invariant seul est tranché : aucun nom de voix écrit en dur. Le mécanisme, les plafonds et ce qui reste à décider sont dans `character-voices.md` ; la question qui commande tout le reste y est BYOK ou clé hébergée.
 - **Ce que le prompt fait tenir des frontières qu'il ne prouve pas.** La forme est écrite (« Ce que le modèle reçoit ») ; ce qui reste est de le vérifier au banc, sur les deux fuites nommées — la persona qui atteindrait `intended`, et un historique qui déplacerait le marquage.
 - **Le rythme de montée de la rampe** d'arcade, maintenant qu'on sait qu'elle monte des crans entiers — et **ce que ces crans font varier**, les poids étant constants pendant une partie.
-- **Le degré de détail de l'écran d'avant-partie** (« Ce qui fait un levier »).
+- **Le degré de détail de l'écran d'avant-partie** (« Ce qui fait un levier »), et l'**écran custom** : poids et sensibilités s'y règlent en positions crantées, pas en nombres.
 - **Ce qu'on fait des réponses quand elles s'accumulent** — à la scène 12, onze scènes ont répondu. Les questions déclarées bornent, pas toujours assez (« L'histoire »).
 - **La part du prompt qui fabrique les occasions.** Un curseur haut ne sert à rien si la conversation ne place jamais l'apprenant devant la difficulté qu'il a demandée. Reste à partager entre ce qui passe par la parole de l'IA et ce qui passerait par une consigne hors parole (« notification » — autre nom à trouver).
 - **Les phrases lisibles de chaque position de levier**, qu'exigent la notification d'arcade et l'écran d'avant-partie. Le reste de la déclaration est écrit (« Le catalogue des leviers »), qui reste un brouillon et dont aucune liste n'est close.
