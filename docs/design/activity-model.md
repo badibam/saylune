@@ -94,7 +94,7 @@ Ce qui existe à un instant donné dans une activité donnée. L'inventaire sert
 
 - **Déclaré** — l'entrée figée, jamais réécrite. De la définition : l'origine, ce qui ouvre la séance, le `brief`, la distribution, les consignes de départ, les positions de leviers de départ, l'arbre des poids, les règles, les questions. De l'apprenant et non de la définition : son **nom**, sans lequel aucune scène ne peut le désigner ; l'accent, donc la voix de référence ; et les fournisseurs choisis par maillon, qui décident quelles briques sont allumées.
 - **Enregistré** — ce qui ne se recalcule pas : les énoncés et leur audio, les mesures de chaque tentative, le journal de ce qu'un tirage ou l'IA a choisi, et les faits portés par chaque tour — quelle position de capture était en vigueur, comment il s'est fini et par laquelle des deux horloges.
-- **Dérivé** — recalculable à tout instant depuis les deux autres : les positions effectives des leviers, les consignes en vigueur et ce qui reste de leur durée, les feuilles, les notes, le compte de passages et de tentatives, le blocage, la porte du son, l'avancement, l'issue, et les deux horloges qui tournent, le temps écoulé n'étant que maintenant moins le départ.
+- **Dérivé** — recalculable à tout instant depuis les deux autres : les positions effectives des leviers, les consignes en vigueur et ce qui reste de leur durée, les feuilles, les notes, le compte de passages et de tentatives, le blocage, les deux portes, l'avancement, l'issue, et les deux horloges qui tournent, le temps écoulé n'étant que maintenant moins le départ.
 
 **Une quatrième nature a été essayée et ne tient pas.** « Éphémère » devait ranger ce qui n'existe que le temps d'un tour — les horloges, le menu, le message qu'une règle vient de poser —, et aucun des trois ne s'y range : les horloges laissent une trace enregistrée, le menu se recalcule depuis les règles et l'état, le message est écrit dans la règle donc il est déclaré. Durer peu n'est pas une nature ; c'est une propriété à l'intérieur du dérivé, dont certaines parties se recalculent par passage et d'autres par tentative.
 
@@ -370,7 +370,7 @@ Trois choses tombent de cette forme.
 **Trois moments, et ils ne se distinguent pas par le goût mais par ce qui est calculé à cet instant.**
 
 - **Pendant l'enregistrement.** Deux horloges tournent, visibles toutes les deux : le temps d'enregistrement écoulé et le silence en cours. Aucune feuille n'existe encore, la personne est en train de parler — donc une règle de ce moment ne peut lire qu'une horloge. Ce n'est pas une restriction posée, c'est un fait sur ce qui existe.
-- **À la fin d'une tentative.** Le tour est parti, le modèle a répondu, l'analyse a tourné. Se décide là ce qui concerne cette tentative : la porte du son, et si la conversation attend ou poursuit.
+- **À la fin d'une tentative.** Le tour est parti, le modèle a répondu, l'analyse a tourné. Se décide là ce qui concerne cette tentative : les deux portes, et si la conversation attend ou poursuit.
 - **À la fermeture du passage.** La note du passage est celle de la dernière tentative et le compte des tentatives est connu. Tombe là tout le reste : les patchs, la rampe, les vies, la fin de la séance.
 
 **Un passage se ferme au gros bouton, pas quand un tour part.** Un passage est un énoncé et toutes ses redites, donc il contient autant de tentatives qu'on en fait, et en « attend » il ne peut pas se fermer du tout. C'est pourquoi le blocage ne peut pas attendre la fermeture : la règle qui décide d'attendre est précisément ce qui l'empêche.
@@ -627,7 +627,7 @@ Cette norme n'est **écrite nulle part** aujourd'hui, et c'est un trou : elle es
 
 **Aucun découpage par cause** — temps, accord, préposition — parce qu'une liste de causes n'est jamais complète : elle finit avec un tiroir « autre » qui ne nomme rien et qu'on ne saurait pas peser. Et **aucun découpage par nature d'empan** non plus : viser une partie de la phrase est un acte de situation, donc ça se dit en consigne côté pertinence, et une préposition fautive se retrouve marquée des deux côtés, ce qui est déjà permis. Coût assumé, c'est grossier — *« I go there yesterday »* et *« I goed there »* tombent au même endroit.
 
-**`ne se dit pas` a un effet qui ne transite par aucune note** : au moins un empan de ce cran ferme la porte du son, toujours (« La porte de reformulation »).
+**`ne se dit pas` a un effet qui ne transite par aucune note** : au moins un mot de ce cran et l'analyse du son ne tourne pas, quels que soient les poids et les sensibilités — il n'y a pas de modèle à comparer (« Ce qui coupe l'analyse du son »).
 
 #### La pertinence
 
@@ -736,7 +736,7 @@ v     = temps de parole de l'apprenant ÷ temps de parole du modèle
 
 **Et il ne lit que les mots retenus.** Le temps de parole brut de l'apprenant contient ses *um* et ses morceaux abandonnés, que le modèle ne dit pas : un tour hésitant aurait donc un temps gonflé, un gros écart de vitesse, et serait pénalisé sur le débit **en plus** de sa propre feuille. Le doc voulait ça quand rien d'autre ne voyait les hésitations ; maintenant qu'elles ont leur feuille, la raison est servie une fois. L'alignement sait où tombe chaque mot, donc la durée des seuls mots retenus se calcule sans découper l'audio.
 
-**Deux mises en garde communes au débit et à la continuité.** Toutes deux prennent le modèle pour référence, et **les deux côtés ne passent pas par la même machine** — contrairement aux sons, où le biais s'annule parce que c'est le même réseau qui lit les deux enregistrements. La vitesse et le taux de pause d'une voix de synthèse sont un **choix de fournisseur**. À mesurer sur le catalogue : si les voix divergent trop, la référence bouge sous les pieds de la mesure, et il faudra soit normaliser, soit revenir à un absolu.
+**Une question qui ne se pose pas, notée pour qu'elle ne se repose pas.** Le débit et la continuité prennent le modèle pour référence, donc une voix rapide rend l'apprenant lent et une voix lente le rend rapide. Ce n'est pas un défaut à mesurer, c'est la règle du projet : le modèle est la source de vérité, une voix qui ne convient pas se remplace, et la suivante est la vérité exactement comme la précédente (`../reference.md`, question close). Et l'argument du biais de machine, qui vaut pour les sons, ne s'applique pas ici : une durée est une durée, mesurée pareil des deux côtés, il n'y a aucun biais à annuler.
 
 #### Le remplissage et les reprises
 
@@ -768,7 +768,7 @@ Sur *« It was, like, um, I went to the— I was going to the store »* : quator
 
 **Prix assumé : aux coutures, un ou deux sons sont comparés hors de leur contexte.** Le *I* retenu qui suit un *the* abandonné n'a pas devant lui ce que le modèle a devant le sien, et un son est influencé par celui qui le précède. Ça ne se propage pas — une faute ne contamine pas la suite de la phrase (`../analysis.md`, brique 11) — et la redite l'annule, une phrase dite d'un trait n'ayant plus de couture. C'est une raison de plus de faire redire un tour hésitant.
 
-**Le bafouillage ne ferme pas la porte du son.** Elle existe parce que la phrase va être *réécrite* : les mots changent, donc l'analyse porterait sur du texte mort. Ici les mots retenus sont les bons, ils ont seulement été dits en trébuchant. L'analyse tourne, au prix des coutures.
+**Le bafouillage ne coupe pas l'analyse du son.** Ce qui la coupe est que la phrase va être *réécrite* : les mots changent, donc l'analyse porterait sur du texte mort. Ici les mots retenus sont les bons, ils ont seulement été dits en trébuchant. L'analyse tourne, au prix des coutures.
 
 **Ce qui est écarté reste affiché, grisé et entre crochets** — `I am [um] twenty five years old`. Les crochets disent ce que la pâleur seule ne dit pas : ce morceau n'est pas dans la phrase. C'est la vérité du calcul — ni analysé, ni lu par la correction, ni à redire — et c'est ce qui explique pourquoi ces lettres n'ont aucune couleur. Rien à régler pour les redites : le fil ne montre que la dernière tentative, donc une redite propre n'affiche aucun crochet.
 
@@ -787,7 +787,7 @@ Sur *« It was, like, um, I went to the— I was going to the store »* : quator
 
 **Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
 
-La raison est qu'une cascade de moyennes redistribue en silence des poids que personne n'a réglés, dès qu'une feuille manque — et il en manque tout le temps : l'accent lexical n'est pas en service, un passage dont la porte du son s'est fermée n'a aucune mesure de son.
+La raison est qu'une cascade de moyennes redistribue en silence des poids que personne n'a réglés, dès qu'une feuille manque — et il en manque tout le temps : l'accent lexical n'est pas en service, un passage dont la porte des mots s'est fermée n'a aucune mesure de son.
 
 Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont le second a la porte fermée — passage 1 : sons 40, mélodie 80, correction 90 ; passage 2 : correction 50. En cascade, le passage 1 vaut 70, le passage 2 vaut 50 puisque sa moyenne se renormalise sur ce qui reste, et la séance 60. À plat, (40 + 80 + 90 + 50) / 4 = 65. L'écart n'est pas l'arrondi : dans la cascade, la correction a fini par peser deux tiers de la séance et l'élocution un tiers, l'inverse exact du 2:1 demandé.
 
@@ -819,7 +819,7 @@ Les trois autres lectures sont pires. La **première** rend la redite sans effet
 
 **Il revient quand les tentatives s'épuisent**, sinon rien n'avance. Ce qui se dit alors franchement plutôt que de se découvrir à l'usage : **« attend » ne garantit pas la réparation, il garantit qu'on dépense ses tentatives.** Un passage à reformuler peut se clore sans avoir été reformulé.
 
-**Et redire ne veut pas dire la même chose selon l'avance.** En « attend », l'IA n'a pas encore parlé : sa réponse se fabrique sur la version corrigée, et redire **corrige l'échange**. En « poursuit », elle a parlé, et refaire sa réponse serait la dédire, ce que le projet refuse partout : redire est alors un **exercice**, qui n'appelle aucune réponse neuve. Ce qu'il rapporte reste réel — la note du passage s'améliore, et la porte du son s'ouvre, donc l'analyse de prononciation devient possible là où un tour mal formé ne l'aurait jamais eue.
+**Et redire ne veut pas dire la même chose selon l'avance.** En « attend », l'IA n'a pas encore parlé : sa réponse se fabrique sur la version corrigée, et redire **corrige l'échange**. En « poursuit », elle a parlé, et refaire sa réponse serait la dédire, ce que le projet refuse partout : redire est alors un **exercice**, qui n'appelle aucune réponse neuve. Ce qu'il rapporte reste réel — la note du passage s'améliore, et l'analyse du son se remet à tourner, donc la prononciation se mesure là où un tour mal formé ne l'aurait jamais eue.
 
 Reste le cas où la phrase corrigée dit autre chose que ce que l'IA avait compris, sa réponse devenant absurde. La redite ne fabrique pas ce risque, elle le révèle : l'app répond à l'intention, et se tromper d'intention est le cas déjà écrit de `../reference.md`. Le remède est celui de n'importe quelle conversation — le dire au tour suivant.
 
@@ -848,27 +848,38 @@ Les deux aptitudes issues du même marquage prennent **deux formes distinctes**,
 
 **La pertinence se prend entre crochets** — rouge pour *à côté*, jaune pour *plat*, vert pour *juste*. Pas de collision avec le jaune de la vaguelette : la forme sépare les deux échelles, une enceinte n'étant pas un soulignement. Elle n'occupe ni l'intérieur des lettres ni la ligne de base, donc un mot peut être pris entre crochets et porter ses lettres teintées sans qu'on confonde les deux échelles. Les crochets tiennent les deux bouts du groupe sans courir le long du texte, ce qu'exige le fait que *juste* se marque aussi : presque tous les groupes portent une étiquette (`pixel-ui.md`). Le vert vit là et nulle part ailleurs, puisque c'est la seule mesure du projet qui ait un bon côté.
 
-### La porte de reformulation
+### Les deux portes
 
-**Elle se ferme sur ce qui va être réécrit**, plus sur le marquage. La raison de la porte a toujours été qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire ; tant que marquage et réécriture allaient ensemble, « marqué » était un bon substitut. Ce n'est plus le cas depuis que la correction a des leviers séparés.
+**Il y a une porte par sorte de réparation, et elles se lisent à deux moments différents.**
 
-**Elle ne s'appelle plus grammaticale, et elle a deux raisons et non une.** La première est celle d'origine : on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire, elle va disparaître. La seconde est plus dure : **on ne fait pas prononcer au modèle une phrase incorrecte**, c'est ce qu'on donne à imiter, et tout le montage repose sur le fait que le modèle est la vérité — le même argument que pour les hésitations, dont la voix modèle ne dit jamais les mots écartés.
-
-Les deux n'ont pas la même portée, et elles ne se lisent pas au même endroit.
-
-**La seconde est absolue et se lit sur un élément : au moins un mot `mal formé` ou `ne se dit pas` ferme la porte, toujours.** Une seule faute suffit, parce que la raison est un fait et non un dosage — la phrase à faire prononcer au modèle est incorrecte, point. Rien ne se règle là, et surtout **la note de correction n'a pas à être calibrée pour que la porte tombe juste** : la porte ne la lit pas. Ça libère la série de la correction, qui n'a plus qu'à noter.
-
-**La première est réglable et se lit sur une note.** Elle lit un **nœud d'aptitude** à la barre A–B, jamais une feuille désignée par une définition. Rien ne s'y perd : un défi qui ne veut viser que la mélodie met un poids sur la mélodie et zéro sur le reste de sa branche, et « élocution sous la barre » *devient* « mélodie sous la barre ». C'est ce que le doc dit déjà des poids — c'est ce qui permet de viser sans ajouter de champ —, et ça évite d'écrire deux fois le même ciblage, une fois dans l'arbre et une fois dans la porte.
+| | quand elle se lit | ce qu'elle produit | ce qu'elle lit |
+|---|---|---|---|
+| **la porte des mots** | au retour de l'appel | le passage est **à reformuler** | correction, pertinence, compréhension |
+| **la porte du son** | à la fin de l'analyse | le passage est **à redire** | élocution, fluidité |
 
 **Ce qui range chaque aptitude d'un côté ou de l'autre est déjà écrit : est-ce que les mots changent.** Appliqué aux cinq, ça ne laisse rien à décider :
 
 | ce qui ne passe pas | ce que ça produit | pourquoi |
 |---|---|---|
-| **correction** — un seul mot marqué suffit | à reformuler | les mots changent |
+| **correction** | à reformuler | les mots changent |
 | **pertinence** | à reformuler | les mots changent |
 | **compréhension** | à reformuler | il faut répondre à autre chose |
 | **élocution** | à redire | la façon de dire change |
 | **fluidité** | à redire | la phrase est la même, dite autrement |
+
+**Les deux lisent une note, à la barre A–B**, jamais une feuille désignée par une définition. Rien ne s'y perd : un défi qui ne veut viser que la mélodie met un poids sur la mélodie et zéro sur le reste de sa branche, et « élocution sous la barre » *devient* « mélodie sous la barre ». C'est ce que le doc dit déjà des poids — c'est ce qui permet de viser sans ajouter de champ —, et ça évite d'écrire deux fois le même ciblage, une fois dans l'arbre et une fois dans la porte.
+
+### Ce qui coupe l'analyse du son
+
+**Ce n'est pas une troisième porte, c'est une conséquence des deux premières, plus un cas.**
+
+> L'analyse du son ne tourne pas si la **porte des mots** s'est fermée, ou si un mot est marqué **`ne se dit pas`**.
+
+Le premier cas est la raison d'origine : on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire, elle va disparaître. Il a une conséquence d'ordre qui tombe toute seule — la porte des mots se lit **avant** que l'analyse tourne, donc quand elle se ferme, la porte du son n'a jamais l'occasion de parler.
+
+Le second n'est pas une décision mais **une absence de sol** : une phrase qui n'existe pas dans la langue ne peut pas être synthétisée, et la faire dire au modèle donnerait à imiter une non-phrase. Là où la porte des mots se règle — une activité choisit de quelles aptitudes elle fait refaire —, celui-ci ne se négocie pas.
+
+**`mal formé` n'est pas dans ce cas-là**, et l'y mettre a été essayé. Une seule faute de grammaire dans un tour de trente mots tuerait toute l'analyse du son, et un apprenant en fait à presque chaque tour : la prononciation ne se mesurerait quasiment jamais. Il ferme donc par la **note de correction**, comme les autres, avec le coût que `../reference.md` accepte déjà — au réglage le plus lâche, le modèle dira d'une voix native une tournure qu'on a choisi de ne pas reprendre.
 
 **Ce qui reste au choix d'une activité est de quelles aptitudes elle fait refaire, jamais de quel côté ça tombe.** Le côté est un fait sur la phrase ; rouvrir ce choix rendrait possible de faire redire une phrase qu'on va réécrire, ce que la porte existe pour empêcher. Le choix se pose donc en un levier par aptitude (« Le catalogue des leviers »), et une seule est à *oui* en conversation libre : la correction.
 
@@ -878,17 +889,17 @@ Les deux n'ont pas la même portée, et elles ne se lisent pas au même endroit.
 
 **Rien de ce qui est jugé ne s'éteint quand elle se ferme.** Toutes les feuilles jugées se calculent, puisque ce sont elles qui décident si elle se ferme — l'éteindre par sa propre décision serait circulaire. Ce qui s'éteint est l'analyse du son, et elle seule.
 
-**Trois choses se ressemblent à l'écran et n'ont rien à voir.**
+**Deux choses se ressemblent à l'écran et n'ont rien à voir.**
 
-|  | la porte réglable | `mal formé` | `ne se dit pas` |
-|---|---|---|---|
-| nature | une décision — on ne travaille pas une phrase qu'on va réécrire | un refus — on ne donne pas à imiter une phrase fausse | une impossibilité — il n'y a pas de modèle à comparer |
-| ce qui est lu | la **note** d'un nœud d'aptitude, à la barre A–B | un **élément** : un seul mot suffit | un **élément** : un seul mot suffit |
-| qui décide | l'activité, en disant de quelles aptitudes elle fait refaire | personne, c'est un fait | personne, c'est un fait |
-| négociable | oui | non | non |
-| ce qui se passe | l'analyse du son ne tourne pas | l'analyse du son ne tourne pas | l'analyse du son n'a pas d'objet |
+|  | la porte des mots | `ne se dit pas` |
+|---|---|---|
+| nature | une décision — on ne travaille pas une phrase qu'on va réécrire | une impossibilité — il n'y a pas de modèle à comparer |
+| ce qui est lu | la **note** d'un nœud d'aptitude, à la barre A–B | un **élément** : un seul mot suffit |
+| qui décide | l'activité, en disant de quelles aptitudes elle fait refaire | personne, c'est un fait |
+| négociable | oui | non |
+| ce qui se passe | l'analyse du son ne tourne pas | l'analyse du son n'a pas d'objet |
 
-Dans les deux premiers cas la phrase **pourrait** être synthétisée et on choisit de ne pas le faire ; dans le troisième elle **ne peut pas** l'être, et la faire dire au modèle donnerait à imiter une non-phrase. Tout le montage repose sur le fait que le modèle est la vérité.
+Dans le premier cas la phrase **pourrait** être synthétisée et on choisit de ne pas le faire ; dans le second elle **ne peut pas** l'être, et la faire dire au modèle donnerait à imiter une non-phrase. Tout le montage repose sur le fait que le modèle est la vérité.
 
 **On ne peut pas retirer l'empan et synthétiser le reste**, comme on retire un *um* du texte de référence. Un bafouillage est **hors** de la phrase ; un empan qui ne se dit pas est **dedans**, et demande à être remplacé. Le retirer laisserait *« I have [ ] years »*, que le modèle dirait *« I have years »* — une autre phrase, cassée elle aussi.
 
@@ -1011,7 +1022,7 @@ Une condition **lit le résultat d'un nœud, elle ne change pas ce qu'il mesure*
 
 **Une condition sur un cran fréquent se déclenche presque toujours.** « Au moins un mot `plat` » est vrai à chaque passage ou presque, donc elle ne dit rien. C'est un conseil à qui écrit un défi, pas un interdit : un défi très strict peut vouloir exactement ça.
 
-Les deux premières formes portent leur seuil et ne bougent pas quand le défi durcit. La troisième **suit la sensibilité**, qui est précisément ce qui déplace les bornes A–E : monter la sévérité rend la condition plus fréquente sans qu'on la touche, et c'est un service — un défi dit « plus dur » d'un seul geste. La moitié réglable de la porte du son est de cette troisième forme, et quel nœud d'aptitude elle lit vient de ce que le défi fait refaire ; son autre moitié, elle, est de la première — un seul mot marqué suffit.
+Les deux premières formes portent leur seuil et ne bougent pas quand le défi durcit. La troisième **suit la sensibilité**, qui est précisément ce qui déplace les bornes A–E : monter la sévérité rend la condition plus fréquente sans qu'on la touche, et c'est un service — un défi dit « plus dur » d'un seul geste. Les deux portes sont de cette troisième forme, et quels nœuds d'aptitude elles lisent vient de ce que le défi fait refaire. Ce qui coupe l'analyse du son sur un mot `ne se dit pas`, en revanche, est de la première forme.
 
 **La barre A–B ne borne pas les conditions, et l'y avoir enfermées était une erreur de portée.** L'invariant qui fixe la barre a été écrit pour la **lecture d'un résultat** — l'activité est-elle réussie, le niveau suivant s'ouvre-t-il —, où deux boutons qui bougent rendraient le résultat illisible. Une condition n'est pas un résultat : *« quand il tombe en D, le barman fronce les sourcils »* ne se compare à rien, ne débloque rien, n'entre dans aucun classement. Son seuil est de la même famille que les cinq secondes de silence, une valeur que l'auteur choisit. **Ce qui reste à la barre est le verdict** : ce qui décide qu'un passage se refait ou qu'une activité est réussie. Au-delà, la barre est une convention plutôt qu'une règle.
 
@@ -1039,15 +1050,15 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 
 **Deux axes, pas un.** L'**écho** — absent, indication indirecte, reprise explicite — est le levier déjà écrit. L'**avance** est le second : la réponse poursuit, ou elle attend. C'est un levier comme un autre, disponible partout — une conversation libre peut attendre sur une phrase, un défi peut poursuivre. Le geste fondateur du projet est la combinaison (indirect, poursuit) : *« Ah, you're 25! And where... »*. **Toutes les combinaisons s'offrent**, certaines étant seulement plus austères. Ce qui est garanti est ailleurs : **rien n'attend jamais sans qu'une raison soit visible**, et ce qui la porte est la marque, toujours là et invariante, plus la notification quand c'est le son qui bloque. Jamais l'écho, dont la position reste donc libre.
 
-Ça éclaire ce que la porte de reformulation est vraiment, et surtout ce qu'elle n'est pas. **Sa portée est l'analyse du son, rien d'autre** : « la porte se ferme » veut dire « on ne mesure pas la prononciation de cette phrase-là », jamais « la conversation s'arrête ». Trois choses se déclenchent autour d'un passage à refaire, et elles n'ont ni la même portée ni le même décideur :
+Ça éclaire ce que la porte des mots est vraiment, et surtout ce qu'elle n'est pas. **Elle coupe l'analyse du son, rien d'autre** : « la porte se ferme » veut dire « on ne mesure pas la prononciation de cette phrase-là », jamais « la conversation s'arrête ». Trois choses se déclenchent autour d'un passage à refaire, et elles n'ont ni la même portée ni le même décideur :
 
 | ce qui se passe | portée | qui décide |
 |---|---|---|
-| la porte se ferme | l'analyse du son de cette tentative | automatique, dès que le passage est déclaré à refaire |
+| l'analyse du son ne tourne pas | la prononciation de cette tentative | automatique, dès que le passage est déclaré à reformuler |
 | une reprise est proposée | l'écran | automatique |
 | la conversation attend | le fil — le passage ne se ferme pas | `avance.mots` ou `avance.son`, selon le côté |
 
-**Les deux dernières sont indépendantes**, et ça se voit dans les deux sens. Porte fermée sans attendre est la conversation libre ordinaire : la phrase est marquée, ses sons ne sont pas analysés, l'IA répond et le fil continue. Attendre sans fermer la porte est le blocage sur la prononciation : les mots ne changent pas, donc l'analyse a tourné — c'est même elle qui a rendu le verdict — et c'est la réponse qui est retenue.
+**Les deux dernières sont indépendantes**, et ça se voit dans les deux sens. Porte des mots fermée sans attendre est la conversation libre ordinaire : la phrase est marquée, ses sons ne sont pas analysés, l'IA répond et le fil continue. Attendre sans fermer la porte des mots est le blocage sur la prononciation : les mots ne changent pas, donc l'analyse a tourné — c'est même elle qui a rendu le verdict — et c'est la réponse qui est retenue.
 
 **Et *ne se dit pas* se lit sur les deux plans sans les confondre.** L'absence d'analyse y est un fait, non négociable, puisqu'il n'y a pas de modèle à comparer. Refuser de continuer, en revanche, reste une décision : un défi l'écrit avec une condition sur l'élément, dont le patch met l'avance sur « attend ». En conversation libre, rien ne bloque — le geste fondateur du projet est que rien n'interrompt.
 
@@ -1059,7 +1070,7 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 
 **Prononciation** : quand l'écart au modèle arrive, l'appel est fini et la réponse existe. Rien ne peut fournir un écho en personnage sans un second appel, écarté pour la latence. La réponse se joue donc, et **c'est le passage qui reste ouvert** ; une notification dit de reprendre, en donnant à **écouter** le modèle, qui est synthétisé de toute façon, et non en expliquant, le remède d'une faute sonore n'ayant jamais été une consigne écrite.
 
-**Elle ne nomme rien.** La porte du son étant câblée sur l'élocution et la fluidité, ce qu'elle nommerait serait le même mot à chaque fois, donc une constante, donc rien. Ce qui montre où porter l'attention est déjà à l'écran — les marques, invariantes, et la forme de chacune disant son échelle. Et nommer la pire des marques serait une élection, que le projet ne fait nulle part.
+**Elle ne nomme rien.** La porte du son étant câblée sur l'élocution et la fluidité seules, ce qu'elle nommerait serait le même mot à chaque fois, donc une constante, donc rien. Ce qui montre où porter l'attention est déjà à l'écran — les marques, invariantes, et la forme de chacune disant son échelle. Et nommer la pire des marques serait une élection, que le projet ne fait nulle part.
 
 ### La sortie d'un passage bloqué
 
@@ -1096,9 +1107,9 @@ boucle sur les tentatives :
     et le texte : correction, pertinence, suivi, remplissage et reprises,
     continuité, plus long silence, débit, tour interrompu
   - les règles de ce moment qui lisent ces feuilles se déclenchent
-  - À REFORMULER si une aptitude des mots ne passe pas
+  - PORTE DES MOTS : à reformuler si une aptitude des mots ne passe pas
   - l'analyse du son NE TOURNE PAS si le passage est à reformuler,
-    ou dès qu'un seul mot est marqué `mal formé` ou `ne se dit pas`
+    ou si un mot est marqué `ne se dit pas`
   - ce que l'app joue : la continuation, ou l'écho si le passage est
     à reformuler et que `avance.mots` est sur « attend »
 
@@ -1326,7 +1337,6 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **La série de chaque feuille** — la liste ordonnée de valeurs, dans son unité, dont les fenêtres sont les positions de sensibilité. La forme est écrite et l'échelle de chacune est posée (« La grille des mesures ») ; les valeurs, non. C'est ce qui rend les feuilles comparables entre elles, et ça se trouve au **banc de calibration**, feuille par feuille, sur des prises enregistrées selon des critères. **Combien de positions** s'y décide aussi et pas avant — une position de plus ne coûte plus qu'un nombre, donc la question a cessé d'être un arbitrage.
 - **Les colonnes** — ce que vaut chaque cran, pour les trois marquages jugés. Chacune s'ancre par une phrase : *un passage entièrement fait de ça vaudrait…*
 - **Le seuil de silence à 200 ms**, partagé par la continuité et par le débit, à placer au-dessus de la plus longue fermeture d'occlusive. Et le **seuil « le modèle accentue-t-il nettement ce mot »**, qui définit les éléments de l'accent lexical : cette feuille n'existe pas sans lui.
-- **L'écart de vitesse et de pause entre les voix du catalogue.** Le débit et la continuité prennent le modèle pour référence, et les deux côtés ne passent pas par la même machine : si les voix divergent trop, la référence bouge sous les pieds de la mesure.
 - **La fréquence des crans hauts** — `juste` et `entre les lignes`. Un juge qui en donne un passage sur deux les rend décoratifs.
 - **La symétrie du débit** : trop lent et trop rapide sont-ils également gênants. Sinon la série devient asymétrique, deux listes au lieu d'une.
 - **La norme de la correction**, qui n'est écrite nulle part — d'où *I'm doing good*. Elle vit dans le contexte permanent du prompt, et deux choses au moins s'y tranchent : la **variété** (au plus simple, celle de l'accent choisi) et le fait que **l'oral n'est pas de l'écrit**.

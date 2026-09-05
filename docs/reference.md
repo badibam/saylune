@@ -79,9 +79,9 @@ Le mécanisme tient en trois étages : la **mesure**, que rien ne règle ; la **
 
 **Monter un curseur retire une aide, ou durcit un jugement**, et les deux n'ont pas le même plafond : retirer une aide converge vers le réel, durcir un jugement le dépasse. Les effets se cumulent d'une aptitude à l'autre, et c'est voulu — une note ne se lit jamais sans la combinaison qui l'a produite.
 
-## La porte de reformulation
+## Les deux portes
 
-**Ce qui va être réécrit et la prononciation ne se marquent pas côte à côte : il y a une porte devant l'analyse sonore.**
+**Ce qui va être réécrit et la prononciation ne se marquent pas côte à côte : l'analyse sonore ne tourne pas sur une phrase qu'on va reformuler.**
 
 - Rien à reformuler → l'analyse sonore est visible immédiatement.
 - Une reformulation attendue → la marque seule, **aucune analyse sonore**.
@@ -89,13 +89,13 @@ Le mécanisme tient en trois étages : la **mesure**, que rien ne règle ; la **
 
 La raison est qu'on ne travaille pas la prononciation d'une phrase qu'on s'apprête à réécrire : elle va disparaître. La conséquence technique suit — **sur un tour à reformuler, l'analyse sonore ne tourne pas du tout.** Elle n'est pas cachée, elle n'est pas calculée.
 
-**Elle se ferme de deux façons, et elles ne se lisent pas au même endroit.**
+**Il y a une porte par sorte de réparation.** La **porte des mots** se lit au retour de l'appel et dit que le passage est **à reformuler** ; la **porte du son** se lit à la fin de l'analyse et dit qu'il est **à redire**. Toutes deux lisent la **note d'une aptitude** à la barre A–B, le ciblage plus fin passant par les poids plutôt que par un réglage à elles.
 
-**Absolue, sur un élément : un seul mot `mal formé` ou `ne se dit pas` suffit**, toujours, quels que soient les poids et les sensibilités. La raison n'est pas un dosage mais un fait — **on ne fait pas prononcer au modèle une phrase incorrecte**, c'est ce qu'on donne à imiter, et tout le montage repose sur ce qu'il soit la vérité. Rien ne se règle là, et la note de correction n'a donc pas à être calibrée pour que la porte tombe juste : la porte ne la lit pas.
+**Ce qui range chaque aptitude d'un côté est câblé** : celles dont l'échec fait changer les mots — la correction, la pertinence, la compréhension — ferment la porte des mots ; celles dont l'échec laisse la phrase intacte — l'élocution, la fluidité — ferment celle du son. Une activité choisit **de quelles aptitudes elle fait refaire**, jamais de quel côté ça tombe (`design/activity-model.md`). Coût assumé au réglage le plus lâche : le modèle dira d'une voix native une tournure qu'on a choisi de ne pas reprendre.
 
-**Réglable, sur une note** : celle d'une aptitude à la barre A–B, le ciblage plus fin passant par les poids plutôt que par un réglage à elle. **Ce qui peut la fermer est câblé** : les aptitudes dont l'échec fait changer les mots — la correction, la pertinence, la compréhension. Celles dont l'échec laisse la phrase intacte — l'élocution, la fluidité — ne peuvent jamais la fermer : il n'y a rien à réécrire. Une activité choisit **de quelles aptitudes elle fait refaire**, jamais de quel côté ça tombe (`design/activity-model.md`). Coût assumé au réglage le plus lâche : le modèle dira d'une voix native une tournure qu'on a choisi de ne pas reprendre.
+**Ce qui coupe l'analyse du son n'est pas une troisième porte** : elle ne tourne pas si la porte des mots s'est fermée, ou si un mot est marqué `ne se dit pas`.
 
-**Et `ne se dit pas` n'est ni l'une ni l'autre : c'est une absence de sol.** Là où la porte est une décision — la phrase pourrait être synthétisée, on choisit de ne pas le faire —, une phrase qui n'existe pas dans la langue **ne peut pas** l'être : la faire dire au modèle donnerait à imiter une non-phrase. On ne peut pas non plus retirer l'empan pour synthétiser le reste, comme on retire une hésitation : un bafouillage est hors de la phrase, une non-phrase est dedans et demande à être remplacée.
+**Et ce second cas n'est pas une décision, c'est une absence de sol.** Là où la porte des mots choisit de ne pas travailler une phrase qui va disparaître, une phrase qui n'existe pas dans la langue **ne peut pas** être synthétisée : la faire dire au modèle donnerait à imiter une non-phrase. On ne peut pas non plus retirer l'empan pour synthétiser le reste, comme on retire une hésitation : un bafouillage est hors de la phrase, une non-phrase est dedans et demande à être remplacée.
 
 Rien d'autre ne s'arrête dans aucun de ces cas : l'IA répond, le fil continue, la marque s'affiche, la reformulation est proposée. Seul le canal du son reste vide, en portant sa raison, et pour cette tentative-là seulement.
 
@@ -233,7 +233,7 @@ La conversation dépend de services distants, et chacun peut manquer — réseau
 
 L'analyse compare l'audio de l'apprenant au modèle synthétisé pour un **texte donné**. En conversation libre, ce texte n'est pas connu d'avance, et c'est la seule contrainte de la chaîne qu'on ne peut pas contourner : les mesures fines n'existent que là où le texte est écrit d'avance.
 
-La porte de reformulation en retire déjà la moitié du problème — sur un tour à réécrire, il n'y a pas d'analyse, et la phrase corrigée est redite contre un texte certain. Reste le tour qu'on garde tel quel.
+La porte des mots en retire déjà la moitié du problème — sur un tour à réécrire, il n'y a pas d'analyse, et la phrase corrigée est redite contre un texte certain. Reste le tour qu'on garde tel quel.
 
 **Décision** : le texte vient de la transcription, que le LLM peut corriger à partir du contexte de la conversation. La répartition des rôles est une règle : **le STT transcrit la bouche, le LLM décide l'intention.** La normalisation appartient au LLM, qui a le contexte et une instruction — jamais au STT, qui la ferait en silence et sans contexte ; un STT qui répare la grammaire d'office efface le signal d'apprentissage avant tout jugement, et sa fidélité verbatim est un critère de choix (cf. `../TODO.md`, chantier 2).
 
