@@ -67,8 +67,11 @@ class AcousticMatrix(weights: File, threads: Int) {
                 @Suppress("UNCHECKED_CAST")
                 val batch = result[0].value as Array<Array<FloatArray>>
                 val rows = batch[0]
+                // Two dimensions, unlike the matrix: the wrapper that exported the
+                // graph dropped the batch axis from the layer (`bench/export.py`), and
+                // the desktop read it flat for the same reason.
                 @Suppress("UNCHECKED_CAST")
-                val hiddenRows = (result[1].value as Array<Array<FloatArray>>)[0]
+                val hiddenRows = result[1].value as Array<FloatArray>
                 val millis = (System.nanoTime() - started) / 1_000_000
                 val symbols = rows[0].size
                 val values = FloatArray(rows.size * symbols)
