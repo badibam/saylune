@@ -539,6 +539,10 @@ def couples(order, tools):
     sides elect different syllables on speech that carries no stress fault, which
     is the rate at which the brick would paint a mark on someone who did nothing
     wrong.
+
+    It also answers, on the same words and for free, whether dropping the ones
+    the model does not stress clearly would lower that rate -- the filter
+    `../docs/design/activity-model.md` asks for by name.
     """
     by_text = {}
     for tag, family, source, stem, text, wav in order:
@@ -546,6 +550,11 @@ def couples(order, tools):
             by_text.setdefault(stem, {"text": text, "natif": [],
                                       "synthèse": []})[family].append((tag, wav))
     tally = {}
+    # The model's own clarity on each word, paired with whether that word drew a
+    # false mark. Collected here rather than measured apart because the question
+    # it answers -- would dropping the words the model does not stress clearly
+    # buy anything -- is only worth asking of these very words.
+    clarity = []
     for stem, held in sorted(by_text.items()):
         for model_tag, model_wav in held["synthèse"]:
             voice = model_tag.split("/")[-1]
@@ -556,10 +565,15 @@ def couples(order, tools):
                                                 "lesquels": []})
                 for one in rows:
                     slot["mots"] += 1
-                    if int(np.argmax(one["modèle"])) != int(np.argmax(one["apprenant"])):
+                    here = np.sort(np.array(one["modèle"]))[::-1]
+                    apart = (int(np.argmax(one["modèle"]))
+                             != int(np.argmax(one["apprenant"])))
+                    clarity.append((float(here[0] - here[1]), apart))
+                    if apart:
                         slot["écarts"] += 1
                         slot["lesquels"].append(
-                            f"{one['word']} ({learner_tag.split('/')[-1]})")
+                            f"{one['word']} ({learner_tag.split('/')[-1]}, "
+                            f"marge {here[0] - here[1]:.2f})")
         print(f"  {stem} lu", file=sys.stderr, flush=True)
     print("\n=== le montage du produit : l'apprenant aligné sur la grille du modèle")
     print("    (parole native sans faute d'accent — tout écart est une fausse marque)\n")
@@ -573,6 +587,17 @@ def couples(order, tools):
             print(f"      {name}")
     print(f"\n  {'ensemble':<20}{apart:>4}/{total:<5} = "
           f"{100 * apart / total:.1f} %")
+    clarity.sort()
+    print("\n=== et si on n'écoutait que les mots que le modèle accentue nettement")
+    print("    (« marge » = la part de la syllabe élue moins celle de la suivante)\n")
+    print(f"  {'marge ≥':>9}{'mots gardés':>14}{'fausses marques':>18}{'taux':>9}")
+    for bar in (0.0, 0.5, 0.7, 0.8, 0.9):
+        kept = [one for one in clarity if one[0] >= bar]
+        if not kept:
+            break
+        bad = sum(one[1] for one in kept)
+        print(f"  {bar:>9.2f}{len(kept):>8}/{len(clarity):<5}{bad:>14}"
+              f"{100 * bad / len(kept):>8.1f} %")
 
 
 def main(argv=None):
