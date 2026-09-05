@@ -10,7 +10,10 @@ runtime, or the export, with no way to tell which.
 What the graph carries is deliberately the whole brick 2 contract, waveform in,
 matrix out: the softmax is inside, so the file answers "the spread over every
 sound, every 20 ms" rather than "logits", and the Android side has nothing to
-reimplement but the preparation.
+reimplement but the preparation. It carries one thing more, since the stress
+probe (`probe.py`) reads it: the hidden layer the probe is a linear read of, as
+a second output. A phone that had to carry a second network for the probe would
+carry the same weights twice.
 
     python3 export.py                # the chosen candidate, float then 8-bit
 """
@@ -67,7 +70,12 @@ def folded(net, torch):
 
 
 def wrapped(net, torch):
-    """The network plus its softmax, so the file's output is the matrix itself."""
+    """The network plus its softmax, so the file's output is the matrix itself.
+
+    And the hidden layer the stress probe reads, in the same pass: layer 19,
+    batch axis dropped, at the same frame rate as the matrix -- one frame per
+    output row, which is what the probe takes its nucleus means over.
+    """
 
     class Matrix(torch.nn.Module):
         def __init__(self):
@@ -75,7 +83,9 @@ def wrapped(net, torch):
             self.net = net
 
         def forward(self, input_values):
-            return torch.softmax(self.net(input_values).logits, dim=-1)
+            out = self.net(input_values, output_hidden_states=True)
+            return (torch.softmax(out.logits, dim=-1),
+                    out.hidden_states[19][0])
 
     return Matrix().eval()
 
@@ -113,7 +123,9 @@ def main(argv=None):
     # Measured before anything is touched: this is the reading every number
     # written down so far was made against, so it is what the exported graph --
     # weight norm folded and all -- has to reproduce.
-    expected = wrapped(net, torch)(values).numpy()[0]
+    expected = wrapped(net, torch)(values)
+    expected_matrix = expected[0].detach().numpy()[0]
+    expected_hidden = expected[1].detach().numpy()
 
     print(f"\nexport de {matrix.MODEL}")
     # Traced through the dynamo exporter rather than the TorchScript one, which
@@ -126,7 +138,8 @@ def main(argv=None):
     # the phone.
     torch.onnx.export(
         wrapped(folded(net, torch), torch), (values,), str(plain), dynamo=True,
-        input_names=["input_values"], output_names=["probabilities"],
+        input_names=["input_values"],
+        output_names=["probabilities", "hidden19"],
         dynamic_shapes={"input_values": {1: torch.export.Dim("samples",
                                                              min=4000)}},
         opset_version=18)
@@ -149,18 +162,23 @@ def main(argv=None):
     for path in (plain, rounded):
         session = onnxruntime.InferenceSession(
             str(path), providers=["CPUExecutionProvider"])
-        got = session.run(None, {"input_values": prepared})[0][0]
-        if got.shape != expected.shape:
-            raise SystemExit(f"{path.name} rend {got.shape}, "
-                             f"attendu {expected.shape}")
-        gap = float(np.abs(got - expected).max())
-        print(f"  {path.name:<28}{gap:.2e}")
+        got = session.run(None, {"input_values": prepared})
+        matrix_out, hidden_out = got[0][0], got[1]
+        if matrix_out.shape != expected_matrix.shape or \
+                hidden_out.shape != expected_hidden.shape:
+            raise SystemExit(f"{path.name} rend {matrix_out.shape} et "
+                             f"{hidden_out.shape}, attendu "
+                             f"{expected_matrix.shape} et "
+                             f"{expected_hidden.shape}")
+        gap = float(np.abs(matrix_out - expected_matrix).max())
+        hidden_gap = float(np.abs(hidden_out - expected_hidden).max())
+        print(f"  {path.name:<28}matrice {gap:.2e}   couche 19 {hidden_gap:.2e}")
 
         # Only the 32-bit graph is held to the reference here. The rounded one
         # is meant to differ -- rounding is the whole point of it -- and how
         # much of that difference survives to the verdict is not a question a
         # single file answers.
-        if path is plain and gap > SAME_READING:
+        if path is plain and max(gap, hidden_gap) > SAME_READING:
             raise SystemExit("  l'export n'est pas fidèle — rien au-dessus "
                              "ne veut dire quoi que ce soit")
     print("\n  l'arrondi déplace la matrice ; ce qu'il déplace du verdict :"
