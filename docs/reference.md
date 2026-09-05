@@ -59,7 +59,7 @@ Elle ne borne rien d'autre. Se souvenir, agréger, suggérer plus tard à partir
 
 Élocution, compréhension, correction, fluidité, pertinence. Elles sont **indépendantes** : on peut être intelligible et lent, correct et pauvre, fluide et faux.
 
-- **Élocution** — les sons, le rythme, l'accent des mots, la mélodie. Ce qui décide qu'on est compris.
+- **Élocution** — les sons, l'accent des mots, la mélodie. Ce qui décide qu'on est compris.
 - **Compréhension** — prendre ce qu'on vient de vous dire. À l'oral d'abord, à la vitesse de l'autre et avec ses réductions ; mais aussi la langue elle-même, qui reste à comprendre quand le texte est sous les yeux. Voir le texte est une aide en moins à trouver, pas une mesure qui disparaît.
 - **Correction** — la phrase bien formée, et la règle appliquée en parlant plutôt que sue.
 - **Fluidité** — trouver ses mots assez vite, enchaîner, ne pas s'arrêter au milieu.

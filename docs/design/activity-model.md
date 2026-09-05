@@ -38,7 +38,7 @@ Trois choses que la première passe confondait en une.
 
 Une **définition** est une activité écrite d'avance, et **c'est de la donnée, pas du code**. On la rejoue autant qu'on veut.
 
-Elle porte : une **identité** et une **version** ; son **contenu** — ce qui ouvre la séance, le `brief`, les personnages ; ses **consignes**, au plus deux, une par marquage jugé ; ses **positions de leviers de départ**, sensibilités comprises ; son **arbre des poids**, constant pour toute la séance ; ses **règles** ; et ses **questions**, auxquelles le modèle répond en fin de séance (« L'histoire »).
+Elle porte : une **identité** et une **version** ; son **contenu** — ce qui ouvre la séance, le `brief`, les personnages ; ses **consignes**, au plus une par marquage jugé ; ses **positions de leviers de départ**, sensibilités comprises ; son **arbre des poids**, constant pour toute la séance ; ses **règles** ; et ses **questions**, auxquelles le modèle répond en fin de séance (« L'histoire »).
 
 **Ce qui reste du code, c'est le catalogue** — les leviers avec leurs positions, l'arbre des feuilles, les sortes de déclencheurs, les sortes d'effets. Rien de ce qu'une définition contient n'est de la logique : des positions déclarées, des poids sur un arbre déclaré, du texte libre, et des règles faites de sortes énumérées. Une histoire de vingt scènes écrite en Kotlin serait du contenu qu'on ne peut ni corriger, ni traduire, ni partager, et il faudrait recompiler l'app pour changer une réplique. Et le doc veut déjà qu'un modèle puisse écrire une définition contre le catalogue, ce qui n'a aucun sens si sa sortie doit être compilée.
 
@@ -80,7 +80,7 @@ Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque six, et 
 - **Les règles** — une liste, qui absorbe la rampe, les conditions de fin et les conditions branchées sur l'arbre des notes (« Les règles »).
 - **Le journal des changements appliqués**, sans quoi une séance dont un tirage ou l'IA a modifié les réglages ne se recalcule plus.
 - **L'origine**, ci-dessus.
-- **Les consignes par marquage jugé** — du texte libre, une par marquage au plus, distinct du `brief` de l'activité (« Ce qui est jugé, ce qui est calculé »).
+- **Les consignes par marquage jugé** — du texte libre, sur les trois marquages que le modèle rend, distinct du `brief` de l'activité (« Ce qui est jugé, ce qui est calculé »).
 - **L'arbre des poids** — ce sur quoi la séance regarde, fixé à l'écriture. Les sensibilités, elles, ne sont pas un champ neuf : ce sont des positions de leviers, donc des réglages (« Ce qui fait un levier »).
 - **Le résultat doit pouvoir porter un nombre.** Il porte aujourd'hui un verdict, un juge, une date et du texte libre ; un score d'arcade est un nombre, et le ranger dans du texte libre le rendrait inexploitable.
 
@@ -415,7 +415,7 @@ D'où la forme qui rend la liberté bon marché : **prose libre à l'aller, clé
 
 **Un seul appel fait tous les métiers** — jouer le personnage, reconstruire `intended`, marquer les empans, juger le suivi, rendre la difficulté de son tour, et choisir dans le menu quand une règle le lui offre. Ce n'est pas le prix qui tranche : un second appel ne coûterait rien en latence, le jugement ne servant qu'à afficher des marques pendant que la réponse se synthétise et se joue, ni en argent, le modèle de langue se comptant en millièmes d'un tour à trois centimes (`character-voices.md`). Ce qui tranche est qu'un prompt bien structuré tient ses frontières. On regarde donc au cas par cas ce qui déteint, et une frontière un peu floue peut même servir la scène ; on ne cloisonne pas d'avance contre un loup qu'on n'a pas vu.
 
-**L'ordre des champs de retour est la cloison qui reste gratuite.** Le modèle écrit sa réponse en séquence et chaque champ écrit conditionne le suivant, donc `intended` rédigé avant que la voix du personnage soit prise vaut mieux que le contraire. D'où le contrat : `intended`, le marquage des empans, le suivi, `spoken`, la difficulté du tour qu'il vient d'écrire, et `title` s'il y a lieu. Le marquage absorbe `faulty`, qui était un booléen sur le tour entier (« Ce que ça change au marquage »). Le coût en latence est borné par une mesure déjà au dossier : le modèle achève son objet 0,16 s après sa première phrase (`../reference.md`), et l'ordre des champs se joue à l'intérieur de cet intervalle.
+**L'ordre des champs de retour est la cloison qui reste gratuite.** Le modèle écrit sa réponse en séquence et chaque champ écrit conditionne le suivant, donc `intended` rédigé avant que la voix du personnage soit prise vaut mieux que le contraire. D'où le contrat : `intended`, les trois marquages — les empans de langue, le bafouillage, le suivi —, `spoken`, la difficulté du tour qu'il vient d'écrire, et `title` s'il y a lieu. Le marquage absorbe `faulty`, qui était un booléen sur le tour entier (« Ce que ça change au marquage »). Le coût en latence est borné par une mesure déjà au dossier : le modèle achève son objet 0,16 s après sa première phrase (`../reference.md`), et l'ordre des champs se joue à l'intérieur de cet intervalle.
 
 **L'état n'atteint le modèle que par la porte de devant.** Il reçoit en permanence les leviers qu'il tient — les *demandés*, qui n'existent que comme instruction — et rien d'autre. Le reste, une vie perdue, un passage raté, un seuil qui se raccourcit, ne lui parvient que si une règle a décidé de le lui dire, par un message au modèle, dans les mots d'un auteur.
 
@@ -963,7 +963,7 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 - **bafouillage** — chaque mot prononcé est `retenu`, `abandonné` ou `remplissage` (« Le remplissage et les reprises »).
 - **suivi** — un cran par passage, sur un seul axe, *ce que la réponse prouve d'avoir pris* : `entre les lignes` / `précis` / `en rapport` / `sur le sujet` / `vague` / `à côté` (« La compréhension »).
 
-**Un troisième cran revient du modèle et n'est pas une mesure : la difficulté de son propre tour**, qui sert de poids au suivi (« La compréhension »). Il ne dit rien de l'apprenant, donc il n'a pas de feuille, pas de sensibilité et pas de consigne.
+**Un cran de plus revient du modèle et n'est pas une mesure : la difficulté de son propre tour**, qui sert de poids au suivi (« La compréhension »). Il ne dit rien de l'apprenant, donc il n'a pas de feuille, pas de sensibilité et pas de consigne.
 
 **Seul un marquage jugé prend des consignes** — du texte libre qui entre dans le critère que le juge lit, et non une feuille : deux feuilles se lisent d'un même passage du juge sur les empans, et il n'y a rien à quoi une consigne par feuille s'attacherait. Il y a donc trois endroits où elles s'accrochent, les empans de langue, le bafouillage et le suivi. Sur les empans, une consigne ne touche que la **pertinence** : les crans de correction sont absolus.
 
@@ -1011,7 +1011,7 @@ Une condition **lit le résultat d'un nœud, elle ne change pas ce qu'il mesure*
 
 **Une condition sur un cran fréquent se déclenche presque toujours.** « Au moins un mot `plat` » est vrai à chaque passage ou presque, donc elle ne dit rien. C'est un conseil à qui écrit un défi, pas un interdit : un défi très strict peut vouloir exactement ça.
 
-Les deux premières formes portent leur seuil et ne bougent pas quand le défi durcit. La troisième **suit la sensibilité**, qui est précisément ce qui déplace les bornes A–E : monter la sévérité rend la condition plus fréquente sans qu'on la touche, et c'est un service — un défi dit « plus dur » d'un seul geste. La porte de reformulation est de cette troisième forme, et quelle feuille elle lit est écrit par le défi.
+Les deux premières formes portent leur seuil et ne bougent pas quand le défi durcit. La troisième **suit la sensibilité**, qui est précisément ce qui déplace les bornes A–E : monter la sévérité rend la condition plus fréquente sans qu'on la touche, et c'est un service — un défi dit « plus dur » d'un seul geste. La moitié réglable de la porte du son est de cette troisième forme, et quel nœud d'aptitude elle lit vient de ce que le défi fait refaire ; son autre moitié, elle, est de la première — un seul mot marqué suffit.
 
 **La barre A–B ne borne pas les conditions, et l'y avoir enfermées était une erreur de portée.** L'invariant qui fixe la barre a été écrit pour la **lecture d'un résultat** — l'activité est-elle réussie, le niveau suivant s'ouvre-t-il —, où deux boutons qui bougent rendraient le résultat illisible. Une condition n'est pas un résultat : *« quand il tombe en D, le barman fronce les sourcils »* ne se compare à rien, ne débloque rien, n'entre dans aucun classement. Son seuil est de la même famille que les cinq secondes de silence, une valeur que l'auteur choisit. **Ce qui reste à la barre est le verdict** : ce qui décide qu'un passage se refait ou qu'une activité est réussie. Au-delà, la barre est une convention plutôt qu'une règle.
 
@@ -1096,8 +1096,9 @@ boucle sur les tentatives :
     et le texte : correction, pertinence, suivi, remplissage et reprises,
     continuité, plus long silence, débit, tour interrompu
   - les règles de ce moment qui lisent ces feuilles se déclenchent
-  - À REFORMULER si une aptitude des mots ne passe pas, ou sur un empan
-    « ne se dit pas » → l'analyse du son NE TOURNE PAS
+  - À REFORMULER si une aptitude des mots ne passe pas
+  - l'analyse du son NE TOURNE PAS si le passage est à reformuler,
+    ou dès qu'un seul mot est marqué `mal formé` ou `ne se dit pas`
   - ce que l'app joue : la continuation, ou l'écho si le passage est
     à reformuler et que `avance.mots` est sur « attend »
 
