@@ -34,6 +34,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `alarms.py` | à quelle fréquence une marque tombe sur un mot que rien n'accusait — la jointure se fait au mot, aucun seuil n'est posé |
 | `stress.py` | ce que l'accent fait à une syllabe — durée, réduction, intensité, sur les bornes de TIMIT posées à la main, sans réseau |
 | `accent.py` | la brique 7 confrontée au corpus qui note l'accent : fausse alerte et détection, dans les deux montages |
+| `hear.py` | la passe d'écoute : quelle syllabe une oreille entend forte, contre celle que la sonde élit — la seule vérité terrain de la brique 7 qui ne vienne d'aucun corpus |
 | `join.py` | quelles lettres chaque son couvre — les mots, l'ordre et l'orthographe, notés contre l'annotation (`-s`) |
 | `expected.py` | l'annotation à la main : les lettres que chaque son devrait porter. N'entre jamais dans l'app |
 | `affinity.json` | à quels sons une lettre participe, de 0 à 3 — avec `affinity-groups.json`, la seule donnée linguistique du montage |

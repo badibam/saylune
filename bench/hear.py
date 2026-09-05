@@ -1,0 +1,410 @@
+#!/usr/bin/env python3
+"""Which syllable an ear hears as the strong one, against which one the probe elects.
+
+Brick 7 has never had a reference. Every number written about it so far was read
+off a corpus that scores stress by its own lights -- SpeechOcean762, since
+abandoned -- and the one figure that mattered could not be read at all: two
+speakers of the same word, both scored correct, are elected different syllables
+by the probe **18.9 %** of the time, and nothing in the bench says whether that
+is the probe misreading a human or two humans genuinely stressing differently.
+An ear separates them, and no corpus we can download does.
+
+So this is a listening pass, and it produces the missing reference: for each
+word of more than one syllable, the syllable a person hears as strong.
+
+Three things about the protocol are deliberate, and each buys a number that a
+looser one would lose.
+
+- **The judgment is blind.** The probe's election is revealed only after the
+  answer. Shown first it would prime the ear into agreeing, and a validation
+  pass that agrees because it was told what to hear measures nothing. It costs
+  no extra gesture: a digit instead of a yes.
+- **Ambiguity is an answer.** `?` says the word carries no syllable the ear
+  picks out. Part of the 18.9 % may be exactly those words, and forcing a binary
+  would bury the one thing the listening pass is for.
+- **A bad cut is its own answer.** `x` says the syllable split itself is wrong,
+  so the question does not arise. That is brick 8 failing, not brick 7, and the
+  two are worth telling apart before either is judged.
+
+The material crosses the sources on the *same texts*, which is the whole reason
+to spend an evening on it: five TIMIT sentences, each read by two natives and
+rendered by two synthetic voices from two different providers. What differs
+between four readings of `Military personnel are expected to obey government
+orders.` is the mouth and nothing else -- so the probe's accuracy per source is
+readable directly, and the question "does it read the machine and not the human"
+gets an answer instead of an inference.
+
+    ACOUSTIC_MODEL=timit-ipa python3 hear.py --render   # synthesise, once, and it costs
+    ACOUSTIC_MODEL=timit-ipa python3 hear.py            # the listening pass
+    ACOUSTIC_MODEL=timit-ipa python3 hear.py --report   # the tally, without listening
+
+Verdicts land in `reviews/hear-stress.json`, versioned, like every other thing
+in this bench written once by hand and regenerable by nothing. The pass resumes
+where it stopped: a word already judged is never asked again.
+"""
+
+import argparse
+import json
+import os
+import random
+import sys
+from pathlib import Path
+
+import numpy as np
+
+import atomic
+
+import join
+import matrix
+import overlap
+import review
+import syllables
+import synth
+
+HERE = Path(__file__).resolve().parent
+CORPUS = HERE.parent / "tmp" / "TIMIT" / "lisa" / "data" / "timit" / "raw" / "TIMIT"
+RENDERS = HERE / "out" / "renders"
+PROBE = HERE / "out" / "probe" / "probe-timit-19.npz"
+VERDICTS = HERE / "reviews" / "hear-stress.json"
+
+# Five SX sentences of the TEST half. SX prompts are read by seven speakers
+# each, which is what makes the native side a choice rather than a single
+# reading; SI prompts are read by one and would give the ear no way to tell a
+# speaker apart from a text. Picked for the count of words carrying more than
+# one syllable -- a sentence of monosyllables asks the ear nothing -- and for
+# plain spelling: an apostrophe or a hyphen sends `join.spoken` down a path that
+# is a question of its own, and not this pass's.
+TEXTS = (
+    ("SX205", "Military personnel are expected to obey government orders."),
+    ("SX283", "Planned parenthood organizations promote birth control."),
+    ("SX36", "Only the most accomplished artists obtain popularity."),
+    ("SX199", "Young children should avoid exposure to contagious diseases."),
+    ("SX409", "Eating spinach nightly increases strength miraculously."),
+)
+
+# One voice per provider, and one accent each, so a disagreement between them
+# cannot be read as either alone. Both are voices the bench has already measured
+# elsewhere, which is why they and not the four others.
+VOICES = ("azure-us-jenny", "eleven-gb-daniel")
+
+# How many TIMIT speakers per text. Two, one of each recorded sex where the
+# corpus offers both: the native side is here to show what a human mouth does to
+# the probe, and a single speaker would confound that with one person's habits.
+SPEAKERS = 2
+
+
+def prompts(stem, wanted=SPEAKERS):
+    """Every TEST recording of one prompt, as (speaker, wav), sorted.
+
+    TIMIT names a speaker directory by sex then initials (`FAKS0`, `MDAB0`), so
+    the letter is the only thing available to balance on -- and balancing is
+    worth a line here because two readings are all the native side gets.
+    """
+    found = sorted(CORPUS.joinpath("TEST").rglob(f"{stem}.WAV"))
+    women = [p for p in found if p.parent.name.startswith("F")]
+    men = [p for p in found if p.parent.name.startswith("M")]
+    picked = []
+    for pool in (women, men):
+        if pool:
+            picked.append(pool[0])
+    for path in found:
+        if len(picked) >= wanted:
+            break
+        if path not in picked:
+            picked.append(path)
+    return [(path.parent.name, path) for path in picked[:wanted]]
+
+
+def readings(voices, speakers):
+    """Every recording this pass judges, each with what it takes to read it.
+
+    A tag names the reading and is what the verdict file is keyed on, so it has
+    to survive a re-run unchanged -- hence text and speaker rather than a path,
+    which moves the day the corpus is unpacked somewhere else.
+    """
+    out = []
+    for stem, text in TEXTS:
+        for speaker, wav in prompts(stem, speakers):
+            out.append((f"{stem}/{speaker}", "natif", speaker, stem, text, wav))
+        for voice in voices:
+            wav = RENDERS / voice / "timit" / f"{stem}.wav"
+            out.append((f"{stem}/{voice}", "synthèse", voice, stem, text, wav))
+    return out
+
+
+def rendered(voices, force):
+    """Synthesise what the crossing needs, after saying what it will spend.
+
+    Synthesis is the one thing here that costs money and cannot be undone, so it
+    is a separate run behind one confirmation rather than a surprise in the
+    middle of a listening pass. `synth.render` keeps a file already on disk, so
+    a second run of this spends nothing.
+    """
+    wanted = [(voice, stem, text,
+               RENDERS / voice / "timit" / f"{stem}.wav")
+              for stem, text in TEXTS for voice in voices]
+    missing = [one for one in wanted if not one[3].is_file() or force]
+    if not missing:
+        print("tous les rendus sont déjà là — rien à dépenser")
+        return 0
+    characters = sum(len(text) for _, _, text, _ in missing)
+    print(f"\n{len(missing)} rendus à synthétiser, {characters} caractères :\n")
+    for voice, stem, text, _ in missing:
+        print(f"  {voice:<20} {stem:<8} {text}")
+    answer = review.ask("\nsynthétiser ? [o/N] ")
+    if answer != "o":
+        print("annulé — rien n'a été dépensé")
+        return 1
+    for voice, stem, text, path in missing:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        synth.render(text, synth.BY_NAME[voice], path, force=force)
+        print(f"  {voice:<20} {stem:<8} rendu")
+    return 0
+
+
+def probe():
+    """The frozen linear probe: standardisation, weights, bias.
+
+    Fitted on TIMIT, where the nuclei bounds are hand-placed -- which is why it
+    is this one and not the L2 probe, whose corpus was dropped along with the
+    montage that read it (`../TODO.md`).
+    """
+    if not PROBE.is_file():
+        raise SystemExit(f"{PROBE} manque — la sonde figée est ce qui est jugé "
+                         "ici, et écouter sans elle ne mesurerait rien")
+    held = np.load(PROBE)
+    return (held["mean"], held["deviation"], held["weight"],
+            float(held["bias"][0]), int(held["layer"]))
+
+
+def states(wav, layer):
+    """One recording's hidden layer, at the frame rate the matrix uses."""
+    import soundfile as sf
+    _, net, _, torch = matrix.loaded()
+    matrix.heard(wav)
+    samples, _ = sf.read(wav, dtype="float64")
+    out = net(torch.from_numpy(matrix.prepared(samples)),
+              output_hidden_states=True)
+    return out.hidden_states[layer][0].numpy().astype(np.float32)
+
+
+def scored(wav, text, tag, tools):
+    """One recording's words: their syllables, their spans, the probe's shares.
+
+    The recording is read alone -- its own grid, its own syllables, its own
+    hidden states. Nothing here compares two sides: what the listening pass is
+    for is the accuracy of *one* reading against an ear, and the comparison of
+    two readings is arithmetic to be done afterwards, on numbers this produces.
+    """
+    mean, deviation, weight, bias, layer = tools
+    cache = overlap.MATRICES / "hear" / f"{tag.replace('/', '-')}.npz"
+    spread = matrix.probabilities(wav, cache=cache)
+    segments = matrix.grid(spread)
+    if not segments:
+        return []
+    sounds = join.joined(wav, text, cache=cache)
+    cuts = syllables.cut(sounds)
+    hidden = states(wav, layer)
+
+    out = []
+    for start, stop in join.runs(sounds):
+        word = sounds[start].word.strip(".,!?'").lower()
+        if word in syllables.FUNCTION:
+            continue
+        pieces = [piece for piece in cuts
+                  if start <= piece.sounds[0] and piece.sounds[1] <= stop]
+        # A word the grid gives one syllable carries no stress mark at all
+        # (brick 9), so asking about it would ask about something the screen
+        # will never draw.
+        if len(pieces) < 2:
+            continue
+        spans, shares, broken = [], [], False
+        for piece in pieces:
+            low, high = piece.sounds
+            heads = matrix.nuclei([s.symbol for s in sounds[low:high]])
+            if not heads:
+                broken = True
+                break
+            _, first, last = segments[low + heads[0]]
+            last = max(last, first + 1)
+            if last > len(hidden):
+                broken = True
+                break
+            frame = hidden[first:last].mean(axis=0)
+            shares.append(float(np.dot((frame - mean) / deviation, weight)
+                                + bias))
+            spans.append((piece.low, piece.high))
+        if broken or len(spans) != len(pieces):
+            continue
+        odds = np.exp(np.array(shares) - max(shares))
+        out.append({"word": word, "rank": start,
+                    "letters": [piece.letters for piece in pieces],
+                    "spans": spans,
+                    "part": (odds / odds.sum()).round(4).tolist()})
+    return out
+
+
+def stored():
+    if not VERDICTS.is_file():
+        return {}
+    return json.loads(VERDICTS.read_text(encoding="utf-8"))
+
+
+def save(held):
+    atomic.write_text(VERDICTS, json.dumps(held, indent=2, ensure_ascii=False))
+
+
+def listen(order, tools, pad, slow):
+    """The pass itself: one word, one key, and the election shown after.
+
+    Everything the terminal shows before the answer is the question -- the word,
+    its syllables, their numbers -- and nothing of what the probe thinks. The
+    reveal comes after the key, where it can no longer move the ear.
+    """
+    held = stored()
+    player = None
+    done = skipped = 0
+    for tag, family, source, stem, text, wav in order:
+        if not overlap.readable(wav):
+            print(f"  {tag:<28} absent — passé")
+            skipped += 1
+            continue
+        words = scored(wav, text, tag, tools)
+        pending = [one for one in words if f"{tag}#{one['rank']}" not in held]
+        if not pending:
+            continue
+        os.system("clear")
+        print(f"\n  {family} — {source}\n  {text}\n")
+        print("  1..9 la syllabe forte    ? aucune ne ressort    "
+              "x la découpe est fausse")
+        print("  espace réécouter    p la phrase entière    "
+              "s au ralenti    q quitter\n")
+        for one in words:
+            key_of = f"{tag}#{one['rank']}"
+            if key_of in held:
+                continue
+            low = one["spans"][0][0]
+            high = one["spans"][-1][1]
+            shown = "   ".join(f"{rank + 1}. {letters}"
+                               for rank, letters in enumerate(one["letters"]))
+            print(f"\n  {one['word']}   {shown}")
+            player = review.play(wav, low, high, player, pad=pad)
+            answer = None
+            while answer is None:
+                key = review.ask("  > ")
+                if key is None or key == "q":
+                    save(held)
+                    print(f"\n  {done} jugés, {len(held)} au total → {VERDICTS}")
+                    return
+                if key == " " or key == "":
+                    player = review.play(wav, low, high, player, pad=pad)
+                elif key == "p":
+                    player = review.play(wav, 0.0, 1e6, player, pad=0.0)
+                elif key == "s":
+                    player = review.play(wav, low, high, player, pad=pad,
+                                         slow=slow)
+                elif key == "x":
+                    answer = "découpe"
+                elif key == "?":
+                    answer = "aucune"
+                elif key.isdigit() and 1 <= int(key) <= len(one["spans"]):
+                    answer = int(key) - 1
+            elected = int(np.argmax(one["part"]))
+            held[key_of] = {"tag": tag, "famille": family, "source": source,
+                            "texte": stem, "word": one["word"],
+                            "syllabes": one["letters"], "oreille": answer,
+                            "sonde": elected, "part": one["part"]}
+            done += 1
+            if isinstance(answer, int):
+                verdict = "d'accord" if answer == elected else "EN DÉSACCORD"
+                print(f"    sonde : {one['letters'][elected]} "
+                      f"({one['part'][elected]:.2f}) — {verdict}")
+            else:
+                print(f"    sonde : {one['letters'][elected]} "
+                      f"({one['part'][elected]:.2f})")
+            save(held)
+    save(held)
+    print(f"\n  fini — {done} jugés cette fois, {len(held)} au total")
+    if skipped:
+        print(f"  {skipped} lectures absentes — `--render` les synthétise")
+
+
+def report():
+    """What the ear says about the probe, by family and by source.
+
+    The rate that decides everything is the last column: how often the probe
+    elects the syllable the ear picked, on words the ear could pick one for. A
+    word the ear called ambiguous is not a probe failure and does not count
+    against it -- it is counted apart, because its size is a finding of its own.
+    """
+    held = stored()
+    if not held:
+        raise SystemExit(f"{VERDICTS} est vide — rien n'a encore été écouté")
+    families = {}
+    for one in held.values():
+        for key in (one["famille"], f"  {one['source']}"):
+            slot = families.setdefault(key, {"net": 0, "juste": 0,
+                                             "aucune": 0, "découpe": 0})
+            if one["oreille"] == "aucune":
+                slot["aucune"] += 1
+            elif one["oreille"] == "découpe":
+                slot["découpe"] += 1
+            else:
+                slot["net"] += 1
+                slot["juste"] += int(one["oreille"] == one["sonde"])
+    print(f"\n=== la sonde contre l'oreille — {len(held)} mots jugés\n")
+    print(f"  {'':<24}{'tranchés':>9}{'ambigus':>9}{'découpe':>9}"
+          f"{'sonde juste':>13}")
+    for name, slot in families.items():
+        rate = (f"{100 * slot['juste'] / slot['net']:.1f} %"
+                if slot["net"] else "—")
+        print(f"  {name:<24}{slot['net']:>9}{slot['aucune']:>9}"
+              f"{slot['découpe']:>9}{rate:>13}")
+    print("\n  « tranchés » = mots où l'oreille a désigné une syllabe ; c'est "
+          "la seule\n  base sur laquelle la sonde est jugée. Les ambigus et les "
+          "découpes fausses\n  ne sont pas des erreurs de la sonde et se "
+          "comptent à part.")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--render", action="store_true",
+                        help="synthétiser les voix modèles, avec confirmation")
+    parser.add_argument("--report", action="store_true",
+                        help="le décompte, sans écouter")
+    parser.add_argument("-v", "--voice", action="append", default=None,
+                        help="une voix de synthèse (répétable)")
+    parser.add_argument("-n", "--speakers", type=int, default=SPEAKERS,
+                        help=f"locuteurs TIMIT par phrase (défaut {SPEAKERS})")
+    parser.add_argument("-p", "--pad", type=float, default=review.PAD,
+                        help=f"l'air autour du mot, en secondes "
+                             f"(défaut {review.PAD})")
+    parser.add_argument("-s", "--slow", type=float, default=0.5,
+                        help="la vitesse de la touche `s`, hauteur conservée")
+    parser.add_argument("--force", action="store_true",
+                        help="resynthétiser ce qui est déjà rendu")
+    parser.add_argument("--seed", type=int, default=0,
+                        help="l'ordre des lectures ; le mélange évite que la "
+                             "fatigue tombe toujours sur la même source")
+    args = parser.parse_args(argv)
+    voices = tuple(args.voice) if args.voice else VOICES
+
+    if args.report:
+        return report() or 0
+    if args.render:
+        return rendered(voices, args.force)
+    if not CORPUS.is_dir():
+        raise SystemExit(f"{CORPUS} manque — TIMIT porte le côté natif du "
+                         "croisement, et sans lui il ne reste que des machines")
+
+    order = readings(voices, args.speakers)
+    # Shuffled, because judging every native then every voice would let the ear
+    # settle into one kind of mouth and hear the next as a change of task.
+    random.Random(args.seed).shuffle(order)
+    listen(order, probe(), args.pad, args.slow)
+    report()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
