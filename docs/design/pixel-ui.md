@@ -114,7 +114,7 @@ C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une me
 
 ### La mélodie
 
-**Elle a sa propre bande, de 22 pixels, au-dessus de la ligne de texte.** Sa verticale est une grandeur continue, dont la finesse n'a aucune raison d'être plafonnée par la hauteur d'une cellule de texte ; la bande lui donne deux fois plus de crans que la ligne n'en offrirait. Son horizontale, elle, reste calée sur les caractères — c'est là qu'est son ancrage.
+**Elle a sa propre bande, de 22 pixels, au-dessus de la ligne de texte.** Sa verticale est une grandeur continue, dont la finesse n'a aucune raison d'être plafonnée par la hauteur d'une cellule de texte ; la bande lui donne deux fois plus de crans que la ligne n'en offrirait. Son horizontale, elle, reste calée sur les caractères — c'est là qu'est son ancrage. **La courbe ne se coupe qu'aux fragments écartés**, là où la comparaison n'existe pas ; aux pauses elle reste d'un seul tenant, les paires ne prenant aucune colonne.
 
 **Ce qui dépasse est l'erreur.** Le contour de l'apprenant est peint dessous, sur le bout rouge de la rampe ; celui du modèle par-dessus, à la même épaisseur, dans un bleu calme. Là où les deux coïncident, le rouge est entièrement recouvert. **Bien parler fait donc disparaître la couleur au lieu de la changer**, et la quantité de rouge visible est la quantité d'écart. La mélodie n'a plus de couleur à elle : elle emprunte la rampe commune.
 
@@ -131,7 +131,7 @@ C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une me
 - **La vaguelette de correction tient un groupe de mots**, et ondule d'autant de pixels qu'elle est épaisse — sinon elle rend comme une bande floue.
 - **La pertinence se marque par des crochets aux deux bouts du groupe**, pas par un cadre complet. *Juste* se marque aussi, puisque c'est la seule mesure du projet qui ait un bon côté : presque tous les groupes portent donc une étiquette, et une enceinte qui court le long du texte ferait de la ligne une chaîne de boîtes. Les crochets restent une enceinte, donc distincts du filet droit et de la vaguelette.
 
-- **Une pause est une file de points médians dans le flux du texte**, un point par cran, cinq crans au plus (`activity-model.md`). Les points prennent des cellules comme des lettres, donc une pause est large comme un mot court et ne dévore jamais la ligne. Un point est un carré de l'épaisseur du trait, centré dans sa cellule, à mi-hauteur des capitales.
+- **Une pause est une pile de paires de points dans le blanc entre les mots** — le blanc d'une cellule qui existe déjà, jamais une colonne de plus, puisque la courbe de mélodie est ancrée aux caractères et ne doit pas être décalée. Trois crans, une paire par cran, le motif `-oo--oo-oo-` au maximum (`activity-model.md`) ; un point fait l'épaisseur du trait, et la paire se pose à mi-hauteur des capitales. **Les silences des bords se posent dans la colonne vide qui borde le tour**, l'initiale en colonne 0, la finale à la suite du dernier mot. **À une frontière de groupe, le motif commande les crochets** : dans le blanc où une enceinte se ferme et la suivante s'ouvre, les paires et les deux bras tiennent dans les onze pixels — le motif fixe la marge des crochets au pixel près, pas l'inverse. À régler au banc.
 - **Ce qui est écarté de la phrase s'écrit en encre atténuée entre crochets** — `[um]`. Les crochets sont de vrais caractères, dans leur cellule et à hauteur de lettre : c'est ce qui les sépare de l'enceinte de pertinence, qui est peinte et déborde en hauteur.
 
 **Le filet et la vaguelette ont chacun leur rangée** : à 2 pixels d'épaisseur, les mêler ne tient plus, et un même groupe porte souvent les deux.
@@ -146,7 +146,7 @@ C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une me
 
 Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 pixel** avant les marques, **un interligne** d'une ligne de grille, et le texte posé à **8 pixels** dans sa ligne. Le partage n'est pas symétrique : au-dessus des lettres il n'y a que le bord de l'enceinte, en dessous il y a l'enceinte, le filet et la vaguelette.
 
-**Les lettres se peignent par-dessus les crochets.** Ordre complet : la mélodie, la pertinence, les lettres — points de pause et fragments écartés compris, qui sont dans le flux —, la vaguelette, le filet.
+**Les lettres se peignent par-dessus les crochets.** Ordre complet : la mélodie, la pertinence, les lettres — fragments écartés et paires de points compris, qui vivent dans les cellules —, la vaguelette, le filet.
 
 ### La ligne qui nomme le tour
 
@@ -160,7 +160,7 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 
 ## Le doigt
 
-**Tout est directement tactile.** L'élément qu'on touche est celui qui se sélectionne ; le curseur existe toujours mais il marque ce qu'on vient de toucher au lieu de servir à naviguer. La barre du bas affiche les actions disponibles, et ses entrées sont de vrais boutons qu'on presse.
+**Tout est directement tactile.** L'élément qu'on touche est celui qui se sélectionne ; le curseur existe toujours mais il marque ce qu'on vient de toucher au lieu de servir à naviguer. La barre du bas affiche les actions disponibles, et ses entrées sont de vrais boutons qu'on presse. Sur le tour marqué, elle porte le gros bouton — le tour suivant — et le petit bouton, dont l'étiquette dit la porte du moment : *redire* ou *reformuler*.
 
 Conséquence mécanique, pas un choix : **une entrée touchable occupe environ trois lignes de grille**, remplies ou vides. La recommandation Android est une cible de 48 dp et une ligne fait ici environ 11 dp. Ce n'est pas propre au registre — dans n'importe quelle app les lignes de liste sont rembourrées pour cette raison ; la seule différence est qu'ici le rembourrage est visible, en cellules vides.
 
