@@ -108,6 +108,14 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 
 **Un panneau peut n'être qu'un aplat**, un pavé de fond plus clair calé sur les cellules. C'est la forme la plus douce dont on dispose, puisqu'un aplat n'a pas d'arête à adoucir.
 
+## Le texte de l'IA
+
+**Le tour de l'IA s'affiche brouillé par défaut.** L'oreille est le canal principal, et un texte lisible préempterait l'écoute — c'est le flou déjà prévu (« les tours de l'IA sont floutables ») qui devient un brouillage.
+
+**La table d'association échange chaque lettre avec une lettre de sa propre famille de forme** — les ascendantes entre elles, les descendantes entre elles, les autres entre elles — à table fixe. Le mot garde donc sa silhouette : sa longueur, sa ponctuation, le rythme de ses ascendantes et descendantes. Le panneau se lit comme du texte sans se lire : on sent qu'il y avait une phrase, on ne la déchiffre pas. Les capitales restent capitales, les espaces et la ponctuation ne bougent pas. Pas de glyphe à dessiner : la substitution suffit.
+
+**La table est fixe** — le même texte se brouille pareil partout et tout le temps, comme une marque. Le réglage brouillé/net reste à l'apprenant, et le brouillage est l'état par défaut.
+
 ## Le tour marqué
 
 C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une mesure. **Le tour est une tranche du fil, qui défile au glissement** — jamais un écran à tour unique, donc pas de compteur de tour.
@@ -205,7 +213,7 @@ Pour que ces questions ne se reposent pas.
 - **Le débordement d'un interligne sur l'autre.** À interligne 1, la vaguelette d'une ligne descend deux pixels plus bas que le sommet de la ligne suivante. Se règle en ajustant l'air, à faire.
 - **Les sons.** Rien n'est décidé. Le canal principal de l'app *est* l'audio — la voix du modèle, et le micro ouvert pendant la réponse — donc une ambiance continue entre en concurrence avec ce qu'on écoute et se fait capter par le micro. Un babil de texte est exclu d'avance, le tour de l'IA étant réellement parlé.
 - **La charpente persistante.** Aujourd'hui `MainActivity.Root` porte une rangée de boutons en haut qui dit à la fois où on est et où aller. Le registre a deux objets distincts : une **ligne d'état** en haut, une **barre d'actions** en bas. Les séparer mettrait les actions là où est le pouce, et donnerait un endroit à ce que `reference.md` exige à plusieurs reprises — qu'une chose indisponible **porte sa raison**. Coût : deux lignes de grille en permanence.
-- **Le texte de l'IA qui apparaît caractère par caractère.** Très juste dans le registre, mais les tours de l'IA sont floutables et l'audio est le canal principal : un défilement qui devance ou traîne derrière la voix serait pire que pas de défilement.
+- **Le texte de l'IA qui apparaît caractère par caractère.** Très juste dans le registre, mais les tours de l'IA sont brouillés (« Le texte de l'IA ») et l'audio est le canal principal : un défilement qui devance ou traîne derrière la voix serait pire que pas de défilement.
 - **La rencontre de personnage** (`../../NOTES.md`) — ce qui fait qu'on rencontre quelqu'un plutôt qu'on lance un thème. C'est une grammaire d'interaction, pas un habillage, et rien ici ne la décide.
 - **La pile de navigation.** Les quatre écrans actuels sont un interrupteur à quatre positions dont aucun ne mène à un autre ; le modèle d'activité (`activity-model.md`) amènera des écrans qui descendent les uns dans les autres. La charpente ne doit pas bloquer ça.
 
