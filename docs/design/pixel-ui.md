@@ -114,7 +114,9 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 
 **Le brouillage recouvre l'espace de chaque lettre de carrés de 2 pixels disposés au hasard** — l'épaisseur du trait, sur la même grille que tout le reste. Ce qui survit est le support : la hauteur et la largeur de la lettre — les ascendantes restent hautes, les descendantes basses —, la longueur des mots, la ponctuation et les retours à la ligne. Le panneau se lit comme du texte sans qu'aucune lettre ne se lise : on sent qu'il y avait une phrase, on ne déchiffre rien. Les lettres seules se couvrent, les espaces et la ponctuation ne bougent pas.
 
-**Le brouillage est fixe** — la même lettre se couvre toujours pareil, donc le même texte se brouille pareil partout et tout le temps, comme une marque. Le réglage brouillé/net reste à l'apprenant, et le brouillage est l'état par défaut.
+**Le brouillage est fixe** — la même lettre se couvre toujours pareil, donc le même texte se brouille pareil partout et tout le temps, comme une marque.
+
+**Ce n'est pas une préférence, c'est une position du levier `tour-ia.affichage`** (`activity-model.md`), dont c'est le défaut. Elle tombe entre le texte net et *seulement qui parle*, le support laissé étant une aide de moins que le texte et une de plus que rien. En conversation libre l'apprenant la déplace lui-même et elle reste où il l'a laissée ; une activité qui veut imposer le net, ou n'en rien montrer, la pose comme n'importe quel autre levier. Une préférence vaudrait partout et aucun défi ne pourrait la reprendre.
 
 ## Le tour marqué
 

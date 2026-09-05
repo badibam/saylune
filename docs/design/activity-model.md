@@ -197,7 +197,7 @@ Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette 
 |---|---|---|---|---|
 | `tour-ia.longueur` | marches | courte, moyenne, longue | moyenne | le modèle |
 | `tour-ia.complexite` | marches | basse, moyenne, élevée | moyenne | le modèle |
-| `tour-ia.affichage` | marches | le texte, seulement qui parle, rien | le texte | l'app |
+| `tour-ia.affichage` | marches | le texte, le texte brouillé, seulement qui parle, rien | le texte brouillé | l'app |
 | `reecoute` | nombre | 0 à sans maximum ; 0 vaut *interdite* | sans maximum | l'app |
 | `bruit` | marches | aucun, présent, fort | aucun | l'app |
 | `filtre` | marches | aucun, léger, marqué | aucun | l'app |
@@ -1218,7 +1218,7 @@ Voir ou non le texte de sa propre phrase n'est pas un levier : quand on redit, l
 La cadence porte sur **tout tour analysé**, pas seulement sur une redite : le modèle est synthétisé pour toute phrase qu'on analyse. Ce qui change est ce que l'apprenant en voit — sur un tour spontané le modèle n'existe qu'après coup, donc c'est un verdict *« trop lent, refais »* ; sur une redite il est déjà là, et un décompte est possible. Le nom évite une collision : **le débit** est une feuille de fluidité, ce qu'on fait spontanément, là où la cadence est une exigence de coller à la vitesse du modèle.
 
 **Compréhension**
-- *Leviers* : la **longueur** du tour de l'IA et sa **complexité** — vocabulaire, structure — deux leviers, tous deux *demandés* ; le tour de l'IA en trois marches, **texte affiché**, **seulement qui parle**, **rien** ; la **réécoute**, un nombre dont zéro veut dire interdite ; le **bruit** et le **filtre** du canal, jusqu'à simuler un mauvais réseau qui coupe des mots — deux leviers et non un (« Le catalogue des leviers »).
+- *Leviers* : la **longueur** du tour de l'IA et sa **complexité** — vocabulaire, structure — deux leviers, tous deux *demandés* ; le tour de l'IA en quatre marches, **texte affiché**, **texte brouillé** — le support de la phrase sans son contenu, sa longueur, sa ponctuation, le rythme de ses ascendantes (`pixel-ui.md`) —, **seulement qui parle**, **rien** ; la **réécoute**, un nombre dont zéro veut dire interdite ; le **bruit** et le **filtre** du canal, jusqu'à simuler un mauvais réseau qui coupe des mots — deux leviers et non un (« Le catalogue des leviers »).
 
 La marche du milieu prend son sens à plusieurs personnages : on sait que c'est Vera qui parle sans lire ce qu'elle dit.
 
