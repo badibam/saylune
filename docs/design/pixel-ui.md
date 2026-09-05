@@ -166,7 +166,7 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 - **Le débit s'écrit en caractères** — `>><<` `><` `=` `<->` `<-->` — centré dans un champ de quatre colonnes, pour que la pastille ne bouge pas quand le cran change.
 - **Un emplacement vide dit *non mesuré***, et non *rien à signaler* (`activity-model.md`).
 
-À regarder au banc : sur seize colonnes, l'étiquette en prend huit et les deux marques six, donc rien ne les sépare. Soit l'étiquette raccourcit, soit on l'accepte.
+À regarder au banc : sur seize colonnes, l'étiquette en prend huit et les deux marques six, donc rien ne les sépare. Soit l'étiquette raccourcit, soit on l'accepte. **Et l'écran qui produit ce cas existe** : un 720 en donne vingt-et-une à facteur constant, contre trente-deux sur un 1080 — c'est là que le tour marqué et cette ligne se vérifient, pas seulement à trente-deux.
 
 ## Le doigt
 
