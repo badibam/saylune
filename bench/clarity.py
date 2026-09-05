@@ -44,6 +44,7 @@ import atomic
 
 import hear
 import join
+import probe
 import matrix
 import overlap
 import review
@@ -82,7 +83,7 @@ def words(voice, stem, text, tools):
     model's own recording -- what the learner did with the word does not enter
     it -- so there is one reading per (voice, word) and not one per pairing.
     """
-    mean, deviation, weight, bias, layer = tools
+    layer = tools[4]
     wav = hear.RENDERS / voice / "timit" / f"{stem}.wav"
     if not overlap.readable(wav):
         return []
@@ -104,24 +105,20 @@ def words(voice, stem, text, tools):
         pieces = [p for p in cuts if start <= p.sounds[0] and p.sounds[1] <= stop]
         if len(pieces) < 2:
             continue
-        shares, broken = [], False
+        places, broken = [], False
         for piece in pieces:
             low, high = piece.sounds
             heads = matrix.nuclei([s.symbol for s in sounds[low:high]])
             if not heads:
                 broken = True
                 break
-            _, first, last = segments[low + heads[0]]
-            last = max(last, first + 1)
-            if last > len(hidden):
-                broken = True
-                break
-            shares.append(float(np.dot(
-                (hidden[first:last].mean(axis=0) - mean) / deviation, weight) + bias))
+            places.append(segments[low + heads[0]][1:])
         if broken:
             continue
-        odds = np.exp(np.array(shares) - max(shares))
-        part = odds / odds.sum()
+        got = probe.parts(hidden, places, tools)
+        if got is None:
+            continue
+        part = np.array(got)
         ranked = np.sort(part)[::-1]
         out.append({"word": word, "voice": voice, "wav": wav,
                     "syllabes": [p.letters for p in pieces],
@@ -294,18 +291,6 @@ def surviving(tools, seed):
                     [index for index, _, _ in segments])
                 learner_hidden = hear.states(learner_wav, layer)
 
-                def share(hidden, places):
-                    got = []
-                    for low, high in places:
-                        high = max(high, low + 1)
-                        if high > len(hidden):
-                            return None
-                        got.append(float(np.dot(
-                            (hidden[low:high].mean(axis=0) - mean) / deviation,
-                            weight) + bias))
-                    odds = np.exp(np.array(got) - max(got))
-                    return odds / odds.sum()
-
                 for start, stop in join.runs(sounds):
                     word = sounds[start].word.strip(".,!?\'").lower()
                     if word in syllables.FUNCTION:
@@ -324,8 +309,10 @@ def surviving(tools, seed):
                         at.append(low + heads[0])
                     if broken:
                         continue
-                    here = share(model_hidden, [segments[one][1:] for one in at])
-                    there = share(learner_hidden, [spans[one] for one in at])
+                    here = probe.parts(model_hidden,
+                                       [segments[one][1:] for one in at], tools)
+                    there = probe.parts(learner_hidden,
+                                        [spans[one] for one in at], tools)
                     if here is None or there is None:
                         continue
                     ranked = np.sort(here)[::-1]

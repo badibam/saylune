@@ -55,6 +55,8 @@ import numpy as np
 import atomic
 
 import join
+import probe
+from probe import frozen as probe, hidden as states, parts
 import matrix
 import overlap
 import review
@@ -64,7 +66,6 @@ import synth
 HERE = Path(__file__).resolve().parent
 CORPUS = HERE.parent / "tmp" / "TIMIT" / "lisa" / "data" / "timit" / "raw" / "TIMIT"
 RENDERS = HERE / "out" / "renders"
-PROBE = HERE / "out" / "probe" / "probe-timit-19.npz"
 VERDICTS = HERE / "reviews" / "hear-stress.json"
 
 # Five SX sentences of the TEST half. SX prompts are read by seven speakers
@@ -162,32 +163,6 @@ def rendered(voices, force):
     return 0
 
 
-def probe():
-    """The frozen linear probe: standardisation, weights, bias.
-
-    Fitted on TIMIT, where the nuclei bounds are hand-placed -- which is why it
-    is this one and not the L2 probe, whose corpus was dropped along with the
-    montage that read it (`../TODO.md`).
-    """
-    if not PROBE.is_file():
-        raise SystemExit(f"{PROBE} manque — la sonde figée est ce qui est jugé "
-                         "ici, et écouter sans elle ne mesurerait rien")
-    held = np.load(PROBE)
-    return (held["mean"], held["deviation"], held["weight"],
-            float(held["bias"][0]), int(held["layer"]))
-
-
-def states(wav, layer):
-    """One recording's hidden layer, at the frame rate the matrix uses."""
-    import soundfile as sf
-    _, net, _, torch = matrix.loaded()
-    matrix.heard(wav)
-    samples, _ = sf.read(wav, dtype="float64")
-    out = net(torch.from_numpy(matrix.prepared(samples)),
-              output_hidden_states=True)
-    return out.hidden_states[layer][0].numpy().astype(np.float32)
-
-
 def scored(wav, text, tag, tools):
     """One recording's words: their syllables, their spans, the probe's shares.
 
@@ -196,7 +171,7 @@ def scored(wav, text, tag, tools):
     for is the accuracy of *one* reading against an ear, and the comparison of
     two readings is arithmetic to be done afterwards, on numbers this produces.
     """
-    mean, deviation, weight, bias, layer = tools
+    layer = tools[4]
     cache = overlap.MATRICES / "hear" / f"{tag.replace('/', '-')}.npz"
     spread = matrix.probabilities(wav, cache=cache)
     segments = matrix.grid(spread)
@@ -218,29 +193,24 @@ def scored(wav, text, tag, tools):
         # will never draw.
         if len(pieces) < 2:
             continue
-        spans, shares, broken = [], [], False
+        spans, places, broken = [], [], False
         for piece in pieces:
             low, high = piece.sounds
             heads = matrix.nuclei([s.symbol for s in sounds[low:high]])
             if not heads:
                 broken = True
                 break
-            _, first, last = segments[low + heads[0]]
-            last = max(last, first + 1)
-            if last > len(hidden):
-                broken = True
-                break
-            frame = hidden[first:last].mean(axis=0)
-            shares.append(float(np.dot((frame - mean) / deviation, weight)
-                                + bias))
+            places.append(segments[low + heads[0]][1:])
             spans.append((piece.low, piece.high))
         if broken or len(spans) != len(pieces):
             continue
-        odds = np.exp(np.array(shares) - max(shares))
+        got = parts(hidden, places, tools)
+        if got is None:
+            continue
         out.append({"word": word, "rank": start,
                     "letters": [piece.letters for piece in pieces],
                     "spans": spans,
-                    "part": (odds / odds.sum()).round(4).tolist()})
+                    "part": np.round(got, 4).tolist()})
     return out
 
 
@@ -477,7 +447,7 @@ def paired(model_wav, learner_wav, text, tags, tools, cache={}):
     on its own decoding never gets the chance. What that changes is not
     arguable, so it is measured here rather than asserted.
     """
-    mean, deviation, weight, bias, layer = tools
+    layer = tools[4]
     model_tag, learner_tag = tags
     model_cache = overlap.MATRICES / "hear" / f"{model_tag.replace('/', '-')}.npz"
     learner_cache = overlap.MATRICES / "hear" / f"{learner_tag.replace('/', '-')}.npz"
@@ -492,17 +462,6 @@ def paired(model_wav, learner_wav, text, tags, tools, cache={}):
     for key, wav in ((model_tag, model_wav), (learner_tag, learner_wav)):
         if key not in cache:
             cache[key] = states(wav, layer)
-
-    def share(hidden, places):
-        got = []
-        for low, high in places:
-            high = max(high, low + 1)
-            if high > len(hidden):
-                return None
-            frame = hidden[low:high].mean(axis=0)
-            got.append(float(np.dot((frame - mean) / deviation, weight) + bias))
-        odds = np.exp(np.array(got) - max(got))
-        return (odds / odds.sum()).tolist()
 
     out = []
     for start, stop in join.runs(sounds):
@@ -523,8 +482,8 @@ def paired(model_wav, learner_wav, text, tags, tools, cache={}):
             at.append(low + heads[0])
         if broken:
             continue
-        here = share(cache[model_tag], [segments[one][1:] for one in at])
-        there = share(cache[learner_tag], [spans[one] for one in at])
+        here = parts(cache[model_tag], [segments[one][1:] for one in at], tools)
+        there = parts(cache[learner_tag], [spans[one] for one in at], tools)
         if here is None or there is None:
             continue
         out.append({"word": word, "syllabes": [p.letters for p in pieces],

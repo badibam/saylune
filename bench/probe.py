@@ -50,6 +50,12 @@ import syllables
 HERE = Path(__file__).resolve().parent
 STORE = HERE / "out" / "probe"
 
+# The probe the app will carry, in the shape `freeze` writes it. Frozen on
+# TIMIT, where the nuclei bounds are hand-placed -- which is why it is this one
+# and not the L2 probe, whose corpus was dropped along with the montage that
+# read it (`../TODO.md`).
+FROZEN = STORE / "probe-timit-19.npz"
+
 VOICE = "azure-us-jenny"
 
 # The nuclei of the corpus's own alphabet. Its digits are what say which syllable
@@ -77,6 +83,51 @@ def states(wav, net, torch):
     samples, _ = sf.read(wav, dtype="float64")
     out = net(torch.from_numpy(matrix.prepared(samples)), output_hidden_states=True)
     return [one[0].numpy().astype(np.float32) for one in out.hidden_states]
+
+def frozen():
+    """The frozen linear probe: standardisation, weights, bias.
+
+    The probe travels with this file -- fit, frozen, read through the exported
+    graph -- and every other instrument borrows it from here.
+    """
+    if not FROZEN.is_file():
+        raise SystemExit(f"{FROZEN} manque — la sonde figée est ce qui est "
+                         "jugé partout, et écouter sans elle ne mesurerait rien")
+    held = np.load(FROZEN)
+    return (held["mean"], held["deviation"], held["weight"],
+            float(held["bias"][0]), int(held["layer"]))
+
+
+def hidden(wav, layer):
+    """One recording's hidden layer, at the frame rate the matrix uses."""
+    _, net, _, torch = matrix.loaded()
+    matrix.heard(wav)
+    samples, _ = sf.read(wav, dtype="float64")
+    out = net(torch.from_numpy(matrix.prepared(samples)),
+              output_hidden_states=True)
+    return out.hidden_states[layer][0].numpy().astype(np.float32)
+
+
+def parts(hidden_states, places, tools):
+    """The probe's part of the stress on each nucleus span, softmaxed over the word.
+
+    A span is a (first, last) pair of frames, as every reading hands them out:
+    the mean of the layer over the span, standardised with the frozen moments,
+    dotted with the frozen weight. The softmax turns the scores of one word
+    into parts summing to one -- what "the elected syllable" and the margin are
+    read off. None when a span runs past the layer: the caller drops the word
+    rather than reading a short syllable.
+    """
+    mean, deviation, weight, bias, _ = tools
+    scores = []
+    for low, high in places:
+        high = max(high, low + 1)
+        if high > len(hidden_states):
+            return None
+        frame = hidden_states[low:high].mean(axis=0)
+        scores.append(float(np.dot((frame - mean) / deviation, weight) + bias))
+    odds = np.exp(np.array(scores) - max(scores))
+    return (odds / odds.sum()).tolist()
 
 
 def extract(split, budget, out):
