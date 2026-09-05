@@ -37,6 +37,7 @@ gets an answer instead of an inference.
     ACOUSTIC_MODEL=timit-ipa python3 hear.py --render   # synthesise, once, and it costs
     ACOUSTIC_MODEL=timit-ipa python3 hear.py            # the listening pass
     ACOUSTIC_MODEL=timit-ipa python3 hear.py --report   # the tally, without listening
+    ACOUSTIC_MODEL=timit-ipa python3 hear.py --graph    # the probe through the exported graphs
 
 Verdicts land in `reviews/hear-stress.json`, versioned, like every other thing
 in this bench written once by hand and regenerable by nothing. The pass resumes
@@ -56,7 +57,7 @@ import atomic
 
 import join
 import probe
-from probe import frozen as probe, hidden as states, parts
+from probe import BAR, frozen as probe, hidden as states, parts
 import matrix
 import overlap
 import review
@@ -163,13 +164,18 @@ def rendered(voices, force):
     return 0
 
 
-def scored(wav, text, tag, tools):
+def scored(wav, text, tag, tools, source=None):
     """One recording's words: their syllables, their spans, the probe's shares.
 
     The recording is read alone -- its own grid, its own syllables, its own
     hidden states. Nothing here compares two sides: what the listening pass is
     for is the accuracy of *one* reading against an ear, and the comparison of
     two readings is arithmetic to be done afterwards, on numbers this produces.
+
+    `source` replaces where the hidden states come from, which is what lets the
+    same reading run on the exported graphs instead of PyTorch: the words, the
+    spans, the bounds all stay exactly as the ear pass saw them, and only the
+    states under them change.
     """
     layer = tools[4]
     cache = overlap.MATRICES / "hear" / f"{tag.replace('/', '-')}.npz"
@@ -179,7 +185,7 @@ def scored(wav, text, tag, tools):
         return []
     sounds = join.joined(wav, text, cache=cache)
     cuts = syllables.cut(sounds)
-    hidden = states(wav, layer)
+    hidden = source(wav) if source else states(wav, layer)
 
     out = []
     for start, stop in join.runs(sounds):
@@ -559,6 +565,107 @@ def couples(order, tools):
               f"{100 * bad / len(kept):>8.1f} %")
 
 
+def graph(speakers):
+    """The probe through the exported graphs, against the reading it was judged on.
+
+    The device runs the exported graph, never PyTorch, and the export's 8-bit
+    rounding moves the hidden layer the probe reads 3.9 where it moves the
+    matrix 0.045 (`export.py`'s own check). Whether that moves the probe's
+    *elections* is what decides which file the phone carries, and the matrix
+    says nothing of it -- so the same recordings the ear passes read are put
+    through both graphs, word by word: which syllable is elected, and how far
+    the margin moves. The margin is the eligibility bar of the app, so its
+    drift is not cosmetic.
+    """
+    import onnxruntime
+    import soundfile as sf
+    tools = probe()
+    layer = int(tools[4])
+    order = readings(VOICES, speakers)
+
+    sessions = {}
+    for name, precision in (("flottant", ""), ("8 bits", "-int8")):
+        path = matrix.ONNX_WEIGHTS.parent / f"{matrix.CHOSEN}{precision}.onnx"
+        if not path.is_file():
+            raise SystemExit(f"{path} manque — python3 export.py")
+        sessions[name] = onnxruntime.InferenceSession(
+            str(path), providers=["CPUExecutionProvider"])
+
+    def through(session):
+        def read(wav):
+            matrix.heard(wav)
+            samples, _ = sf.read(wav, dtype="float64")
+            got = session.run(None, {"input_values": matrix.prepared(samples)})
+            return got[1].astype(np.float32)
+        return read
+
+    def margin(part):
+        ranked = sorted(part)[::-1]
+        return ranked[0] - ranked[1]
+
+    tally = {name: {"mots": 0, "élues": 0, "écart": 0.0, "max": 0.0,
+                    "barrés": 0, "bascules": [], "lesquels": []}
+             for name in sessions}
+    for tag, family, source, stem, text, wav in order:
+        if not overlap.readable(wav):
+            continue
+        reference = scored(wav, text, tag, tools)
+        by_word = {f"{one['word']}#{one['rank']}": one for one in reference}
+        for name, session in sessions.items():
+            read = scored(wav, text, tag, tools, source=through(session))
+            found = {f"{one['word']}#{one['rank']}": one for one in read}
+            slot = tally[name]
+            for key, one in by_word.items():
+                other = found.get(key)
+                if other is None:
+                    # The graph's layer ran short of the torch one: a word the
+                    # reading cannot place is worse than a moved election and
+                    # is counted apart, because parts() drops it silently.
+                    slot["barrés"] += 1
+                    continue
+                slot["mots"] += 1
+                if int(np.argmax(one["part"])) == int(np.argmax(other["part"])):
+                    slot["élues"] += 1
+                else:
+                    slot["lesquels"].append(
+                        (key, one["part"], other["part"]))
+                drift = abs(margin(one["part"]) - margin(other["part"]))
+                slot["écart"] += drift
+                slot["max"] = max(slot["max"], drift)
+                # The bar decides eligibility, so a drift that crosses it is a
+                # word the screen treats differently -- the one thing a mean
+                # cannot show, because the two sides cancel.
+                if (margin(one["part"]) >= BAR) != (margin(other["part"]) >= BAR):
+                    slot["bascules"].append((key, margin(one["part"]),
+                                             margin(other["part"])))
+        print(f"  {tag} lu", file=sys.stderr, flush=True)
+
+    print("\n=== la sonde à travers les graphes exportés, contre la lecture PyTorch\n")
+    print(f"  {'':<10}{'mots':>7}{'élue pareille':>15}{'écart de marge':>16}"
+          f"{'au pire':>9}{'bascules de barre':>19}{'mots barrés':>13}")
+    for name, slot in tally.items():
+        rate = (f"{100 * slot['élues'] / slot['mots']:.1f} %"
+                if slot["mots"] else "—")
+        print(f"  {name:<10}{slot['mots']:>7}{rate:>15}"
+              f"{slot['écart'] / slot['mots']:>16.3f}{slot['max']:>9.3f}"
+              f"{len(slot['bascules']):>19}{slot['barrés']:>13}")
+        for key, here, there in slot["bascules"]:
+            print(f"      barre franchie : {key.split('#')[0]:<16}"
+                  f"marge {here:.3f} → {there:.3f}")
+    print("\n  « écart de marge » = moyenne de |marge du graphe − marge PyTorch| ; "
+          "la barre d'éligibilité\n  de l'app est à 0,90, donc un écart qui la "
+          "franchit change ce qui est marqué.")
+    for name, slot in tally.items():
+        if slot["lesquels"]:
+            print(f"\n  {name} — mots où l'élue change "
+                  f"({len(slot['lesquels'])}):")
+            for key, torch_part, graph_part in slot["lesquels"]:
+                word, _ = key.split("#")
+                print(f"      {word:<18}PyTorch {np.round(torch_part, 2).tolist()}"
+                      f"   graphe {np.round(graph_part, 2).tolist()}")
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--render", action="store_true",
@@ -568,6 +675,9 @@ def main(argv=None):
     parser.add_argument("--couples", action="store_true",
                         help="le désaccord sur le montage du produit, sans "
                              "écouter : l'apprenant aligné sur le modèle")
+    parser.add_argument("--graph", action="store_true",
+                        help="la sonde lue à travers les graphes exportés, "
+                             "flottant et 8 bits, contre PyTorch")
     parser.add_argument("--again", action="store_true",
                         help="réécouter les désaccords, mêlés à autant "
                              "d'accords tirés au sort — à l'aveugle")
@@ -597,6 +707,8 @@ def main(argv=None):
                          "croisement, et sans lui il ne reste que des machines")
 
     order = readings(voices, args.speakers)
+    if args.graph:
+        return graph(args.speakers)
     if args.couples:
         return couples(order, probe()) or 0
     if args.again:

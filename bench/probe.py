@@ -33,6 +33,7 @@ the yield before hoping anything of a new corpus.
 """
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -55,6 +56,13 @@ STORE = HERE / "out" / "probe"
 # and not the L2 probe, whose corpus was dropped along with the montage that
 # read it (`../TODO.md`).
 FROZEN = STORE / "probe-timit-19.npz"
+
+# The eligibility bar of the app, on the model side: a word whose elected
+# syllable does not lead the runner-up by this much receives no mark at all.
+# Set by measure, not by taste -- between 0.80 and 0.94 the sweep of
+# `hear.py --couples` renders the same thing, and 0.95 would throw away a word
+# an ear heard as plainly stressed, for no mark gained (`docs/analysis.md`).
+BAR = 0.90
 
 VOICE = "azure-us-jenny"
 
@@ -260,6 +268,26 @@ def report(layers_wanted):
               f" {100 * right / total:>10.1f} %")
 
 
+def portable():
+    """The frozen probe as JSON, the shape the app reads beside its weights.
+
+    The app carries no numpy: the three float32 vectors and the bias leave the
+    npz for one JSON file, printed at full precision so the Kotlin side reads
+    back exactly the numbers the bench judged. Lands beside the exported graph,
+    since a probe belongs to the weights it was fitted on -- pushing one
+    without the other would read stress off a model that never produced the
+    states it was trained on.
+    """
+    mean, deviation, weight, bias, layer = frozen()
+    out = matrix.ONNX_WEIGHTS.parent / "probe.json"
+    data = {"layer": layer, "mean": mean.tolist(),
+            "deviation": deviation.tolist(), "weight": weight.tolist(),
+            "bias": bias}
+    atomic.write_text(out, json.dumps(data, ensure_ascii=False) + "\n")
+    print(f"couche {layer}, {len(mean)} poids → {out}")
+    return 0
+
+
 def freeze(layer):
     import torch
     train = np.load(STORE / "train.npz")
@@ -281,6 +309,9 @@ def main(argv=None):
     parser.add_argument("-b", "--budget", type=int, default=0,
                         help="caractères de modèle du tirage ; 0 = tout le jeu")
     parser.add_argument("--fit", type=int, help="fige cette couche pour accent.py")
+    parser.add_argument("--json", action="store_true",
+                        help="la sonde figée en JSON, la forme que l'app lit "
+                             "à côté de ses poids")
     parser.add_argument("-l", "--layer", type=int, action="append",
                         help="ne juger que cette couche (répétable)")
     args = parser.parse_args(argv)
@@ -289,6 +320,8 @@ def main(argv=None):
         return 0
     if args.fit is not None:
         return freeze(args.fit) or 0
+    if args.json:
+        return portable()
     return report(args.layer) or 0
 
 
