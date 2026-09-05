@@ -110,7 +110,7 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 
 ## Le tour marqué
 
-C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une mesure.
+C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une mesure. **Le tour est une tranche du fil, qui défile au glissement** — jamais un écran à tour unique, donc pas de compteur de tour.
 
 ### La mélodie
 
@@ -128,10 +128,10 @@ C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une me
 
 - **La teinte** est sur les lettres, une par cran de la rampe.
 - **Le filet d'accent tient une syllabe.** Une erreur d'accent en montre deux : la syllabe cible en vert, celle qui a réellement porté l'accent sur la rampe.
-- **La vaguelette de correction tient un groupe de mots**, et ondule d'autant de pixels qu'elle est épaisse — sinon elle rend comme une bande floue.
+- **La vaguelette de correction tient un groupe de mots**, et ondule d'autant de pixels qu'elle est épaisse — sinon elle rend comme une bande floue. **Sa couleur dit le cran** — jaune pour *mal formé*, rouge pour *ne se dit pas* (`activity-model.md`).
 - **La pertinence se marque par des crochets aux deux bouts du groupe**, pas par un cadre complet. *Juste* se marque aussi, puisque c'est la seule mesure du projet qui ait un bon côté : presque tous les groupes portent donc une étiquette, et une enceinte qui court le long du texte ferait de la ligne une chaîne de boîtes. Les crochets restent une enceinte, donc distincts du filet droit et de la vaguelette.
 
-- **Une pause est une colonne de points empilés dans le blanc entre les mots** — le blanc d'une cellule qui existe déjà, jamais une colonne de plus, puisque la courbe de mélodie est ancrée aux caractères et ne doit pas être décalée. Trois crans, un point de 2 × 2 px par cran, un pixel d'air entre deux (`activity-model.md`) : la colonne tient dans 2 pixels des onze. **Les silences des bords se posent dans la colonne vide qui borde le tour**, l'initiale en colonne 0, la finale à la suite du dernier mot. **À une frontière de groupe, la colonne laisse les deux bras tenir dans le même blanc** — le motif commande la marge des crochets au pixel près, pas l'inverse. À régler au banc.
+- **Une pause est une colonne de points empilés dans le blanc entre les mots** — le blanc d'une cellule qui existe déjà, jamais une colonne de plus, puisque la courbe de mélodie est ancrée aux caractères et ne doit pas être décalée. Trois crans, un point de 2 × 2 px par cran, un pixel d'air entre deux (`activity-model.md`) : la colonne tient dans 2 pixels des onze. **Les silences des bords se posent dans la colonne vide qui borde le tour**, l'initiale en colonne 0, la finale à la suite du dernier mot. **À une frontière de groupe, la colonne laisse les deux bras tenir dans le même blanc** — les deux bras et la colonne dans les onze pixels, donc l'écart horizontal des crochets est fixé au pixel, pas un réglage. **La hauteur — combien ils débordent au-dessus et en dessous des lettres — reste le seul paramètre.**
 - **Ce qui est écarté de la phrase s'écrit en encre atténuée entre crochets** — `[um]`. Les crochets sont de vrais caractères, dans leur cellule et à hauteur de lettre : c'est ce qui les sépare de l'enceinte de pertinence, qui est peinte et déborde en hauteur.
 
 **Le filet et la vaguelette ont chacun leur rangée** : à 2 pixels d'épaisseur, les mêler ne tient plus, et un même groupe porte souvent les deux.
@@ -160,7 +160,7 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 
 ## Le doigt
 
-**Tout est directement tactile.** L'élément qu'on touche est celui qui se sélectionne ; le curseur existe toujours mais il marque ce qu'on vient de toucher au lieu de servir à naviguer. La barre du bas affiche les actions disponibles, et ses entrées sont de vrais boutons qu'on presse. Sur le tour marqué, le gros bouton prend toute la largeur sur trois lignes, et le petit bouton — dont l'étiquette dit la porte du moment : *redire* ou *reformuler* — reste petit et se pose sous le tour, au niveau de la phrase qu'il reprend.
+**Tout est directement tactile.** L'élément qu'on touche est celui qui se sélectionne ; le curseur existe toujours mais il marque ce qu'on vient de toucher au lieu de servir à naviguer. La barre du bas affiche les actions disponibles, et ses entrées sont de vrais boutons qu'on presse. Sous le tour, une rangée de petites commandes sur la phrase, toutes au padding égal du texte de l'IA — un filet de grille tout autour : le petit bouton, dont l'étiquette dit la porte du moment — *redire* ou *reformuler* —, l'écoute (le triangle), le côté que l'écoute atteint (modèle/vous, une seule étiquette qui bascule), et la vitesse (×1, ×0,5, ×0,33, une seule étiquette qui cycle). Le gros bouton, lui, prend toute la largeur sur trois lignes.
 
 Conséquence mécanique, pas un choix : **une entrée touchable occupe environ trois lignes de grille**, remplies ou vides. La recommandation Android est une cible de 48 dp et une ligne fait ici environ 11 dp. Ce n'est pas propre au registre — dans n'importe quelle app les lignes de liste sont rembourrées pour cette raison ; la seule différence est qu'ici le rembourrage est visible, en cellules vides.
 
