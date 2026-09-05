@@ -112,7 +112,7 @@ C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une me
 
 ### La mélodie
 
-**Elle a sa propre bande, de 22 pixels, au-dessus de la ligne de texte.** Elle n'est pas derrière le texte : sa verticale est une grandeur continue et n'a jamais eu de raison d'être plafonnée à la hauteur d'une cellule. Son horizontale, elle, reste calée sur les caractères — c'est là qu'est son ancrage.
+**Elle a sa propre bande, de 22 pixels, au-dessus de la ligne de texte.** Sa verticale est une grandeur continue, dont la finesse n'a aucune raison d'être plafonnée par la hauteur d'une cellule de texte ; la bande lui donne deux fois plus de crans que la ligne n'en offrirait. Son horizontale, elle, reste calée sur les caractères — c'est là qu'est son ancrage.
 
 **Ce qui dépasse est l'erreur.** Le contour de l'apprenant est peint dessous, sur le bout rouge de la rampe ; celui du modèle par-dessus, à la même épaisseur, dans un bleu calme. Là où les deux coïncident, le rouge est entièrement recouvert. **Bien parler fait donc disparaître la couleur au lieu de la changer**, et la quantité de rouge visible est la quantité d'écart. La mélodie n'a plus de couleur à elle : elle emprunte la rampe commune.
 
