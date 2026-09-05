@@ -170,7 +170,9 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 
 ### Ce qui se montre, et quand
 
-**Les marques n'arrivent pas d'un coup, et ce n'est pas un choix.** Les marquages jugés tombent au retour de l'appel, les marques du son à la fin de l'analyse, deux à trois secondes plus tard (`activity-model.md`, « Le déroulé d'un passage »). La révélation est donc canal par canal par construction — et ça tombe bien, les jugées étant à l'écran avant que l'IA parle. **Attendre que tout soit là pour tout afficher ensemble est une préférence utilisateur**, pas une contrainte.
+**Les marques n'arrivent pas d'un coup, et ce n'est pas un choix.** Les marquages jugés tombent au retour de l'appel, les marques du son à la fin de l'analyse, deux à trois secondes plus tard (`activity-model.md`, « Le déroulé d'un passage »). La révélation est donc canal par canal par construction — et ça tombe bien, les jugées étant à l'écran avant que l'IA parle.
+
+**Ce qui reste à choisir est si les marques des mots restent une fois la porte des mots passée.** Un passage qui passe porte quand même des marques : la porte lit une note à la barre, pas l'absence de marque. Quand les marques du son arrivent par-dessus, la ligne devient dense pour rien si l'apprenant en a fini avec ses mots. **Les garder ou les retirer est une préférence utilisateur** — d'affichage, jamais de mesure.
 
 **Un menu de conversation dit quelles marques s'affichent.** La densité mesurée — la majorité des mots portent quelque chose — fait qu'un apprenant qui travaille sa mélodie voudra éteindre le reste. Éteindre un canal n'éteint que son **affichage**, jamais sa mesure : la note ne bouge pas, et rouvrir le canal remontre ce qui était là.
 
