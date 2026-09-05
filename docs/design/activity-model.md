@@ -597,7 +597,7 @@ Deux raisons de ne pas la livrer. Elle **ne lit pas les mêmes éléments** que 
 
 **Un marquage au niveau du mot, binaire : l'appui est tombé sur la bonne syllabe ou ailleurs.** Le dénominateur n'est pas « les mots » : un monosyllabe n'a pas de choix d'accent, et un mot outil n'a pas d'appui net même chez le modèle. Ce sont donc **les mots de plus d'une syllabe que le modèle accentue nettement**, ce qui demande le seuil « le modèle a-t-il un accent net » que `../analysis.md` réclame déjà. Ce seuil existe et une oreille l'a validé : la marge de la sonde sur le modèle sépare les mots dont l'appui s'entend de ceux dont il ne s'entend pas (`../analysis.md`, brique 7). **La barre est posée à 0,90** : entre 0,80 et 0,94 le balayage rend la même chose, et 0,95 jetterait en plus un mot que l'oreille entend franc, sans retirer une marque de plus. Ce qu'il ne fera pas, mesure faite, c'est baisser le taux de fausse marque — il n'en retire qu'une sur deux, et les autres tombent sur des mots que le modèle accentue au maximum.
 
-**La feuille est actée** (2026-09-05) : elle entre dans la somme, et l'usage jugera ce que les deux inconnues de la brique 7 ne mesurent pas (`../analysis.md`). Tant que la brique n'est pas en service dans l'app, elle sort de la somme au lieu de valoir zéro — un état d'implémentation, plus une question ouverte.
+**La feuille est actée** (2026-09-05) : elle entre dans la somme, et l'usage jugera ce que les deux inconnues de la brique 7 ne mesurent pas (`../analysis.md`). La brique, elle, tourne dans l'app ; ce qui manque à la feuille est son branchement dans la somme, qui n'est pas dans ce chantier. Tant qu'il n'est pas fait, elle sort de la somme au lieu de valoir zéro — un état d'implémentation, plus une question ouverte.
 
 #### La correction
 
@@ -801,7 +801,7 @@ Sur *« It was, like, um, I went to the— I was going to the store »* : quator
 
 **Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
 
-La raison est qu'une cascade de moyennes redistribue en silence des poids que personne n'a réglés, dès qu'une feuille manque — et il en manque tout le temps : l'accent lexical n'est pas en service, un passage dont la porte des mots s'est fermée n'a aucune mesure de son.
+La raison est qu'une cascade de moyennes redistribue en silence des poids que personne n'a réglés, dès qu'une feuille manque — et il en manque tout le temps : la feuille de l'accent lexical n'est pas branchée, un passage dont la porte des mots s'est fermée n'a aucune mesure de son.
 
 Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont le second a la porte fermée — passage 1 : sons 40, mélodie 80, correction 90 ; passage 2 : correction 50. En cascade, le passage 1 vaut 70, le passage 2 vaut 50 puisque sa moyenne se renormalise sur ce qui reste, et la séance 60. À plat, (40 + 80 + 90 + 50) / 4 = 65. L'écart n'est pas l'arrondi : dans la cascade, la correction a fini par peser deux tiers de la séance et l'élocution un tiers, l'inverse exact du 2:1 demandé.
 
