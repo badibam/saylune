@@ -466,12 +466,124 @@ def report():
           "comptent à part.")
 
 
+def paired(model_wav, learner_wav, text, tags, tools, cache={}):
+    """Both sides read on the **model's** grid, which is what the app would do.
+
+    Reading each recording alone, as the listening pass does, is the right way
+    to put a claim to an ear -- there is one recording in the room. It is not
+    how the mark is computed: the montage in place aligns the learner onto the
+    model's grid and lets him supply only where he was and how loud, so the two
+    sides are indexed by the same syllables and a probe that misplaces a nucleus
+    on its own decoding never gets the chance. What that changes is not
+    arguable, so it is measured here rather than asserted.
+    """
+    mean, deviation, weight, bias, layer = tools
+    model_tag, learner_tag = tags
+    model_cache = overlap.MATRICES / "hear" / f"{model_tag.replace('/', '-')}.npz"
+    learner_cache = overlap.MATRICES / "hear" / f"{learner_tag.replace('/', '-')}.npz"
+    theirs = matrix.probabilities(model_wav, cache=model_cache)
+    segments = matrix.grid(theirs)
+    if not segments:
+        return []
+    mine = matrix.probabilities(learner_wav, cache=learner_cache)
+    spans = matrix.align(mine, [index for index, _, _ in segments])
+    sounds = join.joined(model_wav, text, cache=model_cache)
+    cuts = syllables.cut(sounds)
+    for key, wav in ((model_tag, model_wav), (learner_tag, learner_wav)):
+        if key not in cache:
+            cache[key] = states(wav, layer)
+
+    def share(hidden, places):
+        got = []
+        for low, high in places:
+            high = max(high, low + 1)
+            if high > len(hidden):
+                return None
+            frame = hidden[low:high].mean(axis=0)
+            got.append(float(np.dot((frame - mean) / deviation, weight) + bias))
+        odds = np.exp(np.array(got) - max(got))
+        return (odds / odds.sum()).tolist()
+
+    out = []
+    for start, stop in join.runs(sounds):
+        word = sounds[start].word.strip(".,!?'").lower()
+        if word in syllables.FUNCTION:
+            continue
+        pieces = [piece for piece in cuts
+                  if start <= piece.sounds[0] and piece.sounds[1] <= stop]
+        if len(pieces) < 2:
+            continue
+        at, broken = [], False
+        for piece in pieces:
+            low, high = piece.sounds
+            heads = matrix.nuclei([s.symbol for s in sounds[low:high]])
+            if not heads or spans[low + heads[0]] is None:
+                broken = True
+                break
+            at.append(low + heads[0])
+        if broken:
+            continue
+        here = share(cache[model_tag], [segments[one][1:] for one in at])
+        there = share(cache[learner_tag], [spans[one] for one in at])
+        if here is None or there is None:
+            continue
+        out.append({"word": word, "syllabes": [p.letters for p in pieces],
+                    "modèle": here, "apprenant": there})
+    return out
+
+
+def couples(order, tools):
+    """Every native against every model voice, on the montage the app uses.
+
+    Nothing here is compared to an ear: what it counts is how often the two
+    sides elect different syllables on speech that carries no stress fault, which
+    is the rate at which the brick would paint a mark on someone who did nothing
+    wrong.
+    """
+    by_text = {}
+    for tag, family, source, stem, text, wav in order:
+        if overlap.readable(wav):
+            by_text.setdefault(stem, {"text": text, "natif": [],
+                                      "synthèse": []})[family].append((tag, wav))
+    tally = {}
+    for stem, held in sorted(by_text.items()):
+        for model_tag, model_wav in held["synthèse"]:
+            voice = model_tag.split("/")[-1]
+            for learner_tag, learner_wav in held["natif"]:
+                rows = paired(model_wav, learner_wav, held["text"],
+                              (model_tag, learner_tag), tools)
+                slot = tally.setdefault(voice, {"mots": 0, "écarts": 0,
+                                                "lesquels": []})
+                for one in rows:
+                    slot["mots"] += 1
+                    if int(np.argmax(one["modèle"])) != int(np.argmax(one["apprenant"])):
+                        slot["écarts"] += 1
+                        slot["lesquels"].append(
+                            f"{one['word']} ({learner_tag.split('/')[-1]})")
+        print(f"  {stem} lu", file=sys.stderr, flush=True)
+    print("\n=== le montage du produit : l'apprenant aligné sur la grille du modèle")
+    print("    (parole native sans faute d'accent — tout écart est une fausse marque)\n")
+    total = apart = 0
+    for voice, slot in sorted(tally.items()):
+        total += slot["mots"]
+        apart += slot["écarts"]
+        print(f"  {voice:<20}{slot['écarts']:>4}/{slot['mots']:<5} = "
+              f"{100 * slot['écarts'] / slot['mots']:.1f} %")
+        for name in sorted(set(slot["lesquels"])):
+            print(f"      {name}")
+    print(f"\n  {'ensemble':<20}{apart:>4}/{total:<5} = "
+          f"{100 * apart / total:.1f} %")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--render", action="store_true",
                         help="synthétiser les voix modèles, avec confirmation")
     parser.add_argument("--report", action="store_true",
                         help="le décompte, sans écouter")
+    parser.add_argument("--couples", action="store_true",
+                        help="le désaccord sur le montage du produit, sans "
+                             "écouter : l'apprenant aligné sur le modèle")
     parser.add_argument("--again", action="store_true",
                         help="réécouter les désaccords, mêlés à autant "
                              "d'accords tirés au sort — à l'aveugle")
@@ -501,6 +613,8 @@ def main(argv=None):
                          "croisement, et sans lui il ne reste que des machines")
 
     order = readings(voices, args.speakers)
+    if args.couples:
+        return couples(order, probe()) or 0
     if args.again:
         again(order, probe(), args.pad, args.slow, args.seed)
         return report() or 0
@@ -510,6 +624,7 @@ def main(argv=None):
     listen(order, probe(), args.pad, args.slow)
     report()
     return 0
+
 
 
 if __name__ == "__main__":
