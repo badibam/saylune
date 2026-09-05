@@ -523,6 +523,10 @@ Le montage est tranché (cf. `docs/reference.md`) ; reste à choisir qui tient c
 - Porter le mécanisme de persona de `parcours`, un autre projet du parc : persona = paramètre, catalogue de personas nommés, séparation cadre / voix. Le principe ne dépend pas du fournisseur, l'injection si (`--system-prompt` du CLI chez `parcours` ; champ `system` de la requête ou instructions de session ici).
 - Une fois implémenté ici, il y a deux implémentations d'un même principe : matière à moisson vers une facette de sagesse commune.
 
+## Chantier 4 — l'habillage
+
+Conçu, rien d'écrit : `docs/design/pixel-ui.md` porte le registre, la police, les deux palettes, les cadres et le dessin complet du tour marqué, avec son ordre de travail et ce qui y reste ouvert. À prendre après le chantier 0, l'esthétique ne prenant aucun soin tant que la boucle de conversation n'est pas finie.
+
 ## Reste
 
-- **Icône de l'app** — aucune pour l'instant, l'app porte l'icône par défaut d'Android. `fdroid` exige par ailleurs un `icon.png` et un `featureGraphic.png` dans la fiche.
+- **Icône de l'app** — aucune pour l'instant, l'app porte l'icône par défaut d'Android. `fdroid` exige par ailleurs un `icon.png` et un `featureGraphic.png` dans la fiche. Elle relève du registre pixel (`docs/design/pixel-ui.md`).
