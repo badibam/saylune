@@ -74,7 +74,7 @@ Ce que ça change à l'atomicité de l'activité, qui reste vraie mais pour une 
 
 ## Les champs qui manquent
 
-Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque six, et un septième change de type.
+Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque sept, et un huitième change de type.
 
 - **La consigne** — du texte libre, posé au départ et injecté dans le prompt, jamais réécrit ensuite. À ne pas confondre avec la **matière**, qui dit de quoi ça parle et que l'IA peut écrire après coup : une consigne « pousse-le sur le passé, il l'évite » peut donner une conversation dont la matière finit par être « son déménagement ». Les confondre ferait qu'un titre écrit par l'IA écrase la consigne. Nom proposé : `brief` — `seed` évoque une graine de tirage aléatoire, ce que ce n'est pas.
 - **Les règles** — une liste, qui absorbe la rampe, les conditions de fin et les conditions branchées sur l'arbre des notes (« Les règles »).
@@ -82,6 +82,7 @@ Par rapport à ce qui est écrit (`activity/Activity.kt`), il en manque six, et 
 - **L'origine**, ci-dessus.
 - **Les consignes par marquage jugé** — du texte libre, sur les trois marquages que le modèle rend, distinct du `brief` de l'activité (« Ce qui est jugé, ce qui est calculé »).
 - **L'arbre des poids** — ce sur quoi la séance regarde, fixé à l'écriture. Les sensibilités, elles, ne sont pas un champ neuf : ce sont des positions de leviers, donc des réglages (« Ce qui fait un levier »).
+- **La version du moteur de règles.** L'état effectif se recalcule depuis les réglages, les règles et le journal ; rejouer ce journal sous une sémantique de règles qui a changé — une release plus tard — rend un autre état, et une séance cesse de se comparer à elle-même. C'est la règle du projet appliquée à l'exécution : tout ce qui est stocké porte la version de ce qui l'a produit. Le doc voyait ce problème pour la graine de tirage et pas pour lui-même.
 - **Le résultat doit pouvoir porter un nombre.** Il porte aujourd'hui un verdict, un juge, une date et du texte libre ; un score d'arcade est un nombre, et le ranger dans du texte libre le rendrait inexploitable.
 
 Et **`mode` n'est pas un champ** : « arcade », « campagne », « défi », « custom » sont des noms d'usage sur des combinaisons de ces axes-là.
@@ -417,7 +418,9 @@ D'où la forme qui rend la liberté bon marché : **prose libre à l'aller, clé
 
 **Un seul appel fait tous les métiers** — jouer le personnage, reconstruire `intended`, marquer les empans, juger le suivi, rendre la difficulté de son tour, et choisir dans le menu quand une règle le lui offre. Ce n'est pas le prix qui tranche : un second appel ne coûterait rien en latence, le jugement ne servant qu'à afficher des marques pendant que la réponse se synthétise et se joue, ni en argent, le modèle de langue se comptant en millièmes d'un tour à trois centimes (`character-voices.md`). Ce qui tranche est qu'un prompt bien structuré tient ses frontières. On regarde donc au cas par cas ce qui déteint, et une frontière un peu floue peut même servir la scène ; on ne cloisonne pas d'avance contre un loup qu'on n'a pas vu.
 
-**L'ordre des champs de retour est la cloison qui reste gratuite.** Le modèle écrit sa réponse en séquence et chaque champ écrit conditionne le suivant, donc `intended` rédigé avant que la voix du personnage soit prise vaut mieux que le contraire. D'où le contrat : `intended`, les trois marquages — les empans de langue, le bafouillage, le suivi —, `spoken`, la difficulté du tour qu'il vient d'écrire, et `title` s'il y a lieu. Le marquage absorbe `faulty`, qui était un booléen sur le tour entier (« Ce que ça change au marquage »). **Le coût en latence n'est pas borné.** La mesure au dossier — le modèle achève son objet 0,16 s après sa première phrase (`../reference.md`) — a été prise pour décider du pipelinage de la synthèse, sur le contrat d'alors : une réponse, `intended`, un booléen. Le contrat ci-dessus ajoute trois marquages, la difficulté, l'écho de reprise et le choix de menu, dont les empans qui pèsent à peu près la moitié de l'historique ; en sortie, séquentielle par nature, c'est de la latence directe, sur le défaut déjà premier du projet. **À re-mesurer quand le contrat enrichi existe, avant d'empiler dessus** (`../../TODO.md`) — et c'est la même mesure qui dira si le second appel reste gratuit, l'argument qui l'écarte s'adossant au même chiffre.
+**L'ordre des champs de retour est la cloison qui reste gratuite.** Le modèle écrit sa réponse en séquence et chaque champ écrit conditionne le suivant, donc `intended` rédigé avant que la voix du personnage soit prise vaut mieux que le contraire. D'où le contrat : `intended`, les trois marquages — les empans de langue, le bafouillage, le suivi —, `spoken`, la difficulté du tour qu'il vient d'écrire, et `title` s'il y a lieu. Le marquage absorbe `faulty`, qui était un booléen sur le tour entier (« Ce que ça change au marquage »).
+
+**Zéro mot retenu doit être énonçable au retour.** Sur un tour entièrement fait de remplissage et de morceaux abandonnés, il n'y a pas de phrase à reconstruire, et un `intended` en texte libre en inventerait une — le pire des retours, puisque rien ne le distingue d'une vraie. L'instruction vit dans le contexte permanent, à côté de celle qui interdit de compléter un tour interrompu, et ce que ce cas devient ensuite est écrit aux « deux portes ». **Le coût en latence n'est pas borné.** La mesure au dossier — le modèle achève son objet 0,16 s après sa première phrase (`../reference.md`) — a été prise pour décider du pipelinage de la synthèse, sur le contrat d'alors : une réponse, `intended`, un booléen. Le contrat ci-dessus ajoute trois marquages, la difficulté, l'écho de reprise et le choix de menu, dont les empans qui pèsent à peu près la moitié de l'historique ; en sortie, séquentielle par nature, c'est de la latence directe, sur le défaut déjà premier du projet. **À re-mesurer quand le contrat enrichi existe, avant d'empiler dessus** (`../../TODO.md`) — et c'est la même mesure qui dira si le second appel reste gratuit, l'argument qui l'écarte s'adossant au même chiffre.
 
 **L'état n'atteint le modèle que par la porte de devant.** Il reçoit en permanence les leviers qu'il tient — les *demandés*, qui n'existent que comme instruction — et rien d'autre. Le reste, une vie perdue, un passage raté, un seuil qui se raccourcit, ne lui parvient que si une règle a décidé de le lui dire, par un message au modèle, dans les mots d'un auteur.
 
@@ -868,6 +871,8 @@ Les deux aptitudes issues du même marquage prennent **deux formes distinctes**,
 
 ### Les deux portes
 
+**Une porte fermée est un échec, une porte ouverte laisse passer.** Fermer, c'est déclarer le passage à refaire — à reformuler pour les mots, à redire pour le son. Ouvrir, c'est ne rien déclarer. Le sens se relit à l'envers une fois sur deux, alors il est écrit ici : ce qui **ferme** est ce qui **ne passe pas**.
+
 **Il y a une porte par sorte de réparation, et elles se lisent à deux moments différents.**
 
 | | quand elle se lit | ce qu'elle produit | ce qu'elle lit |
@@ -886,6 +891,14 @@ Les deux aptitudes issues du même marquage prennent **deux formes distinctes**,
 | **fluidité** | à redire | la phrase est la même, dite autrement |
 
 **Les deux lisent une note, à la barre A–B**, jamais une feuille désignée par une définition. Rien ne s'y perd : un défi qui ne veut viser que la mélodie met un poids sur la mélodie et zéro sur le reste de sa branche, et « élocution sous la barre » *devient* « mélodie sous la barre ». C'est ce que le doc dit déjà des poids — c'est ce qui permet de viser sans ajouter de champ —, et ça évite d'écrire deux fois le même ciblage, une fois dans l'arbre et une fois dans la porte.
+
+**Mais deux faits ferment la porte des mots sans lire aucune note.** Un **tour tronqué** : il n'y a pas de phrase complète, et le laisser passer reviendrait à faire redire un fragment sans droit de le finir. Et un **tour sans aucun mot retenu** : il n'y a pas de phrase du tout, et correction comme pertinence n'ont pas d'éléments, donc il n'y a même pas de note à lire. Dans les deux cas c'est une **absence de matière du côté des mots**, comme `ne se dit pas` en est une du côté du son — donc non négociable, et jamais un verdict de correction : rien de tout ça ne se marque comme une faute de langue. Le passage est **à reformuler** et jamais à redire, redire supposant une phrase à répéter.
+
+**Ce qu'un tour sans mots retenus mesure quand même.** *Le remplissage et les reprises* a tous ses éléments — les mots **prononcés**, pas les retenus — et c'est la feuille écrite pour ce tour-là ; *le plus long silence* a le sien, une durée. *La continuité* et *le débit* sont **absentes** : l'une comparerait à un modèle qu'on n'a pas synthétisé, l'autre diviserait par le temps de parole des mots retenus, c'est-à-dire par zéro. Absentes, elles sortent de la somme et ne valent jamais zéro. Le suivi et le tour interrompu se lisent normalement.
+
+**Le juge ne marque donc pas l'inachèvement.** Il reçoit déjà comment le tour s'est fini, ce qui lui interdit de le compléter (« La capture ») ; la même instruction lui interdit d'en faire une faute. *« I went to the »* est coupé, pas mal formé.
+
+**En « poursuit », le fil repart de la réplique faite au fragment.** L'IA a répondu à une phrase dont elle ne pouvait pas connaître la fin, et une reformulation ne met pas sa réponse à jour — c'est le prix ordinaire de « poursuit », celui que le doc accepte déjà pour l'intention mal comprise, ici certain au lieu d'être un risque. La conversation continue là-dessus, et se faire couper puis reprendre au tour suivant est ce que fait n'importe quelle conversation.
 
 ### Ce qui coupe l'analyse du son
 
@@ -1372,10 +1385,11 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **Comment le bruit et le filtre du canal se standardisent**, pour qu'une même position vaille une difficulté comparable. Le rapport signal/bruit standardise le niveau et non la difficulté, une parole concurrente étant plus dure que du bruit rose au même rapport ; et le filtre demande une liste fermée d'effets nommés dont l'encodage de l'intensité n'est pas décidé (« Le catalogue des leviers »).
 - **Quels préréglages chaque mode offre**, et ce que chacun pose. Le curseur d'aptitude n'en est qu'un.
 - **Le score** : propre à l'arcade ou pas, et à quoi ressemble son écran.
+- **L'écran de résultat**, distinct du score. C'est lui qui doit porter la **combinaison qui a produit la note** — les réglages, les poids, les sensibilités, les consignes en vigueur —, sans quoi la phrase qui absout la moitié des choix de ce doc, « une note ne se lit jamais sans la combinaison qui l'a produite », n'a nulle part où se tenir. L'écran d'avant-partie est spécifié et se génère tout seul ; celui-là ne l'est pas.
 - **Garder le nom du préréglage** d'une séance réglée à la main. Aucun lecteur n'en a besoin aujourd'hui — l'origine suffit là où ça compte — donc pas de champ pour l'instant.
 - **Le déroulé de chaque module**, et son écran. Le cadre est commun — l'activité, ses champs, ses statuts, son résultat — le déroulé ne l'est pas.
 - **Les déclencheurs de suggestion** pendant une conversation.
 - **La purge**, et la durée de vie des audios.
 - **Ce que chaque mesure lit** de l'audio, segment par segment.
 - **La liste de ce qui doit être agrégeable.**
-- **Qui regarde le conflit de deux patchs sur la même clé.** La règle est écrite et le conflit se voit sans exécuter (« Comment les règles d'un même moment se résolvent ») ; rien ne dit encore ce qui le lit ni quand — à l'écriture d'une définition, au chargement, ou jamais. Non regardé, il se découvre à l'exécution, sur un apprenant.
+- **Qui valide une définition.** Le doc répète qu'une chose « se voit à l'écriture, sans exécuter » — deux patchs d'une même vague sur la même clé, une phrase de mise en scène manquante, une série à bords impossibles, une direction narrative qui contredit la mécanique — et rien ne dit qui regarde. Aucun validateur, aucun écran d'auteur n'est spécifié, ni quand il passerait : à l'écriture, au chargement, ou jamais. Sans lui, toutes ces vérifications « à l'écriture » se font à l'exécution, sur un apprenant.
