@@ -286,9 +286,11 @@ règle
 paquet    : [ effet, effet, ... ]          # un effet : patch, fin, ou message au modèle
 ```
 
-**Un patch porte des positions de leviers, et éventuellement des consignes.** Les positions ont exactement la forme des réglages — des clés et des positions — et héritent donc des phrases lisibles déclarées avec chaque levier. Appliquer, c'est superposer ; annoncer, c'est lire la phrase ; proposer à l'IA, c'est envoyer les phrases et attendre une clé.
+**Un patch porte des positions de leviers ou des déplacements, et éventuellement des consignes.** Une **position** a exactement la forme des réglages — une clé et une position — et hérite donc de la phrase lisible déclarée avec le levier ; un **déplacement** dit de combien de crans on bouge et dans quel sens. Appliquer, c'est superposer ; annoncer, c'est lire la phrase ; proposer à l'IA, c'est envoyer les phrases et attendre une clé.
 
-**Annoncer dit aussi le sens du changement.** Lire « deux tentatives permises » ne dit pas si on vient de monter ou de descendre, et ce n'est pas la même nouvelle. Les positions d'un levier sont ordonnées et chaque levier sait de quel côté est le dur — c'est déjà ce qui fait qu'un curseur qu'on monte retire une aide ou durcit un jugement —, donc un patch connaît sa direction par comparaison et la notification annonce *ça se durcit* ou *ça s'allège*, plus la phrase.
+**Les deux formes sont nécessaires et aucune ne remplace l'autre.** `vies.restantes ← 1` de la mort scriptée ne s'écrit qu'en position ; « perdre une vie » ne s'écrit qu'en déplacement, l'auteur de la règle ne sachant pas combien il en reste quand elle part — et il n'y a pas de sorte d'effet dédiée où le loger, la liste étant fermée. Ce n'est pas non plus une affaire de sorte de levier : la rampe d'arcade est un déplacement sur un levier à marches, un cran de plus. **Un déplacement s'arrête à la borne du levier**, ce qui n'est pas une erreur — la rampe atteint son cran haut par conception —, et **ce qui n'a rien déplacé ne notifie rien**, annoncer *ça se durcit* sans changement étant un mensonge.
+
+**Annoncer dit aussi le sens du changement.** Lire « deux tentatives permises » ne dit pas si on vient de monter ou de descendre, et ce n'est pas la même nouvelle. Les positions d'un levier sont ordonnées et chaque levier sait de quel côté est le dur — c'est déjà ce qui fait qu'un curseur qu'on monte retire une aide ou durcit un jugement —, donc un patch connaît sa direction — un déplacement la porte, une position la trouve par comparaison — et la notification annonce *ça se durcit* ou *ça s'allège*, plus la phrase.
 
 **Sauf la consigne, qui s'annonce sans direction.** C'est du texte libre : rien ne peut comparer deux consignes et dire laquelle est plus dure. Elle s'annonce donc en distinguant seulement les deux cas, *consigne modifiée* avec son texte, ou *consigne retirée*. Ne rien dire serait pire — une exigence qui apparaît ou disparaît en silence rend la note incompréhensible.
 
@@ -357,7 +359,7 @@ Trois choses tombent de cette forme.
 
 **Ça remplace la garde d'un seul saut** que le doc posait pour les déclencheurs de levier. Elle était là contre les boucles, et cette borne-ci le fait mieux : elle termine pour une raison qu'on peut prouver au lieu d'un plafond de profondeur choisi, et elle rend écrivable la chaîne de drapeaux qu'un saut unique interdisait.
 
-**À l'intérieur d'une vague, l'ordre ne change rien**, donc l'ordre de déclaration n'a aucun sens à porter. Reste un seul cas où il mordrait : deux règles d'une même vague qui écrivent la **même clé** avec des valeurs différentes. Ce n'est pas un cas à arbitrer par une priorité, c'est une erreur d'écriture — et elle se voit à l'écriture, sans exécuter, ce qui est tout l'intérêt de cette forme.
+**À l'intérieur d'une vague, l'ordre ne change rien**, donc l'ordre de déclaration n'a aucun sens à porter. Reste un seul cas où il mordrait : **deux patchs d'une même vague sur la même clé**. Ce n'est pas un cas à arbitrer par une priorité, c'est une erreur d'écriture — **sauf s'ils posent la même position absolue**, le seul cas où la coïncidence se voit sans exécuter. Deux déplacements, ou un déplacement et une position, ne se lisent pas : leur composition dépend d'où on partait. Que ce conflit se voie à l'écriture est tout l'intérêt de cette forme ; **qui le regarde reste à écrire** (« Ce qui reste à spécifier »).
 
 **Ce que ça coûte, dit franchement** : les systèmes d'auteur font plutôt l'inverse, en séquence, où poser une valeur puis la lire marche dans le même souffle. Ce qu'on perd est une chaîne de trois choses dans un même instant ; ce qu'on gagne est qu'une définition se lit sans être exécutée, qui est la peur écrite de ce doc. Et les beats d'une scène sont séparés par des tours de parole de toute façon, donc par des moments distincts.
 
@@ -1372,3 +1374,4 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **La purge**, et la durée de vie des audios.
 - **Ce que chaque mesure lit** de l'audio, segment par segment.
 - **La liste de ce qui doit être agrégeable.**
+- **Qui regarde le conflit de deux patchs sur la même clé.** La règle est écrite et le conflit se voit sans exécuter (« Comment les règles d'un même moment se résolvent ») ; rien ne dit encore ce qui le lit ni quand — à l'écriture d'une définition, au chargement, ou jamais. Non regardé, il se découvre à l'exécution, sur un apprenant.
