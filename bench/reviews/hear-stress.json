@@ -1,0 +1,1825 @@
+{
+  "SX36/azure-us-jenny#0": {
+    "tag": "SX36/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX36",
+    "word": "only",
+    "syllabes": [
+      "On",
+      "ly"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/azure-us-jenny#10": {
+    "tag": "SX36/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX36",
+    "word": "accomplished",
+    "syllabes": [
+      "a",
+      "ccom",
+      "plishd"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/azure-us-jenny#19": {
+    "tag": "SX36/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX36",
+    "word": "artists",
+    "syllabes": [
+      "ar",
+      "tiss"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/azure-us-jenny#25": {
+    "tag": "SX36/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX36",
+    "word": "obtain",
+    "syllabes": [
+      "o",
+      "tain"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX36/azure-us-jenny#29": {
+    "tag": "SX36/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX36",
+    "word": "popularity",
+    "syllabes": [
+      "po",
+      "pu",
+      "la",
+      "ri",
+      "ty"
+    ],
+    "oreille": 2,
+    "sonde": 2,
+    "part": [
+      0.0047,
+      0.0,
+      0.9952,
+      0.0,
+      0.0001
+    ]
+  },
+  "SX409/azure-us-jenny#0": {
+    "tag": "SX409/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX409",
+    "word": "eating",
+    "syllabes": [
+      "Ea",
+      "ting"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/azure-us-jenny#4": {
+    "tag": "SX409/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX409",
+    "word": "spinach",
+    "syllabes": [
+      "spi",
+      "nach"
+    ],
+    "oreille": "aucune",
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/azure-us-jenny#10": {
+    "tag": "SX409/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX409",
+    "word": "nightly",
+    "syllabes": [
+      "nigh",
+      "ly"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/azure-us-jenny#14": {
+    "tag": "SX409/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX409",
+    "word": "increases",
+    "syllabes": [
+      "in",
+      "crea",
+      "ses"
+    ],
+    "oreille": 1,
+    "sonde": 0,
+    "part": [
+      0.9953,
+      0.0047,
+      0.0
+    ]
+  },
+  "SX409/azure-us-jenny#27": {
+    "tag": "SX409/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX409",
+    "word": "miraculously",
+    "syllabes": [
+      "mir",
+      "a",
+      "cu",
+      "lou",
+      "sly"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      0.9927,
+      0.0,
+      0.0003,
+      0.007
+    ]
+  },
+  "SX409/FLBW0#0": {
+    "tag": "SX409/FLBW0",
+    "famille": "natif",
+    "source": "FLBW0",
+    "texte": "SX409",
+    "word": "eating",
+    "syllabes": [
+      "Ea",
+      "ting"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9999,
+      0.0001
+    ]
+  },
+  "SX409/FLBW0#4": {
+    "tag": "SX409/FLBW0",
+    "famille": "natif",
+    "source": "FLBW0",
+    "texte": "SX409",
+    "word": "spinach",
+    "syllabes": [
+      "spi",
+      "nach"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/FLBW0#10": {
+    "tag": "SX409/FLBW0",
+    "famille": "natif",
+    "source": "FLBW0",
+    "texte": "SX409",
+    "word": "nightly",
+    "syllabes": [
+      "nigh",
+      "ly"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9871,
+      0.0129
+    ]
+  },
+  "SX409/FLBW0#14": {
+    "tag": "SX409/FLBW0",
+    "famille": "natif",
+    "source": "FLBW0",
+    "texte": "SX409",
+    "word": "increases",
+    "syllabes": [
+      "in",
+      "crea",
+      "ses"
+    ],
+    "oreille": 1,
+    "sonde": 0,
+    "part": [
+      0.9116,
+      0.0882,
+      0.0002
+    ]
+  },
+  "SX409/FLBW0#28": {
+    "tag": "SX409/FLBW0",
+    "famille": "natif",
+    "source": "FLBW0",
+    "texte": "SX409",
+    "word": "miraculously",
+    "syllabes": [
+      "mir",
+      "a",
+      "cu",
+      "lou",
+      "sly"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      0.9944,
+      0.0,
+      0.0011,
+      0.0044
+    ]
+  },
+  "SX199/azure-us-jenny#3": {
+    "tag": "SX199/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX199",
+    "word": "children",
+    "syllabes": [
+      "chil",
+      "dren"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.999,
+      0.001
+    ]
+  },
+  "SX199/azure-us-jenny#14": {
+    "tag": "SX199/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX199",
+    "word": "avoid",
+    "syllabes": [
+      "a",
+      "void"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX199/azure-us-jenny#19": {
+    "tag": "SX199/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX199",
+    "word": "exposure",
+    "syllabes": [
+      "ex",
+      "po",
+      "sure"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/azure-us-jenny#28": {
+    "tag": "SX199/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX199",
+    "word": "contagious",
+    "syllabes": [
+      "con",
+      "ta",
+      "gious"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/azure-us-jenny#36": {
+    "tag": "SX199/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX199",
+    "word": "diseases",
+    "syllabes": [
+      "di",
+      "sea",
+      "ses"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX205/FCMR0#0": {
+    "tag": "SX205/FCMR0",
+    "famille": "natif",
+    "source": "FCMR0",
+    "texte": "SX205",
+    "word": "military",
+    "syllabes": [
+      "Mi",
+      "li",
+      "ta",
+      "ry"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9326,
+      0.0009,
+      0.0662,
+      0.0003
+    ]
+  },
+  "SX205/FCMR0#8": {
+    "tag": "SX205/FCMR0",
+    "famille": "natif",
+    "source": "FCMR0",
+    "texte": "SX205",
+    "word": "personnel",
+    "syllabes": [
+      "per",
+      "snnel"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0508,
+      0.9492
+    ]
+  },
+  "SX205/FCMR0#17": {
+    "tag": "SX205/FCMR0",
+    "famille": "natif",
+    "source": "FCMR0",
+    "texte": "SX205",
+    "word": "expected",
+    "syllabes": [
+      "xpe",
+      "te"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX205/FCMR0#25": {
+    "tag": "SX205/FCMR0",
+    "famille": "natif",
+    "source": "FCMR0",
+    "texte": "SX205",
+    "word": "obey",
+    "syllabes": [
+      "o",
+      "bey"
+    ],
+    "oreille": "aucune",
+    "sonde": 1,
+    "part": [
+      0.0072,
+      0.9928
+    ]
+  },
+  "SX205/FCMR0#28": {
+    "tag": "SX205/FCMR0",
+    "famille": "natif",
+    "source": "FCMR0",
+    "texte": "SX205",
+    "word": "government",
+    "syllabes": [
+      "go",
+      "ver",
+      "men"
+    ],
+    "oreille": "aucune",
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0,
+      0.0
+    ]
+  },
+  "SX205/FCMR0#35": {
+    "tag": "SX205/FCMR0",
+    "famille": "natif",
+    "source": "FCMR0",
+    "texte": "SX205",
+    "word": "orders",
+    "syllabes": [
+      "or",
+      "ders"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/MDAB0#0": {
+    "tag": "SX409/MDAB0",
+    "famille": "natif",
+    "source": "MDAB0",
+    "texte": "SX409",
+    "word": "eating",
+    "syllabes": [
+      "Ea",
+      "ting"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/MDAB0#4": {
+    "tag": "SX409/MDAB0",
+    "famille": "natif",
+    "source": "MDAB0",
+    "texte": "SX409",
+    "word": "spinach",
+    "syllabes": [
+      "spi",
+      "nach"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/MDAB0#10": {
+    "tag": "SX409/MDAB0",
+    "famille": "natif",
+    "source": "MDAB0",
+    "texte": "SX409",
+    "word": "nightly",
+    "syllabes": [
+      "nigh",
+      "ly"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/MDAB0#14": {
+    "tag": "SX409/MDAB0",
+    "famille": "natif",
+    "source": "MDAB0",
+    "texte": "SX409",
+    "word": "increases",
+    "syllabes": [
+      "in",
+      "crea",
+      "ses"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0803,
+      0.9197,
+      0.0
+    ]
+  },
+  "SX409/MDAB0#27": {
+    "tag": "SX409/MDAB0",
+    "famille": "natif",
+    "source": "MDAB0",
+    "texte": "SX409",
+    "word": "miraculously",
+    "syllabes": [
+      "mir",
+      "acu",
+      "lou",
+      "sly"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      0.9983,
+      0.0,
+      0.0017
+    ]
+  },
+  "SX36/eleven-gb-daniel#0": {
+    "tag": "SX36/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX36",
+    "word": "only",
+    "syllabes": [
+      "On",
+      "ly"
+    ],
+    "oreille": "aucune",
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/eleven-gb-daniel#10": {
+    "tag": "SX36/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX36",
+    "word": "accomplished",
+    "syllabes": [
+      "a",
+      "ccom",
+      "plishd"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/eleven-gb-daniel#19": {
+    "tag": "SX36/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX36",
+    "word": "artists",
+    "syllabes": [
+      "ar",
+      "tiss"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/eleven-gb-daniel#24": {
+    "tag": "SX36/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX36",
+    "word": "obtain",
+    "syllabes": [
+      "o",
+      "tain"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX36/eleven-gb-daniel#28": {
+    "tag": "SX36/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX36",
+    "word": "popularity",
+    "syllabes": [
+      "po",
+      "pu",
+      "la",
+      "ri",
+      "ty"
+    ],
+    "oreille": 2,
+    "sonde": 2,
+    "part": [
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0
+    ]
+  },
+  "SX205/azure-us-jenny#0": {
+    "tag": "SX205/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX205",
+    "word": "military",
+    "syllabes": [
+      "Mi",
+      "li",
+      "ta",
+      "ry"
+    ],
+    "oreille": 0,
+    "sonde": 2,
+    "part": [
+      0.1022,
+      0.0,
+      0.8978,
+      0.0
+    ]
+  },
+  "SX205/azure-us-jenny#8": {
+    "tag": "SX205/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX205",
+    "word": "personnel",
+    "syllabes": [
+      "per",
+      "so",
+      "nnel"
+    ],
+    "oreille": 2,
+    "sonde": 2,
+    "part": [
+      0.0003,
+      0.0,
+      0.9997
+    ]
+  },
+  "SX205/azure-us-jenny#18": {
+    "tag": "SX205/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX205",
+    "word": "expected",
+    "syllabes": [
+      "xpe",
+      "te"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX205/azure-us-jenny#26": {
+    "tag": "SX205/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX205",
+    "word": "obey",
+    "syllabes": [
+      "o",
+      "bey"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.002,
+      0.998
+    ]
+  },
+  "SX205/azure-us-jenny#29": {
+    "tag": "SX205/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX205",
+    "word": "government",
+    "syllabes": [
+      "go",
+      "ver",
+      "ment"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0,
+      0.0
+    ]
+  },
+  "SX205/azure-us-jenny#37": {
+    "tag": "SX205/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX205",
+    "word": "orders",
+    "syllabes": [
+      "or",
+      "ders"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX205/eleven-gb-daniel#0": {
+    "tag": "SX205/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX205",
+    "word": "military",
+    "syllabes": [
+      "Mi",
+      "li",
+      "ta",
+      "ry"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.7572,
+      0.0167,
+      0.226,
+      0.0001
+    ]
+  },
+  "SX205/eleven-gb-daniel#8": {
+    "tag": "SX205/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX205",
+    "word": "personnel",
+    "syllabes": [
+      "per",
+      "snnel"
+    ],
+    "oreille": 0,
+    "sonde": 1,
+    "part": [
+      0.0015,
+      0.9985
+    ]
+  },
+  "SX205/eleven-gb-daniel#17": {
+    "tag": "SX205/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX205",
+    "word": "expected",
+    "syllabes": [
+      "xpe",
+      "te"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX205/eleven-gb-daniel#25": {
+    "tag": "SX205/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX205",
+    "word": "obey",
+    "syllabes": [
+      "o",
+      "bey"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0003,
+      0.9997
+    ]
+  },
+  "SX205/eleven-gb-daniel#28": {
+    "tag": "SX205/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX205",
+    "word": "government",
+    "syllabes": [
+      "go",
+      "ver",
+      "ment"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9999,
+      0.0001,
+      0.0
+    ]
+  },
+  "SX205/eleven-gb-daniel#36": {
+    "tag": "SX205/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX205",
+    "word": "orders",
+    "syllabes": [
+      "or",
+      "ders"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/MWVW0#0": {
+    "tag": "SX36/MWVW0",
+    "famille": "natif",
+    "source": "MWVW0",
+    "texte": "SX36",
+    "word": "only",
+    "syllabes": [
+      "On",
+      "ly"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/MWVW0#10": {
+    "tag": "SX36/MWVW0",
+    "famille": "natif",
+    "source": "MWVW0",
+    "texte": "SX36",
+    "word": "accomplished",
+    "syllabes": [
+      "a",
+      "ccom",
+      "plish"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/MWVW0#18": {
+    "tag": "SX36/MWVW0",
+    "famille": "natif",
+    "source": "MWVW0",
+    "texte": "SX36",
+    "word": "artists",
+    "syllabes": [
+      "ar",
+      "tiss"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/MWVW0#24": {
+    "tag": "SX36/MWVW0",
+    "famille": "natif",
+    "source": "MWVW0",
+    "texte": "SX36",
+    "word": "obtain",
+    "syllabes": [
+      "o",
+      "tain"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX36/MWVW0#28": {
+    "tag": "SX36/MWVW0",
+    "famille": "natif",
+    "source": "MWVW0",
+    "texte": "SX36",
+    "word": "popularity",
+    "syllabes": [
+      "po",
+      "pu",
+      "lari",
+      "ty"
+    ],
+    "oreille": 0,
+    "sonde": 2,
+    "part": [
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX283/MJJG0#5": {
+    "tag": "SX283/MJJG0",
+    "famille": "natif",
+    "source": "MJJG0",
+    "texte": "SX283",
+    "word": "parenthood",
+    "syllabes": [
+      "pa",
+      "rent",
+      "hood"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9885,
+      0.0,
+      0.0115
+    ]
+  },
+  "SX283/MJJG0#15": {
+    "tag": "SX283/MJJG0",
+    "famille": "natif",
+    "source": "MJJG0",
+    "texte": "SX283",
+    "word": "organizations",
+    "syllabes": [
+      "o",
+      "ra",
+      "ni",
+      "za",
+      "tions"
+    ],
+    "oreille": 3,
+    "sonde": 3,
+    "part": [
+      0.0014,
+      0.0,
+      0.0,
+      0.9986,
+      0.0
+    ]
+  },
+  "SX283/MJJG0#26": {
+    "tag": "SX283/MJJG0",
+    "famille": "natif",
+    "source": "MJJG0",
+    "texte": "SX283",
+    "word": "promote",
+    "syllabes": [
+      "pro",
+      "mote"
+    ],
+    "oreille": 0,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX283/eleven-gb-daniel#5": {
+    "tag": "SX283/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX283",
+    "word": "parenthood",
+    "syllabes": [
+      "pa",
+      "rent",
+      "hood"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0,
+      0.0
+    ]
+  },
+  "SX283/eleven-gb-daniel#14": {
+    "tag": "SX283/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX283",
+    "word": "organizations",
+    "syllabes": [
+      "or",
+      "ga",
+      "ni",
+      "za",
+      "tions"
+    ],
+    "oreille": 3,
+    "sonde": 3,
+    "part": [
+      0.174,
+      0.0,
+      0.0,
+      0.8259,
+      0.0
+    ]
+  },
+  "SX283/eleven-gb-daniel#25": {
+    "tag": "SX283/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX283",
+    "word": "promote",
+    "syllabes": [
+      "pro",
+      "mote"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0006,
+      0.9994
+    ]
+  },
+  "SX283/eleven-gb-daniel#32": {
+    "tag": "SX283/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX283",
+    "word": "control",
+    "syllabes": [
+      "con",
+      "trol"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX283/MDLD0#5": {
+    "tag": "SX283/MDLD0",
+    "famille": "natif",
+    "source": "MDLD0",
+    "texte": "SX283",
+    "word": "parenthood",
+    "syllabes": [
+      "pa",
+      "rent",
+      "hood"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9998,
+      0.0,
+      0.0002
+    ]
+  },
+  "SX283/MDLD0#14": {
+    "tag": "SX283/MDLD0",
+    "famille": "natif",
+    "source": "MDLD0",
+    "texte": "SX283",
+    "word": "organizations",
+    "syllabes": [
+      "or",
+      "ga",
+      "ni",
+      "za",
+      "tions"
+    ],
+    "oreille": 3,
+    "sonde": 3,
+    "part": [
+      0.0055,
+      0.0,
+      0.0,
+      0.9945,
+      0.0
+    ]
+  },
+  "SX283/MDLD0#26": {
+    "tag": "SX283/MDLD0",
+    "famille": "natif",
+    "source": "MDLD0",
+    "texte": "SX283",
+    "word": "promote",
+    "syllabes": [
+      "pro",
+      "mote"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0002,
+      0.9998
+    ]
+  },
+  "SX283/MDLD0#33": {
+    "tag": "SX283/MDLD0",
+    "famille": "natif",
+    "source": "MDLD0",
+    "texte": "SX283",
+    "word": "control",
+    "syllabes": [
+      "con",
+      "trol"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX409/eleven-gb-daniel#0": {
+    "tag": "SX409/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX409",
+    "word": "eating",
+    "syllabes": [
+      "Ea",
+      "ting"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/eleven-gb-daniel#4": {
+    "tag": "SX409/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX409",
+    "word": "spinach",
+    "syllabes": [
+      "spi",
+      "nach"
+    ],
+    "oreille": "aucune",
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/eleven-gb-daniel#10": {
+    "tag": "SX409/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX409",
+    "word": "nightly",
+    "syllabes": [
+      "nigh",
+      "ly"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX409/eleven-gb-daniel#14": {
+    "tag": "SX409/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX409",
+    "word": "increases",
+    "syllabes": [
+      "in",
+      "crea",
+      "ses"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.1298,
+      0.8702,
+      0.0
+    ]
+  },
+  "SX409/eleven-gb-daniel#27": {
+    "tag": "SX409/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX409",
+    "word": "miraculously",
+    "syllabes": [
+      "mi",
+      "ra",
+      "cu",
+      "lou",
+      "sly"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      0.9698,
+      0.001,
+      0.0006,
+      0.0286
+    ]
+  },
+  "SX283/azure-us-jenny#5": {
+    "tag": "SX283/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX283",
+    "word": "parenthood",
+    "syllabes": [
+      "pa",
+      "rent",
+      "hood"
+    ],
+    "oreille": "aucune",
+    "sonde": 0,
+    "part": [
+      0.8735,
+      0.0001,
+      0.1265
+    ]
+  },
+  "SX283/azure-us-jenny#14": {
+    "tag": "SX283/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX283",
+    "word": "organizations",
+    "syllabes": [
+      "or",
+      "ga",
+      "ni",
+      "za",
+      "tions"
+    ],
+    "oreille": 3,
+    "sonde": 3,
+    "part": [
+      0.0005,
+      0.0,
+      0.0,
+      0.9995,
+      0.0
+    ]
+  },
+  "SX283/azure-us-jenny#26": {
+    "tag": "SX283/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX283",
+    "word": "promote",
+    "syllabes": [
+      "pro",
+      "mote"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX283/azure-us-jenny#33": {
+    "tag": "SX283/azure-us-jenny",
+    "famille": "synthèse",
+    "source": "azure-us-jenny",
+    "texte": "SX283",
+    "word": "control",
+    "syllabes": [
+      "con",
+      "trol"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX199/eleven-gb-daniel#3": {
+    "tag": "SX199/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX199",
+    "word": "children",
+    "syllabes": [
+      "chil",
+      "dren"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9998,
+      0.0002
+    ]
+  },
+  "SX199/eleven-gb-daniel#13": {
+    "tag": "SX199/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX199",
+    "word": "avoid",
+    "syllabes": [
+      "a",
+      "void"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX199/eleven-gb-daniel#17": {
+    "tag": "SX199/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX199",
+    "word": "exposure",
+    "syllabes": [
+      "ex",
+      "po",
+      "su"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/eleven-gb-daniel#26": {
+    "tag": "SX199/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX199",
+    "word": "contagious",
+    "syllabes": [
+      "con",
+      "ta",
+      "gious"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/eleven-gb-daniel#34": {
+    "tag": "SX199/eleven-gb-daniel",
+    "famille": "synthèse",
+    "source": "eleven-gb-daniel",
+    "texte": "SX199",
+    "word": "diseases",
+    "syllabes": [
+      "di",
+      "sea",
+      "ses"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/FELC0#0": {
+    "tag": "SX36/FELC0",
+    "famille": "natif",
+    "source": "FELC0",
+    "texte": "SX36",
+    "word": "only",
+    "syllabes": [
+      "On",
+      "ly"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/FELC0#10": {
+    "tag": "SX36/FELC0",
+    "famille": "natif",
+    "source": "FELC0",
+    "texte": "SX36",
+    "word": "accomplished",
+    "syllabes": [
+      "a",
+      "ccom",
+      "plish"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/FELC0#18": {
+    "tag": "SX36/FELC0",
+    "famille": "natif",
+    "source": "FELC0",
+    "texte": "SX36",
+    "word": "artists",
+    "syllabes": [
+      "ar",
+      "tists"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX36/FELC0#23": {
+    "tag": "SX36/FELC0",
+    "famille": "natif",
+    "source": "FELC0",
+    "texte": "SX36",
+    "word": "obtain",
+    "syllabes": [
+      "o",
+      "tain"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0009,
+      0.9991
+    ]
+  },
+  "SX36/FELC0#27": {
+    "tag": "SX36/FELC0",
+    "famille": "natif",
+    "source": "FELC0",
+    "texte": "SX36",
+    "word": "popularity",
+    "syllabes": [
+      "po",
+      "pu",
+      "la",
+      "ri",
+      "ty"
+    ],
+    "oreille": 0,
+    "sonde": 2,
+    "part": [
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0
+    ]
+  },
+  "SX205/MREB0#0": {
+    "tag": "SX205/MREB0",
+    "famille": "natif",
+    "source": "MREB0",
+    "texte": "SX205",
+    "word": "military",
+    "syllabes": [
+      "Mi",
+      "li",
+      "ta",
+      "ry"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9792,
+      0.0129,
+      0.0042,
+      0.0037
+    ]
+  },
+  "SX205/MREB0#8": {
+    "tag": "SX205/MREB0",
+    "famille": "natif",
+    "source": "MREB0",
+    "texte": "SX205",
+    "word": "personnel",
+    "syllabes": [
+      "per",
+      "snnel"
+    ],
+    "oreille": "aucune",
+    "sonde": 1,
+    "part": [
+      0.0079,
+      0.9921
+    ]
+  },
+  "SX205/MREB0#17": {
+    "tag": "SX205/MREB0",
+    "famille": "natif",
+    "source": "MREB0",
+    "texte": "SX205",
+    "word": "expected",
+    "syllabes": [
+      "xpe",
+      "te"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX205/MREB0#25": {
+    "tag": "SX205/MREB0",
+    "famille": "natif",
+    "source": "MREB0",
+    "texte": "SX205",
+    "word": "obey",
+    "syllabes": [
+      "o",
+      "bey"
+    ],
+    "oreille": 1,
+    "sonde": 0,
+    "part": [
+      0.8536,
+      0.1464
+    ]
+  },
+  "SX205/MREB0#28": {
+    "tag": "SX205/MREB0",
+    "famille": "natif",
+    "source": "MREB0",
+    "texte": "SX205",
+    "word": "government",
+    "syllabes": [
+      "gover",
+      "men"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX205/MREB0#34": {
+    "tag": "SX205/MREB0",
+    "famille": "natif",
+    "source": "MREB0",
+    "texte": "SX205",
+    "word": "orders",
+    "syllabes": [
+      "or",
+      "ders"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/MPGL0#3": {
+    "tag": "SX199/MPGL0",
+    "famille": "natif",
+    "source": "MPGL0",
+    "texte": "SX199",
+    "word": "children",
+    "syllabes": [
+      "child",
+      "ren"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/MPGL0#13": {
+    "tag": "SX199/MPGL0",
+    "famille": "natif",
+    "source": "MPGL0",
+    "texte": "SX199",
+    "word": "avoid",
+    "syllabes": [
+      "a",
+      "void"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX199/MPGL0#17": {
+    "tag": "SX199/MPGL0",
+    "famille": "natif",
+    "source": "MPGL0",
+    "texte": "SX199",
+    "word": "exposure",
+    "syllabes": [
+      "e",
+      "xpo",
+      "sure"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/MPGL0#25": {
+    "tag": "SX199/MPGL0",
+    "famille": "natif",
+    "source": "MPGL0",
+    "texte": "SX199",
+    "word": "contagious",
+    "syllabes": [
+      "con",
+      "ta",
+      "gious"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/MPGL0#33": {
+    "tag": "SX199/MPGL0",
+    "famille": "natif",
+    "source": "MPGL0",
+    "texte": "SX199",
+    "word": "diseases",
+    "syllabes": [
+      "di",
+      "sea",
+      "ses"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/FADG0#3": {
+    "tag": "SX199/FADG0",
+    "famille": "natif",
+    "source": "FADG0",
+    "texte": "SX199",
+    "word": "children",
+    "syllabes": [
+      "chil",
+      "dren"
+    ],
+    "oreille": 0,
+    "sonde": 0,
+    "part": [
+      0.9999,
+      0.0001
+    ]
+  },
+  "SX199/FADG0#13": {
+    "tag": "SX199/FADG0",
+    "famille": "natif",
+    "source": "FADG0",
+    "texte": "SX199",
+    "word": "avoid",
+    "syllabes": [
+      "a",
+      "void"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0
+    ]
+  },
+  "SX199/FADG0#17": {
+    "tag": "SX199/FADG0",
+    "famille": "natif",
+    "source": "FADG0",
+    "texte": "SX199",
+    "word": "exposure",
+    "syllabes": [
+      "ex",
+      "po",
+      "sure"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/FADG0#26": {
+    "tag": "SX199/FADG0",
+    "famille": "natif",
+    "source": "FADG0",
+    "texte": "SX199",
+    "word": "contagious",
+    "syllabes": [
+      "con",
+      "ta",
+      "gious"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "SX199/FADG0#34": {
+    "tag": "SX199/FADG0",
+    "famille": "natif",
+    "source": "FADG0",
+    "texte": "SX199",
+    "word": "diseases",
+    "syllabes": [
+      "di",
+      "sea",
+      "ses"
+    ],
+    "oreille": 1,
+    "sonde": 1,
+    "part": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  }
+}

@@ -254,6 +254,60 @@ def save(held):
     atomic.write_text(VERDICTS, json.dumps(held, indent=2, ensure_ascii=False))
 
 
+def asked(wav, one, player, pad, slow):
+    """One word put to the ear, and the key that comes back.
+
+    Split out because the revision pass has to ask **exactly** the same
+    question as the first one -- same lines, same keys, nothing about what was
+    answered before or what the probe thinks. A second question phrased even
+    slightly differently would make the two answers incomparable, which is the
+    whole thing a revision is for.
+
+    Returns (answer, player) with `answer` None when the pass is being left.
+    """
+    low, high = one["spans"][0][0], one["spans"][-1][1]
+    shown = "   ".join(f"{rank + 1}. {letters}"
+                       for rank, letters in enumerate(one["letters"]))
+    print(f"\n  {one['word']}   {shown}")
+    player = review.play(wav, low, high, player, pad=pad)
+    while True:
+        key = review.ask("  > ")
+        if key is None or key == "q":
+            return None, player
+        if key in (" ", ""):
+            player = review.play(wav, low, high, player, pad=pad)
+        elif key == "p":
+            player = review.play(wav, 0.0, 1e6, player, pad=0.0)
+        elif key == "s":
+            player = review.play(wav, low, high, player, pad=pad, slow=slow)
+        elif key == "x":
+            return "découpe", player
+        elif key == "?":
+            return "aucune", player
+        elif key.isdigit() and 1 <= int(key) <= len(one["spans"]):
+            return int(key) - 1, player
+
+
+def revealed(one, answer):
+    """What the probe elected, said after the answer and never before."""
+    elected = int(np.argmax(one["part"]))
+    tail = ""
+    if isinstance(answer, int):
+        tail = " — d'accord" if answer == elected else " — EN DÉSACCORD"
+    print(f"    sonde : {one['letters'][elected]} "
+          f"({one['part'][elected]:.2f}){tail}")
+    return elected
+
+
+def heading(family, source, text):
+    os.system("clear")
+    print(f"\n  {family} — {source}\n  {text}\n")
+    print("  1..9 la syllabe forte    ? aucune ne ressort    "
+          "x la découpe est fausse")
+    print("  espace réécouter    p la phrase entière    "
+          "s au ralenti    q quitter\n")
+
+
 def listen(order, tools, pad, slow):
     """The pass itself: one word, one key, and the election shown after.
 
@@ -270,63 +324,103 @@ def listen(order, tools, pad, slow):
             skipped += 1
             continue
         words = scored(wav, text, tag, tools)
-        pending = [one for one in words if f"{tag}#{one['rank']}" not in held]
-        if not pending:
+        if all(f"{tag}#{one['rank']}" in held for one in words):
             continue
-        os.system("clear")
-        print(f"\n  {family} — {source}\n  {text}\n")
-        print("  1..9 la syllabe forte    ? aucune ne ressort    "
-              "x la découpe est fausse")
-        print("  espace réécouter    p la phrase entière    "
-              "s au ralenti    q quitter\n")
+        heading(family, source, text)
         for one in words:
             key_of = f"{tag}#{one['rank']}"
             if key_of in held:
                 continue
-            low = one["spans"][0][0]
-            high = one["spans"][-1][1]
-            shown = "   ".join(f"{rank + 1}. {letters}"
-                               for rank, letters in enumerate(one["letters"]))
-            print(f"\n  {one['word']}   {shown}")
-            player = review.play(wav, low, high, player, pad=pad)
-            answer = None
-            while answer is None:
-                key = review.ask("  > ")
-                if key is None or key == "q":
-                    save(held)
-                    print(f"\n  {done} jugés, {len(held)} au total → {VERDICTS}")
-                    return
-                if key == " " or key == "":
-                    player = review.play(wav, low, high, player, pad=pad)
-                elif key == "p":
-                    player = review.play(wav, 0.0, 1e6, player, pad=0.0)
-                elif key == "s":
-                    player = review.play(wav, low, high, player, pad=pad,
-                                         slow=slow)
-                elif key == "x":
-                    answer = "découpe"
-                elif key == "?":
-                    answer = "aucune"
-                elif key.isdigit() and 1 <= int(key) <= len(one["spans"]):
-                    answer = int(key) - 1
-            elected = int(np.argmax(one["part"]))
+            answer, player = asked(wav, one, player, pad, slow)
+            if answer is None:
+                save(held)
+                print(f"\n  {done} jugés, {len(held)} au total → {VERDICTS}")
+                return
             held[key_of] = {"tag": tag, "famille": family, "source": source,
                             "texte": stem, "word": one["word"],
                             "syllabes": one["letters"], "oreille": answer,
-                            "sonde": elected, "part": one["part"]}
+                            "sonde": revealed(one, answer), "part": one["part"]}
             done += 1
-            if isinstance(answer, int):
-                verdict = "d'accord" if answer == elected else "EN DÉSACCORD"
-                print(f"    sonde : {one['letters'][elected]} "
-                      f"({one['part'][elected]:.2f}) — {verdict}")
-            else:
-                print(f"    sonde : {one['letters'][elected]} "
-                      f"({one['part'][elected]:.2f})")
             save(held)
     save(held)
     print(f"\n  fini — {done} jugés cette fois, {len(held)} au total")
     if skipped:
         print(f"  {skipped} lectures absentes — `--render` les synthétise")
+
+
+def sampled(held, seed):
+    """The words a revision pass replays: every disagreement, and as many agreements.
+
+    Replaying the disagreements alone would only ever move the number one way --
+    an ear that erred on a word the probe happened to match is never asked
+    again, so every correction found would raise the probe's score and none
+    could lower it. Drawing an equal number of agreements makes the revision
+    symmetric, and shuffling them together means the ear cannot tell which kind
+    it is hearing. The cost is twice the listening, and it buys the only thing a
+    revision is worth: a corrected number that is still a measurement.
+    """
+    clear = [key for key, one in held.items() if isinstance(one["oreille"], int)]
+    apart = [key for key in clear if held[key]["oreille"] != held[key]["sonde"]]
+    same = [key for key in clear if held[key]["oreille"] == held[key]["sonde"]]
+    dice = random.Random(seed)
+    picked = apart + dice.sample(same, min(len(apart), len(same)))
+    dice.shuffle(picked)
+    return picked
+
+
+def again(order, tools, pad, slow, seed):
+    """Ask a second time, blind, and keep both answers.
+
+    The first answer is not shown and not overwritten: it moves to `oreille 1`,
+    so a revision that changed a verdict can always be read as a revision rather
+    than passing for what was heard the first time.
+    """
+    held = stored()
+    if not held:
+        raise SystemExit(f"{VERDICTS} est vide — rien à réécouter")
+    picked = sampled(held, seed)
+    if not picked:
+        print("aucun désaccord à revoir")
+        return
+    by_tag = {}
+    for key in picked:
+        by_tag.setdefault(held[key]["tag"], []).append(key)
+    known = {tag: (family, source, stem, text, wav)
+             for tag, family, source, stem, text, wav in order}
+    player = None
+    done = changed = 0
+    print(f"\n  {len(picked)} mots à réécouter, mélangés — "
+          "rien ne dit lesquels étaient en désaccord\n")
+    for tag in [tag for tag in {held[key]["tag"]: None for key in picked}]:
+        if tag not in known:
+            continue
+        family, source, stem, text, wav = known[tag]
+        if not overlap.readable(wav):
+            continue
+        words = {f"{tag}#{one['rank']}": one
+                 for one in scored(wav, text, tag, tools)}
+        heading(family, source, text)
+        for key in by_tag[tag]:
+            one = words.get(key)
+            if one is None:
+                continue
+            answer, player = asked(wav, one, player, pad, slow)
+            if answer is None:
+                save(held)
+                print(f"\n  {done} revus, {changed} changés → {VERDICTS}")
+                return
+            before = held[key]["oreille"]
+            held[key]["oreille 1"] = before
+            held[key]["oreille"] = answer
+            revealed(one, answer)
+            done += 1
+            if answer != before:
+                changed += 1
+                print(f"    (première écoute : "
+                      f"{one['letters'][before] if isinstance(before, int) else before})")
+            save(held)
+    save(held)
+    print(f"\n  fini — {done} revus, {changed} changés")
 
 
 def report():
@@ -360,6 +454,12 @@ def report():
                 if slot["net"] else "—")
         print(f"  {name:<24}{slot['net']:>9}{slot['aucune']:>9}"
               f"{slot['découpe']:>9}{rate:>13}")
+    revised = [one for one in held.values() if "oreille 1" in one]
+    if revised:
+        moved = sum(1 for one in revised if one["oreille"] != one["oreille 1"])
+        print(f"\n  {len(revised)} mots réécoutés à l'aveugle, {moved} verdicts "
+              "changés — la première\n  écoute reste dans le fichier sous "
+              "« oreille 1 ».")
     print("\n  « tranchés » = mots où l'oreille a désigné une syllabe ; c'est "
           "la seule\n  base sur laquelle la sonde est jugée. Les ambigus et les "
           "découpes fausses\n  ne sont pas des erreurs de la sonde et se "
@@ -372,6 +472,9 @@ def main(argv=None):
                         help="synthétiser les voix modèles, avec confirmation")
     parser.add_argument("--report", action="store_true",
                         help="le décompte, sans écouter")
+    parser.add_argument("--again", action="store_true",
+                        help="réécouter les désaccords, mêlés à autant "
+                             "d'accords tirés au sort — à l'aveugle")
     parser.add_argument("-v", "--voice", action="append", default=None,
                         help="une voix de synthèse (répétable)")
     parser.add_argument("-n", "--speakers", type=int, default=SPEAKERS,
@@ -398,6 +501,9 @@ def main(argv=None):
                          "croisement, et sans lui il ne reste que des machines")
 
     order = readings(voices, args.speakers)
+    if args.again:
+        again(order, probe(), args.pad, args.slow, args.seed)
+        return report() or 0
     # Shuffled, because judging every native then every voice would let the ear
     # settle into one kind of mouth and hear the next as a change of task.
     random.Random(args.seed).shuffle(order)
