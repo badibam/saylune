@@ -96,6 +96,8 @@ Une trentaine d'entrées, parce que **la forme porte le canal et la couleur ne p
 - Trois ou quatre teintes de décor, dont les deux tons du cadre.
 - Les teintes de halo, une par couleur de trait adouci.
 
+Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent rien à ce budget : elles se peignent avec le vert, la rampe, l'encre neutre et l'encre atténuée déjà comptés.
+
 ## Les cadres de mise en page
 
 **Dessinés par nous, dans la police.** Un cadre dans une grille de caractères *est* du texte : on pose un coin, des bords, un autre coin, et il s'aligne tout seul pour le prix d'une chaîne. Unicode ne porte des coins arrondis qu'en trait fin, ce qui interdit d'y trouver un cadre à la fois arrondi et charnu ; on les dessine donc, et **la cellule de 11 pixels est exactement l'épaisseur d'une bordure de menu de console** — une tuile.
@@ -129,6 +131,9 @@ C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une me
 - **La vaguelette de correction tient un groupe de mots**, et ondule d'autant de pixels qu'elle est épaisse — sinon elle rend comme une bande floue.
 - **La pertinence se marque par des crochets aux deux bouts du groupe**, pas par un cadre complet. *Juste* se marque aussi, puisque c'est la seule mesure du projet qui ait un bon côté : presque tous les groupes portent donc une étiquette, et une enceinte qui court le long du texte ferait de la ligne une chaîne de boîtes. Les crochets restent une enceinte, donc distincts du filet droit et de la vaguelette.
 
+- **Une pause est une file de points médians dans le flux du texte**, un point par cran, cinq crans au plus (`activity-model.md`). Les points prennent des cellules comme des lettres, donc une pause est large comme un mot court et ne dévore jamais la ligne. Un point est un carré de l'épaisseur du trait, centré dans sa cellule, à mi-hauteur des capitales.
+- **Ce qui est écarté de la phrase s'écrit en encre atténuée entre crochets** — `[um]`. Les crochets sont de vrais caractères, dans leur cellule et à hauteur de lettre : c'est ce qui les sépare de l'enceinte de pertinence, qui est peinte et déborde en hauteur.
+
 **Le filet et la vaguelette ont chacun leur rangée** : à 2 pixels d'épaisseur, les mêler ne tient plus, et un même groupe porte souvent les deux.
 
 **Un groupe porte son identité, pas son étiquette.** Deux groupes voisins peuvent mériter la même étiquette sans être le même groupe, et un groupe coupé par un retour à la ligne **ouvre d'un côté et ferme de l'autre**, au lieu de se dédoubler en deux enceintes complètes.
@@ -141,7 +146,17 @@ C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une me
 
 Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 pixel** avant les marques, **un interligne** d'une ligne de grille, et le texte posé à **8 pixels** dans sa ligne. Le partage n'est pas symétrique : au-dessus des lettres il n'y a que le bord de l'enceinte, en dessous il y a l'enceinte, le filet et la vaguelette.
 
-**Les lettres se peignent par-dessus les crochets.** Ordre complet : la mélodie, la pertinence, les lettres, la vaguelette, le filet.
+**Les lettres se peignent par-dessus les crochets.** Ordre complet : la mélodie, la pertinence, les lettres — points de pause et fragments écartés compris, qui sont dans le flux —, la vaguelette, le filet.
+
+### La ligne qui nomme le tour
+
+**Les deux marques qui valent pour le tour entier se posent au bout de sa ligne d'étiquette**, calées à droite : la pastille du suivi, puis le débit. Ça ne prend aucune colonne au texte et n'ajoute aucune ligne, l'étiquette existant déjà et sa moitié droite étant vide. En contrepartie, cette ligne devient structurelle : elle ne peut plus disparaître de la charpente.
+
+- **La pastille est un disque de cinq pixels** dans une cellule.
+- **Le débit s'écrit en caractères** — `>><<` `><` `=` `<->` `<-->` — centré dans un champ de quatre colonnes, pour que la pastille ne bouge pas quand le cran change.
+- **Un emplacement vide dit *non mesuré***, et non *rien à signaler* (`activity-model.md`).
+
+À regarder au banc : sur seize colonnes, l'étiquette en prend huit et les deux marques six, donc rien ne les sépare. Soit l'étiquette raccourcit, soit on l'accepte.
 
 ## Le doigt
 
