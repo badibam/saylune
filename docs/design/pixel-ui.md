@@ -79,6 +79,16 @@ C'est la seule formulation qui vaut dans les deux registres. En nuit, la distanc
 
 **La chroma de la rampe reste haute** — c'est elle qui porte la lisibilité, et l'adoucir la coûterait. La douceur du registre vient du fond, des cadres et des formes, jamais d'affamer la rampe.
 
+### Le daltonisme
+
+**Une palette de rechange, en préférence utilisateur.** Le registre garde ses couleurs pour tout le monde ; qui ne les sépare pas en change. Corriger la palette de base à la place taxerait le défaut d'une esthétique choisie pour une perception que la plupart n'ont pas.
+
+**Le cas qui l'exige est précis, et c'est le pire du doc.** *Juste* et *à côté* sont **la même forme** — des crochets — et **deux verdicts opposés**, séparés par la seule couleur, verte contre rouge. En deutéranopie les deux convergent : la marque d'une réussite devient celle d'une faute. Le doc interdit ailleurs qu'une marque absente se confonde avec une approbation ; ici c'est la présence qui se confond avec son contraire. La pastille du suivi a le même défaut sur quatre valeurs, et la rampe à quatre crans peu contrastés y ajoute la sienne.
+
+**Ce n'est donc pas une permutation de teintes.** La palette de rechange doit satisfaire **la même règle de marquage** — la distance OKLab sur le premier cran —, dans les deux registres, et trouver pour les crochets deux teintes qui restent séparées sous la perception visée. Elle se règle au banc comme le reste de la palette. **Portée : les confusions rouge-vert**, deutéranopie et protanopie ; la tritanopie, qui toucherait le bleu du contour de mélodie, est hors périmètre et se dit.
+
+**Et le moment est maintenant** : `ui/MarkingColors.kt` porte encore la rampe continue que l'étape 3 remplace. Déplacer une teinte coûte une heure aujourd'hui, et tout le doc plus tard.
+
 ### Deux règles de calcul
 
 - **L'écrêtage de gamut réduit la chroma** jusqu'à ce que la couleur existe en sRGB, au lieu de rogner chaque canal séparément — ce dernier déforme la teinte en plus de la délaver, et c'est ce qui rendait le bout rouge de la rampe rose.
@@ -158,6 +168,14 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 
 **Les lettres se peignent par-dessus les crochets.** Ordre complet : la mélodie, la pertinence, les lettres — fragments écartés et colonne de points compris, qui vivent dans les cellules —, la vaguelette, le filet.
 
+### Ce qui se montre, et quand
+
+**Les marques n'arrivent pas d'un coup, et ce n'est pas un choix.** Les marquages jugés tombent au retour de l'appel, les marques du son à la fin de l'analyse, deux à trois secondes plus tard (`activity-model.md`, « Le déroulé d'un passage »). La révélation est donc canal par canal par construction — et ça tombe bien, les jugées étant à l'écran avant que l'IA parle. **Attendre que tout soit là pour tout afficher ensemble est une préférence utilisateur**, pas une contrainte.
+
+**Un menu de conversation dit quelles marques s'affichent.** La densité mesurée — la majorité des mots portent quelque chose — fait qu'un apprenant qui travaille sa mélodie voudra éteindre le reste. Éteindre un canal n'éteint que son **affichage**, jamais sa mesure : la note ne bouge pas, et rouvrir le canal remontre ce qui était là.
+
+**Ce menu est du côté de l'apprenant, et n'est jamais un levier.** L'invariant l'exige — une marque dont la présence dépendrait du réglage du jour ne transporte plus rien (`activity-model.md`). C'est l'inverse exact du brouillage du tour de l'IA, qui est bien un levier : là il s'agit d'une aide sur ce que l'IA dit, ici de la sortie d'une mesure. Une activité peut retirer une aide ; aucune ne cache une marque.
+
 ### La ligne qui nomme le tour
 
 **Les deux marques qui valent pour le tour entier se posent au bout de sa ligne d'étiquette**, calées à droite : la pastille du suivi, puis le débit. Ça ne prend aucune colonne au texte et n'ajoute aucune ligne, l'étiquette existant déjà et sa moitié droite étant vide. En contrepartie, cette ligne devient structurelle : elle ne peut plus disparaître de la charpente.
@@ -216,6 +234,7 @@ Pour que ces questions ne se reposent pas.
 - **Les sons.** Rien n'est décidé. Le canal principal de l'app *est* l'audio — la voix du modèle, et le micro ouvert pendant la réponse — donc une ambiance continue entre en concurrence avec ce qu'on écoute et se fait capter par le micro. Un babil de texte est exclu d'avance, le tour de l'IA étant réellement parlé.
 - **La charpente persistante.** Aujourd'hui `MainActivity.Root` porte une rangée de boutons en haut qui dit à la fois où on est et où aller. Le registre a deux objets distincts : une **ligne d'état** en haut, une **barre d'actions** en bas. Les séparer mettrait les actions là où est le pouce, et donnerait un endroit à ce que `reference.md` exige à plusieurs reprises — qu'une chose indisponible **porte sa raison**. Coût : deux lignes de grille en permanence.
 - **Le texte de l'IA qui apparaît caractère par caractère.** Très juste dans le registre, mais les tours de l'IA sont brouillés (« Le texte de l'IA ») et l'audio est le canal principal : un défilement qui devance ou traîne derrière la voix serait pire que pas de défilement.
+- **Le lecteur d'écran — hors v1, et dit plutôt que tu.** `ui/MarkedTurn.kt` est un `Canvas`, donc toute la sémantique du marquage est invisible à TalkBack : les crans, les empans et les échelles existent en mémoire et rien ne les expose. Ce n'est pas une porte fermée — un mot porte déjà son cran et sa feuille, il n'y a rien à mesurer de plus, seulement à décrire —, c'est un travail qui ne se fait pas maintenant. Pour une app destinée à un dépôt public, le silence vaudrait décision par défaut.
 - **Ce que l'écran fait pendant l'attente.** Onze secondes de médiane jusqu'au premier son, et rien n'est spécifié de ce qu'on regarde pendant. La piste : **les notes du passage précédent s'y affichent**, par feuille et rangées par aptitude. Le calendrier tombe juste et ne coûte rien — la note d'un passage se décide à sa fermeture, c'est-à-dire au moment où le tour suivant part, donc elle est prête pile quand l'attente commence. À tenir en dessinant : la **marque** reste le repère stable et la note en est une lecture réglée (`activity-model.md`), donc la note remplit un blanc, elle ne prend pas le premier plan.
 - **La rencontre de personnage** (`../../NOTES.md`) — ce qui fait qu'on rencontre quelqu'un plutôt qu'on lance un thème. C'est une grammaire d'interaction, pas un habillage, et rien ici ne la décide.
 - **La pile de navigation.** Les quatre écrans actuels sont un interrupteur à quatre positions dont aucun ne mène à un autre ; le modèle d'activité (`activity-model.md`) amènera des écrans qui descendent les uns dans les autres. La charpente ne doit pas bloquer ça.
@@ -224,7 +243,7 @@ Pour que ces questions ne se reposent pas.
 
 1. Le thème, avec la grille et les rythmes du marquage dedans.
 2. La police embarquée, et l'échelle entière calculée depuis la densité.
-3. La palette des deux registres, en remplaçant la rampe continue de `ui/MarkingColors.kt`.
+3. La palette des deux registres, en remplaçant la rampe continue de `ui/MarkingColors.kt` — et, dans la même passe, la palette de rechange du daltonisme, qui coûte une heure ici et tout le doc plus tard.
 4. Le tour marqué : la bande de mélodie et son recouvrement, puis les marques et leur air.
 5. Les glyphes ajoutés à la police, et les cadres et listes en caractères.
 6. Les transitions en coupure plutôt qu'en fondu.
