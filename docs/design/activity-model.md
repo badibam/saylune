@@ -721,6 +721,12 @@ Prendre les silences comme éléments et faire leur moyenne ne marcherait pas : 
 
 Ce qu'elle ignore, assumé : deux blancs de 5 s valent un seul. C'est la continuité qui porte l'accumulation.
 
+**Les deux se marquent d'un seul dessin : une file de points médians entre les mots, un point par 200 ms** — `I went · · · to the shop`. La cadence est le seuil lui-même, donc toute pause comptée porte au moins un point, et la durée se compte au lieu de s'estimer. Le plus long silence est la plus longue file : il se voit parce qu'il est le plus long, on n'a pas à le désigner.
+
+**Aucune couleur sur les points.** Ce qui fait qu'une pause est trop longue dépend du réglage, et aucun réglage ne touche une marque. Teinter *le plus long* serait pire : la même pause de 2 s serait teintée dans un tour calme et grise dans un tour où traîne un blanc de 3 s, donc la même faute ne produirait plus la même marque. Les points portent la durée, rien d'autre.
+
+**Des points médians, pas des points de ligne de base.** Trois points bas veulent dire *du texte a été retiré* — c'est déjà ce que disent les crochets gris du remplissage (« Le remplissage et les reprises »).
+
 **Le débit** — l'écart de vitesse au modèle, en pourcentage, sur les seuls mots retenus.
 
 ```
@@ -730,11 +736,15 @@ v     = temps de parole de l'apprenant ÷ temps de parole du modèle
 
 **Comparé au modèle et non dans l'absolu**, ce qui remet le débit sous la règle générale du projet — *le modèle est la vérité, s'en écarter se marque* — à laquelle il n'avait aucune raison d'échapper. Le texte étant le même des deux côtés, il n'y a **rien à compter**, ni mots ni syllabes : l'unité s'annule, et la question « combien de mots par seconde parle un bon apprenant », qui n'a pas de réponse indépendante du texte, disparaît.
 
-**Symétrique par construction** : deux fois plus lent et deux fois plus rapide donnent tous les deux 100 %. **Savoir de quel côté on s'écarte ne se perd pas, mais ça ne sert qu'à un endroit.** La note ne le voit pas : parler 30 % trop lentement et 30 % trop vite donnent le même chiffre, donc la même lettre. Une **condition** de défi, elle, peut le lire — *« ne parle jamais plus de 20 % plus lentement que le modèle »* se distingue de *« pas plus vite »*. Et rien ne le montre à l'apprenant : le débit n'a pas de marque à l'écran. **Hypothèse à vérifier** : que les deux côtés soient également gênants. La lenteur est le défaut du francophone, l'excès de vitesse est rare. Si la mesure dit qu'ils ne se valent pas, la série devient asymétrique — deux listes au lieu d'une, une extension et non une refonte.
+**Symétrique par construction** : deux fois plus lent et deux fois plus rapide donnent tous les deux 100 %. **Savoir de quel côté on s'écarte ne se perd pas.** La note ne le voit pas : parler 30 % trop lentement et 30 % trop vite donnent le même chiffre, donc la même lettre. Ce qui le lit est la **marque** — les chevrons ci-dessous — et une **condition** de défi, où *« ne parle jamais plus de 20 % plus lentement que le modèle »* se distingue de *« pas plus vite »*. Ce qu'un retour écrit en dirait n'est pas décidé : rien n'est encore fixé sur ce qui s'affiche hors des marques. **Hypothèse à vérifier** : que les deux côtés soient également gênants. La lenteur est le défaut du francophone, l'excès de vitesse est rare. Si la mesure dit qu'ils ne se valent pas, la série devient asymétrique — deux listes au lieu d'une, une extension et non une refonte.
 
 **Le temps de parole exclut les silences des deux côtés**, donc le silence n'est jamais compté deux fois. Ce qui veut dire que **détacher ses mots au lieu de les lier** — le défaut francophone que le doc voulait voir ici — se fait voir par la **continuité**, sous forme de petites pauses, ce qui est plus juste : détacher ses mots, c'est littéralement en fabriquer. Le débit garde ce qu'il est seul à voir : **articuler lentement à l'intérieur des mots**, voyelles étirées et consonnes sur-prononcées, qui ne produit aucun silence.
 
 **Et il ne lit que les mots retenus.** Le temps de parole brut de l'apprenant contient ses *um* et ses morceaux abandonnés, que le modèle ne dit pas : un tour hésitant aurait donc un temps gonflé, un gros écart de vitesse, et serait pénalisé sur le débit **en plus** de sa propre feuille. Le doc voulait ça quand rien d'autre ne voyait les hésitations ; maintenant qu'elles ont leur feuille, la raison est servie une fois. L'alignement sait où tombe chaque mot, donc la durée des seuls mots retenus se calcule sans découper l'audio.
+
+**Le débit se marque en marge du tour, dans la même bande que la pastille du suivi** — `<->` puis `<-->` du côté lent, `><` puis `>><<` du côté rapide. Les pointes qui rentrent disent le mot comprimé, celles qui s'écartent le mot étiré ; c'est la seule marque du projet qui vaut pour tout le tour avec le suivi, et la marge le dit sans qu'on ait à l'apprendre. **Deux crans par côté, à seuils fixes**, écrits une fois pour toutes comme la rampe des sons et jamais tirés de la sensibilité — sinon la marque bougerait avec le réglage.
+
+**Rien quand le tour est dans la bande** : l'absence dit *rien à signaler*, comme partout. Un `=` marquerait la réussite, ce que ne fait aucune autre marque ; il reste à donner un signe au *non mesuré*, sur le modèle du cercle vide du suivi.
 
 **Une question qui ne se pose pas, notée pour qu'elle ne se repose pas.** Le débit et la continuité prennent le modèle pour référence, donc une voix rapide rend l'apprenant lent et une voix lente le rend rapide. Ce n'est pas un défaut à mesurer, c'est la règle du projet : le modèle est la source de vérité, une voix qui ne convient pas se remplace, et la suivante est la vérité exactement comme la précédente (`../reference.md`, question close). Et l'argument du biais de machine, qui vaut pour les sons, ne s'applique pas ici : une durée est une durée, mesurée pareil des deux côtés, il n'y a aucun biais à annuler.
 
