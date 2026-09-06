@@ -157,7 +157,7 @@ data class ConversationState(
      * Derived and never stored. It is a walk of the run, and a walk of the run cannot fall
      * out of step with the run -- which is exactly what a list kept beside it used to do.
      * Only the readings that carry a marking are here: one that carries none was never read,
-     * and offering it as a numbered attempt would promise something to look at.
+     * so there is nothing of it to look at.
      */
     fun readings(of: String): List<Utterance> {
         val root = utterances.firstOrNull { it.id == of } ?: return emptyList()

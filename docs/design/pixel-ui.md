@@ -265,7 +265,7 @@ Il porte, **par aptitude, chaque feuille** : sa mesure brute, et sa lettre quand
 
 Pour les trois feuilles à colonne — la grammaire, la pertinence, le remplissage — ce qui s'affiche est le **compte par cran** et non le chiffre de la feuille, qui est une moyenne entre 0 et 1 ne disant rien à personne. C'est la même donnée lue autrement, pas une seconde source.
 
-**Aucune tendance dedans.** `ui/ConversationScreen.kt` porte déjà cette décision pour le sélecteur de tentatives, avec sa raison : deux lectures posées côte à côte ne sont pas une tendance, et une flèche *« +1 depuis le passage précédent »* rouvrirait ça par la porte de derrière.
+**Aucune tendance dedans.** Une flèche *« +1 depuis le passage précédent »* comparerait deux lectures prises sous des règles qui n'ont aucune raison d'être les mêmes, et une note ne se lit jamais sans la combinaison qui l'a produite (`activity-model.md`). Il ne montre qu'une seule prise, la dernière du passage, comme le fil.
 
 **Ce que le mode décide, ce sont les lettres ; ce que l'apprenant règle, c'est si l'écran est poussé.** Poussé par défaut, parce que la note d'un passage est prête pile quand l'attente commence et que remplir ces secondes vaut mieux que les regarder passer. Sans lettres — en conversation libre — l'écran existe quand même et porte les mesures brutes, qui sont des faits sur ce qu'on vient de dire et ne dépendent d'aucun réglage.
 
@@ -317,7 +317,6 @@ Pour que ces questions ne se reposent pas.
 - **Ce que la barre d'actions porte, écran par écran.** Proposé pour la conversation — l'œil, les leviers ouverts, le retour — et rien pour les autres. Se décide avec la pile de navigation, dont il dépend : une barre ne peut pas mener où rien ne va.
 - **Les noms d'affichage des onze feuilles**, qui doivent tenir dans une douzaine de colonnes sur un 720. L'écran de bilan ne s'écrit pas sans eux. Même travail que `Grammar` (`activity-model.md`).
 - **Où se posent les deux décomptes et le symbole d'enregistrement.** Le doc du modèle les veut visibles en permanence — le silence en cours et la durée du tour — et la police porte déjà quatre blocs de jauge et un disque ; leur place à l'écran n'est décidée nulle part, et la capture en trois positions en a besoin.
-- **Le sort du sélecteur de tentatives.** `ui/ConversationScreen.kt` laisse naviguer entre les prises d'un passage par des numéros, alors que le fil ne montre que la dernière. Le garder ou non n'est pas tranché.
 
 ## L'ordre de travail
 

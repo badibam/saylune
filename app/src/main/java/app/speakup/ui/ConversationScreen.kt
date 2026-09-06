@@ -238,31 +238,6 @@ fun ConversationScreen(
 }
 
 /**
- * Which take of this turn is on screen, when there is more than one.
- *
- * Plain numbers and nothing else. There is deliberately no comparison drawn between them --
- * no arrow, no better or worse: the doc rules out showing a trend, and two readings sitting
- * where they can each be looked at is not a trend. What tells the learner whether it went
- * better is the marks themselves, read one attempt at a time.
- */
-@Composable
-private fun Attempts(count: Int, shown: Int, onShow: (Int) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        repeat(count) { rank ->
-            TextButton(onClick = { onShow(rank) }) {
-                Text(
-                    "${rank + 1}",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = if (rank == shown) FontWeight.Bold else FontWeight.Normal,
-                    color = if (rank == shown) MaterialTheme.colorScheme.onSurface
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-/**
  * Which recording the play button and a tap on a word reach.
  *
  * Two words rather than an icon: "model" and "you" are the two things being compared
@@ -461,13 +436,11 @@ private fun Said(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        // The last by default: saying it again is done to improve on the one before, so the
-        // newest is the one being looked at. The earlier ones stay reachable rather than
-        // being overwritten -- three takes of one sentence against one model is material,
-        // and it is only material if all three survive.
+        // The last, and only the last: saying it again is done to improve on the one before,
+        // so the newest is what the learner knows how to say now. The earlier takes stay in
+        // the base for the measures and for a bench, and no screen shows them.
         val scope = rememberCoroutineScope()
-        var shown by rememberSaveable(readings.size) { mutableStateOf(readings.size - 1) }
-        val reading = readings.getOrNull(shown)
+        val reading = readings.lastOrNull()
         val where = reading?.id
         val marking = reading?.marking
         val sounds = reading?.sounds
@@ -490,7 +463,6 @@ private fun Said(
                 },
             )
         } else Text(spoken.text, style = MaterialTheme.typography.bodyMedium)
-        if (readings.size > 1) Attempts(readings.size, shown) { shown = it }
         // The redo controls stay: saying it again is exactly the answer to a reading that
         // slid, and taking them away would leave no way out of it.
         if (where != null) {
