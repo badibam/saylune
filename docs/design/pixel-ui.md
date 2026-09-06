@@ -293,6 +293,18 @@ La seconde est la **ligne d'état du tour**, dans son propre cadre, **toujours p
 
 **Trois notifications, et non deux.** Celle d'une **règle** qui change quelque chose est un reçu : elle s'affiche en pop-up, quelques secondes, et s'efface. Celle de la **porte des mots** et celle de la **porte du son** sont des états : elles vivent dans la ligne d'état du haut tant qu'elles sont vraies. La porte des mots **nomme la ou les aptitudes en cause**, ce que la porte du son ne fait pas — et ce n'est pas une incohérence, c'est le même raisonnement : la porte du son est câblée sur l'élocution et la fluidité seules, donc ce qu'elle nommerait serait une constante, quand la porte des mots a trois aptitudes derrière elle. Nommer **toutes** celles qui ferment, jamais la pire, respecte l'interdit du doc contre l'élection d'une marque.
 
+## La porte « Libre » : des tuiles, une par thème
+
+Arrêté le 2026-09-07. **Deux colonnes de tuiles en portrait** : la première est la conversation sans thème, les suivantes sont les thèmes livrés. Une tuile ne montre que le **nombre de passages** qu'elle contient — un compte de lignes, donc rien de stocké. Les tuiles ne bougent pas de place, sauf que celles qui sont commencées passent devant, la première restant la première.
+
+**La surface est de taille fixe, et c'est ce qui la sépare d'un catalogue** : les tuiles sont les définitions livrées, donc leur nombre est décidé par l'app et jamais par l'usage. On garde plusieurs conversations vivantes sans avoir de liste à administrer.
+
+**Et rien n'a besoin d'être nommé.** Une tuile est identifiée par son thème, qui est déclaré dans son fichier ; celle qui n'en a pas est identifiée par sa place. C'est ce qui retire le nom écrit par le modèle, et avec lui le champ de contrat et la règle qui l'empêchait de renommer.
+
+**Toucher une tuile ouvre l'écran de situation, un seul écran à deux états.** Rempli, il montre la situation complétée, **le texte du champ court en couleur** pour qu'on voie d'un coup ce qu'on a apporté soi-même contre ce que le thème apportait — ça ne coûte rien, la substitution sachant où était le trou. Vide, il montre la situation, sa question, et le choix du **genre**, *peu importe* par défaut (`activity-model.md`). Deux boutons dans les deux cas : **poursuivre** et **recommencer**. La première tuile a le même écran, avec une question facultative qu'on peut laisser vide — ce qui donne la conversation sans mise en situation.
+
+**« Recommencer » demande confirmation, défaut sur non.** C'est la seule chose qui rende une séance inatteignable : l'ancienne reste en base, mais tant qu'aucun écran d'historique n'existe, hors d'atteinte vaut perdue à l'usage. La règle d'`universel` sur les actions lourdes s'applique, et elle est dans le registre — un jeu demande avant d'écraser une sauvegarde.
+
 ## Ce qui se passe entre deux tours
 
 **L'écran de bilan du passage**, et c'est un seul écran avec deux portes : poussé entre deux passages quand l'apprenant l'a réglé ainsi, ouvert à la demande par les notes de n'importe quel passage du fil. Un seul contenu à concevoir, une seule lecture à apprendre.
