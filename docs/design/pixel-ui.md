@@ -407,6 +407,7 @@ Pour que ces questions ne se reposent pas.
 
 ## Ce qui reste ouvert
 
+- **Les poids se règlent sur un polygone, curseurs concentriques** (arrêté le 2026-09-06) — un axe par enfant du nœud, le curseur court du centre au sommet, et le polygone que les curseurs dessinent se lit d'un coup. Un poids étant une **part entre frères** (`activity-model.md`), c'est littéralement le partage de la voix du nœud qu'on regarde. Le nombre de côtés vient du nœud et non de l'arbre, qui est à profondeur libre : cinq au premier niveau parce qu'il y a cinq aptitudes. Le reste de l'écran custom est hors périmètre.
 - **La séparation des quatre crans en registre clair.** La gamme des couleurs disponibles n'est pas la même en sombre qu'en clair : c'est une mesure à refaire, pas un réglage à recopier.
 - **Le débordement d'un interligne sur l'autre.** À interligne 1, la vaguelette d'une ligne descend deux pixels plus bas que le sommet de la ligne suivante. Se règle en ajustant l'air, à faire.
 - **Les sons.** Rien n'est décidé. Le canal principal de l'app *est* l'audio — la voix du modèle, et le micro ouvert pendant la réponse — donc une ambiance continue entre en concurrence avec ce qu'on écoute et se fait capter par le micro. Un babil de texte est exclu d'avance, le tour de l'IA étant réellement parlé.

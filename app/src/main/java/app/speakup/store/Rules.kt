@@ -57,6 +57,17 @@ internal object Rules {
         )
     }
 
+    /**
+     * One pack on its own, which is what a definition's opening is.
+     *
+     * The same effects, read by the same reader: an opening is a pack and not a shape of its
+     * own, so nothing here is a second way of reading one.
+     */
+    fun readPack(stored: String): Pack = Pack(JSONArray(stored).objects().map { effect(it) })
+
+    fun write(pack: Pack): String =
+        JSONArray().apply { pack.effects.forEach { put(effect(it)) } }.toString()
+
     // ── Triggers ────────────────────────────────────────────────────────────────────────
 
     private fun trigger(of: Trigger): JSONObject = JSONObject().apply {
