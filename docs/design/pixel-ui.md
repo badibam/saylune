@@ -2,7 +2,7 @@
 
 Ce que l'app doit avoir l'air d'être, et ce que ça décide dans le code. Une seule pièce est écrite, la police et ses glyphes (`../../font/`) ; tout le reste attend que la boucle de conversation soit finie (`../../TODO.md`, chantier 0), et ce doc existe pour que le jour où l'esthétique prend soin, les décisions qui coûtent cher rétroactivement soient déjà prises.
 
-Les valeurs chiffrées qui suivent ont été réglées à l'œil sur un banc d'essai qui dessine un écran complet à la résolution réelle d'un téléphone, police embarquée et palette réglable : **https://claude.ai/code/artifact/52cd81d9-d11e-4ad0-b571-2ea2a4984471**. Il reste l'instrument pour tout ce qui se juge en regardant plutôt qu'en raisonnant.
+Les valeurs chiffrées qui suivent ont été réglées à l'œil sur un banc d'essai qui dessine un écran complet à la résolution réelle d'un téléphone, police embarquée et palette réglable : **`../../bench/pixel-ui.html`**, à ouvrir dans un navigateur. Il reste l'instrument pour tout ce qui se juge en regardant plutôt qu'en raisonnant — la rechange du daltonisme l'attend. Il est versionné avec le reste du banc : il est écrit à la main et ne se régénère pas, donc le perdre serait perdre la source des couleurs.
 
 ## Ce qui borne tout le reste : la couleur porte une mesure
 

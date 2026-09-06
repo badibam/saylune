@@ -46,6 +46,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `turn.py` | un tour analysé au format que l'écran de marquage consomme — le tuyau du banc vers l'app |
 | `review.py` | écouter ce qui a été marqué, modèle puis prise, et écrire si c'est une faute |
 | `divergence.py` | écouter là où deux modèles ne nomment pas le même son, et écrire lequel a raison |
+| `pixel-ui.html` | l'écran complet dessiné à la résolution réelle d'un téléphone, police embarquée et palette réglable — le seul banc qui se juge en regardant, et la source des valeurs de `../docs/design/pixel-ui.md`. S'ouvre dans un navigateur, ne demande aucune clé. |
 
 Chaque brique s'utilise seule.
 
