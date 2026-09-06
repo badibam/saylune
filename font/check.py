@@ -13,8 +13,8 @@ from fontTools.pens.pointInsidePen import PointInsidePen
 from pixelfont import BOTTOM_PX, CELL_W, TOP_PX
 
 PAIRS = [
-    ("tmp/Mono10 - Community Pack/TTF/Mono10 Regular.ttf", "tmp/font/speakup_tile_regular.ttf"),
-    ("tmp/Mono10 - Community Pack/TTF/Mono10 Thin.ttf", "tmp/font/speakup_tile_thin.ttf"),
+    ("tmp/Mono10 - Community Pack/TTF/Mono10 Regular.ttf", "font/ttf/speakup_tile_regular.ttf"),
+    ("tmp/Mono10 - Community Pack/TTF/Mono10 Thin.ttf", "font/ttf/speakup_tile_thin.ttf"),
 ]
 
 
