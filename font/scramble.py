@@ -23,8 +23,15 @@ SQUARE = {"regular": 2, "thin": 2}
 LETTERS = ("abcdefghijklmnopqrstuvwxyz"
            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
            "0123456789"
-           "àâäçéèêëîïôöùûüÿæœ"
-           "ÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸÆŒ")
+           "àáâäçéèêëíîïóôöùúûüÿæœ"
+           "ÀÁÂÄÇÉÈÊËÍÎÏÓÔÖÙÚÛÜŸÆŒ")
+
+# A letter with no twin of its own falls back on this one, so that a forgotten
+# character shows as scrambled ink rather than in the clear. Punctuation keeps
+# no twin on purpose: `pixel-ui.md` wants it to survive as the support of the
+# phrase. It sits at the shift itself, U+E100, which is the scramble of no
+# character at all.
+FALLBACK = (0x0000, ["#" * 10 + "."] * 8 + ["." * 11] * 2)
 
 
 def scramble(cells, side, seed):
@@ -50,9 +57,13 @@ def main():
             assert rows is not None, ch
             cells = scramble(rows_to_cells(rows), side, ord(ch))
             maps[f"scrambled.{ord(ch):04X}"] = (ord(ch) + SHIFT, cells_to_rows(cells))
+        cp, rows = FALLBACK
+        cells = scramble(rows_to_cells(rows), side, cp)
+        maps["scrambled.fallback"] = (cp + SHIFT, cells_to_rows(cells))
+
         header = path.read_text(encoding="utf-8").split("\n@")[0]
         write_maps(path, maps, header)
-        print(f"{path.name}: {len(LETTERS)} lettres brouillees, {len(maps)} glyphes en tout")
+        print(f"{path.name}: {len(LETTERS) + 1} lettres brouillees, {len(maps)} glyphes en tout")
 
 
 if __name__ == "__main__":

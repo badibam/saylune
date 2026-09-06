@@ -10,13 +10,13 @@ Un pixel de dessin vaut 64 unités, le cadratin 1024, l'avance 704.
 
 - `extract.py` — lit les TTF de Mono10 et écrit les cartes. Ne se relance que pour repartir de zéro : il écrase les cartes.
 - `descenders.py` — redessine `g j p q y` avec leur queue sous la ligne de base.
-- `accents.py` — compose les 36 lettres accentuées et pose les glyphes de `drawn.py`.
+- `accents.py` — compose les 44 lettres accentuées, dérive les deux tirets du trait d'union, et pose les glyphes de `drawn.py`.
 - `build.py` — compile les cartes en TTF, et refuse un glyphe qui déborde de la boîte.
 - `check.py` — prouve que tout ce qu'on n'a pas touché rend au pixel près comme Mono10.
 - `plank.py` — dessine une planche PNG pour juger en regardant.
 
 - `frames.py` — découpe les seize pièces de cadre depuis la formule du banc.
-- `furniture.py` — les treize meubles de la zone privée.
+- `furniture.py` — les vingt-cinq meubles de la zone privée. Ce qui est un symbole plein — le disque, le triangle, la jauge, le cœur, le micro, la loupe, l'œil, le cadenas, l'histogramme, les points — est identique dans les deux graisses ; ce qui est un trait — les flèches, la coche, la croix, les curseurs, le retour, la flèche circulaire — s'amincit avec le reste.
 - `scramble.py` — couvre chaque lettre de carrés, pour le tour de l'IA qu'on voit sans le lire.
 
 Les TTF compilés sont dans `ttf/`. Les poser dans `app/src/main/res/font/` est le geste de l'app, pas celui d'ici.
@@ -24,8 +24,8 @@ Les TTF compilés sont dans `ttf/`. Les poser dans `app/src/main/res/font/` est 
 ## La zone privée
 
 - `U+E000`–`U+E00F` — les cadres : huit pièces en couche claire, les mêmes en couche sombre.
-- `U+E010`–`U+E01C` — les meubles : triangle, disque d'enregistrement, quatre blocs de jauge, quatre flèches, coche, croix, cœur.
-- `U+E100` + le codet de la lettre — sa version brouillée. La table de l'app est donc une addition : un caractère se brouille si son codet décalé existe dans la police.
+- `U+E010`–`U+E028` — les meubles : triangle, disque d'enregistrement, quatre blocs de jauge, quatre flèches, coche, croix, cœur, pause, arrêt, micro, loupe, œil, curseurs, retour, flèche circulaire, cadenas, histogramme, point plein, point creux.
+- `U+E100` + le codet de la lettre — sa version brouillée. La table de l'app est donc une addition : un caractère se brouille si son codet décalé existe dans la police. `U+E100` nu est la jumelle générique, sur laquelle tombe une lettre qui n'a pas la sienne ; la ponctuation, elle, n'en a pas et reste claire.
 
 Ajouter un caractère : écrire son bloc `@nom U+XXXX` dans les deux cartes, relancer `build.py`.
 

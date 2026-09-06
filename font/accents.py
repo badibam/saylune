@@ -32,17 +32,17 @@ CEDILLA = {
 
 # base letter -> the accents it takes, and the codepoint of each result
 ACCENTED = {
-    "a": {"grave": 0x00E0, "circumflex": 0x00E2, "dieresis": 0x00E4},
+    "a": {"acute": 0x00E1, "grave": 0x00E0, "circumflex": 0x00E2, "dieresis": 0x00E4},
     "e": {"acute": 0x00E9, "grave": 0x00E8, "circumflex": 0x00EA, "dieresis": 0x00EB},
-    "i": {"circumflex": 0x00EE, "dieresis": 0x00EF},
-    "o": {"circumflex": 0x00F4, "dieresis": 0x00F6},
-    "u": {"grave": 0x00F9, "circumflex": 0x00FB, "dieresis": 0x00FC},
+    "i": {"acute": 0x00ED, "circumflex": 0x00EE, "dieresis": 0x00EF},
+    "o": {"acute": 0x00F3, "circumflex": 0x00F4, "dieresis": 0x00F6},
+    "u": {"acute": 0x00FA, "grave": 0x00F9, "circumflex": 0x00FB, "dieresis": 0x00FC},
     "y": {"dieresis": 0x00FF},
-    "A": {"grave": 0x00C0, "circumflex": 0x00C2, "dieresis": 0x00C4},
+    "A": {"acute": 0x00C1, "grave": 0x00C0, "circumflex": 0x00C2, "dieresis": 0x00C4},
     "E": {"acute": 0x00C9, "grave": 0x00C8, "circumflex": 0x00CA, "dieresis": 0x00CB},
-    "I": {"circumflex": 0x00CE, "dieresis": 0x00CF},
-    "O": {"circumflex": 0x00D4, "dieresis": 0x00D6},
-    "U": {"grave": 0x00D9, "circumflex": 0x00DB, "dieresis": 0x00DC},
+    "I": {"acute": 0x00CD, "circumflex": 0x00CE, "dieresis": 0x00CF},
+    "O": {"acute": 0x00D3, "circumflex": 0x00D4, "dieresis": 0x00D6},
+    "U": {"acute": 0x00DA, "grave": 0x00D9, "circumflex": 0x00DB, "dieresis": 0x00DC},
     "Y": {"dieresis": 0x0178},
 }
 
@@ -100,6 +100,16 @@ def main():
         for name, (cp, rows) in DRAWN[weight].items():
             maps[name] = (cp, rows)
             added += 1
+
+        # The two dashes are the hyphen made longer. Mono10's hyphen already
+        # fills ten of the eleven columns, so an en dash has no room to differ
+        # from it and takes its drawing outright; the em dash takes the gutter
+        # too, which is what makes two of them meet without a seam.
+        hyphen = maps["hyphen"][1]
+        ys = {y for _, y in rows_to_cells(hyphen)}
+        maps["endash"] = (0x2013, hyphen)
+        maps["emdash"] = (0x2014, cells_to_rows({(x, y) for y in ys for x in range(CELL_W)}))
+        added += 2
 
         header = path.read_text(encoding="utf-8").split("\n@")[0]
         write_maps(path, maps, header)

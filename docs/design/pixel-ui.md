@@ -34,15 +34,19 @@ Cadratin de 1024 unités, une unité de dessin valant 64 unités, avance de 11 p
 
 ### Ce qu'on lui a ajouté
 
-165 glyphes par-dessus les 110 de Mono10, dont 5 redessinés.
+200 glyphes par-dessus les 110 de Mono10, dont 5 redessinés.
 
-- **Les accents**, 36, plus `« » … ×`. Quatre marques dessinées une fois par graisse et posées sur les lettres de base : rangées 9 et 8 d'une minuscule, 11 et 10 d'une capitale. **Une capitale accentuée garde donc sa pleine hauteur** — le doc annonçait un raccourcissement d'un pixel, la boîte haute le rend inutile. La cédille tient dans les rangées qu'ont ouvertes les descendantes, donc le `ç` garde un `c` entier.
+- **Les accents**, 44, plus `« » … × ½ ⅓ ¼ ° — –`. Quatre marques dessinées une fois par graisse et posées sur les lettres de base : rangées 9 et 8 d'une minuscule, 11 et 10 d'une capitale. **Une capitale accentuée garde donc sa pleine hauteur** — le doc annonçait un raccourcissement d'un pixel, la boîte haute le rend inutile. La cédille tient dans les rangées qu'ont ouvertes les descendantes, donc le `ç` garde un `c` entier.
 - **Les descendantes.** `g j p q y` étaient tassés dans la hauteur d'x et le `g` s'y lisait `9`. Aucun redessin à l'intérieur de la hauteur d'x ne le répare : à trait de 2 pixels, un bol fermé prend quatre rangées et la queue les quatre qui restent, et un bol au-dessus d'une queue *est* la silhouette d'un `9`. Ils descendent donc de deux rangées, bol de six rangées et crochet plat, trait plein partout.
 - **Les cadres**, 16 pièces dans la zone à usage privé à partir de U+E000, jamais sur les codets Unicode de dessin de cadre, pour que rien ne casse si la police de base change.
-- **Les meubles**, 13 : le triangle de l'écoute, le disque d'enregistrement, quatre blocs de jauge pour les deux décomptes, quatre flèches, une coche, une croix, un cœur pour les vies.
-- **Les lettres brouillées**, 98 — voir « Le texte de l'IA ».
+- **Les meubles**, 25 : la famille du transport entière — le triangle de l'écoute, la pause, l'arrêt, le disque d'enregistrement —, quatre blocs de jauge pour les deux décomptes, quatre flèches, une coche, une croix, un cœur pour les vies, le micro, la loupe, l'œil, le cadenas, l'histogramme, les curseurs des leviers, le retour, la flèche circulaire, et un point plein et un point creux pour lire la position d'un levier à marches.
+- **Les lettres brouillées**, 107 — voir « Le texte de l'IA ».
 
-**Quatre glyphes restent à dessiner** (relevés le 2026-09-06, à générer d'un coup) : `½` et `⅓` pour la vitesse d'écoute, une **loupe** pour l'inventaire par son, et un glyphe pour les **notes du passage**, dont la forme reste à trouver — une lettre dans un cadre, ou un petit histogramme.
+**Il n'en manque plus** (relevé et dessiné le 2026-09-06). Les notes du passage sont un **histogramme**, jeter la prise une **flèche circulaire**. Trois choix de fond derrière le lot :
+
+- **Un glyphe ne remplace un mot que là où la place manque.** La rangée de commandes est contrainte à quinze colonnes sur vingt-et-une, donc elle est en glyphes ; `MON TOUR`, `PAUSE`, `ENVOYER` restent des mots, parce qu'ils commandent sous pression et qu'`ENVOYER` dépense une tentative. Les glyphes de la capture — micro, pause, arrêt, flèche circulaire — servent donc les états et l'écran des leviers, pas les boutons du bas.
+- **Une famille se dessine entière.** Le triangle et le disque appelaient la pause et l'arrêt, `×½` appelait `×¼` : un membre manquant se remarque, et il coûte moins de le dessiner maintenant que de le découvrir absent devant un écran.
+- **La prose de l'IA a sa liste fermée** — `— – °` et les huit lettres à accent aigu, que la machinerie des accents composait déjà pour rien. Rien derrière : un caractère absent rend un carré vide, ce qui est bruyant et vrai, là où un repli silencieux masquerait le trou (`universel`, no-fallback). Le brouillage, lui, a un repli, mais **pour une lettre seulement** — la ponctuation reste claire, étant le support qui fait qu'un panneau brouillé se lit comme une phrase.
 
 ## La taille des lettres
 
@@ -133,6 +137,8 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 **Le tour de l'IA s'affiche brouillé par défaut.** L'oreille est le canal principal, et un texte lisible préempterait l'écoute — c'est le flou déjà prévu (« les tours de l'IA sont floutables ») qui devient un brouillage.
 
 **Le brouillage est une police, pas un effet.** Chaque lettre a sa jumelle brouillée, au codet de la lettre **plus `0xE100`** : la table de l'app est une addition, et elle n'a jamais à décider ce qu'est une lettre — un caractère se brouille si son codet décalé existe dans la police.
+
+**Une lettre sans jumelle tombe sur une jumelle générique**, à `U+E100` — le décalage lui-même, qui est le brouillage d'aucun caractère. Elle ne sert jamais tant que la liste est à jour ; c'est le filet de la lettre qu'on ajoutera un jour en oubliant de la brouiller. La **ponctuation n'a pas de repli** et reste claire : c'est elle, avec les retours à la ligne, qui fait qu'un panneau brouillé se lit comme une phrase.
 
 **Le brouillage recouvre l'espace de chaque lettre de carrés de 2 pixels disposés au hasard** — l'épaisseur du trait, sur la même grille que tout le reste. Ce qui survit est le support : la hauteur et la largeur de la lettre — les ascendantes restent hautes, les descendantes basses —, la longueur des mots, la ponctuation et les retours à la ligne. Le panneau se lit comme du texte sans qu'aucune lettre ne se lise : on sent qu'il y avait une phrase, on ne déchiffre rien. Les lettres seules se couvrent, les espaces et la ponctuation ne bougent pas.
 
@@ -285,6 +291,8 @@ La seconde est la **ligne d'état du tour**, dans son propre cadre, **toujours p
 Il porte, **par aptitude, chaque feuille** : sa mesure brute, et sa lettre quand le mode utilise les notes — *2,3 demi-tons*, *47 sons sur 50*, *22 % plus lent*, *un mal formé*. La lettre de l'aptitude se pose sur sa ligne de titre, la note du passage au-dessus. Il défile, et son `OK` reste visible quel que soit le défilement.
 
 Pour les trois feuilles à colonne — la grammaire, la pertinence, le remplissage — ce qui s'affiche est le **compte par cran** et non le chiffre de la feuille, qui est une moyenne entre 0 et 1 ne disant rien à personne. C'est la même donnée lue autrement, pas une seconde source.
+
+**Il se dessine en barres horizontales, avec les blocs de jauge de la police.** Une colonne verticale n'est pas faisable : la jauge pave parce qu'elle occupe les onze colonnes, gouttière comprise, et il n'y a pas d'équivalent vertical — la boîte fait quatorze rangées et le pas de ligne quinze, donc une rangée vide sépare toujours deux cellules empilées et une colonne se casserait en tronçons. La part vide d'une barre est une **couleur** et non une forme : la jauge peinte dans l'encre atténuée, aucun creux à dessiner.
 
 **Aucune tendance dedans.** Une flèche *« +1 depuis le passage précédent »* comparerait deux lectures prises sous des règles qui n'ont aucune raison d'être les mêmes, et une note ne se lit jamais sans la combinaison qui l'a produite (`activity-model.md`). Il ne montre qu'une seule prise, la dernière du passage, comme le fil.
 
