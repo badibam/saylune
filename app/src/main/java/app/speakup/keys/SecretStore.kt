@@ -6,6 +6,7 @@ import android.security.keystore.KeyProperties
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import app.speakup.debug.Trace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.security.KeyStore
@@ -31,11 +32,26 @@ private val Context.secrets by preferencesDataStore("secrets")
  */
 class SecretStore(private val context: Context) {
 
-    /** Everything entered so far. Absent and blank are the same thing to a caller. */
+    /**
+     * Everything entered so far. Absent and blank are the same thing to a caller.
+     *
+     * Every entry is decrypted on every read, and a turn reads this seven times -- twice for
+     * recognition, twice for the language model, three times for the synthesis, each of the
+     * three links once for the switching class and once for the provider it resolves to. What
+     * that costs is traced rather than assumed: the gaps it sits in were measured at 262, 365
+     * and 726 ms on the turn of 2026-09-06 13:17, and nothing said how much of them was this.
+     */
     fun values(): Flow<Map<Secret, String>> = context.secrets.data.map { prefs ->
-        Secret.entries.mapNotNull { secret ->
+        val began = System.nanoTime()
+        val out = Secret.entries.mapNotNull { secret ->
             prefs[stringPreferencesKey(secret.id)]?.let { secret to decrypt(it) }
         }.toMap()
+        Trace.add(
+            "secrets: read",
+            "entries" to out.size.toString(),
+            "ms" to ((System.nanoTime() - began) / 1_000_000).toString(),
+        )
+        out
     }
 
     suspend fun write(secret: Secret, value: String) {
@@ -47,7 +63,7 @@ class SecretStore(private val context: Context) {
 
     private fun encrypt(plain: String): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, key())
+        cipher.init(Cipher.ENCRYPT_MODE, cipherKey)
         val body = cipher.doFinal(plain.toByteArray(Charsets.UTF_8))
         return Base64.encodeToString(cipher.iv + body, Base64.NO_WRAP)
     }
@@ -66,14 +82,27 @@ class SecretStore(private val context: Context) {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(
             Cipher.DECRYPT_MODE,
-            key(),
+            cipherKey,
             GCMParameterSpec(TAG_BITS, raw, 0, IV_BYTES),
         )
         return String(cipher.doFinal(raw, IV_BYTES, raw.size - IV_BYTES), Charsets.UTF_8)
     }
 
-    /** The Keystore key, made on first use. Not exportable, and not backed up with the app. */
-    private fun key(): javax.crypto.SecretKey {
+    /**
+     * The Keystore key, made on first use and **held for the life of the process**.
+     *
+     * It was fetched afresh for every entry of every read, and a fetch is a round trip to the
+     * Keystore -- hardware-backed on this phone. Around fourteen entries, seven reads a turn,
+     * so something near a hundred round trips before the learner hears anything. The key
+     * itself does not change while the app runs, so there was nothing to gain by asking again.
+     *
+     * Holding it does not hide a key that goes away underneath: a cipher built on it fails at
+     * `doFinal`, and [decrypt] already says that an entry that will not decrypt is a lost key
+     * and not an empty field.
+     */
+    private val cipherKey: javax.crypto.SecretKey by lazy { loadKey() }
+
+    private fun loadKey(): javax.crypto.SecretKey {
         val store = KeyStore.getInstance(PROVIDER).apply { load(null) }
         (store.getEntry(ALIAS, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, PROVIDER)
