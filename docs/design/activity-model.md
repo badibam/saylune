@@ -647,7 +647,7 @@ Faire découper toute la phrase par le juge est écarté : couper du correct n'e
 
 **Deux empans qui se recouvrent ne comptent pas deux fois** : un mot prend le pire cran qu'il porte, et il compte une fois. La précédence est `ne se dit pas`, puis `mal formé`, puis `ok`.
 
-**Son nom d'écran est `Grammar` / `Grammaire`, et `correctness` reste le nom du code** (tranché le 2026-09-06). Le terme du code est large et exact — il couvre la syntaxe et l'idiome — mais il se lit à l'écran comme le geste de corriger, ce qui est faux : *« en cause : la Correction »* se comprend *« on t'a corrigé »*. `Langue` a été écarté pour l'inverse : exact et fade, tout étant la langue dans une app de langue. Ce que `Grammar` coûte est borné — quand la faute est idiomatique plutôt que syntaxique, le nom trompe sur le *pourquoi*, et la marque, elle, dit toujours *quels mots*.
+**Son nom d'écran est `Grammar` / `Grammaire`, et `correction` reste le nom du code** (tranché le 2026-09-06 ; les dix autres noms d'écran sont sous « La grille des mesures »). Le terme du code est large et exact — il couvre la syntaxe et l'idiome — mais il se lit à l'écran comme le geste de corriger, ce qui est faux : *« en cause : la Correction »* se comprend *« on t'a corrigé »*. `Langue` a été écarté pour l'inverse : exact et fade, tout étant la langue dans une app de langue. Ce que `Grammar` coûte est borné — quand la faute est idiomatique plutôt que syntaxique, le nom trompe sur le *pourquoi*, et la marque, elle, dit toujours *quels mots*.
 
 **La correction pose une seule question — est-ce que c'est de l'anglais ? — et c'est un jugement absolu, donc elle ne prend aucune consigne.** Une consigne est toujours une exigence de situation ; elle appartient donc entièrement à la pertinence. *« Parle au passé »* ne fait pas de *I'll go there* une phrase mal formée, c'est de l'anglais irréprochable qui ne convient pas ici.
 
@@ -1035,6 +1035,34 @@ La dernière **ne survit qu'à une reconnaissance verbatim** : un moteur qui net
 **Ce qui se calcule sans donner de note** — le tour interrompu, le nombre de redites, de reformulations et d'écoutes. Les conditions les lisent (« Ce qui ne donne pas de note »).
 
 Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se lit qu'une fois**, par la continuité : en faire aussi une mesure de compréhension compterait deux fois le même silence, avec deux poids qui s'additionnent sans que personne l'ait voulu. Et **l'allongement de syllabe** — « I waaaant », une hésitation portée par la durée — n'a plus de feuille pour le lire depuis que le rythme est retiré ; il reste dehors.
+
+### Les noms d'écran
+
+**Onze feuilles, deux langues, douze colonnes** (arrêté le 2026-09-06). Ce qu'un écran affiche n'est pas la clé de la feuille mais un nom court, plafonné à ce que laisse la ligne d'un 720 (`pixel-ui.md`). Le critère est celui qui a donné `Grammar` : comment ça se lit à l'écran, jamais l'exactitude du terme.
+
+| feuille | EN | FR |
+|---|---|---|
+| `intelligibilite` | Clarity | Clarté |
+| `proximite` | Precision | Précision |
+| `melodie` | Melody | Mélodie |
+| `accent-lexical` | Stress | Accentuation |
+| `correction` | Grammar | Grammaire |
+| `pertinence` | Wording | Justesse |
+| `suivi` | Follow | Suivi |
+| `continuite` | Continuity | Continuité |
+| `plus-long-silence` | Longest gap | Silence max |
+| `debit` | Pace | Débit |
+| `remplissage-reprises` | Hesitations | Hésitations |
+
+Trois lignes ne sont pas des traductions, et c'est voulu.
+
+- **`Stress` / `Accentuation`**, pas `Accent` des deux côtés : en français, `Accent` nu se lit *accent régional*, le contre-sens même que `Grammar` évitait. `Accentuation` fait douze, pile au budget.
+- **`Wording` / `Justesse`.** `Relevance` serait la traduction littérale et il ment — il se lit *hors sujet*, quand la feuille marque aussi un mot plat parfaitement dans le sujet. `Justesse` est le cran `juste` lui-même et porte le registre et la nuance avec. Aucun mot anglais ne fait ce travail-là, donc chaque langue prend le sien, comme `Grammar` / `Grammaire` avant elle.
+- **`Continuity` / `Continuité`** garde un nom fade parce que `Flow` / `Fluidité` appartient à l'aptitude au-dessus : une feuille ne porte pas le nom de sa branche sur l'écran qui les empile.
+
+**Les noms mélangent la dimension et la faute, et c'est assumé.** `Clarity`, `Melody`, `Pace` nomment une dimension dont le chiffre dit le sens ; `Hesitations` et `Longest gap` nomment ce qui a raté, leur bonne valeur étant zéro. Tout convertir en dimensions échoue sur la fluidité, dont les quatre feuilles parlent du même tissu — silence, plus long silence, vitesse, hésitations — et où le vocabulaire manque pour les séparer sans nommer la faute. L'unité de l'écran de bilan se tient donc par la mise en page, pas par les mots.
+
+**Les noms d'aptitude restent à trouver**, l'écran de bilan groupant par aptitude. Trois branches n'ont qu'une feuille — correction, pertinence, compréhension —, donc leur paire ne doit pas se répéter à deux lignes d'écart.
 
 ## Ce qui est jugé, ce qui est calculé
 
