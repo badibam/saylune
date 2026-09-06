@@ -161,6 +161,25 @@ data class Utterance(
      * read back. An identity survives both.
      */
     val repeats: String? = null,
+    /**
+     * Which of the two repairs this is, or null when it opens its passage.
+     *
+     * [repeats] says **which** utterance is being attempted again and this says **how**, and
+     * the two are not one field: a rewording remakes the exchange where a repeat leaves it
+     * alone, so a reader that could not tell them apart would have to guess whether to call
+     * the model again.
+     */
+    val attempt: Attempt? = null,
+    /**
+     * For a turn of the AI, the learner's utterance it answers. Null on anything else.
+     *
+     * **A reply taken out of the thread is not deleted from the store** -- it is superseded,
+     * exactly as an attempt is, by pointing at the utterance it answered. A rewording makes a
+     * fresh call as though it were the first attempt, so the new reply answers the new attempt
+     * and the old one stops being the passage's last. Deleting it instead would lose what was
+     * actually said to the learner, which is a fact about the sitting.
+     */
+    val answers: String? = null,
     val id: String = UUID.randomUUID().toString(),
     /** When it was said. Its order in the run is the run's; this is the wall clock. */
     val at: Long = System.currentTimeMillis(),
@@ -258,16 +277,45 @@ data class ConversationState(
         spoken.model ?: spoken.repeats?.let { id -> utterances.firstOrNull { it.id == id }?.model }
     }
 
+    /** Every passage of this run, oldest first. Derived, and never stored. */
+    fun passages(): List<Passage> = Passage.of(utterances)
+
     /**
-     * The run as the language model should remember it.
+     * The run as the language model should remember it: **the last attempt of each passage,
+     * with the reply made to that one**.
      *
-     * Repeats are left out. Saying a sentence again never reaches the language model -- it is
-     * pipe B alone, on a text already settled -- so putting it in the history would tell the
-     * model a turn was taken that it never answered.
+     * It used to be *every utterance that repeats nothing*, which was right for exactly as long
+     * as an attempt carried the same text. A **rewording** carries different words, so keeping
+     * the opener would send the model a sentence the learner has since replaced, together with
+     * a reply that was made to something else.
+     *
+     * **The property is that the history never carries a reply and a sentence that do not
+     * answer each other.** So the reply is looked up by what it answers rather than by where it
+     * sits in the run: a superseded reply is still in the store, and it is only its pointing at
+     * an attempt that is no longer the last that keeps it out of here.
+     *
+     * What is left out is deliberate on both counts. **Repeats never reach the model** -- pipe
+     * B alone, on a text already settled -- and what the model sees of a passage is the last
+     * attempt, like the screen: the character has no business knowing the sentence was said
+     * three times, and hearing it stutter three times pushes it to remark on it. The price is
+     * owned: it will not pick up a fault that keeps coming back of its own accord, and a rule
+     * is what that takes.
      */
-    fun history(): List<Exchange> = utterances
-        .filter { it.repeats == null }
-        .map { Exchange(fromLearner = it.speaker.isLearner, text = it.text) }
+    fun history(): List<Exchange> = passages().flatMap { passage ->
+        val said = passage.last
+        // The last reply of the **passage**, and not the one answering the last attempt: a
+        // repeat is never answered at all -- it is pipe B alone, on a text already settled --
+        // so looking it up by the last attempt would lose the reply the moment the learner
+        // said the sentence again. A rewording, which does make a fresh call, is the case
+        // where the two coincide.
+        val answered = utterances.lastOrNull { reply ->
+            passage.attempts.any { reply.answers == it.id }
+        }
+        listOfNotNull(
+            Exchange(fromLearner = true, text = said.text),
+            answered?.let { Exchange(fromLearner = false, text = it.text) },
+        )
+    }
 }
 
 /**
@@ -466,6 +514,7 @@ class TurnPipeline(
                 speaker = Speaker.Ai,
                 activity = _state.value.activity.id,
                 text = reply.spoken,
+                answers = said.id,
             )
             _state.update {
                 it.copy(

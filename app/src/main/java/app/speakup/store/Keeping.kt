@@ -5,6 +5,7 @@ import app.speakup.activity.Outcome
 import app.speakup.activity.Prescriber
 import app.speakup.activity.Status
 import app.speakup.capture.Ending
+import app.speakup.conversation.Attempt
 import app.speakup.conversation.Speaker
 import app.speakup.conversation.Utterance
 import org.json.JSONObject
@@ -77,6 +78,8 @@ internal fun Utterance.row(rank: Int) = UtteranceRow(
     judged = judged?.let { JudgedMarks.write(it) },
     take = take,
     repeats = repeats,
+    attempt = attempt?.name,
+    answers = answers,
     engine = engine,
     at = at,
 )
@@ -105,6 +108,8 @@ internal fun UtteranceRow.utterance() = Utterance(
     judged = judged?.let { JudgedMarks.read(it) },
     take = take,
     repeats = repeats,
+    attempt = attempt?.let { Attempt.valueOf(it) },
+    answers = answers,
     id = id,
     at = at,
     engine = engine,

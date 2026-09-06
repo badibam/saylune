@@ -119,6 +119,10 @@ data class UtteranceRow(
     val take: String?,
     /** The identity of the utterance this says again. */
     val repeats: String?,
+    /** Which of the two repairs it is: a rewording, or the same words again. */
+    val attempt: String?,
+    /** For a turn of the AI, the learner's utterance it answers. */
+    val answers: String?,
     val engine: String?,
     val at: Long,
 )
@@ -161,7 +165,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 6)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 7)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -332,13 +336,36 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * What an attempt is, and what a reply answers.
+         *
+         * `repeats` said **which** utterance was being attempted again; it now says **how** as
+         * well, because a rewording remakes the exchange where a repeat leaves it alone. And a
+         * reply of the AI points at the learner's utterance it answered, which is what lets a
+         * reply be **superseded rather than deleted** when a rewording makes a fresh one.
+         *
+         * **The rows already there get neither, and that is true of them.** Every attempt
+         * stored so far was a repeat -- rewording did not exist -- but writing that in would be
+         * stamping a distinction on turns taken before there was one, and nothing downstream
+         * could tell it from a distinction somebody made. The same for the replies: which
+         * utterance each answered is recoverable from the order and is not the same thing as
+         * having been recorded, and the one reader is a history that only ever looks at the
+         * passage still open.
+         */
+        private val ATTEMPT_AND_ANSWER = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `utterances` ADD COLUMN `attempt` TEXT")
+                db.execSQL("ALTER TABLE `utterances` ADD COLUMN `answers` TEXT")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
-                    SPEAKER_IDENTITY)
+                    SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER)
                 .build().also { instance = it }
         }
     }

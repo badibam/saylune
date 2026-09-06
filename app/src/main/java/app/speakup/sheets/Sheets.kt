@@ -394,6 +394,16 @@ object Sheets {
     /** Every sheet, scored and unscored, in the order they are declared. */
     val all: List<Sheet> = byPath.values.filterIsInstance<Sheet>()
 
+    /**
+     * Where [sheet] sits in the **tree**, or null when it is one of the unscored.
+     *
+     * The unscored ones sit outside the tree because the tree is what carries weights and they
+     * carry none, so they have a bare name and not a path -- and telling the two apart by
+     * looking for a slash would be reading a shape rather than asking.
+     */
+    fun scoredPathOf(sheet: Sheet): String? =
+        pathOf(sheet).takeIf { sheet !in unscored }
+
     /** Where [node] sits, as the path a condition names. */
     fun pathOf(node: Node): String =
         byPath.entries.first { it.value === node }.key
