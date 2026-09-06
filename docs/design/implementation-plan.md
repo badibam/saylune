@@ -51,16 +51,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ## Les étapes
 
-### 14. Les définitions livrées, et la conversation libre écrite comme définition
-
-**Ce que ça fait.** Une définition est de la **donnée dans un fichier livré avec l'app**, autoportant, lu directement — jamais importé en base, qui serait la copie d'une source déjà sur le disque. Son identité, sa version héritée de la release, son contenu, ses consignes, ses positions de départ, son arbre des poids, ses règles, ses questions. Plus les deux champs d'affichage que la session d'UI a déclarés : le **titre court**, plafonné à dix caractères, que porte la ligne d'état ; et un **nom court par personnage**, que porte la ligne qui nomme le tour. Un fichier porte ses traductions en table langue vers texte, ce qui est l'écart délibéré déclaré au manifeste contre la norme d'i18n de la facette `android`. Le lecteur, et le validateur en stub au chargement. Puis **la conversation libre écrite comme une définition livrée**, qui est le test du format et retire le « par défaut » qu'il aurait fallu câbler ailleurs.
-
-**Pourquoi ici.** Parce que tout ce qu'une définition déclare existe maintenant : les leviers, l'arbre, les règles, les consignes.
-
-**Ce qui se prouve.** Qu'une définition qui change ne réécrit jamais le passé, les positions étant copiées sur la ligne. Que le lecteur unifie une source unique aujourd'hui et deux demain sans copie.
-
-**Avec l'humain.** Le **format du fichier** — c'est son ergonomie d'auteur, il écrira dedans. L'**arbre des poids de la conversation libre**, et ses consignes de départ s'il y en a.
-
 ### 15. La charpente, les cadres, les descendantes
 
 **Ce que ça fait.** Deux objets distincts remplacent la rangée de boutons de `MainActivity.Root` : une **ligne d'état** en haut, une **barre d'actions** en bas, deux lignes de grille en permanence, les actions là où est le pouce, et un endroit pour ce que `reference.md` exige partout — qu'une chose indisponible porte sa raison. Le narrateur d'état existe déjà : c'est le `Text` de `ui/ConversationScreen.kt` qui dit *hearing*, *thinking*, *speaking*. Il monte dans la seconde ligne du haut, dans son cadre, toujours pleine, et il gagne les raisons. La pile de navigation qui descend, les quatre écrans actuels étant un interrupteur à quatre positions. Les cadres, écrits en caractères : la police porte déjà ses seize pièces à partir de U+E000, en deux tons par superposition de deux couches de texte, à poser sur un pas de rangée de 11.
