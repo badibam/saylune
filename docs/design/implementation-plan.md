@@ -83,13 +83,9 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ### 6. La police, ses accents, l'échelle entière
 
-**Ce que ça fait.** Mono10 embarquée dans `res/font/`, modifiée et renommée, sa licence OFL vérifiée à l'ajout comme tout média. Les **accents dessinés dans la même passe**, une trentaine, minuscules et capitales — une capitale accentuée se dessinant un pixel plus courte, la hauteur de capitale égalant l'ascendante. L'échelle par facteur entier calculée depuis la densité.
+**Ce que ça fait.** Poser les deux TTF de `../../font/` dans `res/font/` et calculer l'échelle par facteur entier depuis la densité. **Les glyphes sont dessinés** — accents, descendantes, cadres, meubles, lettres brouillées, 275 par graisse — et la boîte est passée de 11 × 11 à 11 × 15, ce que `pixel-ui.md` décrit. Il reste donc à déclarer au thème les **deux pas verticaux**, 15 pour une ligne de texte et 11 pour une rangée de cadre, jamais le défaut de la police qui vaut 14.
 
-**Pourquoi les accents ici et pas à leur rang.** `pixel-ui.md` range les glyphes ajoutés en cinquième position de son ordre de travail, après la police en deuxième. Entre les deux, l'interface française perd ses accents, ce que le doc ne voit pas et que le zéro texte en dur rend visible immédiatement. Un repli sur une autre police serait un défaut silencieux que `universel` interdit. Les cadres et les descendantes, eux, restent à leur rang : ils ne cassent rien en attendant.
-
-**Avec l'humain.** La liste exacte des glyphes accentués, et leur dessin.
-
-**Ce que ça laisse dû.** Les cadres de la zone à usage privé et les descendantes, à l'étape 15.
+**Pourquoi les accents ici et pas à leur rang.** `pixel-ui.md` rangeait les glyphes ajoutés en cinquième position de son ordre de travail, après la police en deuxième. Entre les deux, l'interface française perdait ses accents, ce que le zéro texte en dur rend visible immédiatement. Le point est réglé : tout a été dessiné d'un coup, en session, et il n'y a plus d'intervalle.
 
 ### 7. Les deux palettes et la rechange daltonisme
 
@@ -165,11 +161,11 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ### 15. La charpente, les cadres, les descendantes
 
-**Ce que ça fait.** Deux objets distincts remplacent la rangée de boutons de `MainActivity.Root` : une **ligne d'état** en haut, une **barre d'actions** en bas, deux lignes de grille en permanence, les actions là où est le pouce, et un endroit pour ce que `reference.md` exige partout — qu'une chose indisponible porte sa raison. La pile de navigation qui descend, les quatre écrans actuels étant un interrupteur à quatre positions. Les cadres dessinés dans la police, à partir de U+E000 et jamais sur les codets Unicode de dessin de cadre, en deux tons par superposition de deux couches de texte. Les descendantes, la descente valant 1 pixel et le `g` se lisant `s`.
+**Ce que ça fait.** Deux objets distincts remplacent la rangée de boutons de `MainActivity.Root` : une **ligne d'état** en haut, une **barre d'actions** en bas, deux lignes de grille en permanence, les actions là où est le pouce, et un endroit pour ce que `reference.md` exige partout — qu'une chose indisponible porte sa raison. La pile de navigation qui descend, les quatre écrans actuels étant un interrupteur à quatre positions. Les cadres, écrits en caractères : la police porte déjà ses seize pièces à partir de U+E000, en deux tons par superposition de deux couches de texte, à poser sur un pas de rangée de 11.
 
 **Ce qui se prouve.** La règle du cadre, vérifiée en écrivant un écran : si une chose est encadrée, on doit pouvoir dire ce qu'on fait avec ; sinon c'est un aplat. Jamais l'écran entier, jamais le fil ni le tour marqué.
 
-**Avec l'humain.** Ce que la ligne d'état porte et ce que la barre d'actions porte. Le dessin des cadres et des descendantes.
+**Avec l'humain.** Ce que la ligne d'état porte et ce que la barre d'actions porte.
 
 ### 16. Le tour marqué redessiné
 

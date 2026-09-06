@@ -1,6 +1,6 @@
 # L'interface — pixel doux
 
-Ce que l'app doit avoir l'air d'être, et ce que ça décide dans le code. Rien d'écrit encore : l'esthétique ne prend aucun soin tant que la boucle de conversation n'est pas finie (`../../TODO.md`, chantier 0), et ce doc existe pour que le jour où elle en prend, les décisions qui coûtent cher rétroactivement soient déjà prises.
+Ce que l'app doit avoir l'air d'être, et ce que ça décide dans le code. Une seule pièce est écrite, la police et ses glyphes (`../../font/`) ; tout le reste attend que la boucle de conversation soit finie (`../../TODO.md`, chantier 0), et ce doc existe pour que le jour où l'esthétique prend soin, les décisions qui coûtent cher rétroactivement soient déjà prises.
 
 Les valeurs chiffrées qui suivent ont été réglées à l'œil sur un banc d'essai qui dessine un écran complet à la résolution réelle d'un téléphone, police embarquée et palette réglable : **https://claude.ai/code/artifact/52cd81d9-d11e-4ad0-b571-2ea2a4984471**. Il reste l'instrument pour tout ce qui se juge en regardant plutôt qu'en raisonnant.
 
@@ -20,21 +20,27 @@ Le pixel doit être **doux, et cette douceur est peinte, jamais filtrée** : tra
 
 ## La police
 
-**Mono10**, en licence SIL OFL 1.1 **sans nom réservé déclaré**, **embarquée dans `res/font/`**. Jamais par le fournisseur Google Fonts téléchargeable, adossé aux services Google Play, donc une dépendance propriétaire que la facette `fdroid` interdit.
+**Mono10**, en licence SIL OFL 1.1 **sans nom réservé déclaré**, modifiée, renommée **Speakup Tile** et **embarquée dans `res/font/`**. Jamais par le fournisseur Google Fonts téléchargeable, adossé aux services Google Play, donc une dépendance propriétaire que la facette `fdroid` interdit.
 
-Mesuré sur le fichier : cadratin de 1024 unités, une unité de dessin valant 64 unités. **La cellule fait 11 × 11 pixels** — un glyphe de 10 × 10 plus un pixel d'avance. Hauteur de capitale 10, hauteur d'x 8, descente 1. La graisse *Regular* a un trait de **2 pixels**, la *Thin* de 1.
+Elle est **écrite et non plus empruntée** : sa source de vérité est un jeu de cartes de pixels en texte, dans `../../font/`, que `build.py` compile en TTF ; le TTF se commite à côté, aucun outil n'étant appelé au build. `font/README.md` dit la boîte, les scripts et la carte de la zone privée.
+
+Cadratin de 1024 unités, une unité de dessin valant 64 unités, avance de 11 pixels. **La boîte fait 11 × 15 pixels** : les capitales tiennent les rangées 0 à 9, les accents les rangées 10 et 11, les descendantes les rangées −1 et −2, et une rangée sépare deux lignes. Hauteur de capitale 10, hauteur d'x 8. La colonne 10 est l'interlettre et reste vide, sauf pour les pièces de cadre, qu'une fente d'un pixel trahirait. La graisse *Regular* a un trait de **2 pixels**, la *Thin* de 1.
+
+**La boîte de Mono10 faisait 11 × 11 et ne pouvait pas porter le français.** Elle a grandi vers le haut et vers le bas seulement, donc aucun glyphe d'origine n'a bougé et l'avance n'a pas changé — le nombre de colonnes, la tuile de cadre et l'ancrage horizontal du marquage sont intacts. Ce que ça coûte est le pas de ligne, 15 au lieu de 11.
 
 **Carrée et charnue, c'est-à-dire une police de tuiles et non de terminal.** Les deux familles sont à largeur fixe et se confondent facilement : une police de terminal est haute, étroite et à trait fin, parce qu'elle sert à empiler du code ; une police de tuiles est carrée et épaisse, parce qu'elle sert à parler dans une boîte de dialogue. Le marquage a besoin de la seconde — la teinte n'a de la matière à occuper que si le glyphe est dense.
 
 **Les deux graisses sont offertes en préférence utilisateur.** Vérifié au banc : la rampe reste lisible en *Thin*.
 
-### Ce qu'il faut lui ajouter
+### Ce qu'on lui a ajouté
 
-La police est modifiée et **renommée**. Trois chantiers, dont la liste exacte de glyphes reste à préciser :
+165 glyphes par-dessus les 110 de Mono10, dont 5 redessinés.
 
-- **Les accents.** Mono10 contient 110 caractères et aucun accent. Le français en demande une trentaine, minuscules et capitales. Les minuscules tiennent — il reste 2 pixels au-dessus de la hauteur d'x. Les capitales non : la hauteur de capitale égale l'ascendante, donc une capitale accentuée se dessine un pixel plus courte.
-- **Les cadres.** Voir plus bas ; ils vivent dans la zone à usage privé, à partir de U+E000, jamais sur les codets Unicode de dessin de cadre, pour que rien ne casse si la police de base change.
-- **Les descendantes.** La descente vaut 1 pixel, donc `g j p q y` sont tassés dans la hauteur d'x et le `g` se lit `s`. Dans une app où l'apprenant relit ses propres mots pour y voir ses fautes, une lettre ambiguë est un défaut à réparer.
+- **Les accents**, 36, plus `« » … ×`. Quatre marques dessinées une fois par graisse et posées sur les lettres de base : rangées 9 et 8 d'une minuscule, 11 et 10 d'une capitale. **Une capitale accentuée garde donc sa pleine hauteur** — le doc annonçait un raccourcissement d'un pixel, la boîte haute le rend inutile. La cédille tient dans les rangées qu'ont ouvertes les descendantes, donc le `ç` garde un `c` entier.
+- **Les descendantes.** `g j p q y` étaient tassés dans la hauteur d'x et le `g` s'y lisait `9`. Aucun redessin à l'intérieur de la hauteur d'x ne le répare : à trait de 2 pixels, un bol fermé prend quatre rangées et la queue les quatre qui restent, et un bol au-dessus d'une queue *est* la silhouette d'un `9`. Ils descendent donc de deux rangées, bol de six rangées et crochet plat, trait plein partout.
+- **Les cadres**, 16 pièces dans la zone à usage privé à partir de U+E000, jamais sur les codets Unicode de dessin de cadre, pour que rien ne casse si la police de base change.
+- **Les meubles**, 13 : le triangle de l'écoute, le disque d'enregistrement, quatre blocs de jauge pour les deux décomptes, quatre flèches, une coche, une croix, un cœur pour les vies.
+- **Les lettres brouillées**, 98 — voir « Le texte de l'IA ».
 
 ## La taille des lettres
 
@@ -55,6 +61,8 @@ Ce que l'ancrage entier demande n'est d'ailleurs pas le monospace mais la **poli
 **En vertical, rien n'est ancré.** La hauteur à laquelle une ligne de texte se pose dans sa boîte est libre, du moment qu'elle est un nombre entier de pixels de dessin. C'est ce qui permet de donner de l'air au marquage sans rien casser.
 
 Les cadres, les panneaux et les marges se calent sur la cellule dans les deux directions — c'est ce qui les fait composer entre eux.
+
+**Deux pas verticaux, déclarés par le thème et jamais mélangés dans une même chaîne** : une ligne de texte se pose à **15**, une rangée de cadre à **11**, qui est la tuile carrée. Le pas de texte ne se laisse jamais au défaut de la police, qui vaut 14 et collerait une descendante à l'accent de la ligne suivante.
 
 ## La palette
 
@@ -110,9 +118,9 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 
 ## Les cadres de mise en page
 
-**Dessinés par nous, dans la police.** Un cadre dans une grille de caractères *est* du texte : on pose un coin, des bords, un autre coin, et il s'aligne tout seul pour le prix d'une chaîne. Unicode ne porte des coins arrondis qu'en trait fin, ce qui interdit d'y trouver un cadre à la fois arrondi et charnu ; on les dessine donc, et **la cellule de 11 pixels est exactement l'épaisseur d'une bordure de menu de console** — une tuile.
+**Dessinés par nous, dans la police.** Un cadre dans une grille de caractères *est* du texte : on pose un coin, des bords, un autre coin, et il s'aligne tout seul pour le prix d'une chaîne. Unicode ne porte des coins arrondis qu'en trait fin, ce qui interdit d'y trouver un cadre à la fois arrondi et charnu ; on les dessine donc, et **la tuile de 11 pixels porte une bordure de 4 pixels d'épaisseur, à coins de rayon 4** — les valeurs du banc, reprises telles quelles.
 
-**Deux tons, par superposition de deux couches de texte** exactement calées, dans deux teintes de décor. C'est ce qui donne le relief doux d'une bordure de console plutôt qu'un bandeau plat. Les deux jeux se dessinent **d'un seul travail** : le second est le complément du premier dans une silhouette qu'on trace de toute façon, alors que rajouter un ton après coup obligerait à redécouper chaque glyphe.
+**Deux tons, par superposition de deux couches de texte** exactement calées, dans deux teintes de décor — les deux pixels extérieurs de la bordure dans le ton clair, les deux intérieurs dans le sombre. C'est ce qui donne le relief doux d'une bordure de console plutôt qu'un bandeau plat. Les deux jeux se dessinent **d'un seul travail** : le second est le complément du premier dans une silhouette qu'on trace de toute façon, alors que rajouter un ton après coup obligerait à redécouper chaque glyphe.
 
 **Un cadre dit « objet ».** Un menu, une boîte de dialogue, une carte d'activité, l'élément sélectionné. Jamais l'écran entier — deux colonnes de chaque côté sur les 32 disponibles, payées le plus cher sur le plus petit écran — et jamais le fil de conversation ni le tour marqué, qui ont besoin de toute la largeur. La règle se vérifie en écrivant un écran : si une chose est encadrée, on doit pouvoir dire ce qu'on fait avec ; sinon c'est un aplat.
 
@@ -122,9 +130,11 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 
 **Le tour de l'IA s'affiche brouillé par défaut.** L'oreille est le canal principal, et un texte lisible préempterait l'écoute — c'est le flou déjà prévu (« les tours de l'IA sont floutables ») qui devient un brouillage.
 
+**Le brouillage est une police, pas un effet.** Chaque lettre a sa jumelle brouillée, au codet de la lettre **plus `0xE100`** : la table de l'app est une addition, et elle n'a jamais à décider ce qu'est une lettre — un caractère se brouille si son codet décalé existe dans la police.
+
 **Le brouillage recouvre l'espace de chaque lettre de carrés de 2 pixels disposés au hasard** — l'épaisseur du trait, sur la même grille que tout le reste. Ce qui survit est le support : la hauteur et la largeur de la lettre — les ascendantes restent hautes, les descendantes basses —, la longueur des mots, la ponctuation et les retours à la ligne. Le panneau se lit comme du texte sans qu'aucune lettre ne se lise : on sent qu'il y avait une phrase, on ne déchiffre rien. Les lettres seules se couvrent, les espaces et la ponctuation ne bougent pas.
 
-**Le brouillage est fixe** — la même lettre se couvre toujours pareil, donc le même texte se brouille pareil partout et tout le temps, comme une marque.
+**Le brouillage est fixe** — la même lettre se couvre toujours pareil, donc le même texte se brouille pareil partout et tout le temps, comme une marque. Le tirage vient d'une graine qui est la lettre elle-même, et les carrés font 2 pixels **dans les deux graisses** : couvrir la *Thin* de pixels isolés a été essayé et rend un grésillement au lieu d'une phrase, la *Thin* recevant simplement moins de carrés puisqu'elle a moins d'encre.
 
 **Ce n'est pas une préférence, c'est une position du levier `tour-ia.affichage`** (`activity-model.md`), dont c'est le défaut. Elle tombe entre le texte net et *seulement qui parle*, le support laissé étant une aide de moins que le texte et une de plus que rien. En conversation libre l'apprenant la déplace lui-même et elle reste où il l'a laissée ; une activité qui veut imposer le net, ou n'en rien montrer, la pose comme n'importe quel autre levier. Une préférence vaudrait partout et aucun défi ne pourrait la reprendre.
 
@@ -164,7 +174,7 @@ C'est l'écran le plus dense de l'app, et le seul dont chaque pixel porte une me
 
 **Les marques vivent dans l'interligne, pas dans la cellule.** Onze pixels ne tiennent pas à la fois les lettres, leur enceinte, le filet et la vaguelette. Les lettres gardent leur cellule ; tout le reste s'étale dans la place ajoutée en dessous.
 
-Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 pixel** avant les marques, **un interligne** d'une ligne de grille, et le texte posé à **8 pixels** dans sa ligne. Le partage n'est pas symétrique : au-dessus des lettres il n'y a que le bord de l'enceinte, en dessous il y a l'enceinte, le filet et la vaguelette.
+Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 pixel** avant les marques, **un interligne** d'une ligne de grille, et le texte posé à **8 pixels** dans sa ligne. Ces cinq pixels se comptent désormais **sous les descendantes** et non sous la ligne de base : la pile entière descend de deux, et les accents demandent deux pixels de plus au-dessus, avant le bord haut de l'enceinte. La ligne grandit donc de 4 pixels et rien ne se serre. Le partage n'est pas symétrique : au-dessus des lettres il n'y a que le bord de l'enceinte, en dessous il y a l'enceinte, le filet et la vaguelette.
 
 **Les lettres se peignent par-dessus les crochets.** Ordre complet : la mélodie, la pertinence, les lettres — fragments écartés et colonne de points compris, qui vivent dans les cellules —, la vaguelette, le filet.
 
@@ -230,7 +240,6 @@ Pour que ces questions ne se reposent pas.
 
 ## Ce qui reste ouvert
 
-- **La liste exacte des glyphes à dessiner** — accents, cadres, descendantes.
 - **La séparation des quatre crans en registre clair.** La gamme des couleurs disponibles n'est pas la même en sombre qu'en clair : c'est une mesure à refaire, pas un réglage à recopier.
 - **Le débordement d'un interligne sur l'autre.** À interligne 1, la vaguelette d'une ligne descend deux pixels plus bas que le sommet de la ligne suivante. Se règle en ajustant l'air, à faire.
 - **Les sons.** Rien n'est décidé. Le canal principal de l'app *est* l'audio — la voix du modèle, et le micro ouvert pendant la réponse — donc une ambiance continue entre en concurrence avec ce qu'on écoute et se fait capter par le micro. Un babil de texte est exclu d'avance, le tour de l'IA étant réellement parlé.
@@ -244,8 +253,8 @@ Pour que ces questions ne se reposent pas.
 ## L'ordre de travail
 
 1. Le thème, avec la grille et les rythmes du marquage dedans.
-2. La police embarquée, et l'échelle entière calculée depuis la densité.
+2. La police embarquée, et l'échelle entière calculée depuis la densité. **Les glyphes sont faits** (`../../font/`) : il reste à poser les deux TTF dans `res/font/` et à déclarer les deux pas verticaux, 15 pour une ligne de texte et 11 pour une rangée de cadre.
 3. La palette des deux registres, en remplaçant la rampe continue de `ui/MarkingColors.kt` — et, dans la même passe, la palette de rechange du daltonisme, qui coûte une heure ici et tout le doc plus tard.
 4. Le tour marqué : la bande de mélodie et son recouvrement, puis les marques et leur air.
-5. Les glyphes ajoutés à la police, et les cadres et listes en caractères.
+5. Les cadres et les listes écrits en caractères, avec les pièces que la police porte déjà.
 6. Les transitions en coupure plutôt qu'en fondu.

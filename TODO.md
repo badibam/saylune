@@ -559,7 +559,9 @@ Le montage est tranché (cf. `docs/reference.md`) ; reste à choisir qui tient c
 
 ## Chantier 4 — l'habillage
 
-Conçu, rien d'écrit : `docs/design/pixel-ui.md` porte le registre, la police, les deux palettes, les cadres et le dessin complet du tour marqué, avec son ordre de travail et ce qui y reste ouvert. À prendre après le chantier 0, l'esthétique ne prenant aucun soin tant que la boucle de conversation n'est pas finie.
+Conçu, et une pièce écrite : `docs/design/pixel-ui.md` porte le registre, la police, les deux palettes, les cadres et le dessin complet du tour marqué, avec son ordre de travail et ce qui y reste ouvert. À prendre après le chantier 0, l'esthétique ne prenant aucun soin tant que la boucle de conversation n'est pas finie.
+
+**La police est faite** (`font/`, `font/README.md`) : 275 glyphes par graisse, accents, descendantes, cadres, meubles et lettres brouillées, TTF compilés dans `font/ttf/`. Ce qui reste de l'étape 6 du plan est de les poser dans `res/font/` et de déclarer au thème les deux pas verticaux, 15 pour une ligne de texte et 11 pour une rangée de cadre.
 
 ## Reste
 
