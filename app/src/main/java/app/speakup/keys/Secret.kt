@@ -26,16 +26,28 @@ enum class Secret(
     @StringRes val label: Int,
     /** False for what is configuration rather than a credential, and safe to read back. */
     val masked: Boolean = true,
+    /**
+     * True for an override that has a default behind it, so leaving it blank is the ordinary
+     * case and never an omission.
+     *
+     * It lives on the entry rather than in a set beside whoever reads it, because a set is a
+     * second place to remember: a provider added with an endpoint and left out of that set is
+     * a provider that never becomes offerable, and nothing says why.
+     */
+    val overridable: Boolean = false,
 ) {
     ReplicateApiKey("replicate.api.key", R.string.secret_replicate_key),
-    ReplicateEndpoint("replicate.endpoint", R.string.secret_replicate_endpoint, masked = false),
+    ReplicateEndpoint("replicate.endpoint", R.string.secret_replicate_endpoint,
+                      masked = false, overridable = true),
     AzureSpeechKey("azure.speech.key", R.string.secret_azure_key),
     AzureSpeechRegion("azure.speech.region", R.string.secret_azure_region, masked = false),
     ElevenLabsApiKey("elevenlabs.api.key", R.string.secret_elevenlabs_key),
     DeepseekApiKey("deepseek.api.key", R.string.secret_deepseek_key),
-    DeepseekEndpoint("deepseek.endpoint", R.string.secret_deepseek_endpoint, masked = false),
+    DeepseekEndpoint("deepseek.endpoint", R.string.secret_deepseek_endpoint,
+                     masked = false, overridable = true),
     OpenaiApiKey("openai.api.key", R.string.secret_openai_key),
-    OpenaiEndpoint("openai.endpoint", R.string.secret_openai_endpoint, masked = false),
+    OpenaiEndpoint("openai.endpoint", R.string.secret_openai_endpoint,
+                   masked = false, overridable = true),
 
     /**
      * Which provider does each task, and with what.

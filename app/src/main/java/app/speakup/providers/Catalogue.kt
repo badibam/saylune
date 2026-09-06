@@ -173,11 +173,11 @@ enum class Provider(
     /**
      * Whether the user has filled in what this provider needs.
      *
-     * An endpoint does not count: it is an override with a default behind it, so leaving it
-     * empty is the ordinary case and not an omission.
+     * An overridable entry does not count: it is a host with a default behind it, so leaving
+     * it empty is the ordinary case and not an omission.
      */
     fun ready(values: Map<Secret, String>): Boolean =
-        needs.filterNot { it in ENDPOINTS }.all { !values[it].isNullOrBlank() }
+        needs.filterNot { it.overridable }.all { !values[it].isNullOrBlank() }
 
     /**
      * The voices this provider offers for [model], asked of the provider itself.
@@ -264,10 +264,6 @@ enum class Provider(
         }.sortedBy { it.label }
     }
 
-    private companion object {
-        /** Overrides with a default behind them, so blank is the ordinary case. */
-        val ENDPOINTS = setOf(Secret.ReplicateEndpoint, Secret.DeepseekEndpoint)
-    }
 }
 
 /**
