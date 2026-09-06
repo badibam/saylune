@@ -1,5 +1,9 @@
 package app.speakup.marking
 
+import app.speakup.judged.Judgement
+import app.speakup.judged.Marked
+import app.speakup.judged.Span
+
 /**
  * Two turns of the same sentence, standing in for the engine until it is wired up: one
  * carrying faults at all three scales at once, one clean. The prototype exists to judge the
@@ -83,4 +87,37 @@ val CLEAN_TURN = TurnMarking(
     words = emptyList(),
     added = emptyList(),
     gutters = emptyList(),
+)
+
+/**
+ * What the language model would have marked on the crowded turn.
+ *
+ * The prototype is where the marking is looked at before a real judged turn exists, so the
+ * fixture has to carry one of each: a group **malformed** and one that **does not exist**, the
+ * three relevance notches that draw an enclosure -- `apt` included, the only good end the
+ * project has -- and a word set aside from the sentence, which is drawn dimmed between real
+ * brackets rather than painted.
+ *
+ * The bounds are the same word bounds every other mark of the fixture uses: everything here
+ * indexes the one string that was said.
+ */
+val MULTI_FAULT_JUDGED = Judgement(
+    intended = SENTENCE,
+    spans = listOf(
+        Span(11, 22, correctness = "malformed", relevance = "flat"),
+        Span(25, 30, correctness = "ok", relevance = "apt"),
+        Span(38, 49, correctness = "not-said", relevance = "off-target"),
+    ),
+    stumbling = listOf(Marked(8, 10, "abandoned")),
+    following = "on-point",
+    difficulty = "moyenne",
+)
+
+/** Nothing marked, which is what a clean turn comes back as. */
+val CLEAN_JUDGED = Judgement(
+    intended = SENTENCE,
+    spans = emptyList(),
+    stumbling = emptyList(),
+    following = "precise",
+    difficulty = "moyenne",
 )

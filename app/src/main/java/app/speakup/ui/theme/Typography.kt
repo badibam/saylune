@@ -60,6 +60,12 @@ class Typography(private val grid: Grid, private val density: Density) {
 
         /** A frame row: the square tile, which is what makes frames and panels compose. */
         const val FRAME_STEP = Grid.CELL
+
+        /** The ink box, rows 11 down to -2. Everything laid under a line is measured off it. */
+        const val BOX = 14
+
+        /** From the box's top to the baseline: the accents and the capitals, twelve rows. */
+        const val ASCENT = 12
     }
 }
 

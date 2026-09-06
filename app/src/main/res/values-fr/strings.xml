@@ -223,4 +223,5 @@
     <!-- La barre d'actions : pourquoi une entrée est éteinte. -->
     <string name="action_marks_menu_unwritten">Quelles marques s\'affichent se règle avec le tour redessiné.</string>
     <string name="action_levers_unwritten">Aucun écran ne pose de levier, ni avant la séance ni pendant.</string>
+    <string name="unreadable_turn_file">%1$s est là et ne se lit pas : %2$s</string>
 </resources>

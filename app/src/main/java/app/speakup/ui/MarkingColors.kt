@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import app.speakup.ui.theme.Palette
+import app.speakup.ui.theme.Rhythm
 import app.speakup.ui.theme.Speakup
 
 /**
@@ -38,6 +39,16 @@ data class MarkingColors(
     val stressStray: Color,
     /** Where it belonged. Never shown on a correct turn, so it marks a destination, not a pass. */
     val stressTarget: Color,
+    /**
+     * The good end, which lives on the relevance enclosure and nowhere else on a turn: the
+     * `apt` notch is the only measure of the project that has a good side.
+     */
+    val apt: Color,
+    /** What is set aside from the sentence, drawn between real brackets. */
+    val dim: Color,
+    /** The two contours' softened edges, opaque and mixed toward the ground. */
+    val modelHalo: Color,
+    val learnerHalo: Color,
     /** The ground the halo is punched out of; must match what is actually behind the text. */
     val surface: Color,
 )
@@ -55,6 +66,10 @@ fun marksOf(palette: Palette): MarkingColors = MarkingColors(
     added = palette.ramp.last().srgb,
     stressStray = palette.ramp.last().srgb,
     stressTarget = palette.accent.srgb,
+    apt = palette.green.srgb,
+    dim = palette.dim.srgb,
+    modelHalo = palette.halo(palette.melodyModel, Rhythm().haloStrength).srgb,
+    learnerHalo = palette.halo(palette.melodyLearner, Rhythm().haloStrength).srgb,
     surface = palette.ground.srgb,
 )
 

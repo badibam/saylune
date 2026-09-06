@@ -240,4 +240,5 @@
     <!-- The action bar: why an entry is off. -->
     <string name="action_marks_menu_unwritten">Which marks show is settled with the redrawn turn.</string>
     <string name="action_levers_unwritten">No screen sets a lever yet, before a sitting or during one.</string>
+    <string name="unreadable_turn_file">%1$s is there and cannot be read: %2$s</string>
 </resources>

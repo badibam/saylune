@@ -223,6 +223,7 @@ fun ConversationScreen(
             val readings = turn.readings(spoken.id)
             Said(
                 spoken = spoken,
+                speaker = shortName(turn, spoken.speaker),
                 readings = readings,
                 open = spoken.id == open?.opener?.id && retakes,
                 busy = turn.phase != Phase.Idle,
@@ -576,6 +577,8 @@ private fun Redo(
 @Composable
 private fun Said(
     spoken: Utterance,
+    /** The short name of whoever said it, which the line that names the turn carries. */
+    speaker: String,
     /** Every reading of this turn, oldest first. Each one is addressed by its own identity. */
     readings: List<Utterance>,
     /** Whether this is the passage still open, the only one that can be said again. */
@@ -595,20 +598,21 @@ private fun Said(
     onOpenRepeat: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            stringResource(
-                if (spoken.speaker.isLearner) R.string.speaker_learner
-                else R.string.speaker_ai
-            ),
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
         // The last, and only the last: saying it again is done to improve on the one before,
-        // so the newest is what the learner knows how to say now. The earlier takes stay in
-        // the base for the measures and for a bench, and no screen shows them.
+        // so the newest is what the learner knows how to say now.
+        val shown = readings.lastOrNull()
+        TurnLabel(
+            name = speaker,
+            following = shown?.judged?.following,
+            // Not measured: what the pace reads is a sheet's figure, and no sheet's figure is
+            // kept on an utterance. The empty slot is the right shape for that
+            // (`../../../../../../TODO.md`).
+            pace = null,
+        )
+        // The earlier takes stay in the base for the measures and for a bench, and no screen
+        // shows them.
         val scope = rememberCoroutineScope()
-        val reading = readings.lastOrNull()
+        val reading = shown
         val where = reading?.id
         val marking = reading?.marking
         val sounds = reading?.sounds
@@ -616,6 +620,7 @@ private fun Said(
         if (marking != null) {
             MarkedTurn(
                 marking,
+                reading.judged,
                 modifier = Modifier.fillMaxWidth(),
                 // A tap anywhere in a word plays that word, on whichever side the selector
                 // points at. Its bounds are read off the sounds it covers rather than
@@ -743,3 +748,19 @@ private fun busyOf(phase: Phase): Boolean = phase != Phase.Idle
  */
 private fun seconds(positions: Positions, key: String, fallback: Int): Int =
     (positions.of(key) as? Count)?.n?.times(1000) ?: fallback
+
+
+/**
+ * The short name of [who], as the line that names a turn carries it.
+ *
+ * **A definition declares one per character**, because the app truncates in any case and the
+ * author is better placed than the truncation to choose what survives. The learner is not in
+ * the cast -- his key is reserved -- so he keeps the app's own word for himself.
+ */
+@Composable
+private fun shortName(turn: ConversationState, who: Speaker): String = when {
+    who.isLearner -> stringResource(R.string.speaker_learner)
+    else -> turn.activity.cast.firstOrNull { it.key == who.key }
+        ?.short?.inLanguage(java.util.Locale.getDefault().language)
+        ?: stringResource(R.string.speaker_ai)
+}

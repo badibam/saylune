@@ -63,4 +63,13 @@ data class Rhythm(
 
     /** Between two lines of a wrapped turn, in grid rows. */
     val leading: Int = 1,
+
+    /**
+     * How far the relevance enclosure reaches past the letters, above and below.
+     *
+     * The arms' horizontal standoff is pinned to the pixel -- at a group's edge the pause
+     * column and both arms share the one blank cell -- so the height is the only parameter
+     * left of that mark.
+     */
+    val reach: Int = 5,
 )

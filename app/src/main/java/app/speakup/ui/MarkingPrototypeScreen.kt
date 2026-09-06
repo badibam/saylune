@@ -14,7 +14,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.speakup.R
+import app.speakup.judged.Judgement
+import app.speakup.marking.CLEAN_JUDGED
 import app.speakup.marking.CLEAN_TURN
+import app.speakup.marking.MULTI_FAULT_JUDGED
 import app.speakup.marking.MULTI_FAULT_TURN
 import app.speakup.marking.TurnFile
 import app.speakup.marking.TurnMarking
@@ -30,33 +33,43 @@ import app.speakup.marking.TurnMarking
 @Composable
 fun MarkingPrototypeScreen() {
     val context = LocalContext.current
-    val turn = remember { TurnFile.read(context) }
+    // **A file it cannot read carries its reason on the screen rather than taking the app
+    // down with it.** `TurnFile` throws on a malformed file on purpose -- a silently empty
+    // screen would read exactly like a turn with nothing to report -- and thrown from a
+    // composable that stops the process, which says nothing to anybody. Nothing is
+    // defaulted here: what fails is shown, where the project puts what is unavailable.
+    val turn = remember { runCatching { TurnFile.read(context) } }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
-        if (turn == null) {
-            Note(stringResource(R.string.no_turn_file,
-                                TurnFile.path(context)?.path ?: TurnFile.NAME))
-        } else {
-            Sample(stringResource(R.string.measured_turn, turn.take), turn.marking)
+        val read = turn.getOrNull()
+        when {
+            turn.isFailure -> Note(stringResource(
+                R.string.unreadable_turn_file,
+                TurnFile.path(context)?.path ?: TurnFile.NAME,
+                turn.exceptionOrNull()?.message ?: "",
+            ))
+            read == null -> Note(stringResource(R.string.no_turn_file,
+                                                TurnFile.path(context)?.path ?: TurnFile.NAME))
+            else -> Sample(stringResource(R.string.measured_turn, read.take), read.marking, null)
         }
-        Sample(stringResource(R.string.sample_multi_fault_turn), MULTI_FAULT_TURN)
-        Sample(stringResource(R.string.sample_clean_turn), CLEAN_TURN)
+        Sample(stringResource(R.string.sample_multi_fault_turn), MULTI_FAULT_TURN, MULTI_FAULT_JUDGED)
+        Sample(stringResource(R.string.sample_clean_turn), CLEAN_TURN, CLEAN_JUDGED)
     }
 }
 
 @Composable
-private fun Sample(label: String, marking: TurnMarking) {
+private fun Sample(label: String, marking: TurnMarking, judged: Judgement?) {
     Text(
         text = label,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(bottom = 12.dp),
     )
-    MarkedTurn(marking, modifier = Modifier.padding(bottom = 40.dp))
+    MarkedTurn(marking, judged, modifier = Modifier.padding(bottom = 40.dp))
 }
 
 @Composable
