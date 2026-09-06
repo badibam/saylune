@@ -309,6 +309,29 @@ object Levers {
         ),
     )
 
+    /**
+     * Throwing a take away before it is sent. Nothing has gone, nothing was measured, and no
+     * attempt is spent -- which is exactly why it is a lever and not a plain gesture: offered
+     * freely it walks around the attempt counters, since a challenge granting one attempt can
+     * be restarted ten times by throwing each take away.
+     *
+     * **No object at the third capture position**, and the reason is not the manual send,
+     * which stays the normal gesture there. It is that a clock sends too: the silence one
+     * hesitates through is what sends the take, so the button would be a race against it.
+     */
+    val DISCARD_TAKE = Stepped(
+        key = "jeter-la-prise",
+        steps = listOf(
+            Step("permis", R.string.lever_discard_take_allowed),
+            Step("interdit", R.string.lever_discard_take_forbidden),
+        ),
+        fallback = "permis",
+        held = Held.App,
+        needs = Requirement(
+            "capture", setOf("doigt", "armee"), R.string.lever_discard_take_moot,
+        ),
+    )
+
     val FLUENCY_SENDS_BACK = sendsBack(
         "fluidite", R.string.lever_fluency_lets_through, R.string.lever_fluency_sends_back,
     )
@@ -394,7 +417,7 @@ object Levers {
         AI_LENGTH, AI_COMPLEXITY, AI_DISPLAY, REPLAY, NOISE, FILTER, UNDERSTANDING_SENDS_BACK,
         ECHO, EXPLANATION, REWORDINGS, CORRECTNESS_SENDS_BACK,
         RELEVANCE_SENDS_BACK,
-        CAPTURE, SILENCE_THRESHOLD, TURN_LENGTH, PREPARATION, FLUENCY_SENDS_BACK,
+        CAPTURE, SILENCE_THRESHOLD, TURN_LENGTH, PREPARATION, DISCARD_TAKE, FLUENCY_SENDS_BACK,
         LIVES, LIVES_LEFT, ADVANCE_WORDS, ADVANCE_SOUND,
     )
 

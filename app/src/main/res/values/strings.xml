@@ -183,6 +183,9 @@
         <item quantity="other">The mic opens %1$d s after the answer</item>
     </plurals>
     <string name="lever_preparation_moot">The mic is opened by hand</string>
+    <string name="lever_discard_take_allowed">A take can be thrown away before it is sent</string>
+    <string name="lever_discard_take_forbidden">A take once spoken is sent</string>
+    <string name="lever_discard_take_moot">Silence sends the take on its own</string>
     <string name="lever_fluency_lets_through">Hesitating sends nothing back</string>
     <string name="lever_fluency_sends_back">Hesitating sends the passage back to be said again</string>
 

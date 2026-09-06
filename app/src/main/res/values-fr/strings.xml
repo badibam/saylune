@@ -165,6 +165,9 @@
         <item quantity="other">Le micro s\'ouvre %1$d s après la réponse</item>
     </plurals>
     <string name="lever_preparation_moot">Le micro s\'ouvre à la main</string>
+    <string name="lever_discard_take_allowed">Une prise se jette avant d\'être envoyée</string>
+    <string name="lever_discard_take_forbidden">Une prise dite est envoyée</string>
+    <string name="lever_discard_take_moot">Le silence envoie la prise tout seul</string>
     <string name="lever_fluency_lets_through">Hésiter ne fait rien refaire</string>
     <string name="lever_fluency_sends_back">Hésiter fait redire le passage</string>
 
