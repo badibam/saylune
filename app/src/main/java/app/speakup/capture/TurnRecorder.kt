@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -165,20 +166,28 @@ class TurnRecorder(private val context: Context) {
                     silence =
                         if (Silence.level(buffer, read) < Silence.LEVEL) silence + msOf(read)
                         else 0
-                    _state.value = _state.value.copy(elapsedMs = elapsed, silenceMs = silence)
+                    // **Only while the state still says recording**, and that guard is the
+                    // whole reason this is an `update` and not an assignment. `AudioRecord.read`
+                    // does not come back when the coroutine is cancelled, so a take that is
+                    // being closed leaves this loop one last write, landing after `send` has
+                    // already put the state back to empty. The capture then reads as a paused
+                    // turn holding an elapsed time with no recording behind it -- and nothing
+                    // but `discard` gets out of it, the mic refusing to reopen on a take that
+                    // is still there. Everything that closes a take clears `recording` first,
+                    // so that flag is what tells a live write from a late one.
+                    _state.update {
+                        if (it.recording) it.copy(elapsedMs = elapsed, silenceMs = silence)
+                        else it
+                    }
                     // The turn's length first: it holds at all three positions, and a turn
                     // that reaches it has been speaking, not waiting.
                     if (elapsed >= capture.ceilingMs) {
-                        _state.value = _state.value.copy(
-                            recording = false, silenceMs = silence, ending = Ending.ByLength,
-                        )
+                        closed(silence, Ending.ByLength)
                         break
                     }
                     val sends = capture.sendsAfterMs
                     if (sends != null && silence >= sends) {
-                        _state.value = _state.value.copy(
-                            recording = false, silenceMs = silence, ending = Ending.BySilence,
-                        )
+                        closed(silence, Ending.BySilence)
                         break
                     }
                 }
@@ -192,6 +201,18 @@ class TurnRecorder(private val context: Context) {
     private fun newFile(): File {
         val dir = File(context.filesDir, "turns").apply { mkdirs() }
         return File(dir, "${System.currentTimeMillis()}.pcm")
+    }
+
+    /**
+     * A clock closed the take, written under the same guard as the tick above.
+     *
+     * A hand that pressed `SEND` in the same moment has already cleared `recording`, and an
+     * ending laid on top of the empty state would lock the mic shut: [open] refuses to reopen
+     * on a take that ended, and nothing would clear it but `discard`.
+     */
+    private fun closed(silence: Int, ending: Ending) = _state.update {
+        if (it.recording) it.copy(recording = false, silenceMs = silence, ending = ending)
+        else it
     }
 
     private fun elapsedMs(bytes: Long): Int = msOf(bytes)
