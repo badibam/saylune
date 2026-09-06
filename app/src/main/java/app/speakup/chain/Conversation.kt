@@ -1,15 +1,28 @@
 package app.speakup.chain
 
+import app.speakup.judged.Judgement
+
 /**
- * The language model: it answers, and it decides what the learner meant.
+ * The language model: it answers, it decides what the learner meant, and it marks.
  *
- * Two jobs in one call, and that is the point of the chain being STT -> LLM -> TTS rather
- * than a voice-to-voice API: the reference text the analysis needs travels inside the call
- * the app makes anyway, where voice-to-voice would cost an extra round trip per turn just
- * to obtain it (`docs/reference.md`).
+ * **One call does every job** -- playing the character, rebuilding `intended`, marking the
+ * spans, judging the following, rating the difficulty of its own turn, and picking from the
+ * menu when a rule offers one (`activity-model.md`). Price is not what settles it: a second
+ * call would cost nothing in latency, the judgement only serving to show marks while the
+ * answer is synthesised and played, and nothing in money either. What settles it is that a
+ * well-structured prompt holds its boundaries -- so the boundaries are watched case by case
+ * rather than walled off in advance against a wolf nobody has seen.
  *
- * The provider is not chosen. DeepSeek measured the chain's latency -- 2.6 s to first
- * sound -- and measuring is all it has done.
+ * **The order of the returned fields is the partition that stays free.** The model writes its
+ * answer in sequence and each field written conditions the next, so `intended` drafted before
+ * the character's voice is taken is worth more than the other way round.
+ *
+ * *The cost in latency is not bounded.* The 0,16 s on file was measured to decide about
+ * pipelining the synthesis, on the contract of that day -- one reply, `intended`, one boolean.
+ * This one adds three markings, the difficulty, the echo and the menu choice, of which the
+ * spans weigh about half the history again; in output, sequential by nature, that is latency
+ * straight onto the link that is already the project's first defect. To be re-measured now
+ * that it exists, before anything is stacked on it (`../../../../../../TODO.md`).
  */
 interface Conversation {
 
@@ -27,38 +40,39 @@ interface Conversation {
 data class Exchange(val fromLearner: Boolean, val text: String)
 
 /**
- * What comes back: something to say, and the text the analysis will be measured against.
+ * What comes back: something to say, what the learner meant, and what was marked on it.
  *
- * [intended] is the normalisation the recognition is forbidden to do -- the words the
- * learner meant, punctuated by the intention the model is answering, because the synthesised
- * model's contour depends on that punctuation. It is a repair of the *transcript*, never of
- * the learner's grammar: a turn whose grammar is wrong keeps its wrong grammar here, since
- * the whole of the grammatical gate is downstream of it.
- *
- * [faulty] is the grammatical gate's verdict, and it is left by the model on its own
- * judgement -- no severity is sent to it yet, so what it marks is what it judges. The gate
- * decides whether the sound analysis runs at all: on a turn that is going to be rewritten,
- * the doc is explicit that the analysis is not hidden, it is not computed. It works with
- * [intended] rather than against it -- the fault stays written there exactly as it was said,
- * and this says it is there.
- *
- * What is still owed here is the severity cran, which turns the verdict from "is it wrong"
- * into "is it wrong at the cran set for this conversation", and the span of the fault, without
- * which the discreet mark the doc asks for has nowhere to sit
- * (`../../../../../../TODO.md`).
+ * `faulty` is gone, absorbed by the marking. It was a boolean over the whole turn, which
+ * flattened the fact that a passage can carry several faults and made it impossible to mark
+ * the portion concerned; one notch per group of words settles both.
  */
 data class Reply(
+    /** What the learner meant, and everything marked on it. */
+    val judged: Judgement,
+    /** The reply, in English, as it is to be said aloud. */
     val spoken: String,
-    val intended: String,
-    val faulty: Boolean,
+    /**
+     * A short line that picks the slip up, or null when nothing was marked.
+     *
+     * The call returns **the continuation and this together**, and the app plays one of the
+     * two: so nothing is ever retracted, and it is literally "the model plays, the app
+     * decides" -- the model supplies the matter of both outcomes without settling which.
+     * It is only produced when something was marked, which makes it free on a clean passage.
+     */
+    val echo: String?,
+    /**
+     * The key the model picked out of the menu a rule offered, or null when none was offered.
+     *
+     * Free prose on the way out, listed keys on the way back: the app declares what is
+     * available, the model **picks a key** and never invents one. Choosing from a list is what
+     * models do best; calibrating a fresh constraint is not.
+     */
+    val choice: String?,
     /**
      * A new name for the conversation, or **null to leave the one it has**.
      *
-     * Null is the ordinary answer and the field is ordinarily absent. The model is given the
-     * current title every turn and asked to send one back only when there is a reason -- the
-     * conversation has none yet, or what is being talked about has drifted far enough that
-     * the old name no longer describes it. A title rewritten every turn is a title nobody can
-     * recognise in a list, which is the one thing it exists for.
+     * Null is the ordinary answer and the field is ordinarily absent. A title rewritten every
+     * turn is a title nobody can recognise in a list, which is the one thing it exists for.
      */
     val title: String? = null,
 )

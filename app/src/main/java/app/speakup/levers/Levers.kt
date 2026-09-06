@@ -85,9 +85,12 @@ object Levers {
     val AI_LENGTH = Stepped(
         key = "tour-ia.longueur",
         steps = listOf(
-            Step("courte", R.string.lever_ai_length_short),
-            Step("moyenne", R.string.lever_ai_length_medium),
-            Step("longue", R.string.lever_ai_length_long),
+            Step("courte", R.string.lever_ai_length_short,
+                 "Keep each reply to a sentence or two."),
+            Step("moyenne", R.string.lever_ai_length_medium,
+                 "Keep each reply to two or three sentences."),
+            Step("longue", R.string.lever_ai_length_long,
+                 "Your replies may run to five or six sentences."),
         ),
         fallback = "moyenne",
         held = Held.Model,
@@ -101,9 +104,12 @@ object Levers {
     val AI_COMPLEXITY = Stepped(
         key = "tour-ia.complexite",
         steps = listOf(
-            Step("basse", R.string.lever_ai_complexity_low),
-            Step("moyenne", R.string.lever_ai_complexity_medium),
-            Step("elevee", R.string.lever_ai_complexity_high),
+            Step("basse", R.string.lever_ai_complexity_low,
+                 "Use plain, common words and simple sentence shapes."),
+            Step("moyenne", R.string.lever_ai_complexity_medium,
+                 "Use ordinary everyday language."),
+            Step("elevee", R.string.lever_ai_complexity_high,
+                 "Use a wider vocabulary and more involved sentence shapes."),
         ),
         fallback = "moyenne",
         held = Held.Model,
@@ -181,9 +187,14 @@ object Levers {
     val ECHO = Stepped(
         key = "echo",
         steps = listOf(
-            Step("explicite", R.string.lever_echo_explicit),
-            Step("indirect", R.string.lever_echo_indirect),
-            Step("absent", R.string.lever_echo_none),
+            Step("explicite", R.string.lever_echo_explicit,
+                 "When they get something wrong, say the corrected form back to them "
+                     + "plainly, then carry on with your reply."),
+            Step("indirect", R.string.lever_echo_indirect,
+                 "When they get something wrong, recast it inside your own reply without "
+                     + "pointing at it."),
+            Step("absent", R.string.lever_echo_none,
+                 "Do not correct them in your reply. Answer as if nothing were wrong."),
         ),
         fallback = "indirect",
         held = Held.Model,

@@ -70,8 +70,17 @@ data class Requirement(
     @StringRes val because: Int,
 )
 
-/** One step of a stepped lever: how it is stored, and what it says. */
-data class Step(val name: String, @StringRes val says: Int)
+/**
+ * One step of a stepped lever: how it is stored, what it says, and what it asks for.
+ *
+ * [tells] is the instruction written into the prompt when the lever is [Held.Model] -- the
+ * *requested* levers exist as nothing else. It stays in code and in English: it is addressed
+ * to the model and never to the learner, so it is not a resource and is never translated.
+ *
+ * Null where there is nothing to write: on every [Held.App] lever, which the app simply does,
+ * and on a model-held position whose channel does not exist yet.
+ */
+data class Step(val name: String, @StringRes val says: Int, val tells: String? = null)
 
 /**
  * A lever with a closed list of named positions, each with its phrase written in advance.

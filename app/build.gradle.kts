@@ -52,6 +52,15 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    testOptions {
+        // The android.jar on the unit-test classpath is a stub whose every method throws.
+        // `Trace` reads the clock the moment it is loaded, so anything that traces -- which
+        // is every seam, on purpose -- could not be exercised in plain JVM at all. Returning
+        // the type's default instead is what makes those seams provable without Robolectric,
+        // which the facette `android` keeps out until a need asks for it. It never reaches a
+        // running app: the real classes are there on the device.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {

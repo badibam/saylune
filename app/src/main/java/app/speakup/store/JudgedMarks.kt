@@ -1,0 +1,56 @@
+package app.speakup.store
+
+import app.speakup.judged.Judgement
+import app.speakup.judged.Marked
+import app.speakup.judged.Span
+import org.json.JSONArray
+import org.json.JSONObject
+
+/**
+ * What the language model marked, written out and read back as it came.
+ *
+ * The same choice as the sound marks next door, and for the same reason: **archived exactly
+ * as the screen shows it, with no model added on top** -- plain facts, whose later uses derive
+ * themselves if they ever come. That is why this is a text column and not four tables.
+ *
+ * Every offset here indexes the utterance's own text, so a judgement read back is only ever
+ * shown against the string it was marked on.
+ */
+internal object JudgedMarks {
+
+    fun write(judged: Judgement): String = JSONObject()
+        .put("intended", judged.intended)
+        .put("following", judged.following)
+        .put("difficulty", judged.difficulty)
+        .put("spans", JSONArray().apply {
+            judged.spans.forEach {
+                put(JSONObject().put("from", it.from).put("to", it.to)
+                    .put("correctness", it.correctness).put("relevance", it.relevance))
+            }
+        })
+        .put("stumbling", JSONArray().apply {
+            judged.stumbling.forEach {
+                put(JSONObject().put("from", it.from).put("to", it.to).put("notch", it.notch))
+            }
+        })
+        .toString()
+
+    fun read(stored: String): Judgement {
+        val json = JSONObject(stored)
+        return Judgement(
+            intended = json.getString("intended"),
+            spans = json.getJSONArray("spans").each {
+                Span(it.getInt("from"), it.getInt("to"),
+                     it.getString("correctness"), it.getString("relevance"))
+            },
+            stumbling = json.getJSONArray("stumbling").each {
+                Marked(it.getInt("from"), it.getInt("to"), it.getString("notch"))
+            },
+            following = json.getString("following"),
+            difficulty = json.getString("difficulty"),
+        )
+    }
+
+    private fun <T> JSONArray.each(read: (JSONObject) -> T): List<T> =
+        (0 until length()).map { read(getJSONObject(it)) }
+}

@@ -12,8 +12,10 @@ import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Analysis
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
+import app.speakup.judged.Judgement
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
+import app.speakup.providers.words
 import app.speakup.store.ArchiveDao
 import app.speakup.store.Recordings
 import app.speakup.store.activity
@@ -79,13 +81,13 @@ data class Utterance(
      */
     val model: File? = null,
     /**
-     * The grammatical gate's verdict on this utterance.
+     * What the language model marked on this turn, or null when nothing judged it.
      *
-     * Kept because the gate has to be legible. A turn marked here carries no sound marks, and
-     * that is not an absence of findings: grammar is a door in front of the sound analysis,
-     * and behind a closed door nothing was measured.
+     * It replaces the single `faulty` boolean, which was a verdict over the whole turn: that
+     * flattened the fact that a passage can carry several faults and left the portion
+     * concerned with nowhere to be marked. One notch per group of words settles both.
      */
-    val faulty: Boolean = false,
+    val judged: Judgement? = null,
     /** The folder this take was written to on disk, or null when nothing was kept. */
     val take: String? = null,
     /**
@@ -346,9 +348,9 @@ class TurnPipeline(
             val said = Utterance(
                 speaker = Speaker.Learner,
                 activity = _state.value.activity.id,
-                text = reply.intended,
+                text = reply.judged.intended,
                 said = turn,
-                faulty = reply.faulty,
+                judged = reply.judged,
             )
             val answer = Utterance(
                 speaker = Speaker.Ai,
@@ -377,18 +379,23 @@ class TurnPipeline(
             // the conversation called what it was called.
             reply.title?.let { name(it) }
 
-            if (reply.faulty) {
-                // The gate: grammar is a door in front of the sound analysis. One does not
-                // work the pronunciation of a sentence about to be rewritten, so on a
-                // faulty turn the analysis is not hidden -- it is not computed.
-                Trace.add("turn: grammar closes the gate, no sound analysis", "said" to reply.intended)
-                // Kept even so, and especially so: a turn the gate held back is a real
-                // learner fault the recognition could not have guessed, which is what the
-                // fidelity bench is short of.
-                keep(said.id, Takes.keep(context, turn, null, heard, reply.intended, true, null,
-                                         turn = turnOf(said.id), attempt = attemptOf(said.id)))
+            // What cuts the sound analysis today is **an absence of ground**, and nothing
+            // else: a phrase that does not exist in the language cannot be synthesised, and
+            // making the model say a non-phrase would give a non-phrase to imitate. The
+            // words' gate, which reads the correctness note at the A-B bar, arrives with the
+            // notes -- until then a malformed turn is marked and still measured.
+            val groundless = reply.judged.words().correctness.any { it.notch == "ne-se-dit-pas" }
+            if (groundless) {
+                Trace.add("turn: no ground for a model, no sound analysis",
+                          "said" to reply.judged.intended)
+                // Kept even so, and especially so: a turn like this is a real learner fault
+                // the recognition could not have guessed, which is what the fidelity bench
+                // is short of.
+                keep(said.id, Takes.keep(context, turn, null, heard, reply.judged.intended, true,
+                                         null, turn = turnOf(said.id),
+                                         attempt = attemptOf(said.id)))
             } else {
-                examine(of = said.id, said = turn, heard = heard, text = reply.intended)
+                examine(of = said.id, said = turn, heard = heard, text = reply.judged.intended)
             }
         } catch (failure: ChainFailure) {
             Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)

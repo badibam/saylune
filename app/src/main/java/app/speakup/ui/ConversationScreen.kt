@@ -45,6 +45,7 @@ import app.speakup.R
 import app.speakup.capture.TurnRecorder
 import app.speakup.conversation.Speaker
 import app.speakup.conversation.Utterance
+import app.speakup.providers.words
 import app.speakup.conversation.Phase
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -522,11 +523,10 @@ private fun Said(
                 )
             }
         }
-        if (spoken.faulty) {
-            // The whole turn, for want of the span. The doc asks for the portion concerned
-            // and the model does not return one yet (`../../../../../../TODO.md`), so this
-            // says where the fault is only as far as the sentence -- and says nothing about
-            // pronunciation, which behind a closed gate was never measured.
+        // The spans are marked and this only says that something was: drawing them on the
+        // letters is the redrawn marked turn, further down the plan. Until then the line
+        // says as much as the boolean it replaced, off data that says far more.
+        if (spoken.judged?.words()?.correctness?.any { it.notch != "ok" } == true) {
             Text(
                 stringResource(R.string.turn_grammar_marked),
                 style = MaterialTheme.typography.bodySmall,

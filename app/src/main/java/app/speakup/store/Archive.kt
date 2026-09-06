@@ -87,7 +87,8 @@ data class UtteranceRow(
     val marking: String?,
     val sounds: String?,
     val model: String?,
-    val faulty: Boolean,
+    /** What the language model marked, as it came. Null when nothing judged this. */
+    val judged: String?,
     val take: String?,
     /** The identity of the utterance this says again. */
     val repeats: String?,
@@ -133,7 +134,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 2)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 3)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -170,12 +171,49 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * Replaces `faulty` with the marking that absorbed it.
+         *
+         * `faulty` was one boolean over the whole turn: it flattened the fact that a passage
+         * can carry several faults, and left the portion concerned with nowhere to be marked.
+         * What replaces it is one notch per group of words, which settles both.
+         *
+         * **The old verdicts are not carried over, and that is not a loss to repair.** A
+         * boolean cannot be turned into spans -- nothing in it says which words -- and a
+         * marking invented at migration time would be indistinguishable from one a judge
+         * made. The turns keep their text, their audio and their sound marks; they carry no
+         * judged marking, which is exactly true of them.
+         *
+         * The table is rebuilt rather than altered: `ALTER TABLE ... DROP COLUMN` arrived in
+         * SQLite 3.35, and `minSdk` 26 ships 3.18.
+         */
+        private val JUDGED_MARKING = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE `utterances_new` (`id` TEXT NOT NULL, `activity` TEXT NOT NULL, " +
+                        "`rank` INTEGER NOT NULL, `speaker` TEXT NOT NULL, `text` TEXT NOT NULL, " +
+                        "`said` TEXT, `marking` TEXT, `sounds` TEXT, `model` TEXT, `judged` TEXT, " +
+                        "`take` TEXT, `repeats` TEXT, `engine` TEXT, `at` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`id`), FOREIGN KEY(`activity`) REFERENCES `activities`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE)",
+                )
+                db.execSQL(
+                    "INSERT INTO `utterances_new` SELECT `id`, `activity`, `rank`, `speaker`, " +
+                        "`text`, `said`, `marking`, `sounds`, `model`, NULL, `take`, `repeats`, " +
+                        "`engine`, `at` FROM `utterances`",
+                )
+                db.execSQL("DROP TABLE `utterances`")
+                db.execSQL("ALTER TABLE `utterances_new` RENAME TO `utterances`")
+                db.execSQL("CREATE INDEX `index_utterances_activity` ON `utterances` (`activity`)")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
-            ).addMigrations(DROP_FORMAT).build().also { instance = it }
+            ).addMigrations(DROP_FORMAT, JUDGED_MARKING).build().also { instance = it }
         }
     }
 }

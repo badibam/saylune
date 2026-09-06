@@ -51,20 +51,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ## Les étapes
 
-### 3. Le contrat enrichi, le prompt, et l'énoncé qui gagne ses marquages
-
-**Ce que ça fait.** `chain/Conversation.kt` rend, dans l'ordre : `intended`, les empans de langue avec leurs deux étiquettes, le bafouillage mot à mot, le suivi, `spoken`, la difficulté du tour, l'écho de reprise quand quelque chose est marqué, le choix de menu quand une règle en offre un, et `title` s'il y a lieu. `faulty` disparaît, absorbé par le marquage. `providers/ConversationPrompt.kt` se réorganise en quatre parties — le contexte de l'app, celui de l'activité, l'historique, le présent —, les consignes vivant dans la quatrième et non la deuxième. La couture d'analyse prend `kept`. Migration Room sur `utterances`.
-
-**Pourquoi ici.** Le TODO impose une mesure de latence **dès que le contrat enrichi existe, avant d'empiler dessus** ; placé plus tard, le chiffre arrive quand il ne peut plus rien décider. Et le marquage par empans est ce qui donne son porteur à la porte des mots.
-
-**Ce qui se prouve.** Le dépliage d'un empan en ses mots ; qu'un mot ne porte au plus qu'une étiquette par échelle ; la précédence de deux empans qui se recouvrent, `ne se dit pas` devant `mal formé` devant `ok`, `à côté` devant `plat` devant `juste` ; qu'un mot qui ne porte rien vaut `ok` et non une absence.
-
-**Avec l'humain.** La **norme de la correction**, qui n'est écrite nulle part et vit dans le contexte permanent : la variété, et le fait que l'oral n'est pas de l'écrit. La **frontière d'`intended`** : ce que le champ rend sur un tour sans un mot retenu, et le cas de l'apprenant dont la bouche a dit du français.
-
-**Ce que je tranche seul et que je note ici pour qu'on le retrouve.** Un empan désigne sa portion par des **bornes de caractères dans `intended`**, pas par la sous-chaîne fautive : la sous-chaîne est ambiguë quand elle apparaît deux fois, et toutes les marques du projet s'indexent déjà dans le texte affiché. Le contrôle qui va avec échoue franchement si les bornes ne tombent pas sur des frontières de mots.
-
-**Ce que ça laisse dû.** Le renvoi pour correction — redemander au modèle plutôt qu'accepter ou tomber — reste une piste du TODO, à arbitrer contre la latence.
-
 ### 4. La mesure de latence sous le contrat enrichi
 
 **Ce que ça fait.** Un lot de tours réels sur l'appareil, les temps lus dans le champ `steps` de `turn.json` que l'instrument écrit déjà, médiane par maillon, comparée aux 4,4 s du maillon du modèle de langue.
