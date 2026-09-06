@@ -54,11 +54,13 @@ import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
 import app.speakup.capture.Capture
+import app.speakup.capture.CaptureState
 import app.speakup.capture.Ending
 import app.speakup.levers.At
 import app.speakup.levers.Count
 import app.speakup.levers.Positions
 import app.speakup.levers.Levers
+import app.speakup.conversation.ConversationState
 import app.speakup.conversation.TurnPipeline
 import app.speakup.capture.Playback
 import app.speakup.capture.Reference
@@ -82,6 +84,16 @@ import kotlinx.coroutines.launch
 fun ConversationScreen(
     recorder: TurnRecorder,
     pipeline: TurnPipeline,
+    /**
+     * Whose recording is running: null for a new turn, the identity of the passage being said
+     * again otherwise.
+     *
+     * **Held above this screen**, because the scaffold's status line is what names what is
+     * running -- *a turn*, *a repeat*, running or paused -- and that name is what makes the
+     * two shared buttons at the bottom safe. A fact two objects read belongs above both.
+     */
+    repeating: String?,
+    onRepeating: (String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -97,15 +109,6 @@ fun ConversationScreen(
     val ask = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted = it }
-
-    LaunchedEffect(Unit) { pipeline.prepare() }
-
-    // Whose recording is running: null for a new turn, the identity of the passage being
-    // said again otherwise. **The bottom commands everything that records, whoever started
-    // it**, so this is what tells the shared `send` where to hand the take -- and what lets
-    // the status line name what is running, without which two shared buttons would be
-    // ambiguous. Saveable: a rotation must not turn a repeat into a new turn.
-    var repeating by rememberSaveable { mutableStateOf<String?>(null) }
 
     // The sitting's capture, read in one place: which position, what the two clocks are set
     // to, and whether a take may be thrown away. Every button below reads these rather than
@@ -143,7 +146,7 @@ fun ConversationScreen(
                     else -> pipeline.redo(said, take, position, ending)
                 }
             }
-            repeating = null
+            onRepeating(null)
         }
     }
 
@@ -164,7 +167,7 @@ fun ConversationScreen(
         // armed. It lives outside the turn, so it touches no measure.
         val wait = seconds(turn.positions, Levers.PREPARATION.key, 0)
         if (wait > 0) kotlinx.coroutines.delay(wait.toLong())
-        repeating = null
+        onRepeating(null)
         recorder.open(scope, settings)
     }
 
@@ -239,7 +242,7 @@ fun ConversationScreen(
                 // The small button only opens; the bottom is what pauses and sends, and it
                 // is `repeating` that says where the take goes when it does.
                 onOpenRepeat = {
-                    repeating = spoken.id
+                    onRepeating(spoken.id)
                     recorder.open(scope, settings)
                 },
             )
@@ -268,39 +271,6 @@ fun ConversationScreen(
         }
 
         val busy = turn.phase != Phase.Idle
-        // **The status line names what is running**, and that is what makes the shared
-        // buttons safe: not *recording* but *a turn*, *a repeat*, running or paused. Without
-        // the name, `PAUSE` and `SEND` would be two buttons whose effect depends on
-        // something the screen never said.
-        Text(
-            when {
-                turn.phase == Phase.Hearing -> stringResource(R.string.phase_hearing)
-                turn.phase == Phase.Thinking -> stringResource(R.string.phase_thinking)
-                turn.phase == Phase.Speaking -> stringResource(R.string.phase_speaking)
-                capture.recording && repeating != null ->
-                    stringResource(R.string.capture_repeat_running, seconds(capture.elapsedMs))
-                capture.recording ->
-                    stringResource(R.string.capture_turn_running, seconds(capture.elapsedMs))
-                capture.hasAudio && repeating != null ->
-                    stringResource(R.string.capture_repeat_paused, seconds(capture.elapsedMs))
-                capture.hasAudio ->
-                    stringResource(R.string.capture_turn_paused, seconds(capture.elapsedMs))
-                // **Nothing ever waits without a visible reason.** The words' gate names the
-                // aptitudes in cause -- all of them, never the worst -- where the sound's gate
-                // names nothing, being wired to two aptitudes and so saying a constant.
-                turn.standing() == Standing.ToReword -> stringResource(
-                    R.string.passage_reword,
-                    (turn.wordsGate as? Closing.Aptitudes)?.names?.joinToString(", ")
-                        ?: stringResource(R.string.passage_no_matter),
-                )
-                turn.standing() == Standing.ToSayAgain ->
-                    stringResource(R.string.passage_say_again)
-                else -> stringResource(R.string.capture_press)
-            },
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-        )
-
         // **The big button says a turn of speech and not a next page**: it opens one of the
         // learner's own. It is greyed while anything records, whoever started it -- one does
         // not begin a new turn while speaking -- rather than turning into the pause, which
@@ -319,7 +289,7 @@ fun ConversationScreen(
                     // happens: a turn of speech and not a next page.
                     scope.launch {
                         pipeline.close()
-                        repeating = null
+                        onRepeating(null)
                         recorder.open(scope, settings)
                     }
                 },
@@ -379,7 +349,7 @@ fun ConversationScreen(
                 val mayDiscard = turn.positions.live(Levers.DISCARD_TAKE.key) &&
                     (turn.positions.of(Levers.DISCARD_TAKE.key) as? At)?.name == "allowed"
                 if (mayDiscard) {
-                    OutlinedButton(onClick = { recorder.discard(); repeating = null }) {
+                    OutlinedButton(onClick = { recorder.discard(); onRepeating(null) }) {
                         Text(stringResource(R.string.capture_redo))
                     }
                 }
@@ -716,6 +686,42 @@ private fun Said(
             )
         }
     }
+}
+
+/**
+ * What the narrator says about the turn right now.
+ *
+ * **It names what is running**, and that is what makes the two shared buttons at the bottom
+ * safe: not *recording* but *a turn*, *a repeat*, running or paused. Without the name, `PAUSE`
+ * and `SEND` would be two buttons whose effect depends on something the screen never said.
+ *
+ * **Nothing ever waits without a visible reason.** The words' gate names the aptitudes in
+ * cause -- all of them, never the worst -- where the sound's gate names nothing, being wired
+ * to elocution and fluency alone and so saying a constant.
+ *
+ * It lives here rather than in the scaffold because everything it reads is the conversation's,
+ * and the scaffold's second line takes a string from whatever screen is up.
+ */
+@Composable
+fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String?): String = when {
+    turn.phase == Phase.Hearing -> stringResource(R.string.phase_hearing)
+    turn.phase == Phase.Thinking -> stringResource(R.string.phase_thinking)
+    turn.phase == Phase.Speaking -> stringResource(R.string.phase_speaking)
+    capture.recording && repeating != null ->
+        stringResource(R.string.capture_repeat_running, seconds(capture.elapsedMs))
+    capture.recording ->
+        stringResource(R.string.capture_turn_running, seconds(capture.elapsedMs))
+    capture.hasAudio && repeating != null ->
+        stringResource(R.string.capture_repeat_paused, seconds(capture.elapsedMs))
+    capture.hasAudio ->
+        stringResource(R.string.capture_turn_paused, seconds(capture.elapsedMs))
+    turn.standing() == Standing.ToReword -> stringResource(
+        R.string.passage_reword,
+        (turn.wordsGate as? Closing.Aptitudes)?.names?.joinToString(", ")
+            ?: stringResource(R.string.passage_no_matter),
+    )
+    turn.standing() == Standing.ToSayAgain -> stringResource(R.string.passage_say_again)
+    else -> stringResource(R.string.capture_press)
 }
 
 private fun seconds(ms: Int): String = "%.1f s".format(ms / 1000f)

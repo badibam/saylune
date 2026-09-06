@@ -31,7 +31,6 @@
     <string name="setting_loading">Asking the provider what it offers…</string>
     <string name="setting_refused">The provider did not answer: %1$s</string>
     <string name="setting_no_voices">This model publishes no voice list.</string>
-    <string name="settings_close">Back</string>
     <string name="capture_press">Press to speak</string>
     <string name="passage_reword">Say it differently — in cause: %1$s</string>
     <string name="passage_say_again">Hear the model and say it again</string>
@@ -51,7 +50,6 @@
     <string name="capture_permission">Speakup needs the microphone to hear your turn.</string>
     <string name="capture_grant">Allow the microphone</string>
     <string name="capture_kept">Turn kept: %1$s</string>
-    <string name="conversation_open">Conversation</string>
     <string name="measured_marks">Marks</string>
     <string name="mic_unprocessed">unprocessed microphone</string>
     <string name="mic_voice_recognition">speech microphone (this device offers no unprocessed one)</string>
@@ -62,7 +60,6 @@
     <string name="turn_retry">Try again</string>
     <string name="turn_failed">The chain gave way: %1$s. Your turn is kept — nothing to say again.</string>
     <string name="conversation_empty">Hold the button and say something.</string>
-    <string name="conversations_open">Conversations</string>
     <string name="conversations_new">New conversation</string>
     <string name="conversations_none">No conversation yet.</string>
     <string name="conversation_unnamed">Untitled</string>
@@ -229,4 +226,17 @@
     <string name="secret_openai_key">OpenAI API key</string>
     <string name="secret_openai_endpoint">OpenAI endpoint (optional)</string>
     <string name="effort_medium">Medium</string>
+    <!-- The title screen: the four modes, and the doors that are not modes. -->
+    <string name="mode_story">Story</string>
+    <string name="mode_challenges">Challenges</string>
+    <string name="mode_arcade">Arcade</string>
+    <string name="mode_free">Free</string>
+    <string name="mode_unwritten">nothing behind it yet</string>
+    <!-- The scaffold: what the narrator says on a screen that has no turn to narrate. -->
+    <string name="conversations_pick">Pick up a conversation, or start another.</string>
+    <string name="settings_what">Providers, keys and preferences.</string>
+    <string name="marks_what">The marking, on measured turns and on invented ones.</string>
+    <!-- The action bar: why an entry is off. -->
+    <string name="action_marks_menu_unwritten">Which marks show is settled with the redrawn turn.</string>
+    <string name="action_levers_unwritten">No screen sets a lever yet, before a sitting or during one.</string>
 </resources>

@@ -4,23 +4,25 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.speakup.analysis.Analyses
@@ -29,14 +31,26 @@ import app.speakup.conversation.TurnPipeline
 import app.speakup.providers.ChosenConversation
 import app.speakup.providers.ChosenRecognition
 import app.speakup.providers.ChosenSynthesis
+import app.speakup.levers.At
+import app.speakup.levers.Count
+import app.speakup.levers.Levers
+import app.speakup.levers.Positions
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.store.Archive
+import app.speakup.ui.Action
 import app.speakup.ui.ConversationScreen
 import app.speakup.ui.ConversationsScreen
+import app.speakup.ui.Glyphs
 import app.speakup.ui.MarkingPrototypeScreen
+import app.speakup.ui.Scaffold
 import app.speakup.ui.SettingsScreen
+import app.speakup.ui.Tile
+import app.speakup.ui.TitleScreen
+import app.speakup.ui.theme.Speakup
 import app.speakup.ui.theme.SpeakupTheme
+import app.speakup.ui.turnStatus
+import java.util.Locale
 
 /** What the palette preference holds when the spare is the one in force. */
 const val SPARE = "spare"
@@ -60,12 +74,26 @@ class MainActivity : ComponentActivity() {
             // Read here rather than inside the theme: the palette is a preference like any
             // other, and the store is what holds preferences.
             val stored by store.values().collectAsState(initial = emptyMap())
-            // Material still dresses the buttons and the lists; what it no longer holds is
-            // anything the marking rests on -- the ground a halo is punched out of, the grid,
-            // the rhythms. Those come from SpeakupTheme, nested inside so both are readable.
-            MaterialTheme {
-                SpeakupTheme(spare = stored[Secret.SparePalette] == SPARE) {
-                    Surface(modifier = Modifier.fillMaxSize()) {
+            val dark = isSystemInDarkTheme()
+            SpeakupTheme(dark = dark, spare = stored[Secret.SparePalette] == SPARE) {
+                // Material still dresses the buttons and the lists that have not been
+                // rewritten yet, so it is told which register is in force: left to its own
+                // default it painted a light scheme under a night palette, and the ink came
+                // out light on a light ground.
+                MaterialTheme(
+                    colorScheme = if (dark) darkColorScheme() else lightColorScheme(),
+                ) {
+                    // **The ground is the palette's**, and no longer Material's surface. The
+                    // screens are ours now, and a ground the register does not own is a ground
+                    // the marking's colours are not measured against.
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Speakup.palette.ground.srgb,
+                        // Material works out its content colour from its own scheme, and a
+                        // ground it does not know leaves it unspecified -- which came out as
+                        // black text on the night plum. The register says what ink is.
+                        contentColor = Speakup.palette.ink.srgb,
+                    ) {
                         Root(store, recorder, pipeline)
                     }
                 }
@@ -75,80 +103,139 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Four screens and a switch between them.
+ * Every screen the app has, and the order they descend in.
  *
- * Still no navigation library: the `android` wisdom holds one off below three screens, and
- * what is here is one switch with four positions rather than a graph -- every screen is
- * reached from the same row of buttons and none of them leads to another. A library would
- * buy a back stack nothing has. The switch is saveable, so a rotation does not throw the
- * user back out of the settings -- which is also why no orientation lock is declared.
+ * The four that were a four-position switch are a **stack** now, which is what the activity
+ * model asks for: screens that go down into one another rather than four doors off one row of
+ * buttons. Still no navigation library -- the `android` wisdom holds one off until a graph
+ * needs one, and a list one pushes onto and pops off is not a graph.
+ */
+private enum class Screen { Title, Conversations, Conversation, Settings, Marks }
+
+/**
+ * The app, from its root down.
+ *
+ * **The root is the title screen** (`pixel-ui.md`, settled 2026-09-06): the four modes, and
+ * everything descends from there. Only *Free* has anything behind it, and behind it stands
+ * the list of conversations -- which is where the theme tiles will go, a tile being a
+ * definition and the list being what stands in for them until they are written.
+ *
+ * Everything below the root wears the **scaffold**: what is true at the top, what one can do
+ * at the bottom. The title screen does not -- it is the root, so back has nowhere to go, and
+ * its eight tiles are meant to take the height.
  */
 @Composable
 private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipeline) {
-    var showingSettings by rememberSaveable { mutableStateOf(false) }
-    var showingMarks by rememberSaveable { mutableStateOf(false) }
-    var showingConversations by rememberSaveable { mutableStateOf(false) }
+    val stack = rememberSaveable(
+        saver = listSaver<SnapshotStateList<Screen>, String>(
+            save = { it.map(Screen::name) },
+            restore = { it.map(Screen::valueOf).toMutableStateList() },
+        )
+    ) { mutableStateListOf(Screen.Title) }
 
-    BackHandler(enabled = showingSettings || showingMarks || showingConversations) {
-        showingSettings = false
-        showingMarks = false
-        showingConversations = false
-    }
+    // Asked once, at the root, and not on the way into a conversation: whether the
+    // analysis can run at all is a fact about the device, and an app that discovered it
+    // had no engine after somebody had spoken would be finding out too late.
+    LaunchedEffect(Unit) { pipeline.prepare() }
 
-    // Without this the top row sits under the status bar and its buttons pull the
-    // notification shade instead of being pressed.
+    val here = stack.last()
+    BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
+
+    val turn by pipeline.state.collectAsState()
+    val capture by recorder.state.collectAsState()
+
+    // **Held here and not in the conversation screen**: the scaffold's status line is what
+    // names what is running -- a turn, a repeat, running or paused -- and that name is what
+    // makes `PAUSE` and `SEND` unambiguous at the bottom. Saveable, so a rotation does not
+    // turn a repeat into a new turn.
+    var repeating by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val back = Action(Glyphs.BACK) { if (stack.size > 1) stack.removeAt(stack.lastIndex) }
+
+    // Without this the top line sits under the status bar and the bar at the bottom under the
+    // gesture handle.
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            TextButton(onClick = {
-                showingConversations = !showingConversations
-                showingSettings = false
-                showingMarks = false
-            }) {
-                Text(
-                    stringResource(
-                        if (showingConversations) R.string.conversation_open
-                        else R.string.conversations_open
-                    )
-                )
-            }
-            TextButton(onClick = {
-                showingMarks = !showingMarks
-                showingSettings = false
-                showingConversations = false
-            }) {
-                Text(
-                    stringResource(
-                        if (showingMarks) R.string.conversation_open else R.string.measured_marks
-                    )
-                )
-            }
-            TextButton(onClick = { showingSettings = !showingSettings }) {
-                Text(
-                    stringResource(
-                        if (showingSettings) R.string.settings_close else R.string.settings_open
-                    )
-                )
-            }
-        }
-        Box(modifier = Modifier.weight(1f)) {
-            if (showingSettings) {
-                SettingsScreen(store, modifier = Modifier.fillMaxSize())
-            } else if (showingConversations) {
+        when (here) {
+            Screen.Title -> TitleScreen(
+                modes = listOf(
+                    Tile(R.string.mode_story, reason = R.string.mode_unwritten),
+                    Tile(R.string.mode_challenges, reason = R.string.mode_unwritten),
+                    Tile(R.string.mode_arcade, reason = R.string.mode_unwritten),
+                    Tile(R.string.mode_free) { stack.add(Screen.Conversations) },
+                ),
+                doors = listOf(
+                    Tile(R.string.settings_open) { stack.add(Screen.Settings) },
+                    Tile(R.string.measured_marks) { stack.add(Screen.Marks) },
+                ),
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            Screen.Conversations -> Scaffold(
+                title = stringResource(R.string.mode_free),
+                lives = null,
+                status = stringResource(R.string.conversations_pick),
+                actions = listOf(back),
+            ) {
                 ConversationsScreen(
                     pipeline,
                     // Opening one puts the learner in it. Staying on the list after choosing
                     // would make the choice look like it had not registered.
-                    onOpened = { showingConversations = false },
+                    onOpened = { stack.add(Screen.Conversation) },
                     modifier = Modifier.fillMaxSize(),
                 )
-            } else if (showingMarks) {
+            }
+
+            Screen.Conversation -> Scaffold(
+                title = turn.definition.short.inLanguage(Locale.getDefault().language),
+                lives = livesLeft(turn.positions),
+                status = turnStatus(turn, capture, repeating),
+                actions = listOf(
+                    back,
+                    // Both are the conversation's own, and both are off with their reason:
+                    // the marks menu comes with the redrawn turn, and no screen sets a lever
+                    // yet, before a sitting or during one.
+                    Action(Glyphs.EYE, reason = R.string.action_marks_menu_unwritten),
+                    Action(Glyphs.LEVERS, reason = R.string.action_levers_unwritten),
+                ),
+            ) {
+                ConversationScreen(
+                    recorder, pipeline,
+                    repeating = repeating,
+                    onRepeating = { repeating = it },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            Screen.Settings -> Scaffold(
+                title = stringResource(R.string.settings_open),
+                lives = null,
+                status = stringResource(R.string.settings_what),
+                actions = listOf(back),
+            ) {
+                SettingsScreen(store, modifier = Modifier.fillMaxSize())
+            }
+
+            Screen.Marks -> Scaffold(
+                title = stringResource(R.string.measured_marks),
+                lives = null,
+                status = stringResource(R.string.marks_what),
+                actions = listOf(back),
+            ) {
                 MarkingPrototypeScreen()
-            } else {
-                ConversationScreen(recorder, pipeline, modifier = Modifier.fillMaxSize())
             }
         }
     }
+}
+
+/**
+ * How many lives are left, or null where the sitting counts none.
+ *
+ * **The lives are a lever and their position is the number left** -- not an allowance set
+ * beside a counter (`docs/design/activity-model.md`). So this reads the two levers the
+ * catalogue declares and nothing else: whether lives are counted at all, and where the count
+ * stands. A free conversation counts none, so the field is simply absent from its status line.
+ */
+private fun livesLeft(positions: Positions): Int? {
+    val counted = (positions.of(Levers.LIVES.key) as? At)?.name == "counted"
+    return if (counted) (positions.of(Levers.LIVES_LEFT.key) as? Count)?.n else null
 }

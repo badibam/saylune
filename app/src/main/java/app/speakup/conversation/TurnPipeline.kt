@@ -10,6 +10,7 @@ import app.speakup.chain.Reply
 import app.speakup.chain.Scene
 import app.speakup.chain.Word
 import app.speakup.activity.Activity
+import app.speakup.activity.Definition
 import app.speakup.activity.Definitions
 import app.speakup.capture.Ending
 import app.speakup.capture.Playback
@@ -223,6 +224,15 @@ data class ConversationState(
      */
     val activity: Activity,
     /**
+     * The definition this sitting came from, which is what names it on screen.
+     *
+     * **Not a setting read back**: an origin only ever groups, and how the sitting was set is
+     * on its own line. What is read here is the identity -- the name a tile carries, and the
+     * short one the status line has room for -- which lives nowhere else, nothing in the app
+     * being named by the model.
+     */
+    val definition: Definition,
+    /**
      * Everything said, oldest first. The thread is this run and nothing else carries it.
      *
      * A single ordered table rather than a list of exchanges with marks and takes and models
@@ -428,7 +438,7 @@ class TurnPipeline(
      */
     private val free = Definitions.of(context, Definitions.FREE_CONVERSATION)
 
-    private val _state = MutableStateFlow(ConversationState(Activity.from(free)))
+    private val _state = MutableStateFlow(ConversationState(Activity.from(free), definition = free))
     val state: StateFlow<ConversationState> = _state.asStateFlow()
 
     /**
@@ -497,6 +507,11 @@ class TurnPipeline(
         _state.update {
             it.copy(
                 activity = activity,
+                // A sitting made before the free conversation was itself a definition has no
+                // origin, and there was no other kind of sitting then: reading `free` for it
+                // is a fact about that release, not a stand-in for something missing.
+                definition = activity.origin
+                    ?.let { from -> Definitions.of(context, from.definition) } ?: free,
                 utterances = run,
                 // The run is another conversation's now, so anything that pointed into the
                 // old one has to go: a retry of a recording from the conversation just left
@@ -525,6 +540,7 @@ class TurnPipeline(
         _state.update {
             it.copy(
                 activity = fresh,
+                definition = free,
                 utterances = emptyList(),
                 pending = null,
                 failure = null,

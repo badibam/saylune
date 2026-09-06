@@ -19,6 +19,9 @@ internal object Shipped {
         id, VERSION, File("src/main/assets/definitions/$id.json").readText(),
     )
 
+    /** The free conversation's own definition, which every sitting here comes from. */
+    fun free() = definition(Definitions.FREE_CONVERSATION)
+
     /** A fresh free conversation, as the pipeline opens one. */
-    fun freeConversation() = Activity.from(definition(Definitions.FREE_CONVERSATION))
+    fun freeConversation() = Activity.from(free())
 }

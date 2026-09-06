@@ -37,7 +37,11 @@ class PassageTest {
     )
 
     private fun state(vararg run: Utterance) =
-        ConversationState(activity = Shipped.freeConversation(), utterances = run.toList())
+        ConversationState(
+            activity = Shipped.freeConversation(),
+            definition = Shipped.free(),
+            utterances = run.toList(),
+        )
 
     // ── The passage, derived ────────────────────────────────────────────────────────────
 

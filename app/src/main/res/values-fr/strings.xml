@@ -30,7 +30,6 @@
     <string name="setting_loading">On demande au fournisseur ce qu\'il propose…</string>
     <string name="setting_refused">Le fournisseur n\'a pas répondu : %1$s</string>
     <string name="setting_no_voices">Ce modèle ne publie aucune liste de voix.</string>
-    <string name="settings_close">Retour</string>
     <string name="capture_press">Appuyer pour parler</string>
     <string name="passage_reword">Reformule-la — en cause : %1$s</string>
     <string name="passage_say_again">Écoute le modèle et redis-la</string>
@@ -50,7 +49,6 @@
     <string name="capture_permission">Speakup a besoin du micro pour entendre ton tour.</string>
     <string name="capture_grant">Autoriser le micro</string>
     <string name="capture_kept">Tour conservé : %1$s</string>
-    <string name="conversation_open">Conversation</string>
     <string name="measured_marks">Marques</string>
     <string name="mic_unprocessed">micro sans traitement</string>
     <string name="mic_voice_recognition">micro de reconnaissance (cet appareil n\'offre pas de source sans traitement)</string>
@@ -211,4 +209,17 @@
     <string name="secret_openai_key">Clé d\'API OpenAI</string>
     <string name="secret_openai_endpoint">Point d\'accès OpenAI (facultatif)</string>
     <string name="effort_medium">Moyen</string>
+    <!-- L'écran-titre : les quatre modes, et les portes qui n'en sont pas. -->
+    <string name="mode_story">Histoire</string>
+    <string name="mode_challenges">Défis</string>
+    <string name="mode_arcade">Arcade</string>
+    <string name="mode_free">Libre</string>
+    <string name="mode_unwritten">rien derrière pour l\'instant</string>
+    <!-- La charpente : ce que dit le narrateur sur un écran qui n'a pas de tour à raconter. -->
+    <string name="conversations_pick">Reprends une conversation, ou lances-en une autre.</string>
+    <string name="settings_what">Fournisseurs, clés et préférences.</string>
+    <string name="marks_what">Le marquage, sur des tours mesurés et sur des tours inventés.</string>
+    <!-- La barre d'actions : pourquoi une entrée est éteinte. -->
+    <string name="action_marks_menu_unwritten">Quelles marques s\'affichent se règle avec le tour redessiné.</string>
+    <string name="action_levers_unwritten">Aucun écran ne pose de levier, ni avant la séance ni pendant.</string>
 </resources>
