@@ -1,6 +1,7 @@
 package app.speakup.analysis
 
 import androidx.annotation.StringRes
+import app.speakup.judged.Kept
 import app.speakup.marking.AddedSound
 import app.speakup.marking.TurnMarking
 import java.io.File
@@ -45,13 +46,21 @@ interface Analysis {
      *
      * [text] is the string the marks index into, and it must be the very one displayed:
      * every offset in the result is an offset into it, so showing a different string would
-     * slide every mark.
+     * slide every mark. It carries the hesitations, because **the learner is aligned on
+     * everything he said** -- without them those bits of audio have no letter facing them
+     * and become added sounds, so hesitating would cost a pronunciation mark.
+     *
+     * [kept] says which stretches of it [model] was made to say, the **model's voice saying
+     * only the kept words**: making it say *"It was, like, um, I went to the…"* is out of the
+     * question, the model being what is given to imitate. So the two sides no longer carry
+     * the same text, one containing the other, and [kept] is what carries an offset across.
+     * On a clean turn it covers the whole of [text] and nothing here is any different.
      *
      * A sound that could not be compared yields no mark rather than a made-up one -- but
      * silence is never an issue in itself (`docs/reference.md`), so a reading that had to
      * drop something says so through [Analysed.dropped] instead of quietly shortening.
      */
-    suspend fun examine(said: File, model: File, text: String): Analysed
+    suspend fun examine(said: File, model: File, text: String, kept: Kept): Analysed
 }
 
 /**

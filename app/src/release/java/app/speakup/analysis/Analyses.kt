@@ -2,6 +2,7 @@ package app.speakup.analysis
 
 import android.content.Context
 import app.speakup.R
+import app.speakup.judged.Kept
 import java.io.File
 
 /**
@@ -24,7 +25,7 @@ private object Unshipped : Analysis {
 
     override suspend fun readiness(): Readiness = Readiness.Off(R.string.analysis_unshipped)
 
-    override suspend fun examine(said: File, model: File, text: String): Analysed =
+    override suspend fun examine(said: File, model: File, text: String, kept: Kept): Analysed =
         // Unreachable through the app, which asks readiness first and puts the marks out
         // end to end when it is Off. Loud rather than empty all the same: an empty marking
         // reads exactly like a turn with nothing to report.

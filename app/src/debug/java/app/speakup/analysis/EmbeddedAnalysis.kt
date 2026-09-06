@@ -10,6 +10,7 @@ import app.speakup.embedded.Alphabet
 import app.speakup.embedded.Frames
 import app.speakup.embedded.Grid
 import app.speakup.embedded.Join
+import app.speakup.embedded.inWhole
 import app.speakup.embedded.Overlap
 import app.speakup.embedded.Pitch
 import app.speakup.embedded.Segment
@@ -18,6 +19,7 @@ import app.speakup.embedded.Stress
 import app.speakup.embedded.Syllables
 import app.speakup.embedded.Readout
 import app.speakup.debug.Trace
+import app.speakup.judged.Kept
 import app.speakup.marking.Syllable
 import app.speakup.marking.TurnMarking
 import app.speakup.embedded.Marks
@@ -77,9 +79,15 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         return off
     }
 
-    override suspend fun examine(said: File, model: File, text: String): Analysed =
+    override suspend fun examine(said: File, model: File, text: String, kept: Kept): Analysed =
         withContext(Dispatchers.Default) {
             val engine = engine ?: error("examine before readiness said On")
+            // The two are handed in separately and have to be the same string: every offset
+            // that comes back is an offset into one of them, and a mismatch would slide every
+            // mark by however much the two texts differ, silently.
+            require(kept.whole == text) {
+                "the kept stretches are of another turn: \"${kept.whole}\" against \"$text\""
+            }
 
             // Bounded on both sides, or its cost is read as the synthesis call before it:
             // the first step it wrote came after two network passes and every join.
@@ -95,11 +103,16 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
             val segments = Grid.decode(modelFrames, engine.alphabet)
             val grid = segments.map { engine.alphabet[it.symbol] }
+            // The model said the kept words alone, so it is to **those** that its sounds are
+            // joined -- and the offsets they come back with are carried to the whole turn at
+            // once, here and nowhere later. Everything downstream indexes into the displayed
+            // string: the marks, the syllables, and above all `Added.found`, which sets this
+            // join against the learner's own and can only do so in one frame of reference.
             val sounds = Join.joined(
                 symbols = grid,
-                text = text,
+                text = kept.text,
                 affinity = engine.affinity,
-            )
+            ).inWhole(kept)
 
             val drawn = Marks.drawn(reading.gaps, sounds, NOISE_BAND)
 

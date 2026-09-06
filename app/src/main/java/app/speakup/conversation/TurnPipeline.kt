@@ -13,6 +13,7 @@ import app.speakup.analysis.Analysis
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
 import app.speakup.judged.Judgement
+import app.speakup.judged.Kept
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
 import app.speakup.providers.words
@@ -395,7 +396,11 @@ class TurnPipeline(
                                          null, turn = turnOf(said.id),
                                          attempt = attemptOf(said.id)))
             } else {
-                examine(of = said.id, said = turn, heard = heard, text = reply.judged.intended)
+                examine(
+                    of = said.id, said = turn, heard = heard,
+                    text = reply.judged.intended,
+                    kept = Kept.of(reply.judged.intended, reply.judged.stumbling),
+                )
             }
         } catch (failure: ChainFailure) {
             Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
@@ -412,11 +417,16 @@ class TurnPipeline(
     /**
      * What the learner did differently from the model, on the turn just spoken.
      *
-     * The model is synthesised from `intended` in the very voice that just answered, which
-     * is the default the doc sets: the model to imitate is the voice already being heard,
-     * and the accent setting governs both because there is no third thing to align.
+     * The model is synthesised from the **kept words** of `intended`, in the very voice that
+     * just answered -- which is the default the doc sets: the model to imitate is the voice
+     * already being heard, and the accent setting governs both because there is no third
+     * thing to align. The kept words and not the whole of it, because the model is what is
+     * given to imitate: making it say *"It was, like, um, I went to the…"* would give a
+     * stumble to copy. On a clean turn the two are the same string.
      */
-    private suspend fun examine(of: String, said: File, heard: List<Word>, text: String) {
+    private suspend fun examine(
+        of: String, said: File, heard: List<Word>, text: String, kept: Kept,
+    ) {
         val readiness = _state.value.analysis
             ?: analysis.readiness().also { ready -> _state.update { it.copy(analysis = ready) } }
         if (readiness !is Readiness.On) {
@@ -425,8 +435,8 @@ class TurnPipeline(
             return
         }
         try {
-            val model = synthesis.speak(text, synthesis.voice())
-            val analysed = analysis.examine(said, model, text)
+            val model = synthesis.speak(kept.text, synthesis.voice())
+            val analysed = analysis.examine(said, model, text, kept)
             update(of) {
                 it.copy(marking = analysed.marking, sounds = analysed.sounds, model = model,
                         engine = readiness.version)
@@ -537,7 +547,12 @@ class TurnPipeline(
         Trace.turn("— redo —")
         Trace.add("redo: same sentence, same model", "text" to spoken.text)
         try {
-            val analysed = analysis.examine(audio, model, spoken.text)
+            // The kept stretches are the ones the model file was rendered on, so they come
+            // from the turn being repeated and never from this take: nothing judges a redo --
+            // it is pipe B alone -- so there is no second marking of the stumbling to read,
+            // and reading one would set the marks against a model that says something else.
+            val kept = Kept.of(spoken.text, spoken.judged?.stumbling ?: emptyList())
+            val analysed = analysis.examine(audio, model, spoken.text, kept)
             val stamp = Takes.keep(context, audio, model, emptyList(), spoken.text, false,
                                    analysed, redo = true,
                                    turn = turnOf(of), attempt = attemptOf(of))

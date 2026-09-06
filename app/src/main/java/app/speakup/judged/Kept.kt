@@ -21,7 +21,11 @@ package app.speakup.judged
  * a sentence said in one breath having no seam at all. One more reason to have a stumbling
  * turn said again.
  */
-class Kept(private val whole: String, val ranges: List<IntRange>) {
+class Kept(
+    /** The whole turn as the screen shows it, hesitations included. */
+    val whole: String,
+    val ranges: List<IntRange>,
+) {
 
     init {
         ranges.zipWithNext().forEach { (before, after) ->

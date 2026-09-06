@@ -1,5 +1,7 @@
 package app.speakup.embedded
 
+import app.speakup.judged.Kept
+
 /**
  * One sound of the model's grid, and everything a mark needs of it.
  *
@@ -20,6 +22,27 @@ data class Sound(
     val spots: List<Int>,
     val borrowed: List<Int>,
 )
+
+/**
+ * The same sounds, their offsets carried from the kept text back to the whole turn.
+ *
+ * The model says the kept words alone, so its grid is joined to *that* text -- and everything
+ * downstream indexes into the string the screen shows: the marks, the syllables, and above
+ * all [Added], which sets this join against the learner's own and can only do so in one frame
+ * of reference. So the carrying happens here, once, right after the join, and never later.
+ *
+ * The letters and the word themselves are left alone: they are what was read, and a
+ * hesitation taken out from between two words changes where they sit, never what they say. On
+ * a clean turn there is nothing to carry and each sound comes back as it was.
+ */
+fun List<Sound>.inWhole(kept: Kept): List<Sound> =
+    if (kept.entire) this else map { sound ->
+        sound.copy(
+            wordAt = sound.wordAt?.let { kept.inWhole(it) },
+            spots = sound.spots.map(kept::inWhole),
+            borrowed = sound.borrowed.map(kept::inWhole),
+        )
+    }
 
 /**
  * Every sound the voice produced, and the letters spoken inside it.
