@@ -30,10 +30,20 @@ import java.io.File
  * by the switch -- the first position already cut speech into stretches at the thumb -- so
  * what moved is who delimits them, not what they are.
  *
- * The 30-second ceiling is not ergonomics. A pass of the analysis grows as the **square** of
- * the turn's length -- 4316 MB on one minute of audio, enough to kill a 4 GB device -- and
- * no windowing is written yet. So the turn closes itself and says so, the way any unanalysed
- * turn carries its reason. The ceiling goes when the windowing lands
+ * **Two clocks run while it records, and both are visible**: how long the turn has lasted,
+ * and how long the current silence has. Each can close the turn, and [CaptureState.ending]
+ * says which did -- a fact about the recording rather than a measure, read by the language
+ * model, which it forbids to complete an unfinished sentence, and by the sheet of the
+ * interrupted turn.
+ *
+ * **A turn a clock closed is truncated and sent as it stands**, never cut into two turns:
+ * what was left to say is never captured, the mic reopening only after the AI has answered.
+ *
+ * The ceiling on the turn's length is [Capture.ceilingMs], which the `duree-tour` lever sets
+ * -- asking for an answer in five seconds and tolerating thirty at most are the same variable
+ * set differently. Its top is technical: a pass of the analysis grows as the **square** of
+ * the turn's length -- 4316 MB on one minute of audio, enough to kill a 4 GB device -- and no
+ * windowing is written yet. The top goes when the windowing lands, and the lever stays
  * (`../../../../../../TODO.md`).
  */
 class TurnRecorder(private val context: Context) {
@@ -48,11 +58,11 @@ class TurnRecorder(private val context: Context) {
     private var pcm: File? = null
 
     /** Open the mic: begin the turn, or carry on the one already started. */
-    fun open(scope: CoroutineScope) {
-        if (job != null || _state.value.full) return
+    fun open(scope: CoroutineScope, capture: Capture = Capture()) {
+        if (job != null || _state.value.ending != null) return
         val file = pcm ?: newFile().also { pcm = it }
-        _state.value = _state.value.copy(recording = true)
-        job = scope.launch(Dispatchers.IO) { read(file) }
+        _state.value = _state.value.copy(recording = true, silenceMs = 0)
+        job = scope.launch(Dispatchers.IO) { read(file, capture) }
     }
 
     /**
@@ -66,7 +76,7 @@ class TurnRecorder(private val context: Context) {
     fun pause() {
         job?.cancel()
         job = null
-        _state.value = _state.value.copy(recording = false)
+        _state.value = _state.value.copy(recording = false, silenceMs = 0)
     }
 
     /** Throw the turn away and start over. */
@@ -93,7 +103,7 @@ class TurnRecorder(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission") // The screen holds the button behind the grant.
-    private suspend fun read(file: File) {
+    private suspend fun read(file: File, capture: Capture) {
         val minimum = AudioRecord.getMinBufferSize(
             WavFile.SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO,
@@ -116,6 +126,10 @@ class TurnRecorder(private val context: Context) {
         }
         val buffer = ByteArray(minimum)
         var written = file.length()
+        // Silence that has run without a break. It starts at zero on every open, so a mic
+        // opened by hand starts its count at the press -- which is what the take actually
+        // holds, the delay before the press never having been recorded.
+        var silence = 0
         try {
             recorder.startRecording()
             java.io.FileOutputStream(file, true).use { out ->
@@ -125,9 +139,23 @@ class TurnRecorder(private val context: Context) {
                     out.write(buffer, 0, read)
                     written += read
                     val elapsed = elapsedMs(written)
-                    _state.value = _state.value.copy(elapsedMs = elapsed)
-                    if (elapsed >= CEILING_MS) {
-                        _state.value = _state.value.copy(recording = false, full = true)
+                    silence =
+                        if (Silence.level(buffer, read) < Silence.LEVEL) silence + msOf(read)
+                        else 0
+                    _state.value = _state.value.copy(elapsedMs = elapsed, silenceMs = silence)
+                    // The turn's length first: it holds at all three positions, and a turn
+                    // that reaches it has been speaking, not waiting.
+                    if (elapsed >= capture.ceilingMs) {
+                        _state.value = _state.value.copy(
+                            recording = false, silenceMs = silence, ending = Ending.ByLength,
+                        )
+                        break
+                    }
+                    val sends = capture.sendsAfterMs
+                    if (sends != null && silence >= sends) {
+                        _state.value = _state.value.copy(
+                            recording = false, silenceMs = silence, ending = Ending.BySilence,
+                        )
                         break
                     }
                 }
@@ -143,23 +171,63 @@ class TurnRecorder(private val context: Context) {
         return File(dir, "${System.currentTimeMillis()}.pcm")
     }
 
-    private fun elapsedMs(bytes: Long): Int =
-        (bytes * 1000 / (WavFile.SAMPLE_RATE * WavFile.CHANNELS * WavFile.BITS / 8)).toInt()
+    private fun elapsedMs(bytes: Long): Int = msOf(bytes)
+
+    private fun msOf(bytes: Number): Int =
+        (bytes.toLong() * 1000 /
+            (WavFile.SAMPLE_RATE * WavFile.CHANNELS * WavFile.BITS / 8)).toInt()
 
     companion object {
-        /** Provisional, and it goes when the analysis pass is windowed. */
+        /**
+         * The highest a turn's length can be set to, which is the technical top and not the
+         * setting: it is what a pass of the analysis can hold. Provisional, and it goes when
+         * the analysis pass is windowed.
+         */
         const val CEILING_MS = 30_000
     }
 }
 
 /**
- * What the screen draws. [full] is the ceiling having closed the turn by itself, which is
- * shown rather than suffered -- a turn that stops on its own must say why.
+ * What the two clocks are set to for this turn, read off the sitting's levers.
+ *
+ * [sendsAfterMs] is null wherever the silence does not send, which is the first two capture
+ * positions: there, the learner is the only one who sends. It is not zero -- zero would send
+ * the turn at once, which is why the threshold and the position are two levers and not one.
+ */
+data class Capture(
+    val ceilingMs: Int = TurnRecorder.CEILING_MS,
+    val sendsAfterMs: Int? = null,
+)
+
+/**
+ * How a turn stopped recording, when something other than a hand stopped it.
+ *
+ * **Two causes, one sheet.** Both are the interrupted turn, and both are facts about the
+ * recording rather than measures: the language model reads them, which is what forbids it to
+ * complete an unfinished sentence, and the sheet of the interrupted turn reads them too.
+ */
+enum class Ending {
+    /** The turn reached the length it was allowed. It exists at all three positions. */
+    ByLength,
+    /** The silence ran past its threshold. Only the third capture position has this one. */
+    BySilence,
+}
+
+/**
+ * What the screen draws.
+ *
+ * [elapsedMs] and [silenceMs] are **the two countdowns, visible at all times** -- the time
+ * the turn has run and the silence running now. Two times running out, shown the same way.
+ * They are not a lever: they say what the levers have set.
+ *
+ * [ending] is a clock having closed the turn by itself, which is shown rather than suffered
+ * -- a turn that stops on its own must say why.
  */
 data class CaptureState(
     val recording: Boolean = false,
     val elapsedMs: Int = 0,
-    val full: Boolean = false,
+    val silenceMs: Int = 0,
+    val ending: Ending? = null,
 ) {
     val hasAudio: Boolean get() = elapsedMs > 0
 }

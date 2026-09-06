@@ -1,6 +1,8 @@
 package app.speakup.chain
 
+import app.speakup.capture.Ending
 import app.speakup.judged.Judgement
+import app.speakup.levers.Positions
 
 /**
  * The language model: it answers, it decides what the learner meant, and it marks.
@@ -33,8 +35,27 @@ interface Conversation {
      * [titled] is what the conversation is called so far, or null while it is unnamed. It is
      * sent every turn and comes back only sometimes -- see [Reply.title].
      */
-    suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply
+    suspend fun reply(
+        history: List<Exchange>, heard: List<Word>, titled: String?, present: Present = Present(),
+    ): Reply
 }
+
+/**
+ * What governs the turn being answered, rebuilt every time.
+ *
+ * [positions] are the sitting's levers, of which only the **requested** ones reach the model
+ * -- the ones it holds, which exist as nothing but an instruction. What the app does itself
+ * has nothing to say here.
+ *
+ * [ending] is how the recording stopped, and the app knows it rather than leaving the model to
+ * guess from a transcript: faced with *"I went to the"*, rebuilding *"I went to the market"*
+ * would have the model's voice say a word nobody said, and every mark on the turn would land
+ * beside its sound.
+ */
+data class Present(
+    val positions: Positions = Positions(),
+    val ending: Ending? = null,
+)
 
 /** One past turn, as the model should remember it. */
 data class Exchange(val fromLearner: Boolean, val text: String)

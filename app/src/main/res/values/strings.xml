@@ -39,7 +39,10 @@
     <string name="capture_repeat_paused">Saying it again, paused — %1$s</string>
     <string name="capture_pause">Pause</string>
     <string name="capture_resume">Carry on</string>
-    <string name="capture_full">Ceiling reached: a turn stops at %1$d seconds while the analysis pass is not windowed.</string>
+    <string name="capture_clock">%1$s of %2$s</string>
+    <string name="capture_clocks">%1$s of %2$s — silence %3$s of %4$s</string>
+    <string name="capture_ended_length">Your turn was sent: it reached the time it had.</string>
+    <string name="capture_ended_silence">Your turn was sent: the silence ran on.</string>
     <string name="capture_redo">Redo</string>
     <string name="capture_send">Send</string>
     <string name="capture_permission">Speakup needs the microphone to hear your turn.</string>

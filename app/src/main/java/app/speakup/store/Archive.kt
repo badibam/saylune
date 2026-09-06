@@ -83,6 +83,10 @@ data class UtteranceRow(
     val text: String,
     /** Where the recording is. Null for the answers, which are not recorded. */
     val said: String?,
+    /** Which capture position was in force. Null on anything that was not recorded. */
+    val capture: String?,
+    /** Which clock closed the turn, or null when a hand sent it. */
+    val ending: String?,
     /** The marks, as the screen shows them. Null when nothing read this. */
     val marking: String?,
     val sounds: String?,
@@ -134,7 +138,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 3)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 4)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -208,12 +212,34 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * Adds what a turn carries about its own recording: the capture position, and which
+         * clock closed it.
+         *
+         * **Every turn carries its capture position**, without which nothing says whether its
+         * silences mean anything, and nothing aggregates across positions. And it carries how
+         * it ended -- sent, or interrupted and by which of the two clocks -- which is a fact
+         * about the recording rather than a measure, read by the language model and by the
+         * sheet of the interrupted turn.
+         *
+         * **Both stay null on the turns already stored, and that is what is true of them.**
+         * They were recorded before either fact existed; writing in the position that happens
+         * to be the default today would say they were caught under a regime nobody chose, and
+         * nothing downstream could tell that apart from a turn that really was.
+         */
+        private val CAPTURE_FACTS = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `utterances` ADD COLUMN `capture` TEXT")
+                db.execSQL("ALTER TABLE `utterances` ADD COLUMN `ending` TEXT")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
-            ).addMigrations(DROP_FORMAT, JUDGED_MARKING).build().also { instance = it }
+            ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS).build().also { instance = it }
         }
     }
 }

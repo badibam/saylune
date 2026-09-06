@@ -3,6 +3,7 @@ package app.speakup.providers
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
+import app.speakup.chain.Present
 import app.speakup.chain.Reply
 import app.speakup.chain.Word
 import app.speakup.keys.Secret
@@ -37,7 +38,9 @@ class OpenaiConversation(
     private val effort: Effort?,
 ) : Conversation {
 
-    override suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply =
+    override suspend fun reply(
+        history: List<Exchange>, heard: List<Word>, titled: String?, present: Present,
+    ): Reply =
         withContext(Dispatchers.IO) {
             val values = store.values().first()
             val key = values[Secret.OpenaiApiKey]
@@ -51,6 +54,7 @@ class OpenaiConversation(
                 history = history,
                 heard = heard,
                 titled = titled,
+                present = present,
                 say = "conversation: asking openai/$model" +
                     (effort?.let { " at ${it.id}" } ?: ""),
             ) {

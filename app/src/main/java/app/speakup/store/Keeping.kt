@@ -6,6 +6,7 @@ import app.speakup.activity.Outcome
 import app.speakup.activity.Prescriber
 import app.speakup.activity.Settings
 import app.speakup.activity.Status
+import app.speakup.capture.Ending
 import app.speakup.conversation.Speaker
 import app.speakup.conversation.Utterance
 import org.json.JSONObject
@@ -65,6 +66,8 @@ internal fun Utterance.row(rank: Int) = UtteranceRow(
     speaker = speaker.name,
     text = text,
     said = said?.path,
+    capture = capture,
+    ending = ending?.name,
     marking = marking?.let { Marks.write(it) },
     sounds = marking?.let { Marks.writeSounds(sounds) },
     model = model?.path,
@@ -90,6 +93,9 @@ internal fun UtteranceRow.utterance() = Utterance(
     activity = activity,
     text = text,
     said = said?.let { File(it) }?.takeIf { it.isFile },
+    capture = capture,
+    // By name and never by ordinal, like every other enum that travels through here.
+    ending = ending?.let { Ending.valueOf(it) },
     marking = marking?.let { Marks.read(it) },
     sounds = sounds?.let { Marks.readSounds(it) }.orEmpty(),
     model = model?.let { File(it) }?.takeIf { it.isFile },

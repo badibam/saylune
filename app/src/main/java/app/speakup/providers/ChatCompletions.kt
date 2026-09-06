@@ -2,6 +2,7 @@ package app.speakup.providers
 
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Exchange
+import app.speakup.chain.Present
 import app.speakup.chain.Reply
 import app.speakup.chain.Word
 import app.speakup.debug.Trace
@@ -32,19 +33,20 @@ internal object ChatCompletions {
         history: List<Exchange>,
         heard: List<Word>,
         titled: String?,
+        present: Present,
         say: String,
         extra: JSONObject.() -> Unit,
     ): Reply {
         val transcript = heard.joinToString(" ") { it.text }
         Trace.add(
             say,
-            "system prompt" to ConversationPrompt.system(titled),
+            "system prompt" to ConversationPrompt.system(titled, present),
             "turns of history" to history.size.toString(),
             "transcript" to transcript,
         )
 
         val messages = JSONArray().apply {
-            put(ConversationPrompt.message("system", ConversationPrompt.system(titled)))
+            put(ConversationPrompt.message("system", ConversationPrompt.system(titled, present)))
             history.forEachIndexed { at, exchange ->
                 if (exchange.fromLearner) put(ConversationPrompt.message("user", exchange.text))
                 else put(ConversationPrompt.message("assistant", ConversationPrompt.answered(history, at)))

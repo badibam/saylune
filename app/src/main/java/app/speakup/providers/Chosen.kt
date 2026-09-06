@@ -4,6 +4,7 @@ import android.content.Context
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
+import app.speakup.chain.Present
 import app.speakup.chain.Recognition
 import app.speakup.chain.Reply
 import app.speakup.chain.Synthesis
@@ -42,11 +43,13 @@ class ChosenRecognition(private val store: SecretStore) : Recognition {
 
 class ChosenConversation(private val store: SecretStore) : Conversation {
 
-    override suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply {
+    override suspend fun reply(
+        history: List<Exchange>, heard: List<Word>, titled: String?, present: Present,
+    ): Reply {
         val values = store.values().first()
         val (provider, model) = pick(Task.Conversation, values)
         return conversationBy(store, provider, model, effortFor(provider, values))
-            .reply(history, heard, titled)
+            .reply(history, heard, titled, present)
     }
 }
 

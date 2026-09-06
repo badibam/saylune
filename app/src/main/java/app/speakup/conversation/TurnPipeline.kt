@@ -4,9 +4,11 @@ import android.content.Context
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
+import app.speakup.chain.Present
 import app.speakup.chain.Recognition
 import app.speakup.chain.Word
 import app.speakup.activity.Activity
+import app.speakup.capture.Ending
 import app.speakup.capture.Playback
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Analysis
@@ -67,6 +69,23 @@ data class Utterance(
     /** The recording it was said in. The answers of the model have none. */
     val said: File? = null,
     /**
+     * Which capture position was in force, or null on anything that was not recorded.
+     *
+     * **Every turn carries its own**, because it is what says whether its silences mean
+     * anything, and **nothing aggregates across positions**: adding a turn caught at the
+     * thumb to one caught automatically gives a figure that looks like fluency without being
+     * it (`docs/design/activity-model.md`).
+     */
+    val capture: String? = null,
+    /**
+     * How it ended: null for a turn sent by hand, otherwise which clock closed it.
+     *
+     * A fact about the recording and not a measure, at the capture position's side. Two
+     * readers: the language model, whom it forbids to complete an unfinished sentence, and
+     * the sheet of the interrupted turn.
+     */
+    val ending: Ending? = null,
+    /**
      * What was marked and what was measured, or null when nothing read this.
      *
      * Null is not "nothing to report": a turn the gate held back and a turn read clean must
@@ -114,6 +133,16 @@ data class Utterance(
     val engine: String? = null,
 )
 
+/**
+ * A take that has not got through the chain, with the facts it was recorded under.
+ *
+ * The audio alone was not enough: a retry after a link gave way has to send the **same turn**,
+ * and a turn resent without its capture position and its ending would look hand-sent -- so
+ * the sheet of the interrupted turn and the instruction that forbids completing an unfinished
+ * sentence would both read something that never happened.
+ */
+data class Pending(val audio: File, val capture: String?, val ending: Ending?)
+
 data class ConversationState(
     /** The conversation itself, which is an activity like any other. */
     val activity: Activity = Activity.conversation(),
@@ -129,7 +158,7 @@ data class ConversationState(
     /** The provider's own words when a link gave way. Cleared by the next attempt. */
     val failure: String? = null,
     /** Kept so a failed send is retried without saying the sentence again. */
-    val pending: File? = null,
+    val pending: Pending? = null,
     /**
      * Which recording a manual gesture plays: the voice being imitated, or one's own.
      *
@@ -329,18 +358,34 @@ class TurnPipeline(
     /** Every conversation, most recent first, for the list to draw. */
     fun conversations() = archive.conversations()
 
-    /** Run [audio] through the chain, or run again what a previous failure left pending. */
-    suspend fun submit(audio: File? = null) = writing.withLock { submitLocked(audio) }
+    /**
+     * Run [audio] through the chain, or run again what a previous failure left pending.
+     *
+     * [capture] and [ending] are the two facts the recording carries: which position was in
+     * force, and which clock closed the turn when one did. They are held on the pending take
+     * as well, so a retry after a link gave way sends the same turn with the same facts
+     * rather than a turn that looks hand-sent.
+     */
+    suspend fun submit(
+        audio: File? = null, capture: String? = null, ending: Ending? = null,
+    ) = writing.withLock { submitLocked(audio, capture, ending) }
 
-    private suspend fun submitLocked(audio: File?) {
-        val turn = audio ?: _state.value.pending ?: return
+    private suspend fun submitLocked(audio: File?, capture: String?, ending: Ending?) {
+        val held = _state.value.pending
+        val turn = audio ?: held?.audio ?: return
+        // A retry carries the facts the take was recorded under, never fresh ones.
+        val position = if (audio == null) held?.capture else capture
+        val closedBy = if (audio == null) held?.ending else ending
         Trace.turn()
         Trace.add(
             if (audio == null) "turn: sending again what was kept" else "turn: a new recording",
             "file" to turn.path,
             "bytes" to turn.length().toString(),
         )
-        _state.update { it.copy(phase = Phase.Hearing, failure = null, pending = turn) }
+        _state.update {
+            it.copy(phase = Phase.Hearing, failure = null,
+                    pending = Pending(turn, position, closedBy))
+        }
         try {
             val heard = recognition.transcribe(turn)
             if (heard.isEmpty()) {
@@ -352,7 +397,11 @@ class TurnPipeline(
 
             _state.update { it.copy(phase = Phase.Thinking) }
             val reply = conversation.reply(
-                _state.value.history(), heard, titled = _state.value.activity.matter.ifBlank { null },
+                _state.value.history(), heard,
+                titled = _state.value.activity.matter.ifBlank { null },
+                // What governs this turn: the levers the model holds, and how the recording
+                // stopped -- which the app knows and does not leave it to guess.
+                present = Present(_state.value.positions, closedBy),
             )
 
             // The two utterances are held by identity from here on. Their place in the run is
@@ -363,6 +412,8 @@ class TurnPipeline(
                 activity = _state.value.activity.id,
                 text = reply.judged.intended,
                 said = turn,
+                capture = position,
+                ending = closedBy,
                 judged = reply.judged,
             )
             val answer = Utterance(
@@ -423,7 +474,7 @@ class TurnPipeline(
                 it.copy(
                     phase = Phase.Idle,
                     failure = failure.message,
-                    pending = turn,
+                    pending = Pending(turn, position, closedBy),
                 )
             }
         }
@@ -555,9 +606,11 @@ class TurnPipeline(
      * fault must produce the same mark at any moment, so a second take is read exactly like a
      * first -- and the earlier reading stays where it was rather than being overwritten.
      */
-    suspend fun redo(of: String, audio: File) = writing.withLock { redoLocked(of, audio) }
+    suspend fun redo(
+        of: String, audio: File, capture: String? = null, ending: Ending? = null,
+    ) = writing.withLock { redoLocked(of, audio, capture, ending) }
 
-    private suspend fun redoLocked(of: String, audio: File) {
+    private suspend fun redoLocked(of: String, audio: File, capture: String?, ending: Ending?) {
         val spoken = _state.value.utterances.firstOrNull { it.id == of } ?: return
         val model = _state.value.modelOf(of) ?: return
         // Its own clock: this is pipe B alone, and timing it from the conversation turn it
@@ -580,6 +633,8 @@ class TurnPipeline(
                 activity = spoken.activity,
                 text = spoken.text,
                 said = audio,
+                capture = capture,
+                ending = ending,
                 marking = analysed.marking,
                 sounds = analysed.sounds,
                 take = stamp,

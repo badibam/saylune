@@ -3,6 +3,7 @@ package app.speakup.providers
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
+import app.speakup.chain.Present
 import app.speakup.chain.Reply
 import app.speakup.chain.Word
 import app.speakup.debug.Trace
@@ -31,7 +32,9 @@ internal class ReplicateConversation(
     private val model: String,
 ) : Conversation {
 
-    override suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply {
+    override suspend fun reply(
+        history: List<Exchange>, heard: List<Word>, titled: String?, present: Present,
+    ): Reply {
         val transcript = heard.joinToString(" ") { it.text }
         Trace.add(
             "conversation: asking replicate/$model",
@@ -49,7 +52,7 @@ internal class ReplicateConversation(
         }
 
         val input = JSONObject()
-            .put("system_prompt", ConversationPrompt.system(titled) + ConversationPrompt.JSON_ONLY)
+            .put("system_prompt", ConversationPrompt.system(titled, present) + ConversationPrompt.JSON_ONLY)
             .put("messages", messages)
             // The whole point of this route. The task is judgement against a written
             // instruction, not a problem to work through, and the measurements say the

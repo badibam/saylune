@@ -50,7 +50,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
+import app.speakup.capture.Capture
+import app.speakup.capture.Ending
 import app.speakup.levers.At
+import app.speakup.levers.Count
+import app.speakup.levers.Positions
 import app.speakup.levers.Levers
 import app.speakup.conversation.TurnPipeline
 import app.speakup.capture.Playback
@@ -99,6 +103,59 @@ fun ConversationScreen(
     // the status line name what is running, without which two shared buttons would be
     // ambiguous. Saveable: a rotation must not turn a repeat into a new turn.
     var repeating by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // The sitting's capture, read in one place: which position, what the two clocks are set
+    // to, and whether a take may be thrown away. Every button below reads these rather than
+    // asking the catalogue itself, so no two of them can disagree about the position.
+    val position = (turn.positions.of(Levers.CAPTURE.key) as? At)?.name ?: Levers.BY_HAND
+    val arms = position != Levers.BY_HAND
+    val settings = Capture(
+        ceilingMs = seconds(turn.positions, Levers.TURN_LENGTH.key, TurnRecorder.CEILING_MS),
+        // Null wherever the silence does not send, which is the first two positions: there
+        // the learner is the only one who sends. Not zero -- zero would send at once.
+        sendsAfterMs =
+            if (position == Levers.ARMED_AND_SENDING)
+                seconds(turn.positions, Levers.SILENCE_THRESHOLD.key, 5_000)
+            else null,
+    )
+
+    // **`SEND` exists at all three positions**, and what changes from one to the next is what
+    // *arms* the mic, never what sends. So one lambda, called by the button and by the clock
+    // alike, and the take goes wherever `repeating` says.
+    val send: () -> Unit = {
+        scope.launch {
+            val said = repeating
+            // Read before `send` clears the state: the two facts belong to the take, and
+            // the take is about to stop existing as a recording in progress.
+            val ending = capture.ending
+            recorder.send()?.let { file ->
+                if (said != null) pipeline.redo(said, file, position, ending)
+                else pipeline.submit(file, position, ending)
+            }
+            repeating = null
+        }
+    }
+
+    // **A clock closed the turn**: it is truncated and sent as it stands, never cut into two
+    // turns. Sending is the same gesture the hand would have made, so it is the same lambda.
+    LaunchedEffect(capture.ending) { if (capture.ending != null) send() }
+
+    // **The mic never arms before the AI has finished answering**, and it never arms on its
+    // own while a passage waits for a repair -- which is what recreates the press a passage
+    // closes on. The second half has nothing to read yet: the passage's four states arrive
+    // with step 13, and until then nothing ever waits, so this reads false and is written
+    // down as owed (`../../../../../../TODO.md`).
+    val repairWaits = false
+    LaunchedEffect(arms, busyOf(turn.phase), repairWaits, turn.utterances.size) {
+        if (!arms || repairWaits || turn.phase != Phase.Idle) return@LaunchedEffect
+        if (capture.recording || capture.hasAudio) return@LaunchedEffect
+        // The preparation: the time between the end of the AI's answer and the mic being
+        // armed. It lives outside the turn, so it touches no measure.
+        val wait = seconds(turn.positions, Levers.PREPARATION.key, 0)
+        if (wait > 0) kotlinx.coroutines.delay(wait.toLong())
+        repeating = null
+        recorder.open(scope, settings)
+    }
 
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(24.dp),
@@ -157,7 +214,7 @@ fun ConversationScreen(
                 // is `repeating` that says where the take goes when it does.
                 onOpenRepeat = {
                     repeating = spoken.id
-                    recorder.open(scope)
+                    recorder.open(scope, settings)
                 },
             )
         }
@@ -221,17 +278,27 @@ fun ConversationScreen(
             },
             modifier = Modifier
                 .size(150.dp)
-                .clickable(enabled = !busy && !recordingSomething && !capture.full) {
+                .clickable(enabled = !busy && !recordingSomething) {
                     repeating = null
-                    recorder.open(scope)
+                    recorder.open(scope, settings)
                 },
         ) {}
 
-        if (capture.full) {
+        // **The two countdowns, visible at all times** -- the turn's time and the silence
+        // running now. Two times running out, shown the same way. The silence one only shows
+        // where a silence sends, there being no countdown otherwise.
+        if (capture.recording) {
             Text(
-                stringResource(R.string.capture_full, TurnRecorder.CEILING_MS / 1000),
+                if (settings.sendsAfterMs != null) stringResource(
+                    R.string.capture_clocks,
+                    seconds(capture.elapsedMs), seconds(settings.ceilingMs),
+                    seconds(capture.silenceMs), seconds(settings.sendsAfterMs),
+                ) else stringResource(
+                    R.string.capture_clock,
+                    seconds(capture.elapsedMs), seconds(settings.ceilingMs),
+                ),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
         }
@@ -262,19 +329,20 @@ fun ConversationScreen(
             }
             // Absent and not greyed when nothing records: there is no take to send.
             if (capture.hasAudio && !busy) {
-                OutlinedButton(onClick = { recorder.discard(); repeating = null }) {
-                    Text(stringResource(R.string.capture_redo))
-                }
-                Button(onClick = {
-                    scope.launch {
-                        val said = repeating
-                        recorder.send()?.let { file ->
-                            if (said != null) pipeline.redo(said, file)
-                            else pipeline.submit(file)
-                        }
-                        repeating = null
+                // **Throwing a take away is a lever**, `jeter-la-prise`. Offered freely it
+                // walks around the attempt counters -- a challenge granting one attempt could
+                // be restarted ten times -- so a challenge has to be able to close it. It has
+                // **no object at the third position**, where a clock sends too: the silence
+                // one hesitates through is what sends the take, so the button would be a race
+                // against the pendulum, lost by whoever thinks.
+                val mayDiscard = turn.positions.live(Levers.DISCARD_TAKE.key) &&
+                    (turn.positions.of(Levers.DISCARD_TAKE.key) as? At)?.name == "permis"
+                if (mayDiscard) {
+                    OutlinedButton(onClick = { recorder.discard(); repeating = null }) {
+                        Text(stringResource(R.string.capture_redo))
                     }
-                }) {
+                }
+                Button(onClick = send) {
                     Text(stringResource(R.string.capture_send))
                 }
             }
@@ -555,6 +623,21 @@ private fun Said(
                 )
             }
         }
+        // **A turn a clock closed says so, on itself**: it is truncated and sent as it
+        // stands, and someone who does not know that reads a sentence that stops mid-word as
+        // the app having lost half of it.
+        spoken.ending?.let { ending ->
+            Text(
+                stringResource(
+                    when (ending) {
+                        Ending.ByLength -> R.string.capture_ended_length
+                        Ending.BySilence -> R.string.capture_ended_silence
+                    }
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         // The spans are marked and this only says that something was: drawing them on the
         // letters is the redrawn marked turn, further down the plan. Until then the line
         // says as much as the boolean it replaced, off data that says far more.
@@ -569,3 +652,16 @@ private fun Said(
 }
 
 private fun seconds(ms: Int): String = "%.1f s".format(ms / 1000f)
+
+/** Whether the chain holds the screen. Named so an effect can key on it. */
+private fun busyOf(phase: Phase): Boolean = phase != Phase.Idle
+
+/**
+ * A numeric lever read in milliseconds, or [fallback] when it carries no number.
+ *
+ * A lever with no number is one whose position is *no maximum* -- the shape the catalogue
+ * gives to a ceiling that does not exist. The clocks want a number either way, so the caller
+ * says what standing for *no limit* means to it.
+ */
+private fun seconds(positions: Positions, key: String, fallback: Int): Int =
+    (positions.of(key) as? Count)?.n?.times(1000) ?: fallback

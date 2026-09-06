@@ -38,7 +38,10 @@
     <string name="capture_repeat_paused">Redite, en pause — %1$s</string>
     <string name="capture_pause">Pause</string>
     <string name="capture_resume">Continuer</string>
-    <string name="capture_full">Plafond atteint : un tour s\'arrête à %1$d secondes tant que la passe d\'analyse n\'est pas fenêtrée.</string>
+    <string name="capture_clock">%1$s sur %2$s</string>
+    <string name="capture_clocks">%1$s sur %2$s — silence %3$s sur %4$s</string>
+    <string name="capture_ended_length">Ton tour est parti : il a atteint le temps qu\'il avait.</string>
+    <string name="capture_ended_silence">Ton tour est parti : le silence a duré.</string>
     <string name="capture_redo">Refaire</string>
     <string name="capture_send">Envoyer</string>
     <string name="capture_permission">Speakup a besoin du micro pour entendre ton tour.</string>

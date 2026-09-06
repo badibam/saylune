@@ -3,7 +3,8 @@ package app.speakup.providers
 import app.speakup.chain.Exchange
 import app.speakup.levers.Levers
 import app.speakup.levers.Position
-import app.speakup.levers.Positions
+import app.speakup.capture.Ending
+import app.speakup.chain.Present
 import app.speakup.levers.Stepped
 import app.speakup.sheets.Sheets
 import org.json.JSONObject
@@ -153,20 +154,36 @@ internal object ConversationPrompt {
      * by a message, in an author's words. Pasting the state here permanently would make it
      * react always, in every scene, without anyone having wanted it to.
      */
-    fun present(positions: Positions): String {
-        val asked = Levers.all
+    fun present(present: Present): String {
+        val lines = mutableListOf<String>()
+        Levers.all
             .filterIsInstance<Stepped>()
-            .filter { it.held == app.speakup.levers.Held.Model && positions.live(it.key) }
-            .mapNotNull { lever ->
-                val name = (positions.of(lever.key) as? Position.At)?.name ?: return@mapNotNull null
-                lever.steps.first { it.name == name }.tells
+            .filter {
+                it.held == app.speakup.levers.Held.Model && present.positions.live(it.key)
             }
-        return if (asked.isEmpty()) "" else "For this turn:\n" + asked.joinToString("\n") { "- $it" }
+            .forEach { lever ->
+                val name = (present.positions.of(lever.key) as? Position.At)?.name
+                    ?: return@forEach
+                lever.steps.first { it.name == name }.tells?.let { lines += it }
+            }
+        // **How the turn ended, told rather than guessed.** The instruction above already
+        // forbids finishing a cut-off turn; this is what says one was cut off, which the
+        // transcript alone cannot -- a sentence that reads whole can have been truncated on
+        // a word the recogniser dropped, and one that reads broken can be how someone talks.
+        present.ending?.let {
+            lines += when (it) {
+                Ending.ByLength -> "The turn you are reading was cut off: the recording " +
+                    "reached the time it was allowed. Treat it as unfinished."
+                Ending.BySilence -> "The turn you are reading was sent because the learner " +
+                    "fell silent. It may be unfinished; treat it as it stands."
+            }
+        }
+        return if (lines.isEmpty()) "" else "For this turn:\n" + lines.joinToString("\n") { "- $it" }
     }
 
     /** The whole instruction: part 1, then part 2, then part 4. Part 3 is the message list. */
-    fun system(titled: String?, positions: Positions = Positions()): String =
-        listOf(APP, activity(titled), present(positions))
+    fun system(titled: String?, present: Present = Present()): String =
+        listOf(APP, activity(titled), present(present))
             .filter { it.isNotBlank() }
             .joinToString("\n\n")
 
