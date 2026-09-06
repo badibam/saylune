@@ -219,7 +219,7 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 
 Recompté le 2026-09-06 sur le pire écran, et le cas se détend : l'étiquette porte un nom de locuteur — `You` / `Speakup` aujourd'hui, le nom du personnage demain — donc `Le barman` 9, un blanc, la pastille 1, un blanc, le débit 4 font **quinze colonnes sur les vingt-huit** du pire écran. Il en reste treize de marge, là où le doc craignait de n'en avoir aucune sur seize.
 
-**Quand un nom déborde quand même, le nom se tronque et jamais les marques.** Les marques portent une mesure ; l'étiquette porte une identité qu'on connaît déjà, deux ou trois locuteurs alternant dans une conversation. Une définition déclare donc un **nom court** par personnage, comme elle déclare un titre court, et l'app tronque de toute façon — l'ellipse est dans la police. C'est là que le tour marqué se vérifie, pas seulement à trente-deux colonnes.
+**Quand un nom déborde quand même, le nom se tronque et jamais les marques.** Les marques portent une mesure ; l'étiquette porte une identité qu'on connaît déjà, deux ou trois locuteurs alternant dans une conversation. Une définition déclare donc un **nom court** par personnage, comme elle déclare son propre nom en deux longueurs, et l'app tronque de toute façon — l'ellipse est dans la police. C'est là que le tour marqué se vérifie, pas seulement à trente-deux colonnes.
 
 ## Le doigt
 
@@ -279,7 +279,7 @@ Deux objets distincts remplacent la rangée de boutons de `MainActivity.Root`, e
 
 La première est la **ligne d'état** : le **titre court** à gauche, et à droite, calés, les champs que le mode utilise — les **vies**, le **score**, la **note**. Chaque champ est simplement absent quand le mode ne s'en sert pas, dans un ordre fixe pour que rien ne bouge quand une valeur change. Aucun bouton : quatre points d'entrée y prendraient 192 dp sur les 360 de l'écran, et ils seraient loin du pouce.
 
-- Le **titre court** est un champ déclaré par la définition, plafonné à **dix caractères** — ce que la ligne laisse quand la droite est pleine — et tronqué de toute façon à l'affichage. En conversation libre il n'y a pas de définition à nommer : il porte alors **qui on a en face**, ce qui est la porte d'entrée de la rencontre de personnage (`../../NOTES.md`) obtenue sans champ neuf.
+- Le **titre court** est un champ déclaré par la définition, plafonné à **dix caractères** — ce que la ligne laisse quand la droite est pleine. C'est la seconde des deux longueurs qu'une définition déclare, l'autre étant le nom que porte sa tuile : deux lecteurs à deux budgets, et l'auteur choisit ce qui survit à la coupe au lieu de la subir. **Toute définition en déclare un**, celle qui n'a pas de thème comprise, qui s'appelle *Libre* — donc rien n'est anonyme et cette ligne n'a pas de cas à traiter.
 - Les **vies** tiennent dans un champ de **trois colonnes, toujours** : jusqu'à trois, des cœurs, qu'on lit d'un coup sans compter ; au-delà, un cœur et le nombre, `♥15`. L'affichage plafonne à 99, et un défi qui donne plus de 99 vies n'a pas de vies, il a un décor.
 - La **note** est celle de la séance en cours, qui n'a pas de formule à elle : c'est l'agrégation à plat des passages déjà clos (`activity-model.md`). Elle saute pendant les trois premiers, le dénominateur étant petit, et ce n'est pas un défaut à corriger — la masquer dirait *non mesuré*, ce qui serait faux.
 
