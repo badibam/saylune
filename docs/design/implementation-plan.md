@@ -61,15 +61,15 @@ Les deux registres sont écrits, portés par les sept nombres du banc et dériv�
 
 **Avec l'humain.** Les valeurs, au banc, qui ne les porte pas encore. Et **ce qu'elle couvre** : les confusions rouge-vert d'abord, la tritanopie — qui toucherait le bleu du contour de mélodie — couverte ou déclarée hors périmètre.
 
-### 9. Les feuilles calculées et la couture d'analyse
+### 9. La couture d'analyse
 
-**Ce que ça fait.** `examine(said, model, text, kept)` : `text` reste la chaîne affichée où toutes les marques s'indexent et porte maintenant les hésitations, `kept` dit les morceaux sur lesquels le modèle a été synthétisé. La voix modèle ne dit que les mots retenus, l'apprenant s'aligne sur tout ce qu'il a dit. Puis les quatre feuilles calculées de la fluidité : la continuité, avec le seuil de pause et le délai de grâce d'une seconde aux deux bords ; le plus long silence ; le débit, sur les seuls mots retenus des deux côtés ; le remplissage et les reprises, déplié depuis le bafouillage jugé.
+Les quatre feuilles calculées sont écrites (`fluency/Fluency.kt`), et la traduction d'un offset du texte retenu vers le tour entier aussi (`judged/Kept.kt`). Ce qui reste est de les brancher.
 
-**Ce qui se prouve.** Que rien n'est compté deux fois — la continuité possède le silence entre les mots, le plus long silence possède le blocage, le débit ne lit que le temps où la bouche articule, le remplissage possède les hésitations. Que le délai de grâce ne touche pas ce qu'une condition lit. Qu'un écart négatif de continuité tombe au-dessus de la borne A sans écrêtage. Que la continuité et le débit sont **absentes** sur un tour sans mot retenu, et non nulles.
+**Ce que ça fait.** `examine(said, model, text, kept)` : `text` reste la chaîne affichée où toutes les marques s'indexent et porte les hésitations, `kept` dit les morceaux sur lesquels le modèle a été synthétisé. Le modèle ne se synthétise plus que sur le texte retenu ; sa grille se joint à ce texte-là, et ses offsets reviennent au tour entier **avant** `Added.found`, qui compare les deux jonctions et exige qu'elles soient dans le même repère — la jonction de l'apprenant, elle, se fait sur le texte entier, puisqu'il a tout dit. Puis les **temps par mot** se tirent des sons (`saidMs`, `modelMs` et leurs offsets de caractères) pour remplir `Fluency.Turn`.
 
-**Avec l'humain.** Le **seuil de la pause**, que le doc pose à 200 ms et veut au-dessus de la plus longue fermeture d'occlusive : la mesure décide, et elle remonte si elle ne tranche pas.
+**Ce qui se prouve.** Que les marques restent sur leurs lettres quand le tour porte des hésitations — c'est-à-dire que le remap est bien posé avant ce qui compare les deux jonctions.
 
-**Ce que ça laisse dû.** Le prix des coutures — un ou deux sons comparés hors de leur contexte à la jointure d'un morceau abandonné et d'un morceau retenu. Mesuré comme ne se propageant pas, et annulé par la redite.
+**Avec l'humain.** Le **seuil de la pause**, que le doc pose à 200 ms et veut au-dessus de la plus longue fermeture d'occlusive. Il est mesurable sur les prises gardées du téléphone, qui portent les temps par son : à faire plutôt qu'à laisser posé à la main.
 
 ### 10. La capture en trois positions et l'audio en segments
 
