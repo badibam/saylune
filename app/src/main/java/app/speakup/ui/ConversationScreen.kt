@@ -327,7 +327,11 @@ fun ConversationScreen(
                 OutlinedButton(
                     enabled = capture.recording || (capture.hasAudio && !busy),
                     onClick = {
-                        if (capture.recording) recorder.pause() else recorder.open(scope)
+                        // With the sitting's clocks, like every other opening: carrying on
+                        // resumes the same turn, and a turn does not change how long it may
+                        // run because the thumb stopped it once.
+                        if (capture.recording) recorder.pause()
+                        else recorder.open(scope, settings)
                     },
                 ) {
                     Text(
