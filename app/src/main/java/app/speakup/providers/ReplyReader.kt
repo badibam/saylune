@@ -6,6 +6,7 @@ import app.speakup.debug.Trace
 import app.speakup.judged.Judgement
 import app.speakup.judged.Marked
 import app.speakup.judged.Span
+import app.speakup.judged.Unreadable
 import app.speakup.judged.unfold
 import app.speakup.sheets.Reading
 import app.speakup.sheets.Sheets
@@ -65,7 +66,14 @@ internal object ReplyReader {
         runCatching { judged.words() }.onFailure {
             Trace.fail("conversation: a marking does not fit its own text",
                        "why" to it.message, "content" to content)
-            throw ChainFailure("the model marked outside the words it wrote")
+            // The two ways a marking is unreadable send whoever reads the failure to two
+            // different places, so they are not given the same sentence.
+            throw ChainFailure(
+                when ((it as? Unreadable)?.kind) {
+                    Unreadable.Kind.Notch -> "the model marked with a notch that does not exist"
+                    else -> "the model marked outside the words it wrote"
+                }
+            )
         }
 
         val echo = parsed.optString("echo").trim().ifBlank { null }

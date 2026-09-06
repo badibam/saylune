@@ -91,8 +91,14 @@ internal object ConversationPrompt {
         "spans": the groups of words worth marking, as a list. Each is
         {"from": <int>, "to": <int>, "correctness": <notch>, "relevance": <notch>} where
         "from" and "to" are character offsets into "intended", "from" included and "to"
-        excluded, and both must fall exactly on a word boundary. Mark only what is worth
-        marking: a word in no span counts as "ok" on both scales. Correctness notches are
+        excluded, and both must fall exactly on a word boundary. A word is a run of
+        characters with no space in it, so whatever punctuation touches a word belongs to
+        that word: "from" is the first character of the first word, and "to" is one past
+        the last character of the last word -- past its comma or full stop, and never on
+        the space that follows. In "Well, what's your expertise domain?", the group
+        "expertise domain?" is {"from": 18, "to": 35}: not 34, which would stop before the
+        question mark, and not 36, which is past the end. Mark only what is worth marking:
+        a word in no span counts as "ok" on both scales. Correctness notches are
         "not-said", "malformed", "ok"; relevance notches are "off-target", "flat", "ok",
         "apt".
 

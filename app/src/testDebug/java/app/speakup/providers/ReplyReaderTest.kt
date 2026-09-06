@@ -83,15 +83,28 @@ class ReplyReaderTest {
         }.isFailure)
     }
 
-    @Test fun `bounds that miss a word boundary are a failure at the seam`() {
+    @Test fun `bounds that cut a word in half are a failure at the seam`() {
         // Read downstream, a mark sliding inside a word would be indistinguishable from a
         // mark the judge meant. The place to say so is the seam that read it.
         assertTrue(runCatching {
             ReplyReader.read(
-                answer(spans = """[{"from":1,"to":4,"correctness":"malformed","relevance":"ok"}]"""),
+                answer(spans = """[{"from":0,"to":3,"correctness":"malformed","relevance":"ok"}]"""),
                 "i go there yesterday",
             )
         }.isFailure)
+    }
+
+    @Test fun `a bound beside the word it names is settled onto it`() {
+        // Measured on the device: the model stops before the full stop, or runs on to the
+        // next word. Neither names a different set of words, so the seam settles the bound
+        // instead of throwing the whole turn away over one character.
+        val reply = ReplyReader.read(
+            answer(intended = "I go there yesterday.",
+                   spans = """[{"from":0,"to":5,"correctness":"malformed","relevance":"ok"}]"""),
+            "i go there yesterday",
+        )
+        assertEquals(listOf("malformed", "malformed", "ok", "ok"),
+                     reply.judged.words().correctness.map { it.notch })
     }
 
     @Test fun `an echo comes back only when something was marked`() {

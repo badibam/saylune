@@ -78,6 +78,37 @@ fun words(text: String): List<IntRange> {
 }
 
 /**
+ * A marking the app cannot read, and which of the two ways it is unreadable.
+ *
+ * The two are told apart because they say different things to whoever reads the failure: a
+ * notch outside the catalogue is a contract broken on a name, a bound off the words is a
+ * contract broken on arithmetic. One message for both sent every such failure to the wrong
+ * place to look.
+ */
+class Unreadable(val kind: Kind, message: String) : IllegalArgumentException(message) {
+    enum class Kind { Notch, Bounds }
+}
+
+/**
+ * The nearest word boundary [at] can be moved to without changing which letters are covered.
+ *
+ * Null when there is none, which is what fails the marking.
+ *
+ * [starts] picks the side: a span's `from` settles on the first character of a word, its `to`
+ * one past the last. Only boundaries reachable across characters that are **neither letter
+ * nor digit** are candidates, so the move can add or drop punctuation and whitespace and
+ * nothing else. A run without letters holds no word, so no word can be gained or lost.
+ */
+private fun snap(text: String, words: List<IntRange>, at: Int, starts: Boolean): Int? =
+    if (at !in 0..text.length) null
+    else words
+        .map { if (starts) it.first else it.last + 1 }
+        .filter { edge ->
+            text.substring(minOf(edge, at), maxOf(edge, at)).none { it.isLetterOrDigit() }
+        }
+        .minByOrNull { kotlin.math.abs(it - at) }
+
+/**
  * Every word of [text] with the notch it carries, once [spans] are unfolded onto it.
  *
  * Three rules, and all three come from the doc.
@@ -88,10 +119,20 @@ fun words(text: String): List<IntRange> {
  * **A word carrying nothing takes [fallback]**, which is a notch like any other and never an
  * absence -- `ok` for the two language scales, `kept` for the stumbling.
  *
- * **The bounds must land on word boundaries.** They come from a model, so they can be wrong,
- * and a bound falling inside a word would slide the mark onto letters the judge never named.
- * It fails outright rather than rounding: rounding would put a mark somewhere plausible and
- * nothing downstream could tell it apart from a mark the judge meant.
+ * **The bounds must name whole words, and a bound is settled onto them when nothing but
+ * punctuation and whitespace separates it from one.** They come from a model, so they can be
+ * wrong, and a bound falling inside a word would slide the mark onto letters the judge never
+ * named: that fails outright rather than rounding, because rounding would put a mark
+ * somewhere plausible and nothing downstream could tell it apart from a mark the judge meant.
+ *
+ * Settling is not that rounding, and the difference is the whole reason it is allowed. A word
+ * here is a run of non-whitespace, so punctuation travels with the word it touches -- which
+ * makes two honest readings of "on a word boundary" wrong: stopping before the full stop of
+ * `domain?`, and running on to the first letter of the next word. Both were measured coming
+ * back from the model, in the same sitting, one each way (2026-09-07). Neither names a
+ * different set of words: what [snap] may cross carries no letter and no digit, so the mark
+ * lands on exactly the words the judge picked, and a bound that would gain or lose one letter
+ * still fails.
  */
 fun unfold(
     text: String,
@@ -100,16 +141,22 @@ fun unfold(
     fallback: String,
 ): List<Word> {
     val words = words(text)
-    spans.forEach { span ->
-        require(span.notch in precedence) {
-            "'${span.notch}' is not one of $precedence"
+    val settled = spans.map { span ->
+        if (span.notch !in precedence) {
+            throw Unreadable(Unreadable.Kind.Notch, "'${span.notch}' is not one of $precedence")
         }
-        require(words.any { it.first == span.from } && words.any { it.last + 1 == span.to }) {
-            "a span of ${span.from}..${span.to} does not land on word boundaries of \"$text\""
+        val from = snap(text, words, span.from, starts = true)
+        val to = snap(text, words, span.to, starts = false)
+        if (from == null || to == null || from >= to) {
+            throw Unreadable(
+                Unreadable.Kind.Bounds,
+                "a span of ${span.from}..${span.to} does not name whole words of \"$text\"",
+            )
         }
+        span.copy(from = from, to = to)
     }
     return words.map { word ->
-        val carried = spans
+        val carried = settled
             .filter { it.from <= word.first && word.last < it.to }
             .map { it.notch }
         Word(word, carried.minByOrNull(precedence::indexOf) ?: fallback)

@@ -67,15 +67,42 @@ class UnfoldTest {
         )
     }
 
-    @Test fun `bounds that miss a word boundary fail outright`() {
+    @Test fun `bounds that cut a word in half fail outright`() {
         val text = "I go there yesterday"
         // Rounding would put the mark somewhere plausible, and nothing downstream could tell
-        // it apart from a mark the judge meant.
-        assertTrue(runCatching {
-            unfoldWith(text, listOf(Marked(1, 4, "malformed")), correctness)
-        }.isFailure)
+        // it apart from a mark the judge meant. Both bounds here would have to cross a letter
+        // to reach a word, which is exactly what settling may not do.
         assertTrue(runCatching {
             unfoldWith(text, listOf(Marked(0, 3, "malformed")), correctness)
+        }.isFailure)
+        assertTrue(runCatching {
+            unfoldWith(text, listOf(Marked(3, 10, "malformed")), correctness)
+        }.isFailure)
+    }
+
+    @Test fun `a bound settles onto the word when only spaces and punctuation separate them`() {
+        // The two shapes measured coming back from the model in one sitting (2026-09-07), one
+        // each way: a "to" that stops before the full stop, and a "to" that runs on to the
+        // next word. Neither names a different set of words, so neither is a failure.
+        val short = "Well, what's your expertise domain?"
+        assertEquals(
+            listOf("ok", "ok", "ok", "apt", "apt"),
+            unfoldWith(short, listOf(Marked(18, 34, "apt")), relevance).map { it.notch },
+        )
+        val long = "Please challenge me by ask me asking me questions on your domain."
+        assertEquals(
+            listOf("ok", "ok", "ok", "malformed", "malformed", "malformed", "malformed",
+                   "malformed", "ok", "ok", "ok", "ok"),
+            unfoldWith(long, listOf(Marked(20, 40, "malformed")), correctness).map { it.notch },
+        )
+    }
+
+    @Test fun `settling may not swallow a word`() {
+        // A "to" one letter short of the word's end reads as a different group, and there is
+        // no way to tell which of the two the judge meant. It fails rather than pick.
+        val text = "Yeah, I went there last summer."
+        assertTrue(runCatching {
+            unfoldWith(text, listOf(Marked(0, 3, "flat")), relevance)
         }.isFailure)
     }
 
