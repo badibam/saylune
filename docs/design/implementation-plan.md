@@ -51,16 +51,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ## Les étapes
 
-### 7. La rechange daltonisme
-
-Les deux registres sont écrits, portés par les sept nombres du banc et dérivés d'eux. Ce qui reste est la moitié qui n'a aucune valeur nulle part.
-
-**Ce que ça fait.** Une palette de rechange, en préférence utilisateur, qui tient **la même règle de marquage** — la distance perceptuelle OKLab sur le premier cran, dans les deux registres — et qui trouve pour les crochets deux teintes restant séparées sous la perception visée.
-
-**Pourquoi avant l'étape 16.** Le cas qui l'exige est le pire du doc : *juste* et *à côté* sont la même forme et deux verdicts opposés, séparés par la seule couleur. En deutéranopie la marque d'une réussite devient celle d'une faute. Si les crochets naissent d'abord, ils se posent sur une rampe qu'on remplace ensuite.
-
-**Avec l'humain.** Les valeurs, au banc, qui ne les porte pas encore. Et **ce qu'elle couvre** : les confusions rouge-vert d'abord, la tritanopie — qui toucherait le bleu du contour de mélodie — couverte ou déclarée hors périmètre.
-
 ### 9. La couture d'analyse
 
 Les quatre feuilles calculées sont écrites (`fluency/Fluency.kt`), et la traduction d'un offset du texte retenu vers le tour entier aussi (`judged/Kept.kt`). Ce qui reste est de les brancher.
