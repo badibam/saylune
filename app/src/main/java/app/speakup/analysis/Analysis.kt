@@ -102,6 +102,16 @@ data class Analysed(
     val marking: TurnMarking,
     val dropped: Int,
     /**
+     * How long each of the two recordings runs, in milliseconds.
+     *
+     * They are what a *share* of the turn is taken of, so the fluency sheets cannot be read
+     * without them -- and they are read off the very pass that produced everything else here
+     * rather than asked of the files again, which is what keeps a duration and the spans
+     * inside it on one clock.
+     */
+    val recorded: Int,
+    val rendered: Int,
+    /**
      * What was found, sound by sound -- of which [marking] is the *drawn* view.
      *
      * Not a debug extra. Saying a sentence again needs exactly this to make the model and
@@ -126,8 +136,16 @@ data class Analysed(
     val freely: List<Heard>,
 )
 
-/** One sound of the learner's free decoding, and when it was said. */
-data class Heard(val symbol: String, val at: IntRange)
+/**
+ * One sound of the learner's free decoding: when it was said, and the word it landed on.
+ *
+ * [word] is a range of the displayed text, or null for a sound no word of it could write.
+ * It is the one reading that covers **everything the mouth said**, hesitations included --
+ * the model's grid holds only the kept words -- so it is what says where a filler or an
+ * abandoned start sits in the recording. Nothing else can: the forced alignment has a slot
+ * per sound of the model and none for a word the model never said.
+ */
+data class Heard(val symbol: String, val at: IntRange, val word: IntRange? = null)
 
 /**
  * One sound of the model's grid, and what the two recordings did with it.

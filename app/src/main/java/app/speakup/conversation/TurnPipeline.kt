@@ -14,6 +14,7 @@ import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
 import app.speakup.judged.Judgement
 import app.speakup.judged.Kept
+import app.speakup.judged.Marked
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
 import app.speakup.providers.words
@@ -385,7 +386,8 @@ class TurnPipeline(
             // making the model say a non-phrase would give a non-phrase to imitate. The
             // words' gate, which reads the correctness note at the A-B bar, arrives with the
             // notes -- until then a malformed turn is marked and still measured.
-            val groundless = reply.judged.words().correctness.any { it.notch == "ne-se-dit-pas" }
+            val marked = reply.judged.words()
+            val groundless = marked.correctness.any { it.notch == "ne-se-dit-pas" }
             if (groundless) {
                 Trace.add("turn: no ground for a model, no sound analysis",
                           "said" to reply.judged.intended)
@@ -393,13 +395,15 @@ class TurnPipeline(
                 // the recognition could not have guessed, which is what the fidelity bench
                 // is short of.
                 keep(said.id, Takes.keep(context, turn, null, heard, reply.judged.intended, true,
-                                         null, turn = turnOf(said.id),
+                                         null, stumbling = reply.judged.stumbling,
+                                         turn = turnOf(said.id),
                                          attempt = attemptOf(said.id)))
             } else {
                 examine(
                     of = said.id, said = turn, heard = heard,
                     text = reply.judged.intended,
                     kept = Kept.of(reply.judged.intended, reply.judged.stumbling),
+                    stumbling = reply.judged.stumbling,
                 )
             }
         } catch (failure: ChainFailure) {
@@ -426,11 +430,13 @@ class TurnPipeline(
      */
     private suspend fun examine(
         of: String, said: File, heard: List<Word>, text: String, kept: Kept,
+        stumbling: List<Marked>,
     ) {
         val readiness = _state.value.analysis
             ?: analysis.readiness().also { ready -> _state.update { it.copy(analysis = ready) } }
         if (readiness !is Readiness.On) {
             keep(of, Takes.keep(context, said, null, heard, text, false, null,
+                                stumbling = stumbling,
                                 turn = turnOf(of), attempt = attemptOf(of)))
             return
         }
@@ -443,6 +449,7 @@ class TurnPipeline(
             }
             write(of)
             keep(of, Takes.keep(context, said, model, heard, text, false, analysed,
+                                stumbling = stumbling,
                                 turn = turnOf(of), attempt = attemptOf(of)))
         } catch (failure: ChainFailure) {
             // The model has to be synthesised, so this branch depends on the network the
@@ -551,10 +558,11 @@ class TurnPipeline(
             // from the turn being repeated and never from this take: nothing judges a redo --
             // it is pipe B alone -- so there is no second marking of the stumbling to read,
             // and reading one would set the marks against a model that says something else.
-            val kept = Kept.of(spoken.text, spoken.judged?.stumbling ?: emptyList())
+            val stumbling = spoken.judged?.stumbling ?: emptyList()
+            val kept = Kept.of(spoken.text, stumbling)
             val analysed = analysis.examine(audio, model, spoken.text, kept)
             val stamp = Takes.keep(context, audio, model, emptyList(), spoken.text, false,
-                                   analysed, redo = true,
+                                   analysed, redo = true, stumbling = stumbling,
                                    turn = turnOf(of), attempt = attemptOf(of))
             val again = Utterance(
                 speaker = Speaker.Learner,

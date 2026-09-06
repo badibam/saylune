@@ -4,6 +4,9 @@ import android.content.Context
 import app.speakup.analysis.Analysed
 import app.speakup.chain.Word
 import app.speakup.debug.Trace
+import app.speakup.fluency.Fluency
+import app.speakup.analysis.timed
+import app.speakup.judged.Marked
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -50,6 +53,8 @@ object Takes {
         intended: String,
         faulty: Boolean,
         analysed: Analysed?,
+        /** What the judge marked of the stumbling, which says which words the model said. */
+        stumbling: List<Marked> = emptyList(),
         /** A second take of the same sentence, measured against the same model. */
         redo: Boolean = false,
         /** The turn this repeats, or null when this take is the turn's first. */
@@ -70,6 +75,10 @@ object Takes {
 
             link(said, File(into, "said.wav"))
             model?.copyTo(File(into, "model.wav"), overwrite = true)
+
+            // Read once and used twice, by the trace and by the file: it is a walk of the
+            // marks and the sounds, and two walks that could disagree would be two figures.
+            val timed = analysed?.timed(stumbling)
 
             val kept = JSONObject()
                 .put("at", stamp)
@@ -94,7 +103,7 @@ object Takes {
                             .apply { if (it.failed) put("failed", true) })
                     }
                 })
-            if (analysed != null) {
+            if (analysed != null && timed != null) {
                 // `phonemes` keeps the shape `bench/turn.py` writes, so the bench reads a
                 // turn from the phone the way it reads one of its own.
                 kept.put("phonemes", JSONArray().apply {
@@ -108,21 +117,6 @@ object Takes {
                 // the only place these numbers went was a logcat this phone keeps for 81
                 // seconds. `learnerPitch` is null where nothing of the syllable was voiced,
                 // which is not the same as flat and must not be written as a number.
-                kept.put("syllables", JSONArray().apply {
-                    analysed.marking.syllables.forEach {
-                        put(JSONObject().put("start", it.start).put("end", it.end)
-                            .put("modelPitch", it.modelPitch)
-                            .put("learnerPitch", it.learnerPitch ?: JSONObject.NULL)
-                            .put("modelStressed", it.modelStressed)
-                            .put("learnerStressed", it.learnerStressed))
-                    }
-                })
-                // The melody, which no kept take carried until now. A contour that looked
-                // wrong on screen could not be checked against anything afterwards: the only
-                // place these numbers went was a logcat this phone keeps for 81 seconds, so
-                // a turn was erased before it could be read. `learnerPitch` is null where
-                // nothing of the syllable was voiced, which is not the same as flat and must
-                // not be written as a number.
                 kept.put("syllables", JSONArray().apply {
                     analysed.marking.syllables.forEach {
                         put(JSONObject().put("start", it.start).put("end", it.end)
@@ -155,10 +149,38 @@ object Takes {
                 kept.put("freely", JSONArray().apply {
                     analysed.freely.forEach {
                         put(JSONObject().put("symbol", it.symbol)
-                            .put("at", JSONArray(listOf(it.at.first, it.at.last))))
+                            .put("at", JSONArray(listOf(it.at.first, it.at.last)))
+                            // The word it landed on, which is what places a hesitation in
+                            // the recording -- the model's grid never held one.
+                            .put("word", it.word?.let { w ->
+                                JSONArray(listOf(w.first, w.last))
+                            } ?: JSONObject.NULL))
                     }
                 })
                 kept.put("dropped", analysed.dropped)
+                // **The four fluency sheets, and the word times they are read off.** They go
+                // here because this is where the calibration bench finds its matter: their
+                // series -- what counts as a C in seconds, in points of percentage -- are
+                // written on real takes and nowhere else, and a figure that only ever reached
+                // a logcat this phone keeps for 81 seconds could not be one of them. `model`
+                // is null on a word the model never said, which is every hesitation.
+                kept.put("fluency", JSONObject()
+                    .put("recorded", timed.recorded)
+                    .put("rendered", timed.rendered)
+                    .put("continuity", Fluency.continuity(timed) ?: JSONObject.NULL)
+                    .put("longestSilence", Fluency.longestSilence(timed))
+                    .put("rate", Fluency.rate(timed) ?: JSONObject.NULL)
+                    .put("blanks", JSONArray(Fluency.blanks(timed)))
+                    .put("words", JSONArray().apply {
+                        timed.spoken.forEach { word ->
+                            put(JSONObject()
+                                .put("notch", word.notch)
+                                .put("said", JSONArray(listOf(word.said.from, word.said.to)))
+                                .put("model", word.model?.let {
+                                    JSONArray(listOf(it.from, it.to))
+                                } ?: JSONObject.NULL))
+                        }
+                    }))
                 kept.put("sounds", JSONArray().apply {
                     analysed.sounds.forEach { sound ->
                         put(JSONObject()
@@ -179,6 +201,16 @@ object Takes {
             part.writeText(kept.toString(2) + "\n", Charsets.UTF_8)
             part.renameTo(File(into, "turn.json"))
 
+            timed?.let { turn ->
+                Trace.add(
+                    "fluency",
+                    "words said / model's" to
+                        "${turn.spoken.size} / ${turn.spoken.count { word -> word.model != null }}",
+                    "continuity" to Fluency.continuity(turn)?.let { v -> "%.1f pts".format(v) },
+                    "longest silence" to "%.2f s".format(Fluency.longestSilence(turn)),
+                    "rate" to Fluency.rate(turn)?.let { v -> "%.1f %%".format(v) },
+                )
+            }
             Trace.add("take kept", "where" to into.path,
                       "turn" to (turn ?: stamp), "attempt" to attempt.toString())
             stamp

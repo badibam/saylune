@@ -185,6 +185,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     gutters = drawn.gutters,
                 ),
                 dropped = reading.dropped,
+                recorded = (saidReading.seconds * 1000).toInt(),
+                rendered = (modelReading.seconds * 1000).toInt(),
                 sounds = reading.gaps.mapIndexed { index, gap ->
                     val sound = sounds[gap.rank]
                     AnalysedSound(
@@ -206,8 +208,15 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     )
                 },
                 added = added,
-                freely = freely.map {
-                    Heard(engine.alphabet[it.symbol], ms(it.start..it.stop - 1, step))
+                // Each one with the word it landed on, which the join beside it already
+                // says: it is the only reading that covers the hesitations, so it is what
+                // places a filler or an abandoned start in the recording.
+                freely = freely.mapIndexed { index, segment ->
+                    Heard(
+                        symbol = engine.alphabet[segment.symbol],
+                        at = ms(segment.start..segment.stop - 1, step),
+                        word = theirs.getOrNull(index)?.wordAt,
+                    )
                 },
             )
         }
