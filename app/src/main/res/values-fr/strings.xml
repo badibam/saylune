@@ -76,103 +76,104 @@
     <string name="credits_by">%1$s — %2$s</string>
 
     <!-- Le catalogue des leviers : une phrase par position, lue par l\'écran d\'avant-partie
-         et par la notification qu\'une règle déclenche. Elle dit un état et jamais un
-         événement, la même phrase servant aux deux : « 2 vies », jamais « tu perds une vie ».
-         La voix appartient à la phrase de mise en scène, écrite sur le patch par l\'auteur
-         de la scène. -->
+         et par la notification qu\'une règle déclenche. Chacune est une phrase entière avec un
+         verbe, et elle dit un état et jamais un événement, la même servant aux deux endroits :
+         « Tu as 2 vies », jamais « Tu perds une vie ». Aucune ne nomme l\'app ni l\'IA : ce qui
+         parle est un personnage, et toute voix au-delà appartient à la phrase de mise en
+         scène, que l\'auteur d\'une scène écrit sur le patch. -->
     <plurals name="lever_model_listens">
-        <item quantity="one">%1$d écoute du modèle</item>
-        <item quantity="other">%1$d écoutes du modèle</item>
+        <item quantity="one">Tu écoutes le modèle %1$d fois</item>
+        <item quantity="other">Tu écoutes le modèle %1$d fois</item>
     </plurals>
-    <string name="lever_model_listens_none">de mémoire</string>
-    <string name="lever_model_listens_free">écoutes du modèle sans limite</string>
-    <string name="lever_pace_free">rythme libre</string>
-    <string name="lever_pace_set">rythme imposé</string>
+    <string name="lever_model_listens_none">Tu redis de mémoire</string>
+    <string name="lever_model_listens_free">Tu écoutes le modèle autant que tu veux</string>
+    <string name="lever_pace_free">Tu parles à ton rythme</string>
+    <string name="lever_pace_set">Tu tiens le rythme du modèle</string>
     <plurals name="lever_pace_value">
-        <item quantity="one">%1$d %% de la durée du modèle</item>
-        <item quantity="other">%1$d %% de la durée du modèle</item>
+        <item quantity="one">Tu parles en %1$d %% du temps du modèle</item>
+        <item quantity="other">Tu parles en %1$d %% du temps du modèle</item>
     </plurals>
-    <string name="lever_pace_value_moot">le rythme est libre</string>
+    <string name="lever_pace_value_moot">Tu parles à ton rythme</string>
     <plurals name="lever_retakes">
-        <item quantity="one">%1$d redite</item>
-        <item quantity="other">%1$d redites</item>
+        <item quantity="one">Tu peux redire %1$d fois</item>
+        <item quantity="other">Tu peux redire %1$d fois</item>
     </plurals>
-    <string name="lever_retakes_free">redites sans limite</string>
-    <string name="lever_elocution_lets_through">l\'élocution ne fait pas refaire</string>
-    <string name="lever_elocution_sends_back">l\'élocution fait refaire</string>
+    <string name="lever_retakes_free">Tu peux redire autant que tu veux</string>
+    <string name="lever_elocution_lets_through">Mal prononcer ne fait rien refaire</string>
+    <string name="lever_elocution_sends_back">Mal prononcer fait redire le passage</string>
 
-    <string name="lever_ai_length_short">tour court de l\'IA</string>
-    <string name="lever_ai_length_medium">tour moyen de l\'IA</string>
-    <string name="lever_ai_length_long">tour long de l\'IA</string>
-    <string name="lever_ai_complexity_low">langue simple de l\'IA</string>
-    <string name="lever_ai_complexity_medium">langue moyenne de l\'IA</string>
-    <string name="lever_ai_complexity_high">langue difficile de l\'IA</string>
-    <string name="lever_ai_display_text">le texte de l\'IA s\'affiche</string>
-    <string name="lever_ai_display_scrambled">le texte de l\'IA est brouillé</string>
-    <string name="lever_ai_display_speaker">seulement qui parle</string>
-    <string name="lever_ai_display_nothing">rien à l\'écran</string>
+    <string name="lever_ai_length_short">Les personnages font des réponses courtes</string>
+    <string name="lever_ai_length_medium">Les personnages font des réponses moyennes</string>
+    <string name="lever_ai_length_long">Les personnages font des réponses longues</string>
+    <string name="lever_ai_complexity_low">Les personnages parlent une langue simple</string>
+    <string name="lever_ai_complexity_medium">Les personnages parlent une langue ordinaire</string>
+    <string name="lever_ai_complexity_high">Les personnages parlent une langue difficile</string>
+    <string name="lever_ai_display_text">Tu lis ce qui est dit</string>
+    <string name="lever_ai_display_scrambled">Tu vois la forme de ce qui est dit</string>
+    <string name="lever_ai_display_speaker">Tu vois seulement qui parle</string>
+    <string name="lever_ai_display_nothing">Tu ne vois rien</string>
     <plurals name="lever_replay">
-        <item quantity="one">%1$d réécoute</item>
-        <item quantity="other">%1$d réécoutes</item>
+        <item quantity="one">Tu peux réécouter %1$d fois</item>
+        <item quantity="other">Tu peux réécouter %1$d fois</item>
     </plurals>
-    <string name="lever_replay_none">réécoute interdite</string>
-    <string name="lever_replay_free">réécoutes sans limite</string>
-    <string name="lever_noise_none">pas de bruit de fond</string>
-    <string name="lever_noise_some">du bruit de fond</string>
-    <string name="lever_noise_heavy">beaucoup de bruit de fond</string>
-    <string name="lever_filter_none">ligne nette</string>
-    <string name="lever_filter_light">ligne un peu dégradée</string>
-    <string name="lever_filter_heavy">ligne très dégradée</string>
-    <string name="lever_understanding_lets_through">la compréhension ne fait pas refaire</string>
-    <string name="lever_understanding_sends_back">la compréhension fait refaire</string>
+    <string name="lever_replay_none">Tu ne peux pas réécouter</string>
+    <string name="lever_replay_free">Tu peux réécouter autant que tu veux</string>
+    <string name="lever_noise_none">Aucun bruit ne couvre la voix</string>
+    <string name="lever_noise_some">Du bruit couvre la voix</string>
+    <string name="lever_noise_heavy">Beaucoup de bruit couvre la voix</string>
+    <string name="lever_filter_none">Le son arrive net</string>
+    <string name="lever_filter_light">Le son arrive un peu déformé</string>
+    <string name="lever_filter_heavy">Le son arrive très déformé</string>
+    <string name="lever_understanding_lets_through">Répondre sans avoir compris ne fait rien refaire</string>
+    <string name="lever_understanding_sends_back">Répondre sans avoir compris fait reformuler le passage</string>
 
-    <string name="lever_echo_explicit">la faute est reprise mot pour mot</string>
-    <string name="lever_echo_indirect">la correction passe dans la réponse</string>
-    <string name="lever_echo_none">la faute n\'est pas reprise</string>
-    <string name="lever_explanation_rule_and_sentence">la règle et la phrase correcte</string>
-    <string name="lever_explanation_rule">la règle seule</string>
-    <string name="lever_explanation_none">aucune explication</string>
+    <string name="lever_echo_explicit">La réponse corrige explicitement</string>
+    <string name="lever_echo_indirect">La réponse corrige indirectement</string>
+    <string name="lever_echo_none">La réponse ne corrige pas</string>
+    <string name="lever_explanation_rule_and_sentence">Tu reçois la règle et la phrase correcte</string>
+    <string name="lever_explanation_rule">Tu reçois la règle seule</string>
+    <string name="lever_explanation_none">Tu ne reçois aucune explication</string>
     <plurals name="lever_rewordings">
-        <item quantity="one">%1$d reformulation</item>
-        <item quantity="other">%1$d reformulations</item>
+        <item quantity="one">Tu peux reformuler %1$d fois</item>
+        <item quantity="other">Tu peux reformuler %1$d fois</item>
     </plurals>
-    <string name="lever_rewordings_free">reformulations sans limite</string>
-    <string name="lever_correctness_lets_through">la correction ne fait pas refaire</string>
-    <string name="lever_correctness_sends_back">la correction fait refaire</string>
+    <string name="lever_rewordings_free">Tu peux reformuler autant que tu veux</string>
+    <string name="lever_correctness_lets_through">Une phrase mal formée ne fait rien refaire</string>
+    <string name="lever_correctness_sends_back">Une phrase mal formée fait reformuler le passage</string>
 
-    <string name="lever_relevance_lets_through">la pertinence ne fait pas refaire</string>
-    <string name="lever_relevance_sends_back">la pertinence fait refaire</string>
+    <string name="lever_relevance_lets_through">Viser à côté ne fait rien refaire</string>
+    <string name="lever_relevance_sends_back">Viser à côté fait reformuler le passage</string>
 
-    <string name="lever_capture_finger">tu tiens le bouton pour parler</string>
-    <string name="lever_capture_armed">le micro s\'ouvre tout seul</string>
-    <string name="lever_capture_armed_and_sending">le micro s\'ouvre, et le silence envoie</string>
+    <string name="lever_capture_finger">Tu tiens le bouton pour parler</string>
+    <string name="lever_capture_armed">Le micro s\'ouvre tout seul</string>
+    <string name="lever_capture_armed_and_sending">Le micro s\'ouvre, et le silence envoie ton tour</string>
     <plurals name="lever_silence_threshold">
-        <item quantity="one">le tour part après %1$d s de silence</item>
-        <item quantity="other">le tour part après %1$d s de silence</item>
+        <item quantity="one">Ton tour part après %1$d s de silence</item>
+        <item quantity="other">Ton tour part après %1$d s de silence</item>
     </plurals>
-    <string name="lever_silence_threshold_moot">le micro n\'envoie pas tout seul</string>
+    <string name="lever_silence_threshold_moot">Le micro n\'envoie pas tout seul</string>
     <plurals name="lever_turn_length">
-        <item quantity="one">%1$d s par tour</item>
-        <item quantity="other">%1$d s par tour</item>
+        <item quantity="one">Tu as %1$d s pour dire ton tour</item>
+        <item quantity="other">Tu as %1$d s pour dire ton tour</item>
     </plurals>
     <plurals name="lever_preparation">
-        <item quantity="one">%1$d s avant que le micro s\'ouvre</item>
-        <item quantity="other">%1$d s avant que le micro s\'ouvre</item>
+        <item quantity="one">Le micro s\'ouvre %1$d s après la réponse</item>
+        <item quantity="other">Le micro s\'ouvre %1$d s après la réponse</item>
     </plurals>
-    <string name="lever_preparation_moot">tu ouvres le micro toi-même</string>
-    <string name="lever_fluency_lets_through">la fluidité ne fait pas refaire</string>
-    <string name="lever_fluency_sends_back">la fluidité fait refaire</string>
+    <string name="lever_preparation_moot">Tu ouvres le micro toi-même</string>
+    <string name="lever_fluency_lets_through">Hésiter ne fait rien refaire</string>
+    <string name="lever_fluency_sends_back">Hésiter fait redire le passage</string>
 
-    <string name="lever_lives_off">pas de vies</string>
-    <string name="lever_lives_on">des vies comptées</string>
+    <string name="lever_lives_off">Tu ne joues pas avec des vies</string>
+    <string name="lever_lives_on">Tu joues avec des vies</string>
     <plurals name="lever_lives_left">
-        <item quantity="one">%1$d vie</item>
-        <item quantity="other">%1$d vies</item>
+        <item quantity="one">Tu as %1$d vie</item>
+        <item quantity="other">Tu as %1$d vies</item>
     </plurals>
-    <string name="lever_lives_left_free">vies sans limite</string>
-    <string name="lever_lives_left_moot">cette activité n\'a pas de vies</string>
-    <string name="lever_advance_words_carries_on">la conversation continue</string>
-    <string name="lever_advance_words_waits">la conversation attend ta phrase</string>
-    <string name="lever_advance_sound_carries_on">le passage se ferme sans redire</string>
-    <string name="lever_advance_sound_waits">le passage ne se ferme pas avant une redite</string>
+    <string name="lever_lives_left_free">Tu as des vies sans limite</string>
+    <string name="lever_lives_left_moot">Cette activité n\'a pas de vies</string>
+    <string name="lever_advance_words_carries_on">La conversation continue</string>
+    <string name="lever_advance_words_waits">La conversation attend ta phrase corrigée</string>
+    <string name="lever_advance_sound_carries_on">Le passage se ferme sans que tu redises</string>
+    <string name="lever_advance_sound_waits">Le passage ne se ferme pas avant que tu redises</string>
 </resources>
