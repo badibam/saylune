@@ -216,4 +216,26 @@ class FluencyTest {
 
     private fun continuityOf(turn: Turn): Float =
         Fluency.continuity(turn) ?: error("no continuity on a turn that has kept words")
+
+    /**
+     * **The grace opens no cliff.** It is taken off what is counted, not off what the pause
+     * threshold is asked of -- the other order applies the threshold a second time a second
+     * later, where nothing physical happens, and a millisecond of silence then moves the
+     * sheet by six points. What comes out instead rises from nothing, continuously, once the
+     * edge passes the second it forgives.
+     */
+    @Test
+    fun `the counted edge rises from nothing and never jumps`() {
+        fun withLead(lead: Int) = Fluency.continuity(Turn(
+            spoken = listOf(kept(lead, lead + 2000, Span(0, 2000))),
+            recorded = lead + 2000, rendered = 2000,
+        ))!!
+        assertEquals(0f, withLead(900), 0.001f)
+        assertEquals(0f, withLead(1000), 0.001f)
+        // A hundred milliseconds over the grace is a hundred milliseconds counted, and not a
+        // whole pause threshold's worth arriving at once.
+        val small = withLead(1100)
+        assertTrue("$small should be a sliver", small > 0f && small < 4f)
+        assertTrue(withLead(1200) > small)
+    }
 }

@@ -153,14 +153,21 @@ object Fluency {
         if (spans.isEmpty()) return emptyList()
         val ordered = spans.sortedBy { it.from }
         val out = mutableListOf<Int>()
-        val lead = ordered.first().from - if (grace) GRACE_MS else 0
-        val tail = (whole - ordered.last().to) - if (grace) GRACE_MS else 0
-        if (lead >= PAUSE_MS) out += lead
+        // **The threshold is asked of the real silence, the grace taken off what is counted**,
+        // and that order is the whole of it. Asked the other way round -- grace first, then
+        // threshold -- the threshold lands a second time a second later, where nothing
+        // physical happens: measured, an edge of 1199 ms counted nothing and one of 1200 ms
+        // counted 200, so a millisecond of speech moved the sheet by six points. Flat steps
+        // separated by cliffs is the shape this project turns down everywhere else.
+        val edge = if (grace) GRACE_MS else 0
+        val lead = ordered.first().from
+        val tail = whole - ordered.last().to
+        if (lead >= PAUSE_MS) out += maxOf(0, lead - edge)
         ordered.zipWithNext().forEach { (before, after) ->
             val blank = after.from - before.to
             if (blank >= PAUSE_MS) out += blank
         }
-        if (tail >= PAUSE_MS) out += tail
+        if (tail >= PAUSE_MS) out += maxOf(0, tail - edge)
         return out
     }
 }
