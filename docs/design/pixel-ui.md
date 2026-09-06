@@ -314,6 +314,10 @@ Pour que ces questions ne se reposent pas.
 - **Le lecteur d'écran — hors v1, et dit plutôt que tu.** `ui/MarkedTurn.kt` est un `Canvas`, donc toute la sémantique du marquage est invisible à TalkBack : les crans, les empans et les échelles existent en mémoire et rien ne les expose. Ce n'est pas une porte fermée — un mot porte déjà son cran et sa feuille, il n'y a rien à mesurer de plus, seulement à décrire —, c'est un travail qui ne se fait pas maintenant. Pour une app destinée à un dépôt public, le silence vaudrait décision par défaut.
 - **La rencontre de personnage** (`../../NOTES.md`) — ce qui fait qu'on rencontre quelqu'un plutôt qu'on lance un thème. C'est une grammaire d'interaction, pas un habillage, et rien ici ne la décide.
 - **La pile de navigation.** Les quatre écrans actuels sont un interrupteur à quatre positions dont aucun ne mène à un autre ; le modèle d'activité (`activity-model.md`) amènera des écrans qui descendent les uns dans les autres. La charpente ne doit pas bloquer ça.
+- **Ce que la barre d'actions porte, écran par écran.** Proposé pour la conversation — l'œil, les leviers ouverts, le retour — et rien pour les autres. Se décide avec la pile de navigation, dont il dépend : une barre ne peut pas mener où rien ne va.
+- **Les noms d'affichage des onze feuilles**, qui doivent tenir dans une douzaine de colonnes sur un 720. L'écran de bilan ne s'écrit pas sans eux. Même travail que `Grammar` (`activity-model.md`).
+- **Où se posent les deux décomptes et le symbole d'enregistrement.** Le doc du modèle les veut visibles en permanence — le silence en cours et la durée du tour — et la police porte déjà quatre blocs de jauge et un disque ; leur place à l'écran n'est décidée nulle part, et la capture en trois positions en a besoin.
+- **Le sort du sélecteur de tentatives.** `ui/ConversationScreen.kt` laisse naviguer entre les prises d'un passage par des numéros, alors que le fil ne montre que la dernière. Le garder ou non n'est pas tranché.
 
 ## L'ordre de travail
 

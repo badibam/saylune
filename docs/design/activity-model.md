@@ -40,6 +40,8 @@ Une **définition** est une activité écrite d'avance, et **c'est de la donnée
 
 Elle porte : une **identité** et une **version** ; son **contenu** — ce qui ouvre la séance, le `brief`, les personnages ; ses **consignes**, au plus une par marquage jugé ; ses **positions de leviers de départ**, sensibilités comprises ; son **arbre des poids**, constant pour toute la séance ; ses **règles** ; et ses **questions**, auxquelles le modèle répond en fin de séance (« L'histoire »).
 
+**Deux champs courts s'y ajoutent, et ils viennent d'une contrainte d'écran** (2026-09-06) : un **titre court** de dix caractères au plus, que la ligne d'état affiche, et un **nom court** par personnage, que porte la ligne qui nomme chaque tour. Les deux se tronquent de toute façon à l'affichage ; les déclarer laisse l'auteur choisir ce qui survit à la troncature au lieu de la subir. Le détail est dans `pixel-ui.md` (« La charpente », « La ligne qui nomme le tour »).
+
 **Ce qui reste du code, c'est le catalogue** — les leviers avec leurs positions, l'arbre des feuilles, les sortes de déclencheurs, les sortes d'effets. Rien de ce qu'une définition contient n'est de la logique : des positions déclarées, des poids sur un arbre déclaré, du texte libre, et des règles faites de sortes énumérées. Une histoire de vingt scènes écrite en Kotlin serait du contenu qu'on ne peut ni corriger, ni traduire, ni partager, et il faudrait recompiler l'app pour changer une réplique. Et le doc veut déjà qu'un modèle puisse écrire une définition contre le catalogue, ce qui n'a aucun sens si sa sortie doit être compilée.
 
 **Cette donnée vit dans des fichiers livrés avec l'app**, autoportants, et l'app les lit directement. Ce qui est acquis de toute façon : les réglages d'une exécution sont copiés sur sa ligne, donc une définition qui change ne réécrit jamais le passé ; et l'**origine** doit nommer la définition **et sa version**, sans quoi une mise à jour qui corrige une scène rend incomparables deux parties qui se croient les mêmes.
@@ -643,6 +645,8 @@ Deux raisons de ne pas la livrer. Elle **ne lit pas les mêmes éléments** que 
 Faire découper toute la phrase par le juge est écarté : couper du correct n'est vérifiable par personne — *to the market* fait un morceau ou trois selon l'habitude de coupe, et le chiffre bougerait avec elle. Marquer *I go* comme groupe verbal mal formé, ça, se vérifie. Le juge garde donc le travail qu'il fait déjà pour l'écran, l'app compte, et elle compte dans l'unité qui sert déjà au poids par longueur.
 
 **Deux empans qui se recouvrent ne comptent pas deux fois** : un mot prend le pire cran qu'il porte, et il compte une fois. La précédence est `ne se dit pas`, puis `mal formé`, puis `ok`.
+
+**Son nom d'écran est `Grammar` / `Grammaire`, et `correctness` reste le nom du code** (tranché le 2026-09-06). Le terme du code est large et exact — il couvre la syntaxe et l'idiome — mais il se lit à l'écran comme le geste de corriger, ce qui est faux : *« en cause : la Correction »* se comprend *« on t'a corrigé »*. `Langue` a été écarté pour l'inverse : exact et fade, tout étant la langue dans une app de langue. Ce que `Grammar` coûte est borné — quand la faute est idiomatique plutôt que syntaxique, le nom trompe sur le *pourquoi*, et la marque, elle, dit toujours *quels mots*.
 
 **La correction pose une seule question — est-ce que c'est de l'anglais ? — et c'est un jugement absolu, donc elle ne prend aucune consigne.** Une consigne est toujours une exigence de situation ; elle appartient donc entièrement à la pertinence. *« Parle au passé »* ne fait pas de *I'll go there* une phrase mal formée, c'est de l'anglais irréprochable qui ne convient pas ici.
 
@@ -1417,6 +1421,7 @@ Chaque segment de parole garde une **marge de vrai audio** de part et d'autre. C
 - **Le score** : propre à l'arcade ou pas, et à quoi ressemble son écran.
 - **L'écran de résultat**, distinct du score. C'est lui qui doit porter la **combinaison qui a produit la note** — les réglages, les poids, les sensibilités, les consignes en vigueur —, sans quoi la phrase qui absout la moitié des choix de ce doc, « une note ne se lit jamais sans la combinaison qui l'a produite », n'a nulle part où se tenir. L'écran d'avant-partie est spécifié et se génère tout seul ; celui-là ne l'est pas.
 - **Garder le nom du préréglage** d'une séance réglée à la main. Aucun lecteur n'en a besoin aujourd'hui — l'origine suffit là où ça compte — donc pas de champ pour l'instant.
+- **L'écran par lequel on entre en conversation libre.** Son `brief` vient de l'apprenant — saisi, préréglé ou suggéré par le système —, ce qui suppose un écran avant le lancement dont rien n'est décidé : ce qu'il propose, s'il garde les derniers pitchs, et si « lancer sans rien écrire » est un geste à part.
 - **Le déroulé de chaque module**, et son écran. Le cadre est commun — l'activité, ses champs, ses statuts, son résultat — le déroulé ne l'est pas.
 - **Les déclencheurs de suggestion** pendant une conversation.
 - **La purge**, et la durée de vie des audios.
