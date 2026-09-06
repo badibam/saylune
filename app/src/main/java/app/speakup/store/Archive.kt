@@ -478,16 +478,26 @@ abstract class Archive : RoomDatabase() {
             "oui" to "yes",
             )
 
-            private fun rewrite(column: String) =
-                moved.fold("`$column`") { sql, (from, to) ->
-                    "REPLACE($sql, '\"$from\"', '\"$to\"')"
+            /**
+             * One statement per pair, applied in list order: sqlite's parser stack overflows
+             * long before a hundred nested `REPLACE`, so the whole list cannot be one
+             * expression. Sequential updates apply the pairs in the same order the nesting
+             * would have, which is what the longest-first ordering above needs.
+             */
+            private fun rewrite(db: SupportSQLiteDatabase, table: String, column: String) {
+                moved.forEach { (from, to) ->
+                    db.execSQL(
+                        "UPDATE `$table` SET `$column` = " +
+                            "REPLACE(`$column`, '\"$from\"', '\"$to\"')",
+                    )
                 }
+            }
 
             override fun migrate(db: SupportSQLiteDatabase) {
                 listOf("settings", "weights", "instructions", "rules", "journal").forEach {
-                    db.execSQL("UPDATE `activities` SET `$it` = ${rewrite(it)}")
+                    rewrite(db, "activities", it)
                 }
-                db.execSQL("UPDATE `utterances` SET `judged` = ${rewrite("judged")}")
+                rewrite(db, "utterances", "judged")
             }
         }
 
