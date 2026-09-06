@@ -185,7 +185,7 @@ fun ConversationScreen(
         // stops when a passage closes, so it is the only one that offers the small button.
         // Nothing closes a passage today but starting the next -- the big button that will
         // close it by hand comes with the passage's four states, further down the plan.
-        val open = turn.utterances.lastOrNull { it.speaker == Speaker.Learner && it.repeats == null }
+        val open = turn.utterances.lastOrNull { it.speaker.isLearner && it.repeats == null }
         turn.utterances.forEach { spoken ->
             // An utterance that says another again is not drawn where it sits in the run: it
             // is one of the readings grouped under the one it repeats, which is where the
@@ -556,7 +556,7 @@ private fun Said(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             stringResource(
-                if (spoken.speaker == Speaker.Learner) R.string.speaker_learner
+                if (spoken.speaker.isLearner) R.string.speaker_learner
                 else R.string.speaker_ai
             ),
             style = MaterialTheme.typography.labelSmall,

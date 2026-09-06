@@ -169,4 +169,16 @@ class SittingTest {
         // And it still answers, with the catalogue's declared default.
         assertEquals(At(Levers.BY_HAND), back.settings.of(Levers.CAPTURE.key))
     }
+
+    /**
+     * **The learner is a reserved identity and not a case beside the others.** Everything asks
+     * an utterance the same question -- who said this -- so a name is what comes back, and
+     * only one branch in the whole app turns on it.
+     */
+    @Test
+    fun `a speaker is a name, and the learner's is reserved`() {
+        assertTrue(app.speakup.conversation.Speaker.Learner.isLearner)
+        assertFalse(app.speakup.conversation.Speaker.Ai.isLearner)
+        assertFalse(app.speakup.conversation.Speaker("le-barman").isLearner)
+    }
 }

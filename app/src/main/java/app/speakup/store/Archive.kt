@@ -101,6 +101,7 @@ data class UtteranceRow(
     @PrimaryKey val id: String,
     val activity: String,
     val rank: Int,
+    /** Who said it, by identity: the reserved key of the learner, or a character's. */
     val speaker: String,
     val text: String,
     /** Where the recording is. Null for the answers, which are not recorded. */
@@ -160,7 +161,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 5)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 6)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -305,12 +306,39 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * The speaker becomes an identity rather than learner-or-AI.
+         *
+         * An activity points at a **cast** and not at one interlocutor, so an utterance has to
+         * say which of them is speaking -- the synthesis picks a voice per utterance, and on
+         * the model's side the AI returns the key of the character talking.
+         *
+         * The two names that existed map onto the two identities that exist: the learner is
+         * the reserved key, and every AI turn stored so far was said by the one voice a free
+         * conversation has. **Nothing is invented**, because there were only ever two, and any
+         * other value is left as it stands rather than folded into one of them -- a row this
+         * build cannot read is better than a row it reads as somebody else.
+         */
+        private val SPEAKER_IDENTITY = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "UPDATE `utterances` SET `speaker` = " +
+                        "'${app.speakup.conversation.Speaker.LEARNER}' WHERE `speaker` = 'Learner'",
+                )
+                db.execSQL(
+                    "UPDATE `utterances` SET `speaker` = " +
+                        "'${app.speakup.conversation.Speaker.SPEAKUP}' WHERE `speaker` = 'Ai'",
+                )
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
-            ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE)
+            ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
+                    SPEAKER_IDENTITY)
                 .build().also { instance = it }
         }
     }

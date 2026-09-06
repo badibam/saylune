@@ -42,8 +42,48 @@ enum class Phase { Idle, Hearing, Thinking, Speaking }
 /** Whose recording a manual gesture plays. */
 enum class Side { Model, Learner }
 
-/** Who said it. A human model is a third case, and it changes nothing about the shape. */
-enum class Speaker { Learner, Ai }
+/**
+ * Who said it -- **an identity, and no longer learner-or-AI**.
+ *
+ * An activity points at a **cast** rather than at one interlocutor, so an utterance has to say
+ * which of them is speaking: the synthesis picks a voice **per utterance**, which the cache
+ * takes in its stride, being keyed by text and by voice. On the model's side the AI returns
+ * the key of the character speaking -- the cheapest enumerated answer there is.
+ *
+ * **The learner is a reserved identity and not a case beside the others.** Everything asks the
+ * same question of an utterance -- who said this -- and a sum type with the learner on one
+ * side would make every reader take a branch before reading a name. A human model would be a
+ * third identity and would change nothing about the shape.
+ *
+ * Stored by name, like every enum that reaches the store: a rank is a promise never to reorder
+ * a list, which nobody remembers making.
+ */
+@JvmInline
+value class Speaker(val key: String) {
+
+    /** Whether this is the learner, which is the one thing the whole app branches on. */
+    val isLearner: Boolean get() = key == LEARNER
+
+    companion object {
+        /**
+         * The learner's own key. Reserved: a cast may not declare a character called this,
+         * or an utterance of a character would read as one of the learner's own.
+         */
+        const val LEARNER = "learner"
+
+        /**
+         * The one voice a free conversation has.
+         *
+         * **What this leaves owed**: the identity is in place and one voice fills it, so the
+         * cast and several characters are written as a field and have no screen
+         * (`../../../../../../TODO.md`).
+         */
+        const val SPEAKUP = "speakup"
+
+        val Learner = Speaker(LEARNER)
+        val Ai = Speaker(SPEAKUP)
+    }
+}
 
 /**
  * One thing said: a text, a speaker, the audio, the analysis.
@@ -227,7 +267,7 @@ data class ConversationState(
      */
     fun history(): List<Exchange> = utterances
         .filter { it.repeats == null }
-        .map { Exchange(fromLearner = it.speaker == Speaker.Learner, text = it.text) }
+        .map { Exchange(fromLearner = it.speaker.isLearner, text = it.text) }
 }
 
 /**

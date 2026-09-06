@@ -66,7 +66,7 @@ internal fun Utterance.row(rank: Int) = UtteranceRow(
     id = id,
     activity = activity,
     rank = rank,
-    speaker = speaker.name,
+    speaker = speaker.key,
     text = text,
     said = said?.path,
     capture = capture,
@@ -92,7 +92,7 @@ internal fun Utterance.row(rank: Int) = UtteranceRow(
  * about why.
  */
 internal fun UtteranceRow.utterance() = Utterance(
-    speaker = Speaker.valueOf(speaker),
+    speaker = Speaker(speaker),
     activity = activity,
     text = text,
     said = said?.let { File(it) }?.takeIf { it.isFile },
