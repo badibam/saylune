@@ -74,12 +74,18 @@ def draw(pen, cells):
 
 
 def check_box(maps):
-    """The gutter column and everything outside the box must stay empty."""
-    from pixelfont import BOTTOM_PX, GLYPH_W, TOP_PX
+    """Nothing may fall outside the box.
+
+    Column 10 is the gutter that keeps two letters apart, and every letter
+    leaves it empty; a frame tile fills it, because a border that stopped one
+    pixel short would show a gap at every cell. So the box is checked, not the
+    convention — `check.py` is what proves the letters did not move.
+    """
+    from pixelfont import BOTTOM_PX, CELL_W, TOP_PX
     for name, (_, rows) in maps.items():
         assert len(rows) == TOP_PX - BOTTOM_PX + 1, (name, "hauteur", len(rows))
         for x, y in rows_to_cells(rows):
-            assert 0 <= x < GLYPH_W, (name, "colonne", x)
+            assert 0 <= x < CELL_W, (name, "colonne", x)
             assert BOTTOM_PX <= y <= TOP_PX, (name, "rangee", y)
 
 
