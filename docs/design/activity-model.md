@@ -174,7 +174,7 @@ Trois choses en découlent, et aucune n'est un détail. Une **condition ne peut 
 
 **La sensibilité est un levier, le poids n'en est pas un.** Aller vers sévère durcit, toujours et pour tout le monde ; monter le poids de la mélodie durcit la séance de qui l'a mauvaise et allège celle de qui l'a bonne, donc sa direction dépend de l'apprenant, que le levier ne connaît pas et n'a pas à connaître. C'est cohérent avec ce que chacun fait : la sensibilité dit *combien on exige*, le poids dit *sur quoi on regarde*, et viser autre chose n'est ni plus dur ni plus facile. Ça corrige une phrase que ce doc portait, où les deux étaient des positions de leviers.
 
-Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette feuille — indulgent, normal et sévère ne posent pas les mêmes bornes sur un pourcentage de sons et sur des demi-tons. Et **l'arbre des poids est un champ à part**, ce qu'il voulait être de toute façon : une structure à branches dont les poids se multiplient en descendant ne rentre pas dans une liste plate de positions sans clés bricolées.
+Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette feuille — indulgent, normal et sévère ne posent pas les mêmes bornes sur un pourcentage de sons et sur des demi-tons. Et **l'arbre des poids est un champ à part**, ce qu'il voulait être de toute façon : une structure à branches dont les parts se multiplient en descendant ne rentre pas dans une liste plate de positions sans clés bricolées.
 
 **Les poids sont constants pour toute la séance, et aucun patch n'en déplace.** Ce qu'on vise se décide à l'écriture du défi et ne bouge plus. Sinon la note de fin serait une moyenne de mesures prises sous des règles différentes, illisible pour l'apprenant comme pour un classement — c'est l'argument servi partout ici : une note ne se lit pas sans la combinaison qui l'a produite, donc il faut qu'il y en ait une.
 
@@ -519,7 +519,11 @@ Moyenner des lettres a été essayé et ne tient pas. Deux passages, l'un à 8 %
 Deux réglages par nœud, et ils ne font pas la même chose :
 
 - **la sensibilité** — où tombent les bornes A–E de cette note ;
-- **le poids** — combien cette note pèse dans celle du dessus. À 0, le nœud ne compte pas.
+- **le poids** — la **part** que cette note prend dans celle du dessus, comptée entre frères. À 0, le nœud ne compte pas.
+
+**Un poids est une part entre frères, pas un multiplicateur absolu** (tranché le 2026-09-06). À chaque branche, le poids déclaré d'un enfant se divise par la somme de ses frères ; les parts se multiplient ensuite en descendant. C'est ce qui fait que **le même poids partout donne le même mot à chaque aptitude**, ce qu'un auteur veut dire en écrivant 1 sur tout l'arbre. En absolu, une branche pesait plus pour avoir plus de feuilles sous elle : `pronunciation 1` contre `correctness 1` donnait à la prononciation quatre fois la voix de la correction, ses quatre feuilles portant chacune un 1 entier, et personne n'avait choisi ça. `élocution 2` contre `correction 1` veut enfin dire ce qu'il a l'air de dire.
+
+**Les parts se calculent sur l'arbre déclaré, une fois, et jamais sur ce qu'un passage a mesuré.** C'est ce qui les sépare de la cascade de moyennes que la somme à plat refuse : les poids restent des constantes, une feuille absente sort de la somme, et rien ne se redistribue dans le dos de l'auteur.
 
 Un défi qui ne note que l'accent tonique est donc un poids à 1 et des poids à 0, pas un mécanisme à part. C'est ce qui permet de viser sans ajouter de champ : quoi qu'on note, l'information est déjà là.
 
@@ -831,11 +835,11 @@ Sur *« It was, like, um, I went to the— I was going to the store »* : quator
 
 ### L'agrégation se fait une fois, à plat
 
-**Les poids se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
+**Les parts se multiplient en descendant, et la note se calcule une seule fois sur les feuilles réellement présentes.** Les lettres d'aptitude et de passage sont la même formule restreinte à un sous-arbre : des lectures, pas des étapes de calcul.
 
 La raison est qu'une cascade de moyennes redistribue en silence des poids que personne n'a réglés, dès qu'une feuille manque — et il en manque tout le temps : la feuille de l'accent lexical n'est pas branchée, un passage dont la porte des mots s'est fermée n'a aucune mesure de son.
 
-Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont le second a la porte fermée — passage 1 : sons 40, mélodie 80, correction 90 ; passage 2 : correction 50. En cascade, le passage 1 vaut 70, le passage 2 vaut 50 puisque sa moyenne se renormalise sur ce qui reste, et la séance 60. À plat, (2 × 40 + 2 × 80 + 90 + 50) / 6 = 63,3 — les poids se multipliant en descendant, chacune des deux feuilles d'élocution pèse 2 contre 1 à la correction. L'écart n'est pas l'arrondi : dans la cascade, la correction a fini par peser deux tiers de la séance et l'élocution un tiers, l'inverse exact du 2:1 demandé.
+Avec élocution 2 (sons 1, mélodie 1) et correction 1, sur deux passages dont le second a la porte fermée — passage 1 : sons 40, mélodie 80, correction 90 ; passage 2 : correction 50. En cascade, le passage 1 vaut 70, le passage 2 vaut 50 puisque sa moyenne se renormalise sur ce qui reste, et la séance 60. À plat, (40 + 80 + 90 + 50) / 4 = 65 — l'élocution prenant deux tiers de l'arbre et la correction un tiers, chacune des deux feuilles d'élocution porte un tiers comme la correction, et le 2:1 demandé est celui qui sort. L'écart n'est pas l'arrondi : dans la cascade, la correction a fini par peser deux tiers de la séance et l'élocution un tiers, l'inverse exact du 2:1 demandé.
 
 **Une feuille absente sort de la somme, elle ne vaut jamais zéro.**
 

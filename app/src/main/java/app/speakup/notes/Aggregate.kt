@@ -29,22 +29,38 @@ class Weights(val byPath: Map<String, Float>) {
     }
 
     /**
-     * How much this sheet weighs in the sitting's note: **the weights multiply going down**.
+     * How much this sheet weighs in the sitting's note: **a share among its siblings at every
+     * step, and the shares multiply going down**.
      *
-     * Elocution 2 over melody 1 means melody carries 2 x 1 against a correctness of 1 x 1, and
-     * the ratio the author asked for is the one that comes out -- which is exactly what the
-     * flat sum below protects and a cascade of means does not.
+     * A weight is what a node takes of its parent and not an absolute multiplier, so *the same
+     * weight everywhere means every aptitude counts the same* -- which is what an author means
+     * by writing 1 across the tree. Left absolute, a branch weighed more for having more
+     * sheets under it: `pronunciation 1` against `correctness 1` handed pronunciation four
+     * times the say, its four sheets each carrying a full 1, and nobody chose that. Elocution 2
+     * over correctness 1 now means what it looks like it means.
+     *
+     * **The shares are worked out on the declared tree, once, and never on what a passage
+     * happened to measure.** That is what keeps this apart from the cascade of means the flat
+     * sum below exists to refuse: the weights stay constants, an absent sheet drops out of the
+     * sum, and nothing is redistributed behind the author's back.
+     *
+     * A branch whose children are all at 0 gives shares of 0, not a division by zero: nothing
+     * under it counts, which is what those weights say.
      */
     fun of(sheet: Sheet): Float {
-        var weight = 1f
+        var share = 1f
         var node: Node = Sheets.tree
         Sheets.pathOf(sheet).split("/").forEach { step ->
-            node = (node as Branch).children.first { it.name == step }
-            weight *= byPath[Sheets.pathOf(node)]
-                ?: error("${Sheets.pathOf(node)}: no weight. The tree is the list of them.")
+            val among = (node as Branch).children
+            val total = among.map { weightOf(it) }.sum()
+            node = among.first { it.name == step }
+            share *= if (total > 0f) weightOf(node) / total else 0f
         }
-        return weight
+        return share
     }
+
+    private fun weightOf(node: Node): Float = byPath[Sheets.pathOf(node)]
+        ?: error("${Sheets.pathOf(node)}: no weight. The tree is the list of them.")
 }
 
 /**

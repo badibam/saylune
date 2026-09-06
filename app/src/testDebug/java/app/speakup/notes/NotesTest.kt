@@ -1,5 +1,6 @@
 package app.speakup.notes
 
+import app.speakup.sheets.Branch
 import app.speakup.sheets.POSITIONS
 import app.speakup.sheets.Sheet
 import app.speakup.sheets.Sheets
@@ -258,14 +259,47 @@ class NotesTest {
                 direct(correctness, 0.50f),
             ),
         )
-        // (2x40 + 2x80 + 90 + 50) / 6, the weights the author asked for applied once.
+        // Pronunciation takes two thirds of the tree and correctness one, so its two sheets
+        // carry a third each: (40 + 80 + 90 + 50) / 4, the ratio the author asked for applied
+        // once.
         val flat = noteOver(listOf(first, second), weights, ::identityPosition)!!
-        assertEquals(0.6333f, flat.value, 1e-3f)
+        assertEquals(0.65f, flat.value, 1e-3f)
 
         // The cascade: passage 1 averages elocution to 60, then (2x60 + 90) / 3 = 70; passage
         // 2 renormalises over what is left and is worth 50; the sitting is 60. What the gap is
         // made of is that correctness ended up carrying two thirds of it.
         assertNotEquals(0.60f, flat.value, 1e-3f)
+    }
+
+    /**
+     * What a weight means, and it is the whole reason the shares are normalised: the same
+     * weight everywhere makes every aptitude count the same, whatever number of sheets each
+     * one happens to have under it. Left absolute, pronunciation and fluency would have taken
+     * eight elevenths of the note for having four sheets each.
+     */
+    @Test
+    fun `the same weight everywhere gives every aptitude the same say`() {
+        val even = Weights(Sheets.tree.children.flatMap { branch ->
+            listOf(Sheets.pathOf(branch) to 1f) +
+                (branch as Branch).children.map { Sheets.pathOf(it) to 1f }
+        }.toMap())
+        Sheets.tree.children.forEach { branch ->
+            val share = (branch as Branch).children
+                .filterIsInstance<Sheet>()
+                .map { even.of(it) }
+                .sum()
+            assertEquals(branch.name, 1f / Sheets.tree.children.size, share, 1e-5f)
+        }
+    }
+
+    /** All at 0 under a branch is nothing counting, never a division by zero. */
+    @Test
+    fun `a branch whose children are all at zero weighs nothing`() {
+        val none = Weights(Sheets.tree.children.flatMap { branch ->
+            listOf(Sheets.pathOf(branch) to 1f) +
+                (branch as Branch).children.map { Sheets.pathOf(it) to 0f }
+        }.toMap())
+        assertEquals(0f, none.of(correctness), 0f)
     }
 
     @Test
