@@ -117,6 +117,11 @@ fun ConversationScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        // The passage still open, which is the last one the learner said. Saying it again
+        // stops when a passage closes, so it is the only one that offers the small button.
+        // Nothing closes a passage today but starting the next -- the big button that will
+        // close it by hand comes with the passage's four states, further down the plan.
+        val open = turn.utterances.lastOrNull { it.speaker == Speaker.Learner && it.repeats == null }
         turn.utterances.forEach { spoken ->
             // An utterance that says another again is not drawn where it sits in the run: it
             // is one of the readings grouped under the one it repeats, which is where the
@@ -126,6 +131,7 @@ fun ConversationScreen(
             Said(
                 spoken = spoken,
                 readings = readings,
+                open = spoken.id == open?.id,
                 recorder = recorder,
                 busy = turn.phase != Phase.Idle,
                 side = turn.side,
@@ -338,10 +344,16 @@ private fun heard(
  * The small circle is the big one, smaller, and it holds the same way. Saying a sentence
  * again is not a new turn of conversation: it never reaches the language model, and what
  * comes back is the same sentence measured again.
+ *
+ * **Only the open passage carries it**, [open] saying so. Every passage keeps what listens
+ * -- the triangle, the side, the speed -- because they read what is already measured; only
+ * saying it again adds an attempt, and an attempt added to a closed passage would move a
+ * note that the closing rules have already read.
  */
 @Composable
 private fun Redo(
     recorder: TurnRecorder,
+    open: Boolean,
     busy: Boolean,
     side: Side,
     speed: Float,
@@ -378,28 +390,30 @@ private fun Redo(
                 )
             }
         }
-        Surface(
-            shape = CircleShape,
-            color = if (recording) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .size(34.dp)
-                .pointerInput(busy) {
-                    detectTapGestures(onPress = {
-                        if (busy) return@detectTapGestures
-                        mine = true
-                        recorder.hold(scope)
-                        tryAwaitRelease()
-                        recorder.release()
-                        scope.launch {
-                            recorder.finish()?.let { onSaid(it) }
-                            mine = false
-                        }
-                    })
-                },
-        ) {
-            Canvas(Modifier.fillMaxSize()) {
-                drawCircle(color = Color.White, radius = size.minDimension * 0.22f)
+        if (open) {
+            Surface(
+                shape = CircleShape,
+                color = if (recording) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(34.dp)
+                    .pointerInput(busy) {
+                        detectTapGestures(onPress = {
+                            if (busy) return@detectTapGestures
+                            mine = true
+                            recorder.hold(scope)
+                            tryAwaitRelease()
+                            recorder.release()
+                            scope.launch {
+                                recorder.finish()?.let { onSaid(it) }
+                                mine = false
+                            }
+                        })
+                    },
+            ) {
+                Canvas(Modifier.fillMaxSize()) {
+                    drawCircle(color = Color.White, radius = size.minDimension * 0.22f)
+                }
             }
         }
         // Beside the play button, because their scope is it: the selector says which
@@ -415,6 +429,8 @@ private fun Said(
     spoken: Utterance,
     /** Every reading of this turn, oldest first. Each one is addressed by its own identity. */
     readings: List<Utterance>,
+    /** Whether this is the passage still open, the only one that can be said again. */
+    open: Boolean,
     recorder: TurnRecorder,
     busy: Boolean,
     side: Side,
@@ -463,10 +479,10 @@ private fun Said(
                 },
             )
         } else Text(spoken.text, style = MaterialTheme.typography.bodyMedium)
-        // The redo controls stay: saying it again is exactly the answer to a reading that
-        // slid, and taking them away would leave no way out of it.
+        // Every passage that carries a recording gets the row -- listening back is what a
+        // measured turn is for. What the row holds depends on whether the passage is open.
         if (where != null) {
-            Redo(recorder, busy, side, speed, onSide, onSpeed, { onHear(where) }, onRedo)
+            Redo(recorder, open, busy, side, speed, onSide, onSpeed, { onHear(where) }, onRedo)
         }
         if (where != null && sounds != null && Trace.on) {
             val context = LocalContext.current
