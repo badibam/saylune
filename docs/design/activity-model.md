@@ -251,9 +251,10 @@ C'est le seul levier de cette aptitude, et il ne dit rien de ce qu'elle exige : 
 | `seuil-silence` | nombre | secondes | — | l'app |
 | `duree-tour` | nombre | secondes, maximum 30 | 30 | l'app |
 | `preparation` | nombre | secondes | 0 | l'app |
+| `jeter-la-prise` | marches | permis, interdit | permis | l'app |
 | `fluidite.fait-refaire` | marches | non, oui | non | l'app |
 
-`seuil-silence` et `preparation` sont **sans objet** en capture au doigt, où c'est le pouce qui arme. Le maximum de `duree-tour` est le plafond technique, et il remonte quand le fenêtrage de l'analyse arrive.
+`seuil-silence` et `preparation` sont **sans objet** en capture au doigt, où c'est le pouce qui arme. `jeter-la-prise` l'est en capture armée avec envoi au silence, pour la raison inverse — c'est la seule position où l'apprenant n'est pas seul à envoyer (« La capture »). Le maximum de `duree-tour` est le plafond technique, et il remonte quand le fenêtrage de l'analyse arrive.
 
 **`preparation` est le temps entre la fin de la réponse de l'IA et l'armement du micro.** Elle était nommée une fois en passant, parmi les aides qu'un curseur retire, sans levier ni définition. Elle en a une maintenant, et c'est celle-là plutôt qu'un temps de réflexion accordé *à l'intérieur* du tour : ce second sens serait une ligne interne à la mesure de fluidité, et une ligne interne ne se règle jamais — c'est déjà le sort du délai de grâce d'une seconde. Vivant hors du tour, elle ne touche aucune mesure.
 
@@ -1380,6 +1381,10 @@ Un tour interrompu est **tronqué et envoyé tel quel** : ce qui restait à dire
 **Les deux décomptes sont visibles, toujours** — celui du silence de x et celui de la durée maximale du tour. Deux temps qui s'épuisent, montrés de la même façon. Ce n'est pas un levier.
 
 Le micro **ne s'arme jamais avant la fin de la réponse de l'IA**. Un symbole est visible dès que ça enregistre : il n'informe pas seulement, il fait partie de la pression — savoir que ça tourne change la façon dont on parle.
+
+**Une prise se jette avant d'être envoyée, et c'est un levier** — `jeter-la-prise`, tranché le 2026-09-06. Le geste existe dans l'app depuis le début : on parle, on relâche, et on jette au lieu d'envoyer. Rien n'est parti, rien n'a été mesuré, aucune tentative n'est dépensée. Sans lui, la seule sortie d'une phrase ratée serait de l'envoyer, ce qui dépense une tentative pour un raclement de gorge. Mais librement offert, il rend le compte des tentatives contournable : dans un défi qui n'en donne qu'une, on recommence dix fois en jetant chaque prise, et la tentative reste intacte. Un défi doit donc pouvoir le fermer, ce qui est exactement la définition d'un levier — il y a un côté facile.
+
+Il est **sans objet en capture armée avec envoi au silence**, la seule position où une horloge envoie aussi : le silence pendant lequel on hésite à jeter est ce qui envoie la prise, donc le bouton y serait une course contre la pendule, perdue par qui réfléchit. Ce qui sépare cette position des deux autres n'est pas l'envoi au clic, qui y reste le geste normal, mais le fait que l'apprenant ne soit plus seul à pouvoir envoyer.
 
 **Chaque tour porte sa position de capture.** C'est ce qui dit si ses silences sont significatifs, et rien ne s'agrège entre positions : agréger un tour capté au doigt avec un tour capté automatiquement produirait un chiffre qui ressemble à de la fluidité sans en être.
 
