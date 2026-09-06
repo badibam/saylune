@@ -2,6 +2,8 @@ package app.speakup.chain
 
 import app.speakup.capture.Ending
 import app.speakup.judged.Judgement
+import app.speakup.activity.Brief
+import app.speakup.activity.Character
 import app.speakup.levers.Positions
 
 /**
@@ -32,11 +34,12 @@ interface Conversation {
      * Answer [heard] in the context of [history]. Throws [ChainFailure]; the caller retries
      * from the kept audio file rather than asking for the sentence again.
      *
-     * [titled] is what the conversation is called so far, or null while it is unnamed. It is
-     * sent every turn and comes back only sometimes -- see [Reply.title].
+     * [scene] is what this activity is, frozen at launch: who is speaking and what is being
+     * played. Its name is sent every turn and comes back only while there is none -- see
+     * [Reply.about].
      */
     suspend fun reply(
-        history: List<Exchange>, heard: List<Word>, titled: String?, present: Present = Present(),
+        history: List<Exchange>, heard: List<Word>, scene: Scene, present: Present = Present(),
     ): Reply
 }
 
@@ -55,6 +58,43 @@ interface Conversation {
 data class Present(
     val positions: Positions = Positions(),
     val ending: Ending? = null,
+    /**
+     * Which passage of the sitting is being spoken, counting from one.
+     *
+     * **A passage and not a turn**: it holds every attempt at one thing the learner set out
+     * to say, and the model sees only the last of them anyway, so counting recordings would
+     * count something nobody shows it.
+     *
+     * **Sent every turn, and it is a fact rather than a verdict.** The front-door rule keeps
+     * the state away from the model because a receptionist who lets slip *"you have one
+     * chance left"* breaks his own fiction -- but that guards **judgements about the
+     * learner**. Where the scene stands is the shape of the scene, an author's business, and
+     * a character plays it. What it means is left to the brief: the permanent context says
+     * the number carries no instruction of its own, so in a free conversation, which has no
+     * brief and no ending, it means nothing. **Not proved**: that the model leaves it alone
+     * when nothing asks it to is a bench check, not a guarantee.
+     *
+     * One by default, which is what a sitting with nothing said yet is on.
+     */
+    val passage: Int = 1,
+)
+
+/**
+ * What this activity is, frozen at launch: part 2 of the instruction.
+ *
+ * **This is where the persona lives, and it had to leave the permanent context.** *Warm and
+ * curious* is a trait of character, and written into the part every activity shares it would
+ * have governed the hostile bouncer and the bored receptionist too. What is permanent is what
+ * the app is and what it returns; who is speaking comes from the definition, where an author
+ * can write someone else.
+ *
+ * [titled] is the name this sitting goes by: a definition's own for a scene, and what the
+ * model called it for a conversation that had no name. Once set it does not move.
+ */
+data class Scene(
+    val titled: String? = null,
+    val brief: Brief? = null,
+    val cast: List<Character> = emptyList(),
 )
 
 /** One past turn, as the model should remember it. */
@@ -90,10 +130,16 @@ data class Reply(
      */
     val choice: String?,
     /**
-     * A new name for the conversation, or **null to leave the one it has**.
+     * What the conversation is about, **and only ever for one that has no name yet**.
      *
-     * Null is the ordinary answer and the field is ordinarily absent. A title rewritten every
-     * turn is a title nobody can recognise in a list, which is the one thing it exists for.
+     * It fills the activity's `matter` and not a title of its own, which is why it is not
+     * called one: a definition's title is a declared short name for the status line, and this
+     * is the subject of a conversation nobody named. Null is the ordinary answer and the field
+     * is ordinarily absent.
+     *
+     * **What holds a declared name still is the code and not this instruction.** The prompt
+     * asks for nothing once there is a name, which saves the tokens; the pipeline ignores one
+     * that comes anyway, which is what makes it true.
      */
-    val title: String? = null,
+    val about: String? = null,
 )

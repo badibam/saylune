@@ -48,6 +48,8 @@ data class ActivityRow(
     val brief: String?,
     /** What it looks at. Null while nothing weighs anything. */
     val weights: String?,
+    /** Who speaks in it. Null on a sitting made before there were definitions. */
+    val cast: String?,
     /** The instructions in force at the start, by judged marking. */
     val instructions: String,
     /** What may change during it, and when. Empty until a definition declares any. */
@@ -165,7 +167,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 8)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 9)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -501,13 +503,26 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * The cast comes onto the line, the free conversation having become a definition.
+         *
+         * Added as a nullable column rather than one with a default: null says *made before
+         * there were definitions*, which is a fact about those rows and not a stand-in for a
+         * cast they never had.
+         */
+        private val CAST_ON_THE_LINE = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `activities` ADD COLUMN `cast` TEXT")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
-                    SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH)
+                    SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH, CAST_ON_THE_LINE)
                 .build().also { instance = it }
         }
     }

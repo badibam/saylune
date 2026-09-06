@@ -4,6 +4,7 @@ import app.speakup.activity.Activity
 import app.speakup.activity.Chosen
 import app.speakup.activity.Origin
 import app.speakup.activity.Prescriber
+import app.speakup.activity.Shipped
 import app.speakup.activity.Status
 import app.speakup.levers.At
 import app.speakup.levers.Count
@@ -164,7 +165,7 @@ class SittingTest {
     /** A conversation nobody has set anything for stores an empty set, not a made-up one. */
     @Test
     fun `a free conversation writes down no position it was never given`() {
-        val back = Activity.conversation().row().activity()
+        val back = Shipped.freeConversation().row().activity()
         assertEquals(emptyMap<String, At>(), back.settings.all())
         // And it still answers, with the catalogue's declared default.
         assertEquals(At(Levers.BY_HAND), back.settings.of(Levers.CAPTURE.key))

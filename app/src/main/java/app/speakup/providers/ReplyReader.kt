@@ -70,7 +70,7 @@ internal object ReplyReader {
 
         val echo = parsed.optString("echo").trim().ifBlank { null }
         val choice = parsed.optString("choice").trim().ifBlank { null }
-        val title = parsed.optString("title").trim().ifBlank { null }
+        val about = parsed.optString("about").trim().ifBlank { null }
 
         Trace.add(
             "conversation: answered",
@@ -82,11 +82,11 @@ internal object ReplyReader {
             "difficulty" to difficulty,
             "echo" to echo,
             "picked from the menu" to choice,
-            "renamed the conversation" to title,
+            "said what it is about" to about,
             "intended fell back to the transcript" to
                 if (parsed.optString("intended").isBlank()) "yes" else null,
         )
-        return Reply(judged = judged, spoken = spoken, echo = echo, choice = choice, title = title)
+        return Reply(judged = judged, spoken = spoken, echo = echo, choice = choice, about = about)
     }
 
     private fun JSONObject.required(field: String, content: String): String {

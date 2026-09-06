@@ -7,8 +7,10 @@ import app.speakup.chain.Exchange
 import app.speakup.chain.Present
 import app.speakup.chain.Recognition
 import app.speakup.chain.Reply
+import app.speakup.chain.Scene
 import app.speakup.chain.Word
 import app.speakup.activity.Activity
+import app.speakup.activity.Definitions
 import app.speakup.capture.Ending
 import app.speakup.capture.Playback
 import app.speakup.capture.Take
@@ -213,8 +215,13 @@ data class Utterance(
 data class Pending(val take: Take, val capture: String?, val ending: Ending?)
 
 data class ConversationState(
-    /** The conversation itself, which is an activity like any other. */
-    val activity: Activity = Activity.conversation(),
+    /**
+     * The conversation itself, which is an activity like any other.
+     *
+     * No default: a sitting is opened from a definition and there is no other way to make
+     * one, so a state that made itself an activity would be the second way.
+     */
+    val activity: Activity,
     /**
      * Everything said, oldest first. The thread is this run and nothing else carries it.
      *
@@ -411,7 +418,17 @@ class TurnPipeline(
     private val analysis: Analysis,
     private val archive: ArchiveDao,
 ) {
-    private val _state = MutableStateFlow(ConversationState())
+    /**
+     * The free conversation, read once off the assets it ships in.
+     *
+     * Read here rather than per sitting because it does not change while the app runs, and
+     * read at all rather than defaulted because it **is** where the free conversation's
+     * settings live -- a default wired in code would be a second place they could be written.
+     * A missing file fails loudly, which is what a release that dropped it deserves.
+     */
+    private val free = Definitions.of(context, Definitions.FREE_CONVERSATION)
+
+    private val _state = MutableStateFlow(ConversationState(Activity.from(free)))
     val state: StateFlow<ConversationState> = _state.asStateFlow()
 
     /**
@@ -503,7 +520,7 @@ class TurnPipeline(
     suspend fun begin() = writing.withLock { beginLocked() }
 
     private suspend fun beginLocked() {
-        val fresh = Activity.conversation()
+        val fresh = Activity.from(free)
         opened = true
         archive.put(fresh.row())
         _state.update {
@@ -586,10 +603,20 @@ class TurnPipeline(
             _state.update { it.copy(phase = Phase.Thinking) }
             val reply = conversation.reply(
                 _state.value.history(), heard,
-                titled = _state.value.activity.matter.ifBlank { null },
+                scene = Scene(
+                    titled = _state.value.activity.matter.ifBlank { null },
+                    brief = _state.value.activity.brief,
+                    cast = _state.value.activity.cast,
+                ),
                 // What governs this turn: the levers the model holds, and how the recording
                 // stopped -- which the app knows and does not leave it to guess.
-                present = Present(_state.value.positions, closedBy),
+                present = Present(
+                    _state.value.positions, closedBy,
+                    // A rewording is another attempt at the passage that is already open; a
+                    // turn that rewords nothing opens the next one. Derived from the run,
+                    // like the passages themselves, so it cannot fall out of step with it.
+                    passage = _state.value.passages().size + if (rewords == null) 1 else 0,
+                ),
             )
 
             // The two utterances are held by identity from here on. Their place in the run is
@@ -663,7 +690,11 @@ class TurnPipeline(
 
             // A new name arrives only when there is a reason for one; any other turn leaves
             // the conversation called what it was called.
-            reply.title?.let { name(it) }
+            // **A name that is already there is never replaced, and the code is what says
+            // so.** The prompt asks for nothing once there is one, which saves the tokens;
+            // this is what makes it true, and it is what a scene named by its definition
+            // rests on -- an instruction is asked, a line of code is done.
+            reply.about?.takeIf { _state.value.activity.matter.isBlank() }?.let { name(it) }
 
             if (closing != null || groundless) {
                 Trace.add(

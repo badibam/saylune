@@ -4,7 +4,9 @@ import app.speakup.chain.Exchange
 import app.speakup.levers.Levers
 import app.speakup.levers.Position
 import app.speakup.capture.Ending
+import app.speakup.activity.Brief
 import app.speakup.chain.Present
+import app.speakup.chain.Scene
 import app.speakup.levers.Stepped
 import app.speakup.sheets.Sheets
 import org.json.JSONObject
@@ -36,6 +38,11 @@ internal object ConversationPrompt {
     /**
      * Part 1: what the app is, what to send back, and the invariants that never move.
      *
+     * **No persona here.** *Warm and curious* used to open this text, and it was a trait of
+     * character sitting in the part every activity shares: it governed the hostile bouncer
+     * and the bored receptionist too, and no definition could get out from under it. Who is
+     * speaking is part 2's, out of the definition, where an author writes someone else.
+     *
      * The **norm of correctness** lives here and nowhere else, because it has to be identical
      * for every activity: that invariance is what makes correctness checkable at the bench on
      * isolated sentences. It asks one question and one only -- is the sentence built right --
@@ -44,11 +51,20 @@ internal object ConversationPrompt {
      * the register is an instruction on **relevance**, which is where situation is judged.
      */
     val APP = """
-        You are a warm, curious English conversation partner for someone practising
-        speaking. Talk with them; never run a lesson and never interrupt.
+        You are talking with someone who is practising spoken English. Whoever you are
+        playing is said below; here is what never changes, whoever that is. You are having
+        a conversation, not running a lesson, and you never interrupt: the app marks what
+        was said, and no character of yours corrects on the spot unless asked to by an echo.
 
         You receive their turn as a raw transcript: lower case, no punctuation, and
         possibly a word the recogniser misheard.
+
+        You are also told which passage of the conversation you are on. A passage is one
+        thing the learner set out to say plus any further attempt at it, so it counts
+        exchanges and not recordings. The number carries no instruction of its own: it
+        says where the conversation stands, and only what this activity tells you about
+        its shape can give it a meaning. Unless something says otherwise, there is no
+        length to reach and no point at which to wrap things up.
 
         Answer with a JSON object holding these fields, in this order. Write them in this
         order and do not reorder them: each one you write shapes the next, and the
@@ -121,25 +137,50 @@ internal object ConversationPrompt {
 
         "echo": include this field only when you marked something in "spans". One short
         line that picks the slip up and hands the sentence back, in your own voice, the way
-        a friendly native speaker would. To "I have twenty five years": "Ah, you're
+        a native speaker would. To "I have twenty five years": "Ah, you're
         twenty-five!". Leave the field out entirely when nothing was marked.
 
-        "title": include this field only when there is a reason to -- the conversation has
-        no title yet, or what you have been talking about has moved far enough that the
-        current title no longer describes it. Six words at most, in English, no full stop.
-        On any other turn leave the field out entirely. A title rewritten every turn is a
-        title nobody can recognise in a list, which is the only thing it is for.
+        "about": include this field only when part 2 says this conversation has no name
+        yet **and** you can now tell what it is about -- which is usually not on the first
+        turn. Six words at most, in English, no full stop. On every other turn leave the
+        field out entirely, and never send a new one for a conversation that is already
+        named: a name that changes is a name nobody can recognise in a list, which is the
+        one thing it is for.
     """.trimIndent()
 
     /**
-     * Part 2: what this activity is, frozen at launch.
+     * Part 2: what this activity is, frozen at launch -- who is speaking, and what is played.
      *
-     * Empty in a free conversation, which has no brief, no cast and no earlier scene to
-     * remember. The part exists all the same so nothing has to move when definitions arrive.
+     * **The staging is here and it is never shown to the learner.** The brief cuts in two and
+     * no further: the [Brief.situation], true for everybody and readable on a pre-game screen,
+     * and the [Brief.staging], which addresses the character alone and would sabotage itself
+     * if displayed. The price of the single call is here and it is said once -- the staging
+     * sits in the judge's context, where it has no business, and what holds it at arm's length
+     * is the sentence saying the judge's criterion is the instruction. That is checked at a
+     * bench; it is not proved.
      */
-    fun activity(titled: String?): String = when {
-        titled.isNullOrBlank() -> "This conversation has no title yet."
-        else -> "This conversation is currently titled: $titled"
+    fun activity(scene: Scene): String {
+        val lines = mutableListOf<String>()
+        scene.brief?.staging?.takeIf { it.isNotBlank() }?.let { lines += it }
+        scene.brief?.situation?.takeIf { it.isNotBlank() }?.let { lines += "The situation: $it" }
+        // Only where there are several: naming the one voice a free conversation has would be
+        // telling the model something it has no use for.
+        if (scene.cast.size > 1) {
+            lines += "Say who is speaking, by key, among: " +
+                scene.cast.joinToString(", ") { it.key }
+        }
+        // **Named or not, and nothing in between.** A scene is named by its definition before
+        // a word is said, so it is never asked; a free conversation is asked until it has a
+        // name and never again. One rule, and it does not have to know which kind it is
+        // looking at -- only whether what it has in front of it is named.
+        lines += when {
+            scene.titled.isNullOrBlank() ->
+                "This conversation has no name yet. Send an \"about\" when you can tell " +
+                    "what it is about."
+            else -> "This conversation is called: ${scene.titled}. That is its name; " +
+                "do not send another."
+        }
+        return lines.joinToString("\n\n")
     }
 
     /**
@@ -156,6 +197,9 @@ internal object ConversationPrompt {
      */
     fun present(present: Present): String {
         val lines = mutableListOf<String>()
+        // Where the conversation stands, said plainly and left uninterpreted: what part 1
+        // declares is that the number asks for nothing by itself.
+        lines += "This is passage ${present.passage}."
         Levers.all
             .filterIsInstance<Stepped>()
             .filter {
@@ -182,8 +226,8 @@ internal object ConversationPrompt {
     }
 
     /** The whole instruction: part 1, then part 2, then part 4. Part 3 is the message list. */
-    fun system(titled: String?, present: Present = Present()): String =
-        listOf(APP, activity(titled), present(present))
+    fun system(scene: Scene, present: Present = Present()): String =
+        listOf(APP, activity(scene), present(present))
             .filter { it.isNotBlank() }
             .joinToString("\n\n")
 

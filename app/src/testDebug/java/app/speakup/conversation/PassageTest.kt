@@ -1,6 +1,6 @@
 package app.speakup.conversation
 
-import app.speakup.activity.Activity
+import app.speakup.activity.Shipped
 import app.speakup.levers.At
 import app.speakup.levers.Count
 import app.speakup.levers.Positions
@@ -37,7 +37,7 @@ class PassageTest {
     )
 
     private fun state(vararg run: Utterance) =
-        ConversationState(activity = Activity.conversation(), utterances = run.toList())
+        ConversationState(activity = Shipped.freeConversation(), utterances = run.toList())
 
     // ── The passage, derived ────────────────────────────────────────────────────────────
 
@@ -321,7 +321,7 @@ class PassageTest {
     fun `waiting holds the big button until the attempts run out`() {
         val opener = said("I go there yesterday")
         val blocked = state(opener).copy(
-            activity = Activity.conversation().copy(settings = waiting("words")),
+            activity = Shipped.freeConversation().copy(settings = waiting("words")),
             wordsGate = Closing.Aptitudes(listOf("correctness")),
         )
         assertEquals(Standing.ToReword, blocked.standing())
@@ -337,7 +337,7 @@ class PassageTest {
     fun `the attempts spent give the big button back`() {
         val opener = said("I go there yesterday")
         val spent = state(opener).copy(
-            activity = Activity.conversation().copy(
+            activity = Shipped.freeConversation().copy(
                 settings = Positions(
                     waiting("words").all() + mapOf(Attempt.Rewording.lever to Count(0)),
                 ),
@@ -356,7 +356,7 @@ class PassageTest {
     fun `waiting with no attempt allowed is not a dead end`() {
         val opener = said("I go there yesterday")
         val none = state(opener).copy(
-            activity = Activity.conversation().copy(
+            activity = Shipped.freeConversation().copy(
                 settings = Positions(
                     waiting("words", "sound").all() + mapOf(
                         Attempt.Rewording.lever to Count(0),
@@ -379,7 +379,7 @@ class PassageTest {
     fun `the words come before the sound`() {
         val opener = said("I go there yesterday")
         val both = state(opener).copy(
-            activity = Activity.conversation().copy(settings = waiting("words")),
+            activity = Shipped.freeConversation().copy(settings = waiting("words")),
             wordsGate = Closing.Aptitudes(listOf("correctness")),
             soundGate = Closing.Aptitudes(listOf("pronunciation")),
         )
@@ -391,7 +391,7 @@ class PassageTest {
     fun `the sound gate speaks once the rewordings are spent`() {
         val opener = said("I go there yesterday")
         val left = state(opener).copy(
-            activity = Activity.conversation().copy(
+            activity = Shipped.freeConversation().copy(
                 settings = Positions(mapOf(Attempt.Rewording.lever to Count(0))),
             ),
             wordsGate = Closing.Aptitudes(listOf("correctness")),

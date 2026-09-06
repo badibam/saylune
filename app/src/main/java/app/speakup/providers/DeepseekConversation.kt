@@ -6,6 +6,7 @@ import app.speakup.chain.Exchange
 import app.speakup.chain.Present
 import app.speakup.chain.Reply
 import app.speakup.chain.Word
+import app.speakup.chain.Scene
 import app.speakup.debug.Trace
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
@@ -37,7 +38,7 @@ class DeepseekConversation(
 ) : Conversation {
 
     override suspend fun reply(
-        history: List<Exchange>, heard: List<Word>, titled: String?, present: Present,
+        history: List<Exchange>, heard: List<Word>, scene: Scene, present: Present,
     ): Reply =
         withContext(Dispatchers.IO) {
             val values = store.values().first()
@@ -51,7 +52,7 @@ class DeepseekConversation(
                 model = model,
                 history = history,
                 heard = heard,
-                titled = titled,
+                scene = scene,
                 present = present,
                 say = "conversation: asking deepseek/$model at ${effort.id}",
             ) {

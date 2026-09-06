@@ -6,7 +6,6 @@ import app.speakup.sheets.Sheet
 import app.speakup.sheets.Sheets
 import java.io.File
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -41,8 +40,10 @@ class DefinitionTest {
     fun `the free conversation is one of them, and leaves every lever where the catalogue puts it`() {
         val free = shipped(Definitions.FREE_CONVERSATION)
         assertEquals(emptyMap<String, Any>(), free.settings.all())
-        // Its brief comes from the learner, so the file has none to declare.
-        assertNull(free.brief)
+        // The two halves of the brief come from two places here: the file declares who the
+        // character is, the learner writes what to talk about.
+        assertTrue(free.brief!!.staging.isNotBlank())
+        assertEquals("", free.brief!!.situation)
         assertEquals(listOf(Speaker.SPEAKUP), free.cast.map { it.key })
     }
 

@@ -1,8 +1,10 @@
 package app.speakup.store
 
 import app.speakup.activity.Brief
+import app.speakup.activity.Character
 import app.speakup.activity.Chosen
 import app.speakup.activity.Origin
+import app.speakup.activity.Text
 import app.speakup.levers.At
 import app.speakup.levers.Count
 import app.speakup.levers.Position
@@ -62,6 +64,30 @@ internal object Sitting {
     fun readWeights(stored: String): Weights {
         val json = JSONObject(stored)
         return Weights(json.keys().asSequence().associateWith { json.getDouble(it).toFloat() })
+    }
+
+    /**
+     * The cast, each character with its key and its short name by language.
+     *
+     * Copied onto the line like every other thing a definition lays down: an utterance names
+     * its speaker by key, so a sitting that lost its cast would hold names it cannot read.
+     */
+    fun writeCast(of: List<Character>): String = JSONArray().apply {
+        of.forEach { character ->
+            put(JSONObject()
+                .put("key", character.key)
+                .put("short", JSONObject().apply {
+                    character.short.byLanguage.forEach { (language, text) -> put(language, text) }
+                }))
+        }
+    }.toString()
+
+    fun readCast(stored: String): List<Character> = JSONArray(stored).objects().map { json ->
+        val short = json.getJSONObject("short")
+        Character(
+            key = json.getString("key"),
+            short = Text(short.keys().asSequence().associateWith { short.getString(it) }),
+        )
     }
 
     fun write(brief: Brief): String =

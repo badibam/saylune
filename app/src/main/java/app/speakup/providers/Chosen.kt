@@ -10,6 +10,7 @@ import app.speakup.chain.Reply
 import app.speakup.chain.Synthesis
 import app.speakup.chain.Voice
 import app.speakup.chain.Word
+import app.speakup.chain.Scene
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import kotlinx.coroutines.flow.first
@@ -44,12 +45,12 @@ class ChosenRecognition(private val store: SecretStore) : Recognition {
 class ChosenConversation(private val store: SecretStore) : Conversation {
 
     override suspend fun reply(
-        history: List<Exchange>, heard: List<Word>, titled: String?, present: Present,
+        history: List<Exchange>, heard: List<Word>, scene: Scene, present: Present,
     ): Reply {
         val values = store.values().first()
         val (provider, model) = pick(Task.Conversation, values)
         return conversationBy(store, provider, model, effortFor(provider, values))
-            .reply(history, heard, titled, present)
+            .reply(history, heard, scene, present)
     }
 }
 

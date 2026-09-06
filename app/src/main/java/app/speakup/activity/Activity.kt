@@ -42,8 +42,9 @@ data class Activity(
      * avoids it* can give a conversation whose matter ends up being *his move*. Confusing
      * them would let a title written by the AI overwrite the brief.
      *
-     * Null in a free conversation until the learner writes one -- the one activity whose
-     * brief comes from him rather than from a file.
+     * **The two halves do not come from the same place in a free conversation**: its
+     * definition declares the staging, which is who the character is, and the learner writes
+     * the situation, which is what to talk about. Everywhere else both come from the file.
      */
     val brief: Brief? = null,
     /**
@@ -69,10 +70,21 @@ data class Activity(
      * for the learner as for a ranking -- which is the argument served everywhere here: a note
      * is never read without the combination that produced it, so there has to be one.
      *
-     * Null while nothing weighs anything, which is a free conversation until its definition
-     * is written (step 14).
+     * Null on a sitting made before there were definitions to declare any. Every sitting
+     * made now carries the tree its definition laid down.
      */
     val weights: Weights? = null,
+    /**
+     * Who speaks in this sitting, besides the learner.
+     *
+     * Copied onto the line like everything else a definition lays down, and for a reason of
+     * its own on top: an utterance names its speaker by key, so a sitting that had to go and
+     * ask its definition for the cast would be a sitting whose thread cannot be read without
+     * the release that produced it.
+     *
+     * Empty on a sitting made before there were definitions to declare one.
+     */
+    val cast: List<Character> = emptyList(),
     /**
      * The instructions in force at the start, by judged marking.
      *
@@ -100,7 +112,10 @@ data class Activity(
      */
     val journal: List<Chosen> = emptyList(),
     /**
-     * Which definition this came from, and at which version. Null for a free conversation.
+     * Which definition this came from, and at which version.
+     *
+     * Null only on a sitting made before the free conversation was itself a delivered
+     * definition: every sitting comes from one now.
      *
      * **It only ever groups** -- opening the next level, filing a score -- and is never
      * consulted to know how the sitting was set: that is on the line. And it names the
@@ -158,21 +173,38 @@ data class Activity(
         const val ENGINE = 1
 
         /**
-         * A conversation, open, at one instant.
+         * A sitting opened from [definition], which is **the only way one is made**.
+         *
+         * A definition is a **template applied at creation**: everything it declares is copied
+         * onto the line here and never asked for again, so a definition that changes in a
+         * later release cannot rewrite what a sitting was played under. That is why the free
+         * conversation had to become a definition of its own -- otherwise its settings would
+         * be a *default* wired somewhere else, which is a second place they could be written.
          *
          * The clock is read once and both stamps take it. Read twice, they differ by however
-         * long the two lines took, and a conversation that started before it was created is
-         * a fact nobody meant to record.
+         * long the two lines took, and a sitting that started before it was created is a fact
+         * nobody meant to record.
          *
-         * Prescribed by the learner: opening the app is the learner asking for it, and the
-         * design makes the learner the way new matter gets in. Running from the moment it
-         * exists -- a conversation is never a suggestion waiting to be taken up.
+         * **What this does not do yet is play the opening**: a definition may carry a pack of
+         * effects that opens the scene, and nothing applies it (`../../../../../../TODO.md`).
+         * The free conversation has none, so nothing is missing today.
          */
-        fun conversation(now: Long = System.currentTimeMillis()) = Activity(
+        fun from(
+            definition: Definition,
+            by: Prescriber = Prescriber.Learner,
+            now: Long = System.currentTimeMillis(),
+        ) = Activity(
+            brief = definition.brief,
+            cast = definition.cast,
+            settings = definition.settings,
+            weights = definition.weights,
+            instructions = definition.instructions,
+            rules = definition.rules,
+            origin = Origin(definition.id, definition.version),
             status = Status.Running,
             createdAt = now,
             startedAt = now,
-            by = Prescriber.Learner,
+            by = by,
         )
     }
 }

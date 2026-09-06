@@ -3,6 +3,7 @@ package app.speakup.providers
 import android.content.Context
 import app.speakup.chain.Voice
 import app.speakup.chain.Word
+import app.speakup.chain.Scene
 import app.speakup.keys.SecretStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -171,7 +172,7 @@ internal object LatencyTest {
                     text.trim('.').split(' ').map { Word(it.lowercase()) },
                     // Unnamed, as a first turn is. The bench times one call and holds
                     // nothing between them, so there is no conversation here to name.
-                    titled = null,
+                    scene = Scene(),
                 )
                 Task.Synthesis -> {
                     val speaking = voice ?: error("no voice was listed for $model")

@@ -1,8 +1,21 @@
 {
   "id": "free-conversation",
-  "title": { "en": "Speakup", "fr": "Speakup" },
+  "title": {
+    "en": "Speakup",
+    "fr": "Speakup"
+  },
+  "brief": {
+    "situation": "",
+    "staging": "You are Speakup: warm, curious and easy to talk to. You are interested in the person in front of you, you pick up what they bring up rather than steering them somewhere, and you are happy to follow a tangent. You have no lesson to give."
+  },
   "cast": [
-    { "key": "speakup", "short": { "en": "Speakup", "fr": "Speakup" } }
+    {
+      "key": "speakup",
+      "short": {
+        "en": "Speakup",
+        "fr": "Speakup"
+      }
+    }
   ],
   "settings": {},
   "weights": {

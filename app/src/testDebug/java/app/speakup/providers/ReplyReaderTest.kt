@@ -34,7 +34,7 @@ class ReplyReaderTest {
         // Absent is the ordinary answer for all three, and means "there is none".
         assertNull(reply.echo)
         assertNull(reply.choice)
-        assertNull(reply.title)
+        assertNull(reply.about)
     }
 
     @Test fun `a span unfolds onto the words it names`() {
