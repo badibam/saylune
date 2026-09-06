@@ -12,8 +12,11 @@ from PIL import Image, ImageDraw
 
 from pixelfont import CELL_W, GLYPHS, LINE_PX, TOP_PX, read_maps
 
-NIGHT = {"bg": (0.20, 0.045), "panel": (0.26, 0.050), "ink": (0.64, 0.020), "dim": (0.44, 0.015)}
-PALE = {"bg": (0.90, 0.075), "panel": (0.84, 0.070), "ink": (0.40, 0.020), "dim": (0.60, 0.020)}
+# Lightness, chroma and hue offset, read off the bench's palette function.
+NIGHT = {"bg": (0.20, 0.045, 0), "panel": (0.255, 0.045, 0), "ink": (0.64, 0.018, 0),
+         "dim": (0.40, 0.018, 0), "frameA": (0.66, 0.045, 14), "frameB": (0.40, 0.045, 0)}
+PALE = {"bg": (0.90, 0.075, 0), "panel": (0.845, 0.075, 0), "ink": (0.40, 0.018, 0),
+        "dim": (0.64, 0.018, 0), "frameA": (0.44, 0.075, 14), "frameB": (0.70, 0.075, 0)}
 HUE = 301.0
 
 
@@ -43,8 +46,8 @@ def _gamma(c):
 
 
 def colour(register, key):
-    lightness, chroma = (NIGHT if register == "night" else PALE)[key]
-    return oklch_to_srgb(lightness, chroma, HUE)
+    lightness, chroma, hue_shift = (NIGHT if register == "night" else PALE)[key]
+    return oklch_to_srgb(lightness, chroma, HUE + hue_shift)
 
 
 class Sheet:
