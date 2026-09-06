@@ -57,6 +57,7 @@
     <string name="phase_hearing">Listening to your turn…</string>
     <string name="phase_thinking">Thinking…</string>
     <string name="phase_speaking">Answering…</string>
+    <string name="phase_measuring">Measuring your turn…</string>
     <string name="turn_retry">Try again</string>
     <string name="turn_failed">The chain gave way: %1$s. Your turn is kept — nothing to say again.</string>
     <string name="conversation_empty">Hold the button and say something.</string>

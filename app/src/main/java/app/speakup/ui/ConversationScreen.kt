@@ -711,6 +711,7 @@ fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String
     turn.phase == Phase.Hearing -> stringResource(R.string.phase_hearing)
     turn.phase == Phase.Thinking -> stringResource(R.string.phase_thinking)
     turn.phase == Phase.Speaking -> stringResource(R.string.phase_speaking)
+    turn.phase == Phase.Measuring -> stringResource(R.string.phase_measuring)
     capture.recording && repeating != null ->
         stringResource(R.string.capture_repeat_running, seconds(capture.elapsedMs))
     capture.recording ->

@@ -48,8 +48,15 @@ import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.util.UUID
 
-/** Where a turn has got to. The screen shows it; nothing else depends on it. */
-enum class Phase { Idle, Hearing, Thinking, Speaking }
+/**
+ * Where a turn has got to, and **[Idle] is the app saying the learner may go on**.
+ *
+ * That is more than a caption, which is why the last cran exists. The big button reads it,
+ * and what it opens is the next passage -- so idle before the sound's gate has been read
+ * would be an answer given without knowing, since that gate is read at the end of the
+ * analysis and can hold the passage back. [Measuring] is the app still deciding.
+ */
+enum class Phase { Idle, Hearing, Thinking, Speaking, Measuring }
 
 /** Whose recording a manual gesture plays. */
 enum class Side { Model, Learner }
@@ -699,8 +706,14 @@ class TurnPipeline(
                 // The number the doc puts on the chain, and the only one the learner feels.
                 Trace.add("turn: first sound")
             }
-            _state.update { it.copy(phase = Phase.Idle) }
             Trace.add("turn: said, and done")
+
+            // **The turn is not idle because the voice has stopped.** What follows still
+            // decides whether the passage may be left -- the sound's gate is read at the very
+            // end of the analysis -- and idle here would light the big button on an answer
+            // nobody has yet, the press then waiting on the lock with nothing on screen
+            // saying why. Idle is said once there is something to say it about.
+            _state.update { it.copy(phase = Phase.Measuring) }
 
             // A new name arrives only when there is a reason for one; any other turn leaves
             // the conversation called what it was called.
@@ -728,6 +741,7 @@ class TurnPipeline(
                     stumbling = reply.judged.stumbling,
                 )
             }
+            _state.update { it.copy(phase = Phase.Idle) }
         } catch (failure: ChainFailure) {
             Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
             _state.update {

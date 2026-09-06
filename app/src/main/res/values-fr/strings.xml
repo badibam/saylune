@@ -56,6 +56,7 @@
     <string name="phase_hearing">Écoute de ton tour…</string>
     <string name="phase_thinking">Réflexion…</string>
     <string name="phase_speaking">Réponse…</string>
+    <string name="phase_measuring">Mesure de ton tour…</string>
     <string name="turn_retry">Réessayer</string>
     <string name="turn_failed">La chaîne a lâché : %1$s. Ton tour est conservé — rien à redire.</string>
     <string name="conversation_empty">Maintiens le bouton et dis quelque chose.</string>
