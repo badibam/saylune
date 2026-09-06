@@ -199,7 +199,7 @@ enum class Provider(
             .map { VoiceOption(id = it, label = it) }
         Azure -> azureVoices(store)
         ElevenLabs -> elevenVoices(store)
-        Deepseek, OpenAI -> throw ChainFailure("${'$'}label has no voices")
+        Deepseek, OpenAI -> throw ChainFailure("$label has no voices")
     }
 
     /** Azure publishes the whole voice list for a region, so it is read whole and filtered. */

@@ -122,8 +122,14 @@ internal fun conversationBy(
         store, model,
         effort ?: throw ChainFailure("DeepSeek was given no reasoning level"),
     )
+    Provider.OpenAI -> OpenaiConversation(store, model, effort)
     Provider.Replicate -> ReplicateConversation(ReplicateClient(store), model)
-    else -> throw ChainFailure("${provider.label} does not hold a conversation")
+    // Named one by one and never closed with an `else`. The two seams beside this one are
+    // exhaustive, and that is what made the compiler ask about OpenAI when it was added;
+    // here an `else` answered for it, and a provider offered on screen threw at the moment
+    // the learner had already spoken.
+    Provider.Azure, Provider.ElevenLabs ->
+        throw ChainFailure("${provider.label} does not hold a conversation")
 }
 
 internal fun synthesisBy(
