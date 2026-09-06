@@ -305,4 +305,106 @@ class PassageTest {
             assertNull(read.first { Sheets.scoredPathOf(it.sheet) == path }.figure)
         }
     }
+
+    // ── The way out of a blocked passage ────────────────────────────────────────────────
+
+    private fun waiting(vararg on: String) = Positions(
+        on.associate { "avance.$it" to At("attend") } +
+            mapOf("correction.fait-refaire" to At("oui")),
+    )
+
+    /**
+     * **In "waits" the big button is not available**, or one would leave a blocked passage by
+     * simply saying something else, and the attempts would stop being the only way out.
+     */
+    @Test
+    fun `waiting holds the big button until the attempts run out`() {
+        val opener = said("I go there yesterday")
+        val blocked = state(opener).copy(
+            activity = Activity.conversation().copy(settings = waiting("mots")),
+            wordsGate = Closing.Aptitudes(listOf("correction")),
+        )
+        assertEquals(Standing.ToReword, blocked.standing())
+        assertFalse(blocked.closes())
+    }
+
+    /**
+     * **And it comes back when they run out**, or nothing would ever move on -- which is why
+     * *waits* guarantees the spending and not the repair: a passage to reword can close
+     * without ever having been reworded.
+     */
+    @Test
+    fun `the attempts spent give the big button back`() {
+        val opener = said("I go there yesterday")
+        val spent = state(opener).copy(
+            activity = Activity.conversation().copy(
+                settings = Positions(
+                    waiting("mots").all() + mapOf(Attempt.Rewording.lever to Count(0)),
+                ),
+            ),
+            wordsGate = Closing.Aptitudes(listOf("correction")),
+        )
+        assertEquals(Standing.Open, spent.standing())
+        assertTrue(spent.closes())
+    }
+
+    /**
+     * **"Waits" with zero attempts allowed is not a dead end**: the attempts are spent from the
+     * outset, the passage closes unrepaired at once, and *waits* never waits.
+     */
+    @Test
+    fun `waiting with no attempt allowed is not a dead end`() {
+        val opener = said("I go there yesterday")
+        val none = state(opener).copy(
+            activity = Activity.conversation().copy(
+                settings = Positions(
+                    waiting("mots", "son").all() + mapOf(
+                        Attempt.Rewording.lever to Count(0),
+                        Attempt.Repeat.lever to Count(0),
+                    ),
+                ),
+            ),
+            wordsGate = Closing.Aptitudes(listOf("correction")),
+            soundGate = Closing.Aptitudes(listOf("elocution")),
+        )
+        assertTrue(none.closes())
+    }
+
+    /**
+     * **The two exhaustions do not fall in the same place**: the rewordings' before the sound
+     * analysis has run, the repeats' after -- so a passage whose words still have to change is
+     * never sent back on its sound.
+     */
+    @Test
+    fun `the words come before the sound`() {
+        val opener = said("I go there yesterday")
+        val both = state(opener).copy(
+            activity = Activity.conversation().copy(settings = waiting("mots")),
+            wordsGate = Closing.Aptitudes(listOf("correction")),
+            soundGate = Closing.Aptitudes(listOf("elocution")),
+        )
+        assertEquals(Standing.ToReword, both.standing())
+    }
+
+    /** With the rewordings spent, what is left to repair is the sound. */
+    @Test
+    fun `the sound gate speaks once the rewordings are spent`() {
+        val opener = said("I go there yesterday")
+        val left = state(opener).copy(
+            activity = Activity.conversation().copy(
+                settings = Positions(mapOf(Attempt.Rewording.lever to Count(0))),
+            ),
+            wordsGate = Closing.Aptitudes(listOf("correction")),
+            soundGate = Closing.Aptitudes(listOf("elocution")),
+        )
+        assertEquals(Standing.ToSayAgain, left.standing())
+    }
+
+    /** Nothing to redo is an open passage, and the big button closes it. */
+    @Test
+    fun `a passage with nothing to redo is open`() {
+        val run = state(said("hello"))
+        assertEquals(Standing.Open, run.standing())
+        assertTrue(run.closes())
+    }
 }

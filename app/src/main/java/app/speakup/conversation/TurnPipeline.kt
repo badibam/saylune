@@ -6,18 +6,28 @@ import app.speakup.chain.Conversation
 import app.speakup.chain.Exchange
 import app.speakup.chain.Present
 import app.speakup.chain.Recognition
+import app.speakup.chain.Reply
 import app.speakup.chain.Word
 import app.speakup.activity.Activity
 import app.speakup.capture.Ending
 import app.speakup.capture.Playback
 import app.speakup.capture.Take
+import app.speakup.analysis.Analysed
 import app.speakup.analysis.AnalysedSound
+import app.speakup.analysis.timed
 import app.speakup.analysis.Analysis
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
 import app.speakup.judged.Judgement
 import app.speakup.judged.Kept
 import app.speakup.judged.Marked
+import app.speakup.levers.Count
+import app.speakup.notes.Sheeting
+import app.speakup.sheets.POSITIONS
+import app.speakup.sheets.Sheet
+import app.speakup.sheets.Sheets
+import app.speakup.levers.At
+import app.speakup.levers.Levers
 import app.speakup.levers.Positions
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
@@ -236,6 +246,25 @@ data class ConversationState(
     val speed: Float = 1f,
     /** Whether the marks are on at all, settled once for the conversation. Null until asked. */
     val analysis: Readiness? = null,
+    /**
+     * Why each gate closed on the open passage's last attempt, or null where it let through.
+     *
+     * Held rather than recomputed on every read, and that is not a second source: they are
+     * written at exactly the two moments the doc names -- when the call returns, and when the
+     * analysis ends -- and cleared the instant another attempt starts. What they read is gone
+     * by then anyway, the analysis of one attempt not being kept in memory.
+     */
+    val wordsGate: Closing? = null,
+    val soundGate: Closing? = null,
+    /**
+     * The continuation the app is holding because it played the echo instead.
+     *
+     * **Nothing has to be refabricated for the way out of a blocked passage**: the call
+     * returned the continuation and the echo together, and in *waits* only the echo was played.
+     * When the rewordings run out, the app plays the continuation it was holding. No second
+     * call, nothing retracted -- which is what makes that way out free.
+     */
+    val held: String? = null,
 ) {
 
     /**
@@ -279,6 +308,52 @@ data class ConversationState(
 
     /** Every passage of this run, oldest first. Derived, and never stored. */
     fun passages(): List<Passage> = Passage.of(utterances)
+
+    /** The passage still open, which is the last one. Null before anything has been said. */
+    fun open(): Passage? = passages().lastOrNull()
+
+    /**
+     * Where the open passage stands.
+     *
+     * **Derived and not stored**: it follows from the two gates and the counts of attempts,
+     * both already there. The words come before the sound, which is the order the gates
+     * themselves are read in -- a sentence about to be rewritten is not one to say again.
+     *
+     * **When the attempts of a kind run out, that repair is over** and the passage stands open
+     * again: *"waits" does not guarantee the repair, it guarantees the attempts get spent*, so
+     * a passage to reword can close without ever having been reworded.
+     */
+    fun standing(): Standing {
+        val passage = open() ?: return Standing.Open
+        val settings = positions
+        if (wordsGate != null && passage.spare(Attempt.Rewording, settings)) {
+            return Standing.ToReword
+        }
+        if (soundGate != null && passage.spare(Attempt.Repeat, settings)) {
+            return Standing.ToSayAgain
+        }
+        return Standing.Open
+    }
+
+    /**
+     * Whether the big button is available, which is what closes a passage.
+     *
+     * **In "waits" it is not**, or one would leave a blocked passage by simply saying something
+     * else and the attempts would stop being the only way out. **It comes back when they run
+     * out**, or nothing would ever move on -- which is why *waits* guarantees the spending and
+     * not the repair.
+     *
+     * The two advances are separate levers for the reason that already split the attempts: a
+     * challenge aiming only at pronunciation keeps its behaviour on the words' side whatever
+     * happens, and with one lever neither of the two could be written.
+     */
+    fun closes(): Boolean = when (standing()) {
+        Standing.ToReword -> !waits(Levers.ADVANCE_WORDS.key)
+        Standing.ToSayAgain -> !waits(Levers.ADVANCE_SOUND.key)
+        else -> true
+    }
+
+    private fun waits(key: String) = (positions.of(key) as? At)?.name == "attend"
 
     /**
      * The run as the language model should remember it: **the last attempt of each passage,
@@ -458,7 +533,27 @@ class TurnPipeline(
         audio: Take? = null, capture: String? = null, ending: Ending? = null,
     ) = writing.withLock { submitLocked(audio, capture, ending) }
 
-    private suspend fun submitLocked(audio: Take?, capture: String?, ending: Ending?) {
+    /**
+     * Say the open passage differently -- **a rewording, which remakes the exchange**.
+     *
+     * In *waits* the AI has only played an echo and its answer is built on the corrected
+     * version; in *carries on* it has spoken, and the app **makes the call afresh as though
+     * this were the first attempt** -- the prompt carries nothing of the earlier wordings but
+     * the counters -- plays the new answer, and the previous one leaves the thread.
+     *
+     * What it costs is a whole run of the chain per rewording, and hearing two answers to
+     * nearly the same sentence. What it buys is a thread that never contradicts itself.
+     *
+     * **A repeat is the other gesture and it relaunches nothing**, the words being the same:
+     * there is nothing new to answer. It stays what it was, an exercise -- [redo].
+     */
+    suspend fun reword(
+        of: String, audio: Take, capture: String? = null, ending: Ending? = null,
+    ) = writing.withLock { submitLocked(audio, capture, ending, rewords = of) }
+
+    private suspend fun submitLocked(
+        audio: Take?, capture: String?, ending: Ending?, rewords: String? = null,
+    ) {
         val held = _state.value.pending
         val take = audio ?: held?.take ?: return
         // The turn as it was said, blanks and all: it is what is stored, what the analysis
@@ -509,6 +604,10 @@ class TurnPipeline(
                 capture = position,
                 ending = closedBy,
                 judged = reply.judged,
+                // A rewording is an attempt at the passage it points back at; a turn that
+                // rewords nothing opens one of its own.
+                repeats = rewords,
+                attempt = rewords?.let { Attempt.Rewording },
             )
             val answer = Utterance(
                 speaker = Speaker.Ai,
@@ -521,6 +620,11 @@ class TurnPipeline(
                     utterances = it.utterances + said + answer,
                     phase = Phase.Speaking,
                     pending = null,
+                    // Another attempt: what the gates said of the one before it is about to
+                    // be replaced, and holding it until then would leave the screen saying
+                    // *reword it* about a sentence already reworded.
+                    wordsGate = null,
+                    soundGate = null,
                 )
             }
             // The speech-only copy was transport and nothing names it: it goes as soon as no
@@ -531,7 +635,27 @@ class TurnPipeline(
             write(said.id)
             write(answer.id)
 
-            Playback.play(synthesis.speak(reply.spoken, synthesis.voice())) {
+            val marked = reply.judged.words()
+            val groundless = marked.correctness.any { it.notch == Gates.UNSAYABLE }
+            // **The words' gate is read here, and it is the first of the two moments** -- and
+            // before anything is played, because what is played depends on it.
+            val closing = wordsGate(said, reply, groundless)
+
+            // **The call returned the continuation and the echo together, and the app plays
+            // one.** So nothing is ever contradicted inside an attempt: it is literally *the
+            // model plays, the app decides*, the model supplying the matter of both outcomes
+            // without settling which. The echo is played only where the passage is to reword
+            // **and** the conversation waits -- *waits* forces the repair, so only an echo is
+            // heard until it is made; *carries on* offers it, and the conversation advances
+            // whatever happens.
+            val echoing = closing != null && reply.echo != null &&
+                (_state.value.positions.of(Levers.ADVANCE_WORDS.key) as? At)?.name == "attend"
+            val spoken = if (echoing) reply.echo!! else reply.spoken
+            if (echoing) {
+                Trace.add("turn: the echo is played, the continuation is held")
+                _state.update { it.copy(held = reply.spoken) }
+            }
+            Playback.play(synthesis.speak(spoken, synthesis.voice())) {
                 // The number the doc puts on the chain, and the only one the learner feels.
                 Trace.add("turn: first sound")
             }
@@ -542,16 +666,14 @@ class TurnPipeline(
             // the conversation called what it was called.
             reply.title?.let { name(it) }
 
-            // What cuts the sound analysis today is **an absence of ground**, and nothing
-            // else: a phrase that does not exist in the language cannot be synthesised, and
-            // making the model say a non-phrase would give a non-phrase to imitate. The
-            // words' gate, which reads the correctness note at the A-B bar, arrives with the
-            // notes -- until then a malformed turn is marked and still measured.
-            val marked = reply.judged.words()
-            val groundless = marked.correctness.any { it.notch == "ne-se-dit-pas" }
-            if (groundless) {
-                Trace.add("turn: no ground for a model, no sound analysis",
-                          "said" to reply.judged.intended)
+            if (closing != null || groundless) {
+                Trace.add(
+                    "turn: no sound analysis",
+                    "why" to if (groundless) "a word does not exist in the language"
+                             else "the words' gate closed",
+                    "in cause" to (closing as? Closing.Aptitudes)?.names?.joinToString(),
+                    "said" to reply.judged.intended,
+                )
                 // Kept even so, and especially so: a turn like this is a real learner fault
                 // the recognition could not have guessed, which is what the fidelity bench
                 // is short of.
@@ -578,6 +700,53 @@ class TurnPipeline(
             }
         }
     }
+
+    /**
+     * **The first of the two moments: the words' gate, read when the call returns.**
+     *
+     * What it needs exists already -- the judged sheets, and the ones the audio and the text
+     * give. The sound analysis has not run, and that is the ordering itself: when this closes,
+     * the sound's gate never gets the chance to speak.
+     *
+     * **Nothing judged goes out when it closes.** Every judged sheet computes, since they are
+     * what decide whether it closes; putting them out by their own decision would be circular.
+     */
+    private fun wordsGate(said: Utterance, reply: Reply, groundless: Boolean): Closing? {
+        val activity = _state.value.activity
+        val weights = activity.weights ?: return null.also {
+            // Nothing weighs anything, so no node has a note and no gate has a failure to
+            // declare. A free conversation is in that state until its definition is written.
+            _state.update { it.copy(wordsGate = null) }
+        }
+        val marked = reply.judged.words()
+        val measured = Sheeting.of(reply.judged, analysed = null, timed = null)
+        val closing = Gates.words(
+            measured = measured,
+            passage = app.speakup.notes.Passage(
+                keptWords = marked.kept.size,
+                difficulty = null,
+                measured = measured,
+            ),
+            settings = activity.settings,
+            weights = weights,
+            sensitivity = ::sensitivityOf,
+            truncated = said.ending != null,
+            keptWords = marked.kept.size,
+        )
+        _state.update { it.copy(wordsGate = closing) }
+        return closing
+    }
+
+    /**
+     * How severe this sitting is on [sheet], as a position of its sensitivity.
+     *
+     * **The sensitivity is a lever attached to a sheet**, and it is the one place the settings
+     * touch a note: going towards severe tightens, always and for everybody, where a weight's
+     * direction depends on the learner. Undeclared, it answers with the middle position.
+     */
+    private fun sensitivityOf(sheet: Sheet): Int =
+        (_state.value.positions.of("${Sheets.pathOf(sheet)}.sensibilite") as? Count)?.n
+            ?: (POSITIONS / 2)
 
     /**
      * What the learner did differently from the model, on the turn just spoken.
@@ -609,6 +778,7 @@ class TurnPipeline(
                         engine = readiness.version)
             }
             write(of)
+            soundGate(of, analysed, stumbling)
             keep(of, Takes.keep(context, said, model, heard, text, false, analysed,
                                 stumbling = stumbling,
                                 turn = turnOf(of), attempt = attemptOf(of)))
@@ -617,6 +787,68 @@ class TurnPipeline(
             // analysis itself does not. The turn stands either way: it was answered and
             // said, and only its marks are missing.
             Trace.fail("analysis: no model to measure against", "why" to failure.message)
+        }
+    }
+
+    /**
+     * Close the open passage, which is what the big button does.
+     *
+     * **Nothing else closes a passage** -- not the AI's answer, which arrives before it in
+     * *carries on*, and not time passing. So retaking a sentence is always possible: it is
+     * enough not to move on, and that is the best moment for it, the marks being on screen and
+     * the model just synthesised. Once closed it is never retouched again: it is listened to
+     * and reread for good.
+     *
+     * **In *waits* it is not available** until the attempts run out, or one would leave a
+     * blocked passage by simply saying something else. When they do run out, the continuation
+     * the app was holding is played -- nothing is refabricated, and the passage closes
+     * **unrepaired**.
+     */
+    suspend fun close() = writing.withLock {
+        if (!_state.value.closes()) return@withLock
+        _state.value.held?.let { continuation ->
+            Trace.add("passage: the attempts ran out, the held continuation is played")
+            _state.update { it.copy(phase = Phase.Speaking, held = null) }
+            Playback.play(synthesis.speak(continuation, synthesis.voice()))
+            _state.update { it.copy(phase = Phase.Idle) }
+        }
+        // The gates spoke about a passage that is over. What follows opens a fresh one, and
+        // its own gates are read when its own call returns.
+        _state.update { it.copy(wordsGate = null, soundGate = null) }
+    }
+
+    /**
+     * **The second of the two moments: the sound's gate, read when the analysis has finished.**
+     *
+     * It only ever runs on a passage the words' gate let through -- a sentence about to be
+     * rewritten has no sound analysis at all -- so **the two exhaustions do not fall in the
+     * same place**: the rewordings' before the sound analysis has run, the repeats' after.
+     */
+    private fun soundGate(of: String, analysed: Analysed, stumbling: List<Marked>) {
+        val activity = _state.value.activity
+        val weights = activity.weights ?: return
+        val spoken = _state.value.utterances.firstOrNull { it.id == of } ?: return
+        val timed = analysed.timed(stumbling)
+        val measured = Sheeting.of(spoken.judged, analysed, timed)
+        val closing = Gates.sound(
+            measured = measured,
+            passage = app.speakup.notes.Passage(
+                keptWords = timed.kept.size,
+                difficulty = null,
+                measured = measured,
+            ),
+            settings = activity.settings,
+            weights = weights,
+            sensitivity = ::sensitivityOf,
+        )
+        _state.update { it.copy(soundGate = closing) }
+        if (closing != null) {
+            // **The notification does not name anything**, and that is not an inconsistency.
+            // The sound's gate is wired to elocution and fluency alone, so what it named would
+            // be the same word every time, therefore a constant, therefore nothing. What shows
+            // where to look is already on screen -- the marks, invariant, each shape saying its
+            // own scale -- and naming the worst of them would be an election.
+            Trace.add("passage: to say again -- hear the model and say it again")
         }
     }
 

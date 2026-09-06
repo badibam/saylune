@@ -32,6 +32,9 @@
     <string name="setting_no_voices">Ce modèle ne publie aucune liste de voix.</string>
     <string name="settings_close">Retour</string>
     <string name="capture_press">Appuyer pour parler</string>
+    <string name="passage_reword">Reformule-la — en cause : %1$s</string>
+    <string name="passage_say_again">Écoute le modèle et redis-la</string>
+    <string name="passage_no_matter">le tour n\'a pas de phrase à travailler</string>
     <string name="capture_turn_running">Ton tour — %1$s</string>
     <string name="capture_turn_paused">Ton tour, en pause — %1$s</string>
     <string name="capture_repeat_running">Redite — %1$s</string>

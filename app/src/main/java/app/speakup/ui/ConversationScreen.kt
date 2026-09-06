@@ -41,7 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import app.speakup.R
 import app.speakup.capture.TurnRecorder
+import app.speakup.conversation.Attempt
+import app.speakup.conversation.Closing
 import app.speakup.conversation.Speaker
+import app.speakup.conversation.Standing
 import app.speakup.conversation.Utterance
 import app.speakup.providers.words
 import app.speakup.conversation.Phase
@@ -128,9 +131,17 @@ fun ConversationScreen(
             // Read before `send` clears the state: the two facts belong to the take, and
             // the take is about to stop existing as a recording in progress.
             val ending = capture.ending
+            // **Which repair this is comes from the passage's standing, never from the
+            // gesture**: the button is the same one either way. A rewording gives fresh words,
+            // so the exchange is remade on them; a repeat says the same ones and relaunches
+            // nothing -- it is pipe B alone, on a text already settled.
+            val rewording = turn.standing() == Standing.ToReword
             recorder.send()?.let { take ->
-                if (said != null) pipeline.redo(said, take, position, ending)
-                else pipeline.submit(take, position, ending)
+                when {
+                    said == null -> pipeline.submit(take, position, ending)
+                    rewording -> pipeline.reword(said, take, position, ending)
+                    else -> pipeline.redo(said, take, position, ending)
+                }
             }
             repeating = null
         }
@@ -185,7 +196,22 @@ fun ConversationScreen(
         // stops when a passage closes, so it is the only one that offers the small button.
         // Nothing closes a passage today but starting the next -- the big button that will
         // close it by hand comes with the passage's four states, further down the plan.
-        val open = turn.utterances.lastOrNull { it.speaker.isLearner && it.repeats == null }
+        // The passage still open, which is the last one. **The small button lives only on it**,
+        // the attempts stopping at the close -- the passages above keep what listens, reads
+        // back and opens their measures, never what retakes.
+        //
+        // **And it disappears where there is nothing left to spend**: a budget run out, or a
+        // lever set to zero, is a button that is not there rather than one that is greyed.
+        // Greying is for what is momentarily impossible; absence is for what has no object.
+        val open = turn.open()
+        val standing = turn.standing()
+        val retaking = when (standing) {
+            Standing.ToReword -> Attempt.Rewording
+            Standing.ToSayAgain -> Attempt.Repeat
+            else -> null
+        }
+        val retakes = open != null &&
+            (retaking == null || open.spare(retaking, turn.positions))
         turn.utterances.forEach { spoken ->
             // An utterance that says another again is not drawn where it sits in the run: it
             // is one of the readings grouped under the one it repeats, which is where the
@@ -195,7 +221,7 @@ fun ConversationScreen(
             Said(
                 spoken = spoken,
                 readings = readings,
-                open = spoken.id == open?.id,
+                open = spoken.id == open?.opener?.id && retakes,
                 busy = turn.phase != Phase.Idle,
                 mine = repeating == spoken.id,
                 running = capture.recording || capture.hasAudio,
@@ -259,6 +285,16 @@ fun ConversationScreen(
                     stringResource(R.string.capture_repeat_paused, seconds(capture.elapsedMs))
                 capture.hasAudio ->
                     stringResource(R.string.capture_turn_paused, seconds(capture.elapsedMs))
+                // **Nothing ever waits without a visible reason.** The words' gate names the
+                // aptitudes in cause -- all of them, never the worst -- where the sound's gate
+                // names nothing, being wired to two aptitudes and so saying a constant.
+                turn.standing() == Standing.ToReword -> stringResource(
+                    R.string.passage_reword,
+                    (turn.wordsGate as? Closing.Aptitudes)?.names?.joinToString(", ")
+                        ?: stringResource(R.string.passage_no_matter),
+                )
+                turn.standing() == Standing.ToSayAgain ->
+                    stringResource(R.string.passage_say_again)
                 else -> stringResource(R.string.capture_press)
             },
             style = MaterialTheme.typography.bodyLarge,
@@ -278,9 +314,14 @@ fun ConversationScreen(
             },
             modifier = Modifier
                 .size(150.dp)
-                .clickable(enabled = !busy && !recordingSomething) {
-                    repeating = null
-                    recorder.open(scope, settings)
+                .clickable(enabled = !busy && !recordingSomething && turn.closes()) {
+                    // **It closes the previous passage and opens mine**, which is exactly what
+                    // happens: a turn of speech and not a next page.
+                    scope.launch {
+                        pipeline.close()
+                        repeating = null
+                        recorder.open(scope, settings)
+                    }
                 },
         ) {}
 
@@ -457,11 +498,16 @@ private fun heard(
  * `dev_base` refuses, and an icon pack is a dependency to rebuild offline for a control that
  * is a triangle and a circle.
  *
- * **The small circle behaves like the big one**: a press opens, it shows itself running, and
+ * **The small button behaves like the big one**: a press opens, it shows itself running, and
  * what follows -- the pause, the send -- is at the bottom. One behaviour to learn for both,
  * which is the whole point of having put the three capture positions on the same gesture.
- * Saying a sentence again is not a new turn of conversation: it never reaches the language
- * model, and what comes back is the same sentence measured again.
+ *
+ * **It is a mic, framed, and it says nothing of which door is open** (settled 2026-09-06). The
+ * frame is what tells it from a row where everything else listens or sets: it is the only one
+ * that opens the mic. And a label saying the door would make the row's width depend on the
+ * state -- three columns in one language, nine in another -- so the five other entries would
+ * shift every time a gate closed. **What one can do is said by the greying, what one must do
+ * by the status line**, which carries the door of the moment and the count left.
  *
  * **Only the open passage carries it**, [open] saying so. Every passage keeps what listens
  * -- the triangle, the side, the speed -- because they read what is already measured; only
@@ -519,8 +565,29 @@ private fun Redo(
                     .size(34.dp)
                     .clickable(enabled = !busy && !running, onClick = onOpen),
             ) {
+                // The mic, drawn rather than lettered: a capsule on its stand. The font
+                // carries one and the row will take it at the framing step; here it is the
+                // same two shapes, so the gesture is learnt once either way.
                 Canvas(Modifier.fillMaxSize()) {
-                    drawCircle(color = Color.White, radius = size.minDimension * 0.22f)
+                    val w = size.minDimension
+                    drawRoundRect(
+                        color = Color.White,
+                        topLeft = androidx.compose.ui.geometry.Offset(w * 0.38f, w * 0.22f),
+                        size = androidx.compose.ui.geometry.Size(w * 0.24f, w * 0.34f),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.12f),
+                    )
+                    drawLine(
+                        color = Color.White,
+                        start = androidx.compose.ui.geometry.Offset(w * 0.5f, w * 0.60f),
+                        end = androidx.compose.ui.geometry.Offset(w * 0.5f, w * 0.76f),
+                        strokeWidth = w * 0.08f,
+                    )
+                    drawLine(
+                        color = Color.White,
+                        start = androidx.compose.ui.geometry.Offset(w * 0.34f, w * 0.76f),
+                        end = androidx.compose.ui.geometry.Offset(w * 0.66f, w * 0.76f),
+                        strokeWidth = w * 0.08f,
+                    )
                 }
             }
         }
