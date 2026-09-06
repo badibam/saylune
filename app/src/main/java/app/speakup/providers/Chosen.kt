@@ -107,7 +107,8 @@ internal fun recognitionBy(store: SecretStore, provider: Provider, model: String
         Provider.Replicate -> ReplicateRecognition(store, model)
         Provider.Azure -> AzureRecognition(store)
         Provider.ElevenLabs -> ElevenLabsRecognition(store, model)
-        Provider.Deepseek -> throw ChainFailure("DeepSeek does not transcribe")
+        Provider.Deepseek, Provider.OpenAI ->
+            throw ChainFailure("${provider.label} does not transcribe")
     }
 
 internal fun conversationBy(
@@ -134,7 +135,8 @@ internal fun synthesisBy(
     Provider.Replicate -> ReplicateSynthesis(context, store, model)
     Provider.Azure -> AzureSynthesis(context, store)
     Provider.ElevenLabs -> ElevenLabsSynthesis(context, store, model)
-    Provider.Deepseek -> throw ChainFailure("DeepSeek does not speak")
+    Provider.Deepseek, Provider.OpenAI ->
+        throw ChainFailure("${provider.label} does not speak")
 }
 
 /**

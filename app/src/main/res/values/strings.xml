@@ -206,4 +206,7 @@
     <string name="setting_palette">Palette</string>
     <string name="palette_plain">Plum</string>
     <string name="palette_spare">Spare, for red-green</string>
+    <string name="secret_openai_key">OpenAI API key</string>
+    <string name="secret_openai_endpoint">OpenAI endpoint (optional)</string>
+    <string name="effort_medium">Medium</string>
 </resources>

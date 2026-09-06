@@ -34,6 +34,8 @@ enum class Secret(
     ElevenLabsApiKey("elevenlabs.api.key", R.string.secret_elevenlabs_key),
     DeepseekApiKey("deepseek.api.key", R.string.secret_deepseek_key),
     DeepseekEndpoint("deepseek.endpoint", R.string.secret_deepseek_endpoint, masked = false),
+    OpenaiApiKey("openai.api.key", R.string.secret_openai_key),
+    OpenaiEndpoint("openai.endpoint", R.string.secret_openai_endpoint, masked = false),
 
     /**
      * Which provider does each task, and with what.

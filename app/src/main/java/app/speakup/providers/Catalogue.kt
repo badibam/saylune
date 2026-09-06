@@ -147,6 +147,27 @@ enum class Provider(
         // and the most expensive one.
         efforts = listOf(Effort.None, Effort.Low, Effort.High, Effort.Max),
     ),
+    OpenAI(
+        id = "openai",
+        label = "OpenAI",
+        needs = listOf(Secret.OpenaiApiKey, Secret.OpenaiEndpoint),
+        does = setOf(Task.Conversation),
+        // The same two models Replicate offers, on purpose: the point of this route is that
+        // one model be reachable both ways, so what the detour costs stops being a deduction
+        // (`../../../../../../TODO.md`).
+        models = mapOf(Task.Conversation to listOf("gpt-5-nano", "gpt-5-mini")),
+        // **Not what these models accept, but what can be vouched for.** OpenAI publishes no
+        // capability on `/v1/models` -- id, created and owner, nothing else -- and its
+        // reasoning guide says only that "some models support only a subset of these values,
+        // so check the relevant model page", which does not list them either. The full
+        // vocabulary is none, minimal, low, medium, high, xhigh and max; these three are the
+        // ones the whole gpt-5 family has carried since it shipped. Read 2026-09-06 on
+        // https://developers.openai.com/api/docs/guides/reasoning.
+        //
+        // The floor costs something real: `none` would be the fastest level and this route
+        // exists for latency. It goes back on the menu the day a model page lists its own.
+        efforts = listOf(Effort.Low, Effort.Medium, Effort.High),
+    ),
     ;
 
     /**
@@ -178,7 +199,7 @@ enum class Provider(
             .map { VoiceOption(id = it, label = it) }
         Azure -> azureVoices(store)
         ElevenLabs -> elevenVoices(store)
-        Deepseek -> throw ChainFailure("DeepSeek has no voices")
+        Deepseek, OpenAI -> throw ChainFailure("${'$'}label has no voices")
     }
 
     /** Azure publishes the whole voice list for a region, so it is read whole and filtered. */

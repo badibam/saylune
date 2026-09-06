@@ -188,4 +188,7 @@
     <string name="setting_palette">Palette</string>
     <string name="palette_plain">Prune</string>
     <string name="palette_spare">Rechange, rouge-vert</string>
+    <string name="secret_openai_key">Clé d\'API OpenAI</string>
+    <string name="secret_openai_endpoint">Point d\'accès OpenAI (facultatif)</string>
+    <string name="effort_medium">Moyen</string>
 </resources>
