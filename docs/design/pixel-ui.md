@@ -299,11 +299,66 @@ Pour les trois feuilles à colonne — la grammaire, la pertinence, le remplissa
 
 **Il se dessine en barres horizontales, avec les blocs de jauge de la police.** Une colonne verticale n'est pas faisable : la jauge pave parce qu'elle occupe les onze colonnes, gouttière comprise, et il n'y a pas d'équivalent vertical — la boîte fait quatorze rangées et le pas de ligne quinze, donc une rangée vide sépare toujours deux cellules empilées et une colonne se casserait en tronçons. La part vide d'une barre est une **couleur** et non une forme : la jauge peinte dans l'encre atténuée, aucun creux à dessiner.
 
+**Et cette barre reprend la rampe du marquage.** Le rouge qui a souligné `ne se dit pas` dans le tour compte ses mots ici. Ce n'est pas dépenser la teinte pour du décor — c'est la même mesure lue deux fois —, donc le bilan et le tour marqué parlent la même langue de couleur, sans rien à apprendre en passant de l'un à l'autre.
+
+**Sa disposition tient dans vingt et une colonnes**, le budget d'un 720, qui commande (arrêté le 2026-09-06). Une ligne de feuille porte trois champs : le **nom** jusqu'à 12 colonnes — `Accentuation` est pile au budget —, la **mesure** sur 6, la **lettre** sur 1. Six colonnes suffisent à tout ce qui est un nombre : `47/50`, `2,3 st`, `-22 %`, `3,2 s`, `précis`.
+
+```
+ Passage 4         B
+ ÉLOCUTION         B
+  Clarté      47/50 B
+  Précision      72 C
+  Mélodie    2,3 st B
+  Accentuation 8/11 A
+ COMPRÉHENSION     B
+  Réponse    précis B
+ GRAMMAIRE         C
+  Forme      ▓▓░░░ C
+ PERTINENCE        C
+  Choix      ▓▓▓░░ C
+ FLUIDITÉ          B
+  Continuité    +18 B
+  Silence max   3,2 A
+  Débit         -22 B
+  Hésitations ▓▓░░ C
+      [   OK   ]
+```
+
+Cinq titres d'aptitude et onze feuilles font **seize lignes de contenu** : l'écran ne défile pas sur un écran haut, et défile en paysage. C'est exactement pourquoi l'`OK` vit dans la barre du bas et non dans le flux.
+
 **Aucune tendance dedans.** Une flèche *« +1 depuis le passage précédent »* comparerait deux lectures prises sous des règles qui n'ont aucune raison d'être les mêmes, et une note ne se lit jamais sans la combinaison qui l'a produite (`activity-model.md`). Il ne montre qu'une seule prise, la dernière du passage, comme le fil.
 
 **Ce que le mode décide, ce sont les lettres ; ce que l'apprenant règle, c'est si l'écran est poussé.** Poussé par défaut, parce que la note d'un passage est prête pile quand l'attente commence et que remplir ces secondes vaut mieux que les regarder passer. Sans lettres — en conversation libre — l'écran existe quand même et porte les mesures brutes, qui sont des faits sur ce qu'on vient de dire et ne dépendent d'aucun réglage.
 
 **Le pop-up d'une règle est un autre objet**, et il tombe après : la fenêtre se retire au doigt, puis viennent les phrases marquées *avant*, puis l'audio de l'IA, puis les *après*, puis le micro s'arme. Les deux ne se confondent pas — le bilan est disponible immédiatement à la fermeture, la scène attend la réponse du modèle.
+
+## L'analyse des sons
+
+Ce que l'écran montre est trouvé et vit dans `ui/AnalysisReadout.kt` — une ligne par caractère du tour, son ou pas, pour que la phrase se lise en descendant la colonne. Ce qui suit est sa disposition, arrêtée le 2026-09-06.
+
+**Un son par ligne, et la ligne n'a qu'une seule cible : ouvrir.** Le rang porte les lettres, `modèle → toi`, les points et la barre, ce qui tient dans vingt et une colonnes une fois la barre à cinq. Il en portait trois — écouter le modèle, s'écouter, déplier — et trois boutons dans les onze pixels d'une ligne se ratent. **Les deux écoutes descendent donc dans le bloc ouvert**, où la place existe. Ce qui se perd est un geste, deux appuis au lieu d'un pour entendre un son ; ce qui se garde est la raison d'être de l'écran, puisqu'à trois lignes par son on en voit dix et la phrase disparaît. Quand on veut écouter, on s'est de toute façon arrêté sur une ligne.
+
+**Le bloc s'ouvre dans la liste et n'est jamais un pop-up.** Une seule ligne ouverte à la fois : on retape pour fermer, on tape ailleurs pour déplacer l'ouverture, donc il n'y a aucun geste d'écartement à inventer et rien ne recouvre la phrase qu'on est en train de lire. Le pop-up reste ce que ce doc en a fait ailleurs, le reçu d'une règle qui s'efface. **Quand une ligne s'ouvre, la liste remonte pour la caler en haut de l'écran** — sinon vingt lignes se déplient sous une ligne du bas et personne ne les voit.
+
+**Deux natures d'écoute vivent dans le bloc, et le cadre les sépare.** Encadrés, `MODÈLE` et `TOI` jouent **cet enregistrement-ci**, à cet endroit de la phrase, et toute la ligne est la cible et pas la seule flèche. Nus, les symboles des deux répartitions jouent le **son de référence** enregistré en dur : ce que ce son est, pas ce qu'on en a fait. Sans cette différence visible on croit que toucher `d` rejoue son `d` à lui. Le cadre passe d'ailleurs la règle qui le gouverne — on peut dire ce qu'on en fait, on appuie et ça joue.
+
+**Les symboles des répartitions ont leurs trois lignes**, comme tout ce qui se touche. Le bloc ouvert fait donc une vingtaine de lignes, et ça ne coûte rien : la hauteur n'est précieuse qu'au niveau replié, où on veut la phrase entière.
+
+```
+f    f → f     2  ░░░░░
+o    ɑ → ɑ     4  ░░░░░
+r    ɹ → w    31  ▓▓▓▓▓
+th   ð → d    18  ▓▓▓░░
+  ┌─────────┐ ┌─────────┐
+  │ MODÈLE ▶│ │ TOI    ▶│
+  └─────────┘ └─────────┘
+    ð    72     d    61
+    d    19     ð    22
+    z     9     z    17
+i    ɪ → ɪ     2  ░░░░░
+```
+
+**Les trois gestes d'écoute de l'app ne se recouvrent pas** : toucher un mot du tour marqué le joue, l'écoute de la rangée de commandes joue la phrase entière, et ici on descend au son.
 
 ## Les images
 
