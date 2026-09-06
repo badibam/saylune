@@ -51,14 +51,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ## Les étapes
 
-### 4. La mesure de latence sous le contrat enrichi
-
-**Ce que ça fait.** Un lot de tours réels sur l'appareil, les temps lus dans le champ `steps` de `turn.json` que l'instrument écrit déjà, médiane par maillon, comparée aux 4,4 s du maillon du modèle de langue.
-
-**Pourquoi ici.** Parce que le contrat vient d'exister et que rien n'est encore empilé dessus.
-
-**Ce que ça rend.** Une mesure, pas une conclusion. L'appel unique ne se coupe pas ; si le chiffre est mauvais, les leviers sont un modèle sans raisonnement pour ce maillon ou un prompt plus court, et le choix se fait devant le chiffre.
-
 ### 7. La rechange daltonisme
 
 Les deux registres sont écrits, portés par les sept nombres du banc et dérivés d'eux. Ce qui reste est la moitié qui n'a aucune valeur nulle part.

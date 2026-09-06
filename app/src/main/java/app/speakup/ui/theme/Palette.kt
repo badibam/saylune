@@ -31,6 +31,21 @@ data class Register(
     val rampChroma: Float,
     /** The hue the ramp ends on. It starts at amber and turns toward red. */
     val rampEndHue: Float,
+    /**
+     * How far the ramp's lightness spreads across its four notches, away from the ground as
+     * the alarm rises. Zero in the plain registers, where the ramp is at one lightness and
+     * reads as one family; the spare spends it because a hue arc alone does not separate
+     * four notches for an eye that does not tell amber from red.
+     */
+    val rampLightnessSpread: Float = 0f,
+    /**
+     * The hue of the good end -- the `juste` bracket, the stress target, `entre les lignes`.
+     * Green, unless the eye reading it does not separate green from red.
+     */
+    val goodHue: Float = 150f,
+    /** The model's melody contour: a calm tone laid over the learner's on the ramp's red end. */
+    val melodyHue: Float = 250f,
+    val melodyChroma: Float = 0.055f,
 )
 
 /**
@@ -120,8 +135,13 @@ class Palette(private val register: Register) {
      * never from starving the ramp.
      */
     val ramp: List<Lch> = (0 until RAMP_NOTCHES).map {
-        val turn = (register.rampEndHue - RAMP_START_HUE) * it / (RAMP_NOTCHES - 1)
-        Lch(register.rampLightness, register.rampChroma, RAMP_START_HUE + turn)
+        val across = it.toFloat() / (RAMP_NOTCHES - 1)
+        val turn = (register.rampEndHue - RAMP_START_HUE) * across
+        // Away from the ground as the alarm rises, so the notches separate by lightness too
+        // where they cannot separate by hue. Zero spread leaves the constant lightness.
+        val lightness = register.rampLightness +
+            up * register.rampLightnessSpread * (across - 0.5f)
+        Lch(lightness, register.rampChroma, RAMP_START_HUE + turn)
     }
 
     // ── The two greens ──────────────────────────────────────────────────────────────────
@@ -130,10 +150,10 @@ class Palette(private val register: Register) {
      * The good end, wherever it exists: the `juste` notch of relevance and `entre les lignes`
      * of following. It is the only measure of the project that has a good end.
      */
-    val green = Lch(register.rampLightness, 0.10f, GREEN_HUE)
+    val green = Lch(register.rampLightness, 0.10f, register.goodHue)
 
     /** Where the stress belonged. Never shown on a correct turn, so it marks a destination. */
-    val accent = Lch(register.rampLightness - 0.10f * up, 0.09f, GREEN_HUE)
+    val accent = Lch(register.rampLightness - 0.10f * up, 0.09f, register.goodHue)
 
     // ── The melody ──────────────────────────────────────────────────────────────────────
 
@@ -143,7 +163,8 @@ class Palette(private val register: Register) {
      * makes the colour disappear** rather than change it, and the amount of red showing is the
      * amount of the gap. Melody has no colour of its own: it borrows the common ramp.
      */
-    val melodyModel = Lch(register.inkLightness + 0.08f * up, 0.055f, MELODY_HUE)
+    val melodyModel =
+        Lch(register.inkLightness + 0.08f * up, register.melodyChroma, register.melodyHue)
 
     /** The learner's contour, on the red end of the ramp. */
     val melodyLearner = Lch(register.rampLightness, register.rampChroma, register.rampEndHue)
@@ -170,7 +191,47 @@ class Palette(private val register: Register) {
         /** Amber. The ramp turns from here toward its register's end hue. */
         const val RAMP_START_HUE = 88f
 
-        const val GREEN_HUE = 150f
-        const val MELODY_HUE = 250f
     }
 }
+
+/**
+ * The spare, for an eye that does not separate red from green. **A first pass, laid blind:
+ * nothing here is measured, and it is the bench that has to say whether it works.**
+ *
+ * **The case that demands it is the worst in the doc.** *Juste* and *à côté* are **the same
+ * shape** -- brackets -- and **two opposite verdicts**, told apart by colour alone, green
+ * against red. Under deuteranopia the two converge: the mark of a success becomes the mark of
+ * a fault. The stress rule has the same defect -- the target against the stray -- and the
+ * following pastille has it over four values.
+ *
+ * So it is **not a permutation of hues**. Three things change, and each answers one of those:
+ *
+ * - **The good end goes blue.** Blue against amber-to-red is the one strong contrast that
+ *   survives a red-green deficiency, since it lives on the axis that is not damaged.
+ * - **The model's melody contour goes nearly colourless**, because the good end has taken the
+ *   blue it used to hold. It loses nothing by it: its job is to cover the learner's contour,
+ *   and what has to be told apart there is covered from not-covered.
+ * - **The ramp spreads its lightness.** Four notches from amber to red are four shades of one
+ *   thing to an eye that does not read that arc; spreading the lightness gives them a second
+ *   axis to separate on, and the alarm gets lighter off a dark ground and darker off a pale
+ *   one.
+ *
+ * The plain registers keep their colours for everyone. Correcting the base palette instead
+ * would tax the default with an aesthetic chosen for a perception most people do not have.
+ *
+ * **What it covers is not settled either.** The red-green confusions are what break the
+ * brackets, so they are what is treated here. Tritanopia would touch the melody blue, which
+ * this spare has already emptied of colour -- whether that is enough, or whether the case is
+ * out of scope, is not answered.
+ */
+val NightPlumSpare = NightPlum.copy(
+    rampLightnessSpread = 0.18f,
+    goodHue = 255f,
+    melodyChroma = 0.012f,
+)
+
+val PalePlumSpare = PalePlum.copy(
+    rampLightnessSpread = 0.18f,
+    goodHue = 255f,
+    melodyChroma = 0.012f,
+)

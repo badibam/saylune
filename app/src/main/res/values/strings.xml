@@ -198,4 +198,12 @@
     <string name="lever_advance_words_waits">The conversation waits for the corrected sentence</string>
     <string name="lever_advance_sound_carries_on">The passage closes without a retake</string>
     <string name="lever_advance_sound_waits">The passage does not close before a retake</string>
+    <string name="setting_effort">Reasoning</string>
+    <string name="effort_none">None</string>
+    <string name="effort_low">Low</string>
+    <string name="effort_high">High</string>
+    <string name="effort_max">Max</string>
+    <string name="setting_palette">Palette</string>
+    <string name="palette_plain">Plum</string>
+    <string name="palette_spare">Spare, for red-green</string>
 </resources>

@@ -24,12 +24,23 @@ import androidx.compose.ui.platform.LocalDensity
 @Composable
 fun SpeakupTheme(
     dark: Boolean = isSystemInDarkTheme(),
+    /** The spare palette, for an eye that does not separate red from green. */
+    spare: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
     val grid = remember(density) { gridFor(density) }
     CompositionLocalProvider(
-        LocalPalette provides remember(dark) { Palette(if (dark) NightPlum else PalePlum) },
+        LocalPalette provides remember(dark, spare) {
+            Palette(
+                when {
+                    dark && spare -> NightPlumSpare
+                    dark -> NightPlum
+                    spare -> PalePlumSpare
+                    else -> PalePlum
+                }
+            )
+        },
         LocalTypography provides remember(grid, density) { Typography(grid, density) },
         LocalGrid provides grid,
         LocalRhythm provides Rhythm(),

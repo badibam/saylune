@@ -10,7 +10,12 @@ import org.junit.Test
  */
 class PaletteTest {
 
-    private val registers = mapOf("night" to NightPlum, "pale" to PalePlum)
+    private val registers = mapOf(
+        "night" to NightPlum,
+        "pale" to PalePlum,
+        "night spare" to NightPlumSpare,
+        "pale spare" to PalePlumSpare,
+    )
 
     /**
      * **A marked letter must be far enough from a bare one**, and the distance is measured on
@@ -59,21 +64,70 @@ class PaletteTest {
         }
     }
 
-    /** Amber to red, at one lightness and one chroma, so the ramp reads as one family. */
+    /** Amber to red at one chroma, so the ramp reads as one family whatever else it spends. */
     @Test
-    fun `the ramp turns from amber to red at a constant lightness`() {
+    fun `the ramp turns from amber to red`() {
         registers.forEach { (name, register) ->
             val ramp = Palette(register).ramp
             assertEquals(Palette.RAMP_NOTCHES, ramp.size)
             assertEquals("$name", Palette.RAMP_START_HUE, ramp.first().h, 1e-3f)
             assertEquals("$name", register.rampEndHue, ramp.last().h, 1e-3f)
-            ramp.forEach {
-                assertEquals("$name", register.rampLightness, it.l, 1e-4f)
-                assertEquals("$name", register.rampChroma, it.c, 1e-4f)
-            }
+            ramp.forEach { assertEquals("$name", register.rampChroma, it.c, 1e-4f) }
             // Strictly turning, so no two notches are the same colour.
             ramp.zipWithNext().forEach { (a, b) -> assertTrue("$name", b.h < a.h) }
         }
+    }
+
+    /**
+     * The plain registers hold their ramp at one lightness, so it reads as one family. The
+     * spare spends lightness instead, climbing away from the ground as the alarm rises, so
+     * that four notches from amber to red have a second axis to separate on for an eye that
+     * does not read that arc.
+     */
+    @Test
+    fun `the spare separates its notches by lightness and the plain ones do not`() {
+        registers.forEach { (name, register) ->
+            val ramp = Palette(register).ramp
+            if (register.rampLightnessSpread == 0f) {
+                ramp.forEach { assertEquals(name, register.rampLightness, it.l, 1e-4f) }
+            } else {
+                val away = if (register.groundLightness < 0.5f) 1f else -1f
+                ramp.zipWithNext().forEach { (a, b) ->
+                    assertTrue("$name: ${a.l} then ${b.l}", (b.l - a.l) * away > 0f)
+                }
+            }
+        }
+    }
+
+    /**
+     * **The worst case in the doc**: *juste* and *à côté* are the same shape and two opposite
+     * verdicts, told apart by colour alone. The stress target and the stray have the same
+     * defect. Here that only checks they are far apart at all -- what a red-green eye actually
+     * makes of them is not simulated anywhere and is what the bench still owes.
+     */
+    @Test
+    fun `the good end and the alarm are never near each other`() {
+        registers.forEach { (name, register) ->
+            val palette = Palette(register)
+            assertTrue("$name", (palette.green apart palette.ramp.last()) > 0.15f)
+            assertTrue("$name", (palette.accent apart palette.ramp.last()) > 0.15f)
+        }
+    }
+
+    /**
+     * In the spare the good end takes the blue, so the melody contour gives it up: it keeps
+     * its place by being nearly colourless where the good end is saturated. They are not far
+     * apart in OKLab and do not need to be -- one is a curve in the band above the line, the
+     * other a bracket around words, and the form is what says which channel. What would be a
+     * collision is two marks of the same shape, and there is none here.
+     */
+    @Test
+    fun `the spare gives the melody contour up to keep its good end coloured`() {
+        listOf("night spare" to NightPlumSpare, "pale spare" to PalePlumSpare)
+            .forEach { (name, register) ->
+                val palette = Palette(register)
+                assertTrue("$name", palette.green.c > palette.melodyModel.c * 3f)
+            }
     }
 
     /**

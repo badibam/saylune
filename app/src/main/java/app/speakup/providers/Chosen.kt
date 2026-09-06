@@ -45,7 +45,8 @@ class ChosenConversation(private val store: SecretStore) : Conversation {
     override suspend fun reply(history: List<Exchange>, heard: List<Word>, titled: String?): Reply {
         val values = store.values().first()
         val (provider, model) = pick(Task.Conversation, values)
-        return conversationBy(store, provider, model).reply(history, heard, titled)
+        return conversationBy(store, provider, model, effortFor(provider, values))
+            .reply(history, heard, titled)
     }
 }
 
@@ -109,12 +110,20 @@ internal fun recognitionBy(store: SecretStore, provider: Provider, model: String
         Provider.Deepseek -> throw ChainFailure("DeepSeek does not transcribe")
     }
 
-internal fun conversationBy(store: SecretStore, provider: Provider, model: String): Conversation =
-    when (provider) {
-        Provider.Deepseek -> DeepseekConversation(store, model)
-        Provider.Replicate -> ReplicateConversation(ReplicateClient(store), model)
-        else -> throw ChainFailure("${provider.label} does not hold a conversation")
-    }
+internal fun conversationBy(
+    store: SecretStore,
+    provider: Provider,
+    model: String,
+    /** Null only where the provider has no notion of one, and then nothing is sent. */
+    effort: Effort?,
+): Conversation = when (provider) {
+    Provider.Deepseek -> DeepseekConversation(
+        store, model,
+        effort ?: throw ChainFailure("DeepSeek was given no reasoning level"),
+    )
+    Provider.Replicate -> ReplicateConversation(ReplicateClient(store), model)
+    else -> throw ChainFailure("${provider.label} does not hold a conversation")
+}
 
 internal fun synthesisBy(
     context: Context,

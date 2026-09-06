@@ -16,6 +16,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,6 +29,7 @@ import app.speakup.conversation.TurnPipeline
 import app.speakup.providers.ChosenConversation
 import app.speakup.providers.ChosenRecognition
 import app.speakup.providers.ChosenSynthesis
+import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.store.Archive
 import app.speakup.ui.ConversationScreen
@@ -35,6 +37,9 @@ import app.speakup.ui.ConversationsScreen
 import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.SettingsScreen
 import app.speakup.ui.theme.SpeakupTheme
+
+/** What the palette preference holds when the spare is the one in force. */
+const val SPARE = "spare"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,11 +57,14 @@ class MainActivity : ComponentActivity() {
             archive = Archive.of(applicationContext).dao(),
         )
         setContent {
+            // Read here rather than inside the theme: the palette is a preference like any
+            // other, and the store is what holds preferences.
+            val stored by store.values().collectAsState(initial = emptyMap())
             // Material still dresses the buttons and the lists; what it no longer holds is
             // anything the marking rests on -- the ground a halo is punched out of, the grid,
             // the rhythms. Those come from SpeakupTheme, nested inside so both are readable.
             MaterialTheme {
-                SpeakupTheme {
+                SpeakupTheme(spare = stored[Secret.SparePalette] == SPARE) {
                     Surface(modifier = Modifier.fillMaxSize()) {
                         Root(store, recorder, pipeline)
                     }

@@ -48,12 +48,14 @@ internal object LatencyTest {
         val link: String,
         val route: String,
         val model: String,
+        /** The reasoning level asked for, or null on a link that has no notion of one. */
+        val effort: Effort?,
         val size: String,
         val chars: Int,
         val ms: Long?,
         val why: String?,
     ) {
-        val label: String get() = "$route/$model"
+        val label: String get() = "$route/$model" + (effort?.let { "@${it.id}" } ?: "")
     }
 
     /** The two sentences, fixed forever: a number that moves is not a measurement. */
@@ -65,12 +67,26 @@ internal object LatencyTest {
     suspend fun planned(store: SecretStore, repeats: Int): Int {
         val values = store.values().first()
         return Task.entries.sumOf { task ->
-            task.offered(values).sumOf { provider -> models(provider, task).size }
+            task.offered(values).sumOf { provider ->
+                models(provider, task).size * efforts(provider, task).size
+            }
         } * 2 * repeats
     }
 
     private fun models(provider: Provider, task: Task): List<String> =
         provider.models[task].orEmpty().ifEmpty { listOf("") }
+
+    /**
+     * The reasoning levels to sweep, or a single null where there is no such notion.
+     *
+     * It belongs here rather than in the settings because it is a candidate like a model is:
+     * what the turns of 2026-09-06 showed is that the level moves this link by more than the
+     * choice of model does, and comparing two models at whatever level each happened to be on
+     * compares two things at once.
+     */
+    private fun efforts(provider: Provider, task: Task): List<Effort?> =
+        if (task == Task.Conversation && provider.efforts.isNotEmpty()) provider.efforts
+        else listOf(null)
 
     /**
      * Run every offered model twice per repeat, and write what happened.
@@ -103,11 +119,13 @@ internal object LatencyTest {
                         val voice = if (task == Task.Synthesis) {
                             firstVoice(store, provider, model)
                         } else null
+                        for (effort in efforts(provider, task)) {
                         for ((size, text) in listOf("court" to SHORT, "long" to LONG)) {
-                            say("$round/$repeats · ${provider.id}/$model · $size")
+                            val at = effort?.let { " @${it.id}" }.orEmpty()
+                            say("$round/$repeats · ${provider.id}/$model$at · $size")
                             val trial = timed(
-                                context, store, stamp, note, task, provider, model, voice,
-                                size, text, heard,
+                                context, store, stamp, note, task, provider, model, effort,
+                                voice, size, text, heard,
                             )
                             out += trial
                             // Written as it happens, not at the end. A sweep is minutes
@@ -116,6 +134,7 @@ internal object LatencyTest {
                             // leaves nothing behind at all -- which is what happened the
                             // first time this was used.
                             keep(context, trial)
+                        }
                         }
                     }
                 }
@@ -132,6 +151,7 @@ internal object LatencyTest {
         task: Task,
         provider: Provider,
         model: String,
+        effort: Effort?,
         voice: Voice?,
         size: String,
         text: String,
@@ -146,7 +166,7 @@ internal object LatencyTest {
                         ?: error("no $size sample: " + (heard.why ?: "not rendered"))
                     recognitionBy(store, provider, model).transcribe(file)
                 }
-                Task.Conversation -> conversationBy(store, provider, model).reply(
+                Task.Conversation -> conversationBy(store, provider, model, effort).reply(
                     emptyList(),
                     text.trim('.').split(' ').map { Word(it.lowercase()) },
                     // Unnamed, as a first turn is. The bench times one call and holds
@@ -170,6 +190,7 @@ internal object LatencyTest {
             link = task.name.lowercase(),
             route = provider.id,
             model = model.ifBlank { "—" },
+            effort = effort,
             size = size,
             chars = text.length,
             ms = if (why == null) ms else null,
@@ -251,6 +272,7 @@ internal object LatencyTest {
                 .put("link", trial.link)
                 .put("route", trial.route)
                 .put("model", trial.model)
+                .put("effort", trial.effort?.id ?: JSONObject.NULL)
                 .put("size", trial.size)
                 .put("chars", trial.chars)
                 .put("ms", trial.ms ?: JSONObject.NULL)

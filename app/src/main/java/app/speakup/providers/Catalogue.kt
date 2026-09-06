@@ -66,6 +66,11 @@ enum class Provider(
     val needs: List<Secret>,
     val does: Set<Task>,
     val models: Map<Task, List<String>>,
+    /**
+     * The reasoning levels this provider accepts on the conversation link, most sparing
+     * first. Empty where it has no notion of one, in which case nothing is sent.
+     */
+    val efforts: List<Effort> = emptyList(),
 ) {
     Replicate(
         id = "replicate",
@@ -94,6 +99,11 @@ enum class Provider(
                 "elevenlabs/flash-v2.5", "elevenlabs/turbo-v2.5", "elevenlabs/v3",
             ),
         ),
+        // Empty, and that is a statement about what is known rather than about the models:
+        // these are OpenAI's, whose `reasoning_effort` Replicate publishes in each model's
+        // schema, and nothing here has read it. The call sends `low` outright meanwhile, so
+        // no default of anyone's is being paid for silently -- what is missing is the
+        // choice, not the value (`../../../../../../TODO.md`).
     ),
     Azure(
         id = "azure",
@@ -130,6 +140,12 @@ enum class Provider(
         // `deepseek-v4-flash`, which the trace showed and nothing else would have. A measure
         // is worth what the model behind it is known to be.
         models = mapOf(Task.Conversation to listOf("deepseek-v4-pro", "deepseek-v4-flash")),
+        // What the OpenAI-shaped endpoint takes: `thinking` on or off, and `reasoning_effort`
+        // over low, high and max. Read 2026-09-06 on
+        // https://api-docs.deepseek.com/guides/thinking_mode, which also states that thinking
+        // is **on by default at high** -- so the absence of these fields is itself a level,
+        // and the most expensive one.
+        efforts = listOf(Effort.None, Effort.Low, Effort.High, Effort.Max),
     ),
     ;
 

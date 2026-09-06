@@ -1,0 +1,49 @@
+package app.speakup.providers
+
+import androidx.annotation.StringRes
+import app.speakup.R
+
+/**
+ * How much reasoning a conversation model spends before it answers.
+ *
+ * **Not sending it is not a neutral default.** DeepSeek's own doc says thinking is on by
+ * default at `high` effort, so a call that names nothing pays the fullest reasoning it has
+ * without anyone having asked -- which is what the turns of 2026-09-06 measured: a median of
+ * 13,2 s on the language link where the same model on the older contract took 4,4 s. That is
+ * why this is declared and always sent, rather than left out when the user has not chosen.
+ *
+ * **The levels are per model and are read from the provider, never guessed.** They differ in
+ * name and in number from one to the next, and a menu that offers a level the provider
+ * silently maps onto another one lies about what was asked for.
+ */
+enum class Effort(val id: String, @StringRes val label: Int) {
+    /** No reasoning at all. The fastest, and the one the latency measurement points at. */
+    None("none", R.string.effort_none),
+    Low("low", R.string.effort_low),
+    High("high", R.string.effort_high),
+    Max("max", R.string.effort_max),
+    ;
+
+    companion object {
+        fun of(id: String?): Effort? = entries.firstOrNull { it.id == id }
+    }
+}
+
+/**
+ * The effort in force for [provider], or the one the app asks for when nothing was chosen.
+ *
+ * The default is [Effort.None], and it is a decision rather than an absence: the language
+ * link is the project's first defect, the measurement says the enriched contract tripled it,
+ * and the lever the plan names against a bad number is a model that does not reason for this
+ * link. What it costs in the judge's quality is not measured and is read at use.
+ *
+ * A provider that has no notion of effort gets null and is sent nothing, which for it is not
+ * a default but the absence of the parameter.
+ */
+fun effortFor(provider: Provider, values: Map<app.speakup.keys.Secret, String>): Effort? {
+    val offered = provider.efforts
+    if (offered.isEmpty()) return null
+    return Effort.of(values[app.speakup.keys.Secret.ConversationEffort])?.takeIf { it in offered }
+        ?: Effort.None.takeIf { it in offered }
+        ?: offered.first()
+}

@@ -45,6 +45,8 @@ import app.speakup.providers.Provider
 import app.speakup.providers.LatencyTest
 import app.speakup.providers.Task
 import app.speakup.providers.VoiceOption
+import app.speakup.SPARE
+import app.speakup.providers.effortFor
 import app.speakup.providers.modelFor
 import app.speakup.chain.Voice
 import app.speakup.providers.ChosenSynthesis
@@ -189,6 +191,18 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
 
         Text(stringResource(R.string.tasks_title), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.tasks_lead), style = MaterialTheme.typography.bodyMedium)
+
+        // Not a correction of the palette but a replacement of it: the plain registers keep
+        // their colours for everyone, and whoever does not separate them changes palette.
+        Picker(
+            label = stringResource(R.string.setting_palette),
+            options = listOf(
+                "" to stringResource(R.string.palette_plain),
+                SPARE to stringResource(R.string.palette_spare),
+            ),
+            selected = stored[Secret.SparePalette].orEmpty(),
+            onPick = { id -> scope.launch { store.write(Secret.SparePalette, id) } },
+        )
 
         Task.entries.forEach { task ->
             TaskSection(task, store, stored)
@@ -370,6 +384,19 @@ private fun TaskSection(task: Task, store: SecretStore, stored: Map<Secret, Stri
                 options = models.map { it to it },
                 selected = model,
                 onPick = { id -> scope.launch { store.write(task.model, id) } },
+            )
+        }
+
+        // The reasoning level of the language link. It is a setting and not a silence:
+        // DeepSeek runs thinking at `high` unless told otherwise, so the app names a level on
+        // every call and this is where that level is chosen.
+        val efforts = chosen?.efforts.orEmpty()
+        if (efforts.isNotEmpty()) {
+            Picker(
+                label = stringResource(R.string.setting_effort),
+                options = efforts.map { it.id to stringResource(it.label) },
+                selected = chosen?.let { effortFor(it, stored) }?.id,
+                onPick = { id -> scope.launch { store.write(Secret.ConversationEffort, id) } },
             )
         }
 

@@ -180,4 +180,12 @@
     <string name="lever_advance_words_waits">La conversation attend la phrase corrigée</string>
     <string name="lever_advance_sound_carries_on">Le passage se ferme sans redite</string>
     <string name="lever_advance_sound_waits">Le passage ne se ferme pas avant une redite</string>
+    <string name="setting_effort">Raisonnement</string>
+    <string name="effort_none">Aucun</string>
+    <string name="effort_low">Bas</string>
+    <string name="effort_high">Haut</string>
+    <string name="effort_max">Maximal</string>
+    <string name="setting_palette">Palette</string>
+    <string name="palette_plain">Prune</string>
+    <string name="palette_spare">Rechange, rouge-vert</string>
 </resources>

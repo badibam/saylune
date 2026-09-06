@@ -46,6 +46,8 @@ enum class Secret(
     RecognitionModel("task.stt.model", R.string.setting_model, masked = false),
     ConversationProvider("task.llm.provider", R.string.task_conversation, masked = false),
     ConversationModel("task.llm.model", R.string.setting_model, masked = false),
+    ConversationEffort("task.llm.effort", R.string.setting_effort, masked = false),
+    SparePalette("view.palette.spare", R.string.setting_palette, masked = false),
     SynthesisProvider("task.tts.provider", R.string.task_synthesis, masked = false),
     SynthesisModel("task.tts.model", R.string.setting_model, masked = false),
 
