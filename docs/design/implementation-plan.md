@@ -9,7 +9,7 @@ Il ne redit rien de ce que ces docs disent. Une étape nomme ce qu'elle fait, po
 Cinq choses, tranchées en session avant d'écrire une ligne.
 
 - **Le périmètre est complet, chantier 0 et chantier 4 entrelacés**, jusqu'au tour marqué redessiné. La frontière entre le moteur et l'habillage était déjà percée dans les faits, le TODO faisant entrer les glyphes de la police et la charpente persistante dans la première implémentation.
-- **L'ordre est commandé par ce qui coûte cher si ça passe après**, avec trois exceptions au fil logique du pur vers le branché : les deux dettes de structure passent avant tout, le contrat enrichi monte juste après les déclarations parce qu'une mesure l'attend à cet endroit précis, et le socle de l'écran monte avant le marquage par empans.
+- **L'ordre est commandé par ce qui coûte cher si ça passe après**, avec deux exceptions au fil logique du pur vers le branché : le contrat enrichi monte juste après les déclarations parce qu'une mesure l'attend à cet endroit précis, et le socle de l'écran monte avant le marquage par empans.
 - **La capture entre**, ses trois positions et l'audio en segments. Ne garder que la position au doigt rendrait muettes trois feuilles sur onze, priverait deux des six sortes de déclencheur de leur horloge, et poserait l'arbre des poids de la conversation libre sur une branche vide.
 - **Un seul appel au modèle de langue**, pas de bifurcation. La mesure de latence reste au plan et rend un chiffre ; si le chiffre est mauvais, les leviers sont un modèle sans raisonnement pour ce maillon ou un prompt plus court, jamais couper l'appel en deux.
 - **La portée des tests** : un test porte sur une propriété qui reste vraie quand les valeurs changent. Les valeurs y entrent comme matériau, jamais comme ce qu'il affirme. Le réglage fin sur critère de langue appartient au banc de calibration hors de l'app, feuille par feuille, avant le dépôt public.
@@ -48,14 +48,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 - **La persistance n'est pas une étape, c'est une couture** : un champ neuf s'écrit en base dans l'étape qui le crée. Trois migrations en sortent, aux étapes 3, 10 et 11, manuelles et conservées indéfiniment.
 
 ## Les étapes
-
-### 0. Les deux dettes de structure
-
-**Ce que ça fait.** L'**adressage par identité** : les quatorze signatures en `at: Int` de `conversation/TurnPipeline.kt` passent à l'identité de l'énoncé, `store/Archive.kt` disant déjà qu'« une place dans la suite ne survit pas à l'écriture ». Le `rank` de `UtteranceRow` reste — il porte l'ordre de la suite, ce que SQL ne rend pas — seul l'adressage bouge. L'**écrivain unique** : un `Mutex` sur les entrées qui mutent l'état, `submit`, `redo`, `hear`, `begin`, `open`, `name`, plus `write` et `update` qui deviennent privés sous lui.
-
-**Pourquoi ici.** Elles sont indépendantes de tout, elles coûtent une heure aujourd'hui, et **chaque** étape suivante rouvre `TurnPipeline`. Le TODO dit de les payer à l'étape 1 parce qu'elle est la première à le rouvrir ; ça veut dire les payer avant l'étape 1. La course n'est pas atteignable par le chemin nominal, mais elle l'est par convention d'écran, qui se relit à chaque écran ajouté.
-
-**Ce qui se prouve.** Rien de neuf : la boucle tourne encore sur l'appareil, capture comprise.
 
 ### 1. Le catalogue des leviers
 

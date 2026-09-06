@@ -116,12 +116,12 @@ fun ConversationScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        turn.utterances.forEachIndexed { at, spoken ->
+        turn.utterances.forEach { spoken ->
             // An utterance that says another again is not drawn where it sits in the run: it
             // is one of the readings grouped under the one it repeats, which is where the
             // learner is looking. The run keeps the order; the screen keeps the grouping.
-            if (spoken.repeats != null) return@forEachIndexed
-            val readings = turn.readings(at)
+            if (spoken.repeats != null) return@forEach
+            val readings = turn.readings(spoken.id)
             Said(
                 spoken = spoken,
                 readings = readings,
@@ -138,7 +138,7 @@ fun ConversationScreen(
                 onHearSound = { where, sound, side ->
                     scope.launch { pipeline.hear(where, sound, side) }
                 },
-                onRedo = { scope.launch { pipeline.redo(at, it) } },
+                onRedo = { scope.launch { pipeline.redo(spoken.id, it) } },
             )
         }
 
@@ -437,17 +437,17 @@ private fun Redo(
 @Composable
 private fun Said(
     spoken: Utterance,
-    /** Every reading of this turn, oldest first. Each one is addressed by its place in the run. */
-    readings: List<Pair<Int, Utterance>>,
+    /** Every reading of this turn, oldest first. Each one is addressed by its own identity. */
+    readings: List<Utterance>,
     recorder: TurnRecorder,
     busy: Boolean,
     side: Side,
     speed: Float,
     onSide: (Side) -> Unit,
     onSpeed: (Float) -> Unit,
-    onHear: (Int) -> Unit,
-    onHearSpan: (Int, Int, Int) -> Unit,
-    onHearSound: (Int, AnalysedSound, Side) -> Unit,
+    onHear: (String) -> Unit,
+    onHearSpan: (String, Int, Int) -> Unit,
+    onHearSound: (String, AnalysedSound, Side) -> Unit,
     onRedo: (java.io.File) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -467,9 +467,9 @@ private fun Said(
         val scope = rememberCoroutineScope()
         var shown by rememberSaveable(readings.size) { mutableStateOf(readings.size - 1) }
         val reading = readings.getOrNull(shown)
-        val where = reading?.first
-        val marking = reading?.second?.marking
-        val sounds = reading?.second?.sounds
+        val where = reading?.id
+        val marking = reading?.marking
+        val sounds = reading?.sounds
 
         if (marking != null) {
             MarkedTurn(
