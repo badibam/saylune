@@ -249,14 +249,26 @@ object Levers {
 
     // ── Fluency ─────────────────────────────────────────────────────────────────────────
 
+    /**
+     * The three positions of [CAPTURE], named once so nothing spells one out again.
+     *
+     * What separates them is **who opens the mic and whether the pause exists**, and not the
+     * gesture: all three open with a press (`activity-model.md`). [BY_HAND] is the only one
+     * with a pause, which is exactly why its silences say nothing -- between two stretches
+     * the blank measures the thumb.
+     */
+    const val BY_HAND = "doigt"
+    const val ARMED = "armee"
+    const val ARMED_AND_SENDING = "armee-et-silence"
+
     val CAPTURE = Stepped(
         key = "capture",
         steps = listOf(
-            Step("doigt", R.string.lever_capture_finger),
-            Step("armee", R.string.lever_capture_armed),
-            Step("armee-et-silence", R.string.lever_capture_armed_and_sending),
+            Step(BY_HAND, R.string.lever_capture_finger),
+            Step(ARMED, R.string.lever_capture_armed),
+            Step(ARMED_AND_SENDING, R.string.lever_capture_armed_and_sending),
         ),
-        fallback = "doigt",
+        fallback = BY_HAND,
         held = Held.App,
     )
 
@@ -273,7 +285,7 @@ object Levers {
         hard = HardSide.Low,
         held = Held.App,
         needs = Requirement(
-            "capture", setOf("armee-et-silence"), R.string.lever_silence_threshold_moot,
+            "capture", setOf(ARMED_AND_SENDING), R.string.lever_silence_threshold_moot,
         ),
     )
 
@@ -305,7 +317,7 @@ object Levers {
         hard = HardSide.Low,
         held = Held.App,
         needs = Requirement(
-            "capture", setOf("armee", "armee-et-silence"), R.string.lever_preparation_moot,
+            "capture", setOf(ARMED, ARMED_AND_SENDING), R.string.lever_preparation_moot,
         ),
     )
 
@@ -328,7 +340,7 @@ object Levers {
         fallback = "permis",
         held = Held.App,
         needs = Requirement(
-            "capture", setOf("doigt", "armee"), R.string.lever_discard_take_moot,
+            "capture", setOf(BY_HAND, ARMED), R.string.lever_discard_take_moot,
         ),
     )
 

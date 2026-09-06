@@ -15,6 +15,7 @@ import app.speakup.debug.Trace
 import app.speakup.judged.Judgement
 import app.speakup.judged.Kept
 import app.speakup.judged.Marked
+import app.speakup.levers.Positions
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
 import app.speakup.providers.words
@@ -146,6 +147,16 @@ data class ConversationState(
     val speed: Float = 1f,
     /** Whether the marks are on at all, settled once for the conversation. Null until asked. */
     val analysis: Readiness? = null,
+    /**
+     * Where every lever of this sitting sits.
+     *
+     * Empty is not *no settings*: an undeclared key answers with the catalogue's own default,
+     * which is what the app does when nobody has asked for anything -- a free conversation.
+     * What fills this from the activity, and persists it, is the step that turns the
+     * settings into a list of lever positions; until then the sitting is at the defaults and
+     * the code path that reads them is the same one.
+     */
+    val positions: Positions = Positions(),
 ) {
 
     /**

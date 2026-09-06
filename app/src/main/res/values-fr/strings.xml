@@ -31,9 +31,13 @@
     <string name="setting_refused">Le fournisseur n\'a pas répondu : %1$s</string>
     <string name="setting_no_voices">Ce modèle ne publie aucune liste de voix.</string>
     <string name="settings_close">Retour</string>
-    <string name="capture_hold">Maintenir pour parler</string>
-    <string name="capture_recording">Enregistrement — %1$s</string>
-    <string name="capture_held">%1$s enregistrées. Appuyer à nouveau pour continuer.</string>
+    <string name="capture_press">Appuyer pour parler</string>
+    <string name="capture_turn_running">Ton tour — %1$s</string>
+    <string name="capture_turn_paused">Ton tour, en pause — %1$s</string>
+    <string name="capture_repeat_running">Redite — %1$s</string>
+    <string name="capture_repeat_paused">Redite, en pause — %1$s</string>
+    <string name="capture_pause">Pause</string>
+    <string name="capture_resume">Continuer</string>
     <string name="capture_full">Plafond atteint : un tour s\'arrête à %1$d secondes tant que la passe d\'analyse n\'est pas fenêtrée.</string>
     <string name="capture_redo">Refaire</string>
     <string name="capture_send">Envoyer</string>

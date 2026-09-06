@@ -6,7 +6,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +50,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Readiness
 import app.speakup.debug.Trace
+import app.speakup.levers.At
+import app.speakup.levers.Levers
 import app.speakup.conversation.TurnPipeline
 import app.speakup.capture.Playback
 import app.speakup.capture.Reference
@@ -60,7 +60,7 @@ import app.speakup.marking.TurnMarking
 import kotlinx.coroutines.launch
 
 /**
- * The turn, end to end: hold to speak, release to think, press again to carry on, send.
+ * The turn, end to end: press to speak, pause to think, press again to carry on, send.
  *
  * A turn of the learner is drawn with its marks once the analysis has read it, and plainly
  * until then -- the two are told apart on purpose, since a turn not yet analysed is not a
@@ -92,6 +92,13 @@ fun ConversationScreen(
     ) { granted = it }
 
     LaunchedEffect(Unit) { pipeline.prepare() }
+
+    // Whose recording is running: null for a new turn, the identity of the passage being
+    // said again otherwise. **The bottom commands everything that records, whoever started
+    // it**, so this is what tells the shared `send` where to hand the take -- and what lets
+    // the status line name what is running, without which two shared buttons would be
+    // ambiguous. Saveable: a rotation must not turn a repeat into a new turn.
+    var repeating by rememberSaveable { mutableStateOf<String?>(null) }
 
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(24.dp),
@@ -132,8 +139,9 @@ fun ConversationScreen(
                 spoken = spoken,
                 readings = readings,
                 open = spoken.id == open?.id,
-                recorder = recorder,
                 busy = turn.phase != Phase.Idle,
+                mine = repeating == spoken.id,
+                running = capture.recording || capture.hasAudio,
                 side = turn.side,
                 speed = turn.speed,
                 onSide = pipeline::side,
@@ -145,7 +153,12 @@ fun ConversationScreen(
                 onHearSound = { where, sound, side ->
                     scope.launch { pipeline.hear(where, sound, side) }
                 },
-                onRedo = { scope.launch { pipeline.redo(spoken.id, it) } },
+                // The small button only opens; the bottom is what pauses and sends, and it
+                // is `repeating` that says where the take goes when it does.
+                onOpenRepeat = {
+                    repeating = spoken.id
+                    recorder.open(scope)
+                },
             )
         }
 
@@ -172,41 +185,45 @@ fun ConversationScreen(
         }
 
         val busy = turn.phase != Phase.Idle
+        // **The status line names what is running**, and that is what makes the shared
+        // buttons safe: not *recording* but *a turn*, *a repeat*, running or paused. Without
+        // the name, `PAUSE` and `SEND` would be two buttons whose effect depends on
+        // something the screen never said.
         Text(
             when {
                 turn.phase == Phase.Hearing -> stringResource(R.string.phase_hearing)
                 turn.phase == Phase.Thinking -> stringResource(R.string.phase_thinking)
                 turn.phase == Phase.Speaking -> stringResource(R.string.phase_speaking)
+                capture.recording && repeating != null ->
+                    stringResource(R.string.capture_repeat_running, seconds(capture.elapsedMs))
                 capture.recording ->
-                    stringResource(R.string.capture_recording, seconds(capture.elapsedMs))
+                    stringResource(R.string.capture_turn_running, seconds(capture.elapsedMs))
+                capture.hasAudio && repeating != null ->
+                    stringResource(R.string.capture_repeat_paused, seconds(capture.elapsedMs))
                 capture.hasAudio ->
-                    stringResource(R.string.capture_held, seconds(capture.elapsedMs))
-                else -> stringResource(R.string.capture_hold)
+                    stringResource(R.string.capture_turn_paused, seconds(capture.elapsedMs))
+                else -> stringResource(R.string.capture_press)
             },
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
 
+        // **The big button says a turn of speech and not a next page**: it opens one of the
+        // learner's own. It is greyed while anything records, whoever started it -- one does
+        // not begin a new turn while speaking -- rather than turning into the pause, which
+        // would be a second personality on one button.
+        val recordingSomething = capture.recording || capture.hasAudio
         Surface(
             shape = CircleShape,
             color = when {
-                busy -> MaterialTheme.colorScheme.surfaceVariant
-                capture.recording -> MaterialTheme.colorScheme.error
+                busy || recordingSomething -> MaterialTheme.colorScheme.surfaceVariant
                 else -> MaterialTheme.colorScheme.primary
             },
             modifier = Modifier
                 .size(150.dp)
-                .pointerInput(busy, capture.full) {
-                    detectTapGestures(
-                        onPress = {
-                            // A held button while the chain is busy would record over an
-                            // answer the learner is still hearing.
-                            if (busy) return@detectTapGestures
-                            recorder.hold(scope)
-                            tryAwaitRelease()
-                            recorder.release()
-                        }
-                    )
+                .clickable(enabled = !busy && !recordingSomething && !capture.full) {
+                    repeating = null
+                    recorder.open(scope)
                 },
         ) {}
 
@@ -219,13 +236,44 @@ fun ConversationScreen(
             )
         }
 
-        if (capture.hasAudio && !busy) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(onClick = { recorder.discard() }) {
+        // **The bottom commands everything that records, whichever button started it.** The
+        // big one opens a new turn, a passage's small one opens a repeat, and in both cases
+        // these are what follow. Doubling them into the row under each passage would fit,
+        // and it is not the room that rules it out: it would be two `SEND`s doing the same
+        // work in two places, the one to press depending on what was started.
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            // **`PAUSE` exists at the first capture position and nowhere else** -- the one
+            // position that has a pause at all. Its absence is the right shape on screen,
+            // and the lever's phrase is the right shape at the moment one chooses.
+            if ((turn.positions.of(Levers.CAPTURE.key) as? At)?.name == Levers.BY_HAND) {
+                OutlinedButton(
+                    enabled = capture.recording || (capture.hasAudio && !busy),
+                    onClick = {
+                        if (capture.recording) recorder.pause() else recorder.open(scope)
+                    },
+                ) {
+                    Text(
+                        stringResource(
+                            if (capture.recording) R.string.capture_pause
+                            else R.string.capture_resume
+                        )
+                    )
+                }
+            }
+            // Absent and not greyed when nothing records: there is no take to send.
+            if (capture.hasAudio && !busy) {
+                OutlinedButton(onClick = { recorder.discard(); repeating = null }) {
                     Text(stringResource(R.string.capture_redo))
                 }
                 Button(onClick = {
-                    scope.launch { recorder.finish()?.let { pipeline.submit(it) } }
+                    scope.launch {
+                        val said = repeating
+                        recorder.send()?.let { file ->
+                            if (said != null) pipeline.redo(said, file)
+                            else pipeline.submit(file)
+                        }
+                        repeating = null
+                    }
                 }) {
                     Text(stringResource(R.string.capture_send))
                 }
@@ -341,9 +389,11 @@ private fun heard(
  * `dev_base` refuses, and an icon pack is a dependency to rebuild offline for a control that
  * is a triangle and a circle.
  *
- * The small circle is the big one, smaller, and it holds the same way. Saying a sentence
- * again is not a new turn of conversation: it never reaches the language model, and what
- * comes back is the same sentence measured again.
+ * **The small circle behaves like the big one**: a press opens, it shows itself running, and
+ * what follows -- the pause, the send -- is at the bottom. One behaviour to learn for both,
+ * which is the whole point of having put the three capture positions on the same gesture.
+ * Saying a sentence again is not a new turn of conversation: it never reaches the language
+ * model, and what comes back is the same sentence measured again.
  *
  * **Only the open passage carries it**, [open] saying so. Every passage keeps what listens
  * -- the triangle, the side, the speed -- because they read what is already measured; only
@@ -352,20 +402,19 @@ private fun heard(
  */
 @Composable
 private fun Redo(
-    recorder: TurnRecorder,
     open: Boolean,
     busy: Boolean,
+    /** Whether the recording that is running, if any, is this passage's. */
+    mine: Boolean,
+    /** Whether anything at all is recording, whoever started it. */
+    running: Boolean,
     side: Side,
     speed: Float,
     onSide: (Side) -> Unit,
     onSpeed: (Float) -> Unit,
     onHear: () -> Unit,
-    onSaid: (java.io.File) -> Unit,
+    onOpen: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val capture by recorder.state.collectAsState()
-    var mine by rememberSaveable { mutableStateOf(false) }
-    val recording = mine && capture.recording
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -393,23 +442,14 @@ private fun Redo(
         if (open) {
             Surface(
                 shape = CircleShape,
-                color = if (recording) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary,
+                color = when {
+                    mine -> MaterialTheme.colorScheme.error
+                    busy || running -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> MaterialTheme.colorScheme.primary
+                },
                 modifier = Modifier
                     .size(34.dp)
-                    .pointerInput(busy) {
-                        detectTapGestures(onPress = {
-                            if (busy) return@detectTapGestures
-                            mine = true
-                            recorder.hold(scope)
-                            tryAwaitRelease()
-                            recorder.release()
-                            scope.launch {
-                                recorder.finish()?.let { onSaid(it) }
-                                mine = false
-                            }
-                        })
-                    },
+                    .clickable(enabled = !busy && !running, onClick = onOpen),
             ) {
                 Canvas(Modifier.fillMaxSize()) {
                     drawCircle(color = Color.White, radius = size.minDimension * 0.22f)
@@ -431,8 +471,11 @@ private fun Said(
     readings: List<Utterance>,
     /** Whether this is the passage still open, the only one that can be said again. */
     open: Boolean,
-    recorder: TurnRecorder,
     busy: Boolean,
+    /** Whether the recording that is running, if any, is this passage's. */
+    mine: Boolean,
+    /** Whether anything at all is recording, whoever started it. */
+    running: Boolean,
     side: Side,
     speed: Float,
     onSide: (Side) -> Unit,
@@ -440,7 +483,7 @@ private fun Said(
     onHear: (String) -> Unit,
     onHearSpan: (String, Int, Int) -> Unit,
     onHearSound: (String, AnalysedSound, Side) -> Unit,
-    onRedo: (java.io.File) -> Unit,
+    onOpenRepeat: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -482,7 +525,8 @@ private fun Said(
         // Every passage that carries a recording gets the row -- listening back is what a
         // measured turn is for. What the row holds depends on whether the passage is open.
         if (where != null) {
-            Redo(recorder, open, busy, side, speed, onSide, onSpeed, { onHear(where) }, onRedo)
+            Redo(open, busy, mine, running, side, speed, onSide, onSpeed,
+                 { onHear(where) }, onOpenRepeat)
         }
         if (where != null && sounds != null && Trace.on) {
             val context = LocalContext.current

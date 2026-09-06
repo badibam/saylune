@@ -1376,7 +1376,7 @@ Le rétro touche aussi le marquage, qui est aujourd'hui un instrument de précis
 
 La capture est **un levier de fluidité, à trois positions**, et l'échelle gradue exactement ce que la fluidité peut lire.
 
-1. **Ouverture à la main, avec pause, envoi manuel.** On appuie pour parler, on rappuie pour mettre en pause et réfléchir, on rappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
+1. **Ouverture à la main, avec pause, envoi manuel.** On appuie pour parler ; la pause et l'envoi sont deux boutons à part, en bas — c'est la charpente qui le dit (`pixel-ui.md`), un gros bouton devenu pause puis grisé faisant trois personnalités sur un objet. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
 2. **Armement automatique, sans pause, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le **délai avant de parler** et les **silences intérieurs** deviennent mesurables, ce qui est exactement ce que retirer la pause achète.
 3. **Armement automatique, sans pause, envoi au clic ou sur un silence de plus de x**, silence du début compris. Le clic reste le geste normal ; un tour que personne n'envoie est **interrompu**, et c'est ce que cette position demande, de la réactivité. Aucune mesure neuve ne s'y ajoute, et aucun silence n'y dépasse x, puisqu'à x le tour est déjà parti.
 
