@@ -51,16 +51,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ## Les étapes
 
-### 12. Le moteur de règles
-
-**Ce que ça fait.** Son propre module, hors de `TurnPipeline`. Les six sortes de déclencheur et les trois moments. Les trois sortes d'effet, et pas une de plus : un patch, la fin, un message au modèle. Un patch porte des positions ou des déplacements, et éventuellement des consignes ; il porte sa phrase de mise en scène avec son drapeau avant/après, la phrase mécanique étant déclarée avec le levier. Les trois familles — levier, consigne ou interrupteur, drapeau. La résolution **par vagues** contre un même instantané. La vérification terminale des vies **après** les vagues, sur l'état stabilisé. Le menu calculé et non maintenu.
-
-**Pourquoi ici.** C'est de la logique pure qui tourne en JVM, et le TODO en fait un module à part dès le départ : `TurnPipeline` fait déjà 575 lignes et tout y converge.
-
-**Ce qui se prouve.** La **terminaison** : une règle ne part qu'une fois par moment, il y a un nombre fini de règles, donc la cascade s'arrête même si deux règles se relancent. La détection de **deux patchs d'une même vague sur la même clé**, qui est une erreur d'écriture sauf s'ils posent la même position absolue. La **mort scriptée**, R1 qui se désarme et arme R2, qui est le cas exact où la fin ne doit pas gagner la course. Qu'un déplacement borné ne notifie rien. Que la surcharge s'écrit en deux règles dont une seule est armée à tout instant, sans plafond ni ordre de déclaration.
-
-**Ce que ça laisse dû.** Qui regarde les conflits visibles à l'écriture : le validateur est en stub, son point d'appel existe.
-
 ### 13. Le passage, les tentatives, les deux portes
 
 **Ce que ça fait.** Le déroulé écrit du doc, porté dans le pipeline, en **deux temps** : au retour de l'appel, puis à la fin de l'analyse. Le passage est un énoncé et toutes ses redites — **dérivé de la suite** par ce que `repeats` dit déjà, sans table à lui. Ses quatre états. Les deux compteurs de tentatives, reformulations et redites, qui ne se volent rien. **Une reformulation relance l'échange**, dans les deux avances : un appel neuf comme si c'était la première tentative, la nouvelle réponse jouée, l'ancienne retirée du fil. Une redite ne relance rien. Deux choses en tombent. `TurnPipeline.history()` écarte aujourd'hui les redites, ce qui est juste tant qu'une tentative porte le même texte et devient faux avec la reformulation : il lui faut la dernière tentative de chaque passage, avec la réponse faite à celle-là. Et la réplique **retirée du fil ne s'efface pas de la base** — elle est supplantée, exactement comme une tentative l'est, en pointant l'énoncé qu'elle répondait. Le gros bouton ferme le passage ; en « attend » il n'est pas disponible et revient à l'épuisement. Dans une tentative, la continuation et l'écho arrivent ensemble et l'app n'en joue qu'un, donc rien n'est jamais contredit sur la même phrase. Les deux portes à la barre A–B, plus les deux faits qui ferment celle des mots sans lire de note — le tour tronqué et le tour sans un mot retenu. L'analyse du son ne tourne pas si la porte des mots s'est fermée ou si un mot est marqué `ne se dit pas`.
