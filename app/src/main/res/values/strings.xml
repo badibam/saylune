@@ -95,47 +95,51 @@
 
     <!-- The lever catalogue: one phrase per position, read by the pre-game screen and by
          the notification a rule fires. Each is a full sentence with a verb, and it states a
-         state and never an event, because the same phrase serves both places: "You have 2
-         lives", never "You lose a life". No phrase names the app or the AI: what speaks is a
+         state and never an event, because the same phrase serves both places: "3 lives are
+         left", never "you lose a life".
+
+         Two things it never does. It does not name the app or the AI: what speaks is a
          character, and any voice beyond that belongs to the staging phrase, which the author
-         of a scene writes on the patch. -->
+         of a scene writes on the patch. And it does not address the learner unless the
+         sentence genuinely needs a subject: a screen listing twenty of these would be a
+         wall of "you". -->
     <plurals name="lever_model_listens">
-        <item quantity="one">You listen to the model %1$d time</item>
-        <item quantity="other">You listen to the model %1$d times</item>
+        <item quantity="one">The model can be heard %1$d time</item>
+        <item quantity="other">The model can be heard %1$d times</item>
     </plurals>
     <string name="lever_model_listens_none">You say it again from memory</string>
-    <string name="lever_model_listens_free">You listen to the model as often as you like</string>
-    <string name="lever_pace_free">You speak at your own pace</string>
-    <string name="lever_pace_set">You keep to the model\'s pace</string>
+    <string name="lever_model_listens_free">The model can be heard without limit</string>
+    <string name="lever_pace_free">The pace is free</string>
+    <string name="lever_pace_set">The model\'s pace is set</string>
     <plurals name="lever_pace_value">
-        <item quantity="one">You speak in %1$d%% of the model\'s time</item>
-        <item quantity="other">You speak in %1$d%% of the model\'s time</item>
+        <item quantity="one">The turn must fit in %1$d%% of the model\'s time</item>
+        <item quantity="other">The turn must fit in %1$d%% of the model\'s time</item>
     </plurals>
-    <string name="lever_pace_value_moot">You speak at your own pace</string>
+    <string name="lever_pace_value_moot">The pace is free</string>
     <plurals name="lever_retakes">
-        <item quantity="one">You can say it again %1$d time</item>
-        <item quantity="other">You can say it again %1$d times</item>
+        <item quantity="one">The passage can be said again %1$d time</item>
+        <item quantity="other">The passage can be said again %1$d times</item>
     </plurals>
-    <string name="lever_retakes_free">You can say it again as often as you like</string>
+    <string name="lever_retakes_free">The passage can be said again without limit</string>
     <string name="lever_elocution_lets_through">Poor pronunciation sends nothing back</string>
-    <string name="lever_elocution_sends_back">Poor pronunciation makes you say the passage again</string>
+    <string name="lever_elocution_sends_back">Poor pronunciation sends the passage back to be said again</string>
 
     <string name="lever_ai_length_short">The characters give short answers</string>
     <string name="lever_ai_length_medium">The characters give medium answers</string>
     <string name="lever_ai_length_long">The characters give long answers</string>
-    <string name="lever_ai_complexity_low">The characters speak simple language</string>
-    <string name="lever_ai_complexity_medium">The characters speak ordinary language</string>
-    <string name="lever_ai_complexity_high">The characters speak hard language</string>
-    <string name="lever_ai_display_text">You read what is said</string>
-    <string name="lever_ai_display_scrambled">You see the shape of what is said</string>
-    <string name="lever_ai_display_speaker">You see only who speaks</string>
-    <string name="lever_ai_display_nothing">You see nothing</string>
+    <string name="lever_ai_complexity_low">The characters speak in a simple way</string>
+    <string name="lever_ai_complexity_medium">The characters speak in a balanced way</string>
+    <string name="lever_ai_complexity_high">The characters speak in a demanding way</string>
+    <string name="lever_ai_display_text">What is said is shown</string>
+    <string name="lever_ai_display_scrambled">Only the shape of what is said is shown</string>
+    <string name="lever_ai_display_speaker">Only who speaks is shown</string>
+    <string name="lever_ai_display_nothing">Nothing is shown</string>
     <plurals name="lever_replay">
-        <item quantity="one">You can listen again %1$d time</item>
-        <item quantity="other">You can listen again %1$d times</item>
+        <item quantity="one">The turn can be heard again %1$d time</item>
+        <item quantity="other">The turn can be heard again %1$d times</item>
     </plurals>
-    <string name="lever_replay_none">You cannot listen again</string>
-    <string name="lever_replay_free">You can listen again as often as you like</string>
+    <string name="lever_replay_none">The turn cannot be heard again</string>
+    <string name="lever_replay_free">The turn can be heard again without limit</string>
     <string name="lever_noise_none">No noise covers the voice</string>
     <string name="lever_noise_some">Noise covers the voice</string>
     <string name="lever_noise_heavy">Heavy noise covers the voice</string>
@@ -143,55 +147,55 @@
     <string name="lever_filter_light">The sound comes through slightly distorted</string>
     <string name="lever_filter_heavy">The sound comes through badly distorted</string>
     <string name="lever_understanding_lets_through">Answering without having understood sends nothing back</string>
-    <string name="lever_understanding_sends_back">Answering without having understood makes you reword the passage</string>
+    <string name="lever_understanding_sends_back">Answering without having understood sends the passage back to be reworded</string>
 
     <string name="lever_echo_explicit">The answer corrects explicitly</string>
     <string name="lever_echo_indirect">The answer corrects indirectly</string>
     <string name="lever_echo_none">The answer does not correct</string>
-    <string name="lever_explanation_rule_and_sentence">You get the rule and the right sentence</string>
-    <string name="lever_explanation_rule">You get the rule alone</string>
-    <string name="lever_explanation_none">You get no explanation</string>
+    <string name="lever_explanation_rule_and_sentence">The rule and the right sentence are given</string>
+    <string name="lever_explanation_rule">The rule alone is given</string>
+    <string name="lever_explanation_none">Nothing is explained</string>
     <plurals name="lever_rewordings">
-        <item quantity="one">You can reword %1$d time</item>
-        <item quantity="other">You can reword %1$d times</item>
+        <item quantity="one">The passage can be reworded %1$d time</item>
+        <item quantity="other">The passage can be reworded %1$d times</item>
     </plurals>
-    <string name="lever_rewordings_free">You can reword as often as you like</string>
+    <string name="lever_rewordings_free">The passage can be reworded without limit</string>
     <string name="lever_correctness_lets_through">A malformed sentence sends nothing back</string>
-    <string name="lever_correctness_sends_back">A malformed sentence makes you reword the passage</string>
+    <string name="lever_correctness_sends_back">A malformed sentence sends the passage back to be reworded</string>
 
     <string name="lever_relevance_lets_through">Missing the mark sends nothing back</string>
-    <string name="lever_relevance_sends_back">Missing the mark makes you reword the passage</string>
+    <string name="lever_relevance_sends_back">Missing the mark sends the passage back to be reworded</string>
 
-    <string name="lever_capture_finger">You hold the button to speak</string>
-    <string name="lever_capture_armed">The mic opens on its own</string>
-    <string name="lever_capture_armed_and_sending">The mic opens, and silence sends your turn</string>
+    <string name="lever_capture_finger">The button is held down to speak</string>
+    <string name="lever_capture_armed">The mic opens on its own, sending stays manual</string>
+    <string name="lever_capture_armed_and_sending">The mic opens on its own, and silence sends the turn</string>
     <plurals name="lever_silence_threshold">
-        <item quantity="one">Your turn goes after %1$d s of silence</item>
-        <item quantity="other">Your turn goes after %1$d s of silence</item>
+        <item quantity="one">The turn goes after %1$d s of silence</item>
+        <item quantity="other">The turn goes after %1$d s of silence</item>
     </plurals>
     <string name="lever_silence_threshold_moot">The mic does not send on its own</string>
     <plurals name="lever_turn_length">
-        <item quantity="one">You have %1$d s to say your turn</item>
-        <item quantity="other">You have %1$d s to say your turn</item>
+        <item quantity="one">The turn lasts %1$d s at most</item>
+        <item quantity="other">The turn lasts %1$d s at most</item>
     </plurals>
     <plurals name="lever_preparation">
         <item quantity="one">The mic opens %1$d s after the answer</item>
         <item quantity="other">The mic opens %1$d s after the answer</item>
     </plurals>
-    <string name="lever_preparation_moot">You open the mic yourself</string>
+    <string name="lever_preparation_moot">The mic is opened by hand</string>
     <string name="lever_fluency_lets_through">Hesitating sends nothing back</string>
-    <string name="lever_fluency_sends_back">Hesitating makes you say the passage again</string>
+    <string name="lever_fluency_sends_back">Hesitating sends the passage back to be said again</string>
 
-    <string name="lever_lives_off">You do not play with lives</string>
-    <string name="lever_lives_on">You play with lives</string>
+    <string name="lever_lives_off">There are no lives</string>
+    <string name="lever_lives_on">Lives are counted</string>
     <plurals name="lever_lives_left">
-        <item quantity="one">You have %1$d life</item>
-        <item quantity="other">You have %1$d lives</item>
+        <item quantity="one">%1$d life is left</item>
+        <item quantity="other">%1$d lives are left</item>
     </plurals>
-    <string name="lever_lives_left_free">You have unlimited lives</string>
+    <string name="lever_lives_left_free">Lives are without limit</string>
     <string name="lever_lives_left_moot">This activity has no lives</string>
     <string name="lever_advance_words_carries_on">The conversation carries on</string>
-    <string name="lever_advance_words_waits">The conversation waits for your corrected sentence</string>
-    <string name="lever_advance_sound_carries_on">The passage closes without you saying it again</string>
-    <string name="lever_advance_sound_waits">The passage does not close before you say it again</string>
+    <string name="lever_advance_words_waits">The conversation waits for the corrected sentence</string>
+    <string name="lever_advance_sound_carries_on">The passage closes without a retake</string>
+    <string name="lever_advance_sound_waits">The passage does not close before a retake</string>
 </resources>

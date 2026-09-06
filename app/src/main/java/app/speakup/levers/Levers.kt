@@ -48,14 +48,19 @@ object Levers {
      * -- a pace at 0% would demand the instantaneous -- so nothing would express "this
      * activity does not impose a pace".
      *
-     * The default sits at the model's own length. A scene that turns the pace on without
-     * saying more asks to keep up with the model, which is the neutral thing to ask.
+     * **A ceiling on the turn's length, not a tolerance around the model's pace.** The doc
+     * writes the value as a percentage of the model's length and, two lines later, says that
+     * on a spontaneous turn it renders a verdict *"too slow, do it again"* -- which only
+     * makes sense of a ceiling. So 100 is the model's own length and 120 allows a fifth more.
+     *
+     * The default allows that fifth rather than demanding the model's exact length: a scene
+     * that turns the pace on without saying more is asking to keep up, not to match.
      */
     val PACE_VALUE = Numeric(
         key = "cadence.valeur",
         says = R.plurals.lever_pace_value,
-        min = 10, max = 300, step = 5,
-        fallback = Count(100),
+        min = 50, max = 300, step = 10,
+        fallback = Count(120),
         hard = HardSide.Low,
         held = Held.App,
         needs = Requirement("cadence", setOf("imposee"), R.string.lever_pace_value_moot),
