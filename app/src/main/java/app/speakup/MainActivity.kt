@@ -34,6 +34,7 @@ import app.speakup.ui.ConversationScreen
 import app.speakup.ui.ConversationsScreen
 import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.SettingsScreen
+import app.speakup.ui.theme.SpeakupTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,9 +52,14 @@ class MainActivity : ComponentActivity() {
             archive = Archive.of(applicationContext).dao(),
         )
         setContent {
+            // Material still dresses the buttons and the lists; what it no longer holds is
+            // anything the marking rests on -- the ground a halo is punched out of, the grid,
+            // the rhythms. Those come from SpeakupTheme, nested inside so both are readable.
             MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    Root(store, recorder, pipeline)
+                SpeakupTheme {
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        Root(store, recorder, pipeline)
+                    }
                 }
             }
         }

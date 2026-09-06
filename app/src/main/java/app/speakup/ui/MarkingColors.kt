@@ -1,10 +1,10 @@
 package app.speakup.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import app.speakup.ui.theme.Speakup
 
 /**
  * The marking palette. Three scales, three graphic channels, and colour carries only the
@@ -46,10 +46,10 @@ data class MarkingColors(
 @Composable
 fun markingColors(): MarkingColors {
     val dark = isSystemInDarkTheme()
-    val surface = MaterialTheme.colorScheme.surface
+    val palette = Speakup.palette
     return if (dark) {
         MarkingColors(
-            ink = Color.hsl(220f, 0.06f, 0.92f),
+            ink = palette.ink,
             phonemeLightness = 0.68f,
             wordFault = Color.hsl(8f, 0.90f, 0.68f),
             added = Color.hsl(8f, 0.90f, 0.68f),
@@ -57,11 +57,11 @@ fun markingColors(): MarkingColors {
             learnerContour = Color.hsl(199f, 0.86f, 0.62f),
             stressStray = Color.hsl(8f, 0.86f, 0.60f),
             stressTarget = Color.hsl(148f, 0.52f, 0.52f),
-            surface = surface,
+            surface = palette.screen,
         )
     } else {
         MarkingColors(
-            ink = Color.hsl(220f, 0.06f, 0.14f),
+            ink = palette.ink,
             phonemeLightness = 0.44f,
             wordFault = Color.hsl(8f, 0.90f, 0.44f),
             added = Color.hsl(8f, 0.90f, 0.44f),
@@ -69,7 +69,7 @@ fun markingColors(): MarkingColors {
             learnerContour = Color.hsl(212f, 0.74f, 0.44f),
             stressStray = Color.hsl(8f, 0.82f, 0.46f),
             stressTarget = Color.hsl(148f, 0.58f, 0.33f),
-            surface = surface,
+            surface = palette.screen,
         )
     }
 }
