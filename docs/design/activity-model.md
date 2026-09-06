@@ -1067,7 +1067,21 @@ Et deux noms sont fades exprès. **`Continuity` / `Continuité`**, parce que `Fl
 
 **Les noms mélangent la dimension et la faute, et c'est assumé.** `Clarity`, `Melody`, `Pace` nomment une dimension dont le chiffre dit le sens ; `Hesitations` et `Longest gap` nomment ce qui a raté, leur bonne valeur étant zéro. Tout convertir en dimensions échoue sur la fluidité, dont les quatre feuilles parlent du même tissu — silence, plus long silence, vitesse, hésitations — et où le vocabulaire manque pour les séparer sans nommer la faute. L'unité de l'écran de bilan se tient donc par la mise en page, pas par les mots.
 
-**Trois des cinq noms d'aptitude tombent avec eux** — `Grammar` / `Grammaire`, `Relevance` / `Pertinence`, `Understanding` / `Compréhension` —, ce sont les trois branches à une feuille, et c'est de ne pas se répéter avec leur feuille qui a fixé `Forme`, `Choix` et `Réponse`. Restent l'élocution et la fluidité, qui n'ont pas ce problème et attendent l'écran de bilan.
+**Les cinq noms d'aptitude vont avec** — ils titrent les groupes de l'écran de bilan.
+
+| branche | EN | FR |
+|---|---|---|
+| `elocution` | Pronunciation | Prononciation |
+| `comprehension` | Understanding | Compréhension |
+| `correction` | Grammar | Grammaire |
+| `pertinence` | Relevance | Pertinence |
+| `fluidite` | Fluency | Fluidité |
+
+Trois d'entre eux étaient forcés : ce sont les branches à une seule feuille, et c'est de ne pas se répéter avec elles qui a fixé `Forme`, `Choix` et `Réponse`. Un titre a de la place, étant seul sur sa ligne avec sa lettre — la contrainte des douze colonnes ne vaut que pour un nom de feuille, qui partage sa ligne avec une mesure.
+
+**`Elocution` n'est pas le mot anglais**, et c'est le seul faux ami de la table : en anglais il désigne l'art de parler en public, la déclamation. Posé tel quel il annoncerait un cours d'éloquence au-dessus de quatre feuilles qui comptent des `th` ratés. `Pronunciation` couvre exactement la branche, prosodie comprise — dans l'enseignement des langues, la mélodie et l'accent en font partie. Le français prend `Prononciation` pour répondre à l'anglais et parce que c'est le mot que l'apprenant connaît ; `élocution` reste celui du doc et la clé du code, comme `correction` sous `Grammaire`.
+
+**`Relevance` est le maillon faible de la table, et il est gardé sciemment.** En anglais il tire vers *hors sujet*, quand la feuille marque aussi un mot **plat qui est parfaitement dans le sujet** — l'objection même qui l'avait écarté comme nom de feuille. Deux choses le rattrapent à ce niveau-là : dans une liste de cinq, il se lit *as-tu dit ce qu'il fallait* ; et la feuille juste dessous dit `Choice`, ce qui élargit la lecture aussitôt. Le risque était plus grand sur une ligne de mesure que sur un titre de groupe. `Aptness` serait exact et se lit mal.
 
 ## Ce qui est jugé, ce qui est calculé
 
