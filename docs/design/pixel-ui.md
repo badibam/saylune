@@ -42,6 +42,8 @@ Cadratin de 1024 unités, une unité de dessin valant 64 unités, avance de 11 p
 - **Les meubles**, 13 : le triangle de l'écoute, le disque d'enregistrement, quatre blocs de jauge pour les deux décomptes, quatre flèches, une coche, une croix, un cœur pour les vies.
 - **Les lettres brouillées**, 98 — voir « Le texte de l'IA ».
 
+**Quatre glyphes restent à dessiner** (relevés le 2026-09-06, à générer d'un coup) : `½` et `⅓` pour la vitesse d'écoute, une **loupe** pour l'inventaire par son, et un glyphe pour les **notes du passage**, dont la forme reste à trouver — une lettre dans un cadre, ou un petit histogramme.
+
 ## La taille des lettres
 
 **Facteur 3.** Chaque pixel de dessin devient un carré de 3 × 3 pixels d'écran, ce qui donne une capitale de **10 dp** — la taille du texte ordinaire d'une app Android — et **32 colonnes** sur un écran de 1080.
@@ -182,9 +184,15 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 
 **Les marques n'arrivent pas d'un coup, et ce n'est pas un choix.** Les marquages jugés tombent au retour de l'appel, les marques du son à la fin de l'analyse, deux à trois secondes plus tard (`activity-model.md`, « Le déroulé d'un passage »). La révélation est donc canal par canal par construction — et ça tombe bien, les jugées étant à l'écran avant que l'IA parle.
 
-**Ce qui reste à choisir est si les marques des mots restent une fois la porte des mots passée.** Un passage qui passe porte quand même des marques : la porte lit une note à la barre, pas l'absence de marque. Quand les marques du son arrivent par-dessus, la ligne devient dense pour rien si l'apprenant en a fini avec ses mots. **Les garder ou les retirer est une préférence utilisateur** — d'affichage, jamais de mesure.
+**Les marques des mots restent une fois la porte des mots passée, et c'est le défaut** (tranché le 2026-09-06). Un passage qui passe porte quand même des marques : la porte lit une note à la barre, pas l'absence de marque. La ligne devient dense quand les marques du son arrivent par-dessus, et c'est le prix accepté — un `plat` sur un passage qui passe reste une chose vraie qu'on a le droit de voir. Les retirer est une préférence utilisateur, d'affichage et jamais de mesure.
 
 **Un menu de conversation dit quelles marques s'affichent.** La densité mesurée — la majorité des mots portent quelque chose — fait qu'un apprenant qui travaille sa mélodie voudra éteindre le reste. Éteindre un canal n'éteint que son **affichage**, jamais sa mesure : la note ne bouge pas, et rouvrir le canal remontre ce qui était là.
+
+**Huit canaux, un par marque** : la teinte des lettres, le filet d'accent, la bande de mélodie, la vaguelette, les crochets, les points de pause, la pastille du suivi et les chevrons du débit. Plus le réglage ci-dessus, les marques des mots une fois la porte passée.
+
+**Un canal éteint retire son emplacement au lieu de le vider.** Les deux derniers vivent sur la ligne qui nomme le tour, où un emplacement vide dit *non mesuré* : le laisser vide ferait donc mentir la ligne. La ligne se resserre — pas d'emplacement, pas de canal ; emplacement vide, non mesuré.
+
+**Les fragments écartés ne sont pas un canal.** `[um]` est du texte et non une marque peinte : l'éteindre changerait la chaîne affichée, donc l'ancrage horizontal de tout le reste.
 
 **Ce menu est du côté de l'apprenant, et n'est jamais un levier.** L'invariant l'exige — une marque dont la présence dépendrait du réglage du jour ne transporte plus rien (`activity-model.md`). C'est l'inverse exact du brouillage du tour de l'IA, qui est bien un levier : là il s'agit d'une aide sur ce que l'IA dit, ici de la sortie d'une mesure. Une activité peut retirer une aide ; aucune ne cache une marque.
 
@@ -196,13 +204,72 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 - **Le débit s'écrit en caractères** — `>><<` `><` `=` `<->` `<-->` — centré dans un champ de quatre colonnes, pour que la pastille ne bouge pas quand le cran change.
 - **Un emplacement vide dit *non mesuré***, et non *rien à signaler* (`activity-model.md`).
 
-À regarder au banc : sur seize colonnes, l'étiquette en prend huit et les deux marques six, donc rien ne les sépare. Soit l'étiquette raccourcit, soit on l'accepte. **Et l'écran qui produit ce cas existe** : un 720 en donne vingt-et-une à facteur constant, contre trente-deux sur un 1080 — c'est là que le tour marqué et cette ligne se vérifient, pas seulement à trente-deux.
+Recompté le 2026-09-06 sur le pire écran, et le cas se détend : l'étiquette porte un nom de locuteur — `You` / `Speakup` aujourd'hui, le nom du personnage demain — donc `Le barman` 9, un blanc, la pastille 1, un blanc, le débit 4 font **quinze colonnes sur les vingt-et-une** d'un 720. Il reste six colonnes de marge, là où le doc craignait de n'en avoir aucune sur seize.
+
+**Quand un nom déborde quand même, le nom se tronque et jamais les marques.** Les marques portent une mesure ; l'étiquette porte une identité qu'on connaît déjà, deux ou trois locuteurs alternant dans une conversation. Une définition déclare donc un **nom court** par personnage, comme elle déclare un titre court, et l'app tronque de toute façon — l'ellipse est dans la police. C'est là que le tour marqué se vérifie, pas seulement à trente-deux colonnes.
 
 ## Le doigt
 
-**Tout est directement tactile.** L'élément qu'on touche est celui qui se sélectionne ; le curseur existe toujours mais il marque ce qu'on vient de toucher au lieu de servir à naviguer. La barre du bas affiche les actions disponibles, et ses entrées sont de vrais boutons qu'on presse. Sous le tour, une rangée de petites commandes sur la phrase, toutes au padding égal du texte de l'IA — un filet de grille tout autour : le petit bouton, dont l'étiquette dit la porte du moment — *redire* ou *reformuler* —, l'écoute (le triangle), le côté que l'écoute atteint (modèle/vous, une seule étiquette qui bascule), et la vitesse (×1, ×0,5, ×0,33, une seule étiquette qui cycle). Le gros bouton, lui, prend toute la largeur sur trois lignes.
+**Tout est directement tactile.** L'élément qu'on touche est celui qui se sélectionne ; le curseur existe toujours mais il marque ce qu'on vient de toucher au lieu de servir à naviguer.
+
+**La rangée de commandes vit dans le fil, sous chaque passage** — pas fixée en bas de l'écran. Six entrées, au padding égal du texte de l'IA, un filet de grille tout autour, et **des glyphes dès que possible** (arrêté le 2026-09-06) :
+
+| entrée | largeur |
+|---|---|
+| le petit bouton, `SAY` / `DIS` — son étiquette dit la porte du moment | 3 |
+| l'écoute, le triangle | 1 |
+| le côté que l'écoute atteint, `ME` / `AI`, une seule étiquette qui bascule | 2 |
+| la vitesse, `×1` `×½` `×⅓`, une seule étiquette qui cycle | 2 |
+| les notes du passage | 1 |
+| l'analyse des sons, la loupe | 1 |
+
+Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire écran. Le petit bouton n'apparaît que sur le passage ouvert, les redites s'arrêtant à la clôture (`activity-model.md`) ; les cinq autres entrées valent sur tout passage qui porte un enregistrement.
+
+**Les notes et les sons sont deux entrées et non une**, les deux ne parlant pas de la même chose : l'une rend le bilan du passage, feuille par feuille, l'autre descend d'un cran dans l'inventaire son par son que `ui/AnalysisReadout.kt` dessine déjà.
+
+**Le bas de l'écran fait quatre lignes de grille.** Sur trois, le **gros bouton** — `MON TOUR` / `MY TURN`, toujours le même mot — sur deux tiers de largeur, et **`ENVOYER`** sur le tiers restant. Sur une, la **barre d'actions**.
+
+**Le gros bouton dit un tour de parole et pas une page suivante** : il ferme le passage précédent et ouvre le mien, ce qui est exactement ce qui se passe. Il forme un couple lisible avec le petit — `DIS` reprend la même phrase, `MON TOUR` en dit une neuve. `CONTINUER` a été écarté, qui laisserait croire qu'on saute un tour. Grisé, il porte ce qui manque pour qu'il redevienne possible — *reformule d'abord*, *redis d'abord* — pendant que la ligne d'état du haut porte la raison.
+
+**`ENVOYER` existe aux trois positions de capture**, et pas seulement aux deux à envoi manuel : le doc du modèle d'activité dit de la troisième que « le clic reste le geste normal », le silence n'y étant que le filet qui rattrape un tour que personne n'envoie. Ce qui change d'une position à l'autre est ce qui **arme** le micro, jamais ce qui envoie.
+
+**Un dessin fin n'oblige pas à une cible tactile fine.** La barre d'actions se dessine sur une ligne et sa zone tactile déborde vers le haut sur trois ; un glyphe d'une colonne reçoit la même marge invisible. C'est ce qui réconcilie la recommandation des 48 dp avec une charpente qui n'en dépense qu'une.
 
 Conséquence mécanique, pas un choix : **une entrée touchable occupe environ trois lignes de grille**, remplies ou vides. La recommandation Android est une cible de 48 dp et une ligne fait ici environ 11 dp. Ce n'est pas propre au registre — dans n'importe quelle app les lignes de liste sont rembourrées pour cette raison ; la seule différence est qu'ici le rembourrage est visible, en cellules vides.
+
+## La charpente
+
+Deux objets distincts remplacent la rangée de boutons de `MainActivity.Root`, et une règle les partage : **en haut ce qui est vrai, en bas ce qu'on peut faire** (arrêté le 2026-09-06). Elle tranche les cas futurs sans se rediscuter, et elle met les gestes là où est le pouce.
+
+**En haut, deux lignes.**
+
+La première est la **ligne d'état** : le **titre court** à gauche, et à droite, calés, les champs que le mode utilise — les **vies**, le **score**, la **note**. Chaque champ est simplement absent quand le mode ne s'en sert pas, dans un ordre fixe pour que rien ne bouge quand une valeur change. Aucun bouton : quatre points d'entrée y prendraient 192 dp sur les 360 de l'écran, et ils seraient loin du pouce.
+
+- Le **titre court** est un champ déclaré par la définition, plafonné à **dix caractères** — ce que la ligne laisse sur un 720 quand la droite est pleine — et tronqué de toute façon à l'affichage. En conversation libre il n'y a pas de définition à nommer : il porte alors **qui on a en face**, ce qui est la porte d'entrée de la rencontre de personnage (`../../NOTES.md`) obtenue sans champ neuf.
+- Les **vies** tiennent dans un champ de **trois colonnes, toujours** : jusqu'à trois, des cœurs, qu'on lit d'un coup sans compter ; au-delà, un cœur et le nombre, `♥15`. L'affichage plafonne à 99, et un défi qui donne plus de 99 vies n'a pas de vies, il a un décor.
+- La **note** est celle de la séance en cours, qui n'a pas de formule à elle : c'est l'agrégation à plat des passages déjà clos (`activity-model.md`). Elle saute pendant les trois premiers, le dénominateur étant petit, et ce n'est pas un défaut à corriger — la masquer dirait *non mesuré*, ce qui serait faux.
+
+La seconde est la **ligne d'état du tour**, dans son propre cadre, **toujours pleine et à jour**. Ce n'est pas une boîte d'alerte mais le narrateur du cycle : *à toi de parler*, *Speakup répond…*, *reformule-la — en cause : Grammar*, *écoute le modèle et redis*, *il te reste deux redites*. Elle occupe aussi les onze secondes d'attente sans rien coûter, et elle est l'endroit que `../reference.md` exige partout — celui où une chose indisponible porte sa raison.
+
+**En bas, la barre d'actions**, d'une seule ligne, en glyphes : l'**œil** (ce qui s'affiche), les **leviers ouverts** de cette séance, le **retour**. Elle porte les points d'entrée, qui sont constants pour un écran ; le gros bouton juste au-dessus porte l'action du moment, qui change d'un instant à l'autre. Les mélanger ferait bouger une entrée de place selon l'état du passage.
+
+**Les leviers ouverts et les réglages de l'app sont deux choses.** Ce qui vaut pour cette séance — le tour de l'IA net ou brouillé, les écoutes, la capture — est ce que la définition laisse ouvert, et l'écran **se génère** : chaque position déclare déjà sa phrase lisible pour la notification d'arcade et l'écran d'avant-partie, donc zéro texte par activité, et un levier sans objet s'y affiche grisé en portant sa raison. Ce qui vaut pour toute l'app — la graisse, le registre, la palette de rechange, l'accent — vit ailleurs, et on n'y touche pas pendant une conversation.
+
+**Trois notifications, et non deux.** Celle d'une **règle** qui change quelque chose est un reçu : elle s'affiche en pop-up, quelques secondes, et s'efface. Celle de la **porte des mots** et celle de la **porte du son** sont des états : elles vivent dans la ligne d'état du haut tant qu'elles sont vraies. La porte des mots **nomme la ou les aptitudes en cause**, ce que la porte du son ne fait pas — et ce n'est pas une incohérence, c'est le même raisonnement : la porte du son est câblée sur l'élocution et la fluidité seules, donc ce qu'elle nommerait serait une constante, quand la porte des mots a trois aptitudes derrière elle. Nommer **toutes** celles qui ferment, jamais la pire, respecte l'interdit du doc contre l'élection d'une marque.
+
+## Ce qui se passe entre deux tours
+
+**L'écran de bilan du passage**, et c'est un seul écran avec deux portes : poussé entre deux passages quand l'apprenant l'a réglé ainsi, ouvert à la demande par les notes de n'importe quel passage du fil. Un seul contenu à concevoir, une seule lecture à apprendre.
+
+Il porte, **par aptitude, chaque feuille** : sa mesure brute, et sa lettre quand le mode utilise les notes — *2,3 demi-tons*, *47 sons sur 50*, *22 % plus lent*, *un mal formé*. La lettre de l'aptitude se pose sur sa ligne de titre, la note du passage au-dessus. Il défile, et son `OK` reste visible quel que soit le défilement.
+
+Pour les trois feuilles à colonne — la grammaire, la pertinence, le remplissage — ce qui s'affiche est le **compte par cran** et non le chiffre de la feuille, qui est une moyenne entre 0 et 1 ne disant rien à personne. C'est la même donnée lue autrement, pas une seconde source.
+
+**Aucune tendance dedans.** `ui/ConversationScreen.kt` porte déjà cette décision pour le sélecteur de tentatives, avec sa raison : deux lectures posées côte à côte ne sont pas une tendance, et une flèche *« +1 depuis le passage précédent »* rouvrirait ça par la porte de derrière.
+
+**Ce que le mode décide, ce sont les lettres ; ce que l'apprenant règle, c'est si l'écran est poussé.** Poussé par défaut, parce que la note d'un passage est prête pile quand l'attente commence et que remplir ces secondes vaut mieux que les regarder passer. Sans lettres — en conversation libre — l'écran existe quand même et porte les mesures brutes, qui sont des faits sur ce qu'on vient de dire et ne dépendent d'aucun réglage.
+
+**Le pop-up d'une règle est un autre objet**, et il tombe après : la fenêtre se retire au doigt, puis viennent les phrases marquées *avant*, puis l'audio de l'IA, puis les *après*, puis le micro s'arme. Les deux ne se confondent pas — le bilan est disponible immédiatement à la fermeture, la scène attend la réponse du modèle.
 
 ## Les images
 
@@ -243,10 +310,8 @@ Pour que ces questions ne se reposent pas.
 - **La séparation des quatre crans en registre clair.** La gamme des couleurs disponibles n'est pas la même en sombre qu'en clair : c'est une mesure à refaire, pas un réglage à recopier.
 - **Le débordement d'un interligne sur l'autre.** À interligne 1, la vaguelette d'une ligne descend deux pixels plus bas que le sommet de la ligne suivante. Se règle en ajustant l'air, à faire.
 - **Les sons.** Rien n'est décidé. Le canal principal de l'app *est* l'audio — la voix du modèle, et le micro ouvert pendant la réponse — donc une ambiance continue entre en concurrence avec ce qu'on écoute et se fait capter par le micro. Un babil de texte est exclu d'avance, le tour de l'IA étant réellement parlé.
-- **La charpente persistante.** Aujourd'hui `MainActivity.Root` porte une rangée de boutons en haut qui dit à la fois où on est et où aller. Le registre a deux objets distincts : une **ligne d'état** en haut, une **barre d'actions** en bas. Les séparer mettrait les actions là où est le pouce, et donnerait un endroit à ce que `reference.md` exige à plusieurs reprises — qu'une chose indisponible **porte sa raison**. Coût : deux lignes de grille en permanence.
 - **Le texte de l'IA qui apparaît caractère par caractère.** Très juste dans le registre, mais les tours de l'IA sont brouillés (« Le texte de l'IA ») et l'audio est le canal principal : un défilement qui devance ou traîne derrière la voix serait pire que pas de défilement.
 - **Le lecteur d'écran — hors v1, et dit plutôt que tu.** `ui/MarkedTurn.kt` est un `Canvas`, donc toute la sémantique du marquage est invisible à TalkBack : les crans, les empans et les échelles existent en mémoire et rien ne les expose. Ce n'est pas une porte fermée — un mot porte déjà son cran et sa feuille, il n'y a rien à mesurer de plus, seulement à décrire —, c'est un travail qui ne se fait pas maintenant. Pour une app destinée à un dépôt public, le silence vaudrait décision par défaut.
-- **Ce que l'écran fait pendant l'attente.** Onze secondes de médiane jusqu'au premier son, et rien n'est spécifié de ce qu'on regarde pendant. La piste : **les notes du passage précédent s'affichent en fenêtre**, par feuille et rangées par aptitude. Le calendrier tombe juste et ne coûte rien — la note d'un passage se décide à sa fermeture, c'est-à-dire au moment où le tour suivant part, donc elle est prête pile quand l'attente commence. **La fenêtre se retire au doigt, et c'est son retrait qui déclenche l'audio de l'IA**, s'il est prêt : elle prend le premier plan, puis rend la main. Elle ne paraît que là où les notes se montrent, ce que la couche mode décide et non un levier (`activity-model.md`) — donc pas en conversation libre par défaut, où l'apprenant peut les allumer. Reste à trouver ce que le blanc porte quand elles sont éteintes, c'est-à-dire dans le seul mode qui existe aujourd'hui.
 - **La rencontre de personnage** (`../../NOTES.md`) — ce qui fait qu'on rencontre quelqu'un plutôt qu'on lance un thème. C'est une grammaire d'interaction, pas un habillage, et rien ici ne la décide.
 - **La pile de navigation.** Les quatre écrans actuels sont un interrupteur à quatre positions dont aucun ne mène à un autre ; le modèle d'activité (`activity-model.md`) amènera des écrans qui descendent les uns dans les autres. La charpente ne doit pas bloquer ça.
 

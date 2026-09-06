@@ -123,7 +123,7 @@ Les deux registres sont écrits, portés par les sept nombres du banc et dériv�
 
 **Ce qui se prouve.** La règle du cadre, vérifiée en écrivant un écran : si une chose est encadrée, on doit pouvoir dire ce qu'on fait avec ; sinon c'est un aplat. Jamais l'écran entier, jamais le fil ni le tour marqué.
 
-**Avec l'humain.** Ce que la ligne d'état porte et ce que la barre d'actions porte.
+**Tranché le 2026-09-06**, et écrit dans `pixel-ui.md` (« La charpente ») : la règle de partage — en haut ce qui est vrai, en bas ce qu'on peut faire —, les deux lignes du haut, la barre d'actions d'une ligne en bas, et le fait qu'un dessin fin n'oblige pas à une cible tactile fine.
 
 ### 16. Le tour marqué redessiné
 
@@ -131,13 +131,14 @@ Les deux registres sont écrits, portés par les sept nombres du banc et dériv�
 
 **Ce qui se prouve.** Qu'un groupe porte son identité et non son étiquette, donc qu'un groupe coupé par un retour à la ligne ouvre d'un côté et ferme de l'autre. Que la courbe ne se coupe qu'aux fragments écartés et reste d'un seul tenant aux pauses. Qu'éteindre un canal n'éteint que son affichage et jamais sa mesure.
 
-**Avec l'humain.** Le débordement d'un interligne sur l'autre, à régler en ajustant l'air. Garder ou retirer les marques des mots une fois la porte passée, et laquelle des deux est le défaut. L'écran de 720 à vingt-et-une colonnes, où l'étiquette et les deux marques se disputent la ligne.
+**Tranché le 2026-09-06** : les marques des mots **restent** une fois la porte passée, et les retirer est une préférence ; l'écran de 720 se détend au recompte, quinze colonnes sur vingt-et-une, avec un nom court par personnage et la règle que le nom se tronque et jamais les marques. **Reste avec l'humain** : le débordement d'un interligne sur l'autre, à régler en ajustant l'air.
 
 ### 17. L'écran de conversation sous le nouveau déroulé
 
-**Ce que ça fait.** Ce que le TODO disait impossible à écrire avant le déroulé d'un module, et qui l'est maintenant. Le tour de l'IA **brouillé par défaut**, qui est la position de défaut du levier `tour-ia.affichage` et non une préférence, par carrés de 2 pixels posés au hasard mais fixes. Sous le tour, la rangée de commandes au padding égal : le petit bouton dont l'étiquette dit la porte du moment, *redire* ou *reformuler* ; l'écoute ; le côté ; la vitesse. Le gros bouton sur toute la largeur et trois lignes. Les deux notifications : celle d'une règle qui change quelque chose, mécanique obligatoire et narrative facultative, et celle qui dit de reprendre après une faute de son, qui donne à **écouter** le modèle et **ne nomme rien**.
+**Ce que ça fait.** Ce que le TODO disait impossible à écrire avant le déroulé d'un module, et qui l'est maintenant. Le tour de l'IA **brouillé par défaut**, qui est la position de défaut du levier `tour-ia.affichage` et non une préférence, par carrés de 2 pixels posés au hasard mais fixes. Sous le tour, la rangée de commandes au padding égal : le petit bouton dont l'étiquette dit la porte du moment, *redire* ou *reformuler* ; l'écoute ; le côté ; la vitesse. Le gros bouton sur toute la largeur et trois lignes. **Trois notifications et non deux** (2026-09-06) : celle d'une règle qui change quelque chose, mécanique obligatoire et narrative facultative, qui est un **pop-up** éphémère ; celle qui dit de reprendre après une faute de son, qui donne à **écouter** le modèle et ne nomme rien ; et celle de la **porte des mots**, qui **nomme la ou les aptitudes en cause**. Les deux dernières sont des états et vivent dans la ligne d'état du haut tant qu'elles sont vraies.
 
-**Avec l'humain.** **Ce que la fenêtre d'attente porte en conversation libre.** La piste de `pixel-ui.md` est que les notes du passage précédent s'affichent en fenêtre, qu'elle prend le premier plan et que son retrait déclenche l'audio — mais elle ne paraît que là où les notes se montrent, ce que la couche mode décide, et la conversation libre n'affiche que les marques par défaut. Le doc nomme le trou et ne le tranche pas : onze secondes de médiane par tour, dans le seul mode qui existe.
+**Tranché le 2026-09-06**, et écrit dans `pixel-ui.md` (« Ce qui se passe entre deux tours ») : c'est l'**écran de bilan du passage**, un seul écran à deux portes — poussé entre deux passages, ou ouvert à la demande depuis n'importe quel passage du fil. Ce que le mode coupe, ce sont les **lettres** et jamais les mesures, donc en conversation libre l'écran existe et porte les mesures brutes. Il est poussé par défaut, ce que l'apprenant règle.
+
 
 ## Ce que le plan laisse dû quand il est fini
 

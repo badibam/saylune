@@ -193,6 +193,8 @@ Ce qui s'y dit est noté contre un texte de référence **connu d'avance** — c
 
 **La redite remplace à l'affichage, jamais en base.** Le fil ne montre que la dernière tentative. Les tentatives restent toutes sous le passage : une tentative effacée est une mesure perdue (`design/activity-model.md`).
 
+**Et elle s'arrête à la clôture du passage.** Le passage ne se ferme qu'au geste de l'apprenant, donc retravailler sa phrase est toujours possible — il suffit de ne pas passer à la suite. Une fois fermé, il se réécoute et se relit pour toujours, il ne se redit plus : une tentative ajoutée après coup déplacerait sa note sous des règles qui l'ont déjà lue, et surtout elle **réécrirait l'historique** que le modèle relit, où chaque passage n'est présent que par sa dernière tentative. Le travail hors du fil est un autre mode, qui n'écrit rien (`../TODO.md`).
+
 **La réponse de l'IA ne se refait que si elle n'a pas encore été dite.** Quand la conversation attend sur la phrase, l'IA n'a joué qu'un écho, et sa vraie réponse se fabrique sur la version corrigée. Quand elle a poursuivi, elle a parlé : redire est alors un exercice, qui ouvre l'analyse du son sans rien rejouer du fil. Refaire une réponse déjà prononcée serait la dédire.
 
 ## Les deux tuyaux
