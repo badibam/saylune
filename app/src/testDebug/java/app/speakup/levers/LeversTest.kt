@@ -1,5 +1,7 @@
 package app.speakup.levers
 
+import app.speakup.sheets.POSITIONS
+import app.speakup.sheets.Sheets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -71,6 +73,34 @@ class LeversTest {
         val armed = plain.at("capture", At("armed-and-sending")).first
         assertTrue(armed.live("silence-threshold"))
         assertEquals(Count(5), armed.of("silence-threshold"))
+    }
+
+    /**
+     * **One sensitivity per scored sheet, and none anywhere else.** A sheet outside the tree
+     * gives no note, so its bounds decide nothing: the interrupted turn is binary and the
+     * counts are whole numbers that do not normalise.
+     */
+    @Test fun `every scored sheet has a sensitivity and no other sheet does`() {
+        val scored = Sheets.all.mapNotNull(Sheets::scoredPathOf)
+        assertEquals(scored.map { "$it.sensitivity" }, Levers.SENSITIVITIES.map { it.key })
+        Sheets.all.filter { Sheets.scoredPathOf(it) == null }.forEach { sheet ->
+            val thrown = runCatching { Positions().of("${sheet.name}.sensitivity") }
+            assertTrue("${sheet.name} gives no note, so it has no sensitivity",
+                       thrown.exceptionOrNull() != null)
+        }
+    }
+
+    /**
+     * **A notch of sensitivity is worth exactly one letter**, so a position is a window of
+     * four consecutive bounds and there are as many positions as windows a series leaves.
+     * Naming one more here would put a name on a window nobody can read.
+     */
+    @Test fun `there are as many sensitivity positions as the series leaves windows`() {
+        val melody = Levers.of("pronunciation/melody.sensitivity") as Stepped
+        assertEquals(POSITIONS, melody.steps.size)
+        assertEquals("normal", melody.fallback)
+        // Declared easiest first, so the last is the hard end and severity tightens.
+        assertEquals(Direction.Harder, Positions().by(melody.key, 1).second?.direction)
     }
 
     @Test fun `every declared default is one of the lever's own positions`() {

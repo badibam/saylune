@@ -193,6 +193,13 @@
     <string name="lever_advance_words_waits">La conversation attend la phrase corrigée</string>
     <string name="lever_advance_sound_carries_on">Le passage se ferme sans redite</string>
     <string name="lever_advance_sound_waits">Le passage ne se ferme pas avant une redite</string>
+
+    <string name="lever_sensitivity_lenient_plus">Jugé très indulgemment</string>
+    <string name="lever_sensitivity_lenient">Jugé avec indulgence</string>
+    <string name="lever_sensitivity_normal">Jugé normalement</string>
+    <string name="lever_sensitivity_severe">Jugé sévèrement</string>
+    <string name="lever_sensitivity_severe_plus">Jugé très sévèrement</string>
+
     <string name="setting_effort">Raisonnement</string>
     <string name="effort_none">Aucun</string>
     <string name="effort_low">Bas</string>

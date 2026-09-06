@@ -21,14 +21,13 @@ import app.speakup.debug.Trace
 import app.speakup.judged.Judgement
 import app.speakup.judged.Kept
 import app.speakup.judged.Marked
-import app.speakup.levers.Count
 import app.speakup.notes.Sheeting
-import app.speakup.sheets.POSITIONS
 import app.speakup.sheets.Sheet
 import app.speakup.sheets.Sheets
 import app.speakup.levers.At
 import app.speakup.levers.Levers
 import app.speakup.levers.Positions
+import app.speakup.levers.Stepped
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
 import app.speakup.providers.words
@@ -742,11 +741,17 @@ class TurnPipeline(
      *
      * **The sensitivity is a lever attached to a sheet**, and it is the one place the settings
      * touch a note: going towards severe tightens, always and for everybody, where a weight's
-     * direction depends on the learner. Undeclared, it answers with the middle position.
+     * direction depends on the learner.
+     *
+     * A key this sitting says nothing about answers with the catalogue's declared default,
+     * which is the middle position -- and one the catalogue does not declare **fails
+     * outright**, which is what makes the sensitivities levers rather than a value read off
+     * the line beside them.
      */
-    private fun sensitivityOf(sheet: Sheet): Int =
-        (_state.value.positions.of("${Sheets.pathOf(sheet)}.sensibilite") as? Count)?.n
-            ?: (POSITIONS / 2)
+    private fun sensitivityOf(sheet: Sheet): Int {
+        val key = Levers.sensitivityOf(Sheets.pathOf(sheet))
+        return (Levers.of(key) as Stepped).rank((_state.value.positions.of(key) as At).name)
+    }
 
     /**
      * What the learner did differently from the model, on the turn just spoken.

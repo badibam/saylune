@@ -1,6 +1,9 @@
 package app.speakup.levers
 
 import app.speakup.R
+import app.speakup.sheets.POSITIONS
+import app.speakup.sheets.SERIES_LENGTH
+import app.speakup.sheets.Sheets
 
 /**
  * Every lever the app has, declared in one place.
@@ -408,6 +411,59 @@ object Levers {
         held = Held.App,
     )
 
+    // ── One sensitivity per sheet ───────────────────────────────────────────────────────
+
+    /**
+     * The five positions every sensitivity has, declared once.
+     *
+     * **A sensitivity is a lever and a weight is not**, and the test is the direction: going
+     * towards severe tightens, always and for everybody, where raising melody's weight
+     * tightens the sitting of whoever has a bad one and eases the sitting of whoever has a
+     * good one -- so its direction depends on the learner, whom a lever neither knows nor has
+     * to know. What each says is *how much is demanded*, against the weight's *what is looked
+     * at*.
+     *
+     * Five because a position is a **window of four consecutive bounds** in a series of
+     * [SERIES_LENGTH], and one notch is worth exactly one letter (`notes/Sensitivity.kt`).
+     * A position more would cost one number in each series and not four, so the count is not
+     * an arbitration between expressiveness and work -- it follows from the series.
+     *
+     * **This is the one lever family whose phrase does not stand on its own**, and it is said
+     * here rather than papered over: there are eleven of it, so the phrase says the level and
+     * the screen supplies which sheet it judges, from the sheet-name resources step 17 owns.
+     * Writing fifty-five strings instead would say the same five things eleven times.
+     */
+    private val SENSITIVITY_STEPS = listOf(
+        Step("lenient-plus", R.string.lever_sensitivity_lenient_plus),
+        Step("lenient", R.string.lever_sensitivity_lenient),
+        Step("normal", R.string.lever_sensitivity_normal),
+        Step("severe", R.string.lever_sensitivity_severe),
+        Step("severe-plus", R.string.lever_sensitivity_severe_plus),
+    )
+
+    /** How a sitting names the sensitivity of the sheet at [path]. */
+    fun sensitivityOf(path: String): String = "$path.sensitivity"
+
+    /**
+     * One per **scored** sheet, and none anywhere else.
+     *
+     * A sheet outside the tree gives no note, so its bounds decide nothing: the interrupted
+     * turn is binary -- every possible bound renders the same pair of letters -- and the
+     * counts are whole numbers that do not normalise. Neither sensitivity nor weight on those,
+     * two fields with no object rather than two declared inert, and the custom screen has no
+     * slider to offer for them.
+     */
+    val SENSITIVITIES: List<Stepped> = Sheets.all
+        .mapNotNull(Sheets::scoredPathOf)
+        .map { path ->
+            Stepped(
+                key = sensitivityOf(path),
+                steps = SENSITIVITY_STEPS,
+                fallback = "normal",
+                held = Held.App,
+            )
+        }
+
     // ────────────────────────────────────────────────────────────────────────────────────
 
     /**
@@ -431,10 +487,16 @@ object Levers {
         RELEVANCE_SENDS_BACK,
         CAPTURE, SILENCE_THRESHOLD, TURN_LENGTH, PREPARATION, DISCARD_TAKE, FLUENCY_SENDS_BACK,
         LIVES, LIVES_LEFT, ADVANCE_WORDS, ADVANCE_SOUND,
-    )
+    ) + SENSITIVITIES
 
     private val byKey: Map<String, Lever> = all.associateBy { it.key }.also {
         require(it.size == all.size) { "two levers share a key" }
+        // The positions are the windows a series of SERIES_LENGTH leaves, so declaring one
+        // here that the series cannot open would put a name on a window nobody can read.
+        require(SENSITIVITY_STEPS.size == POSITIONS) {
+            "${SENSITIVITY_STEPS.size} sensitivity steps for $POSITIONS windows " +
+                "in a series of $SERIES_LENGTH"
+        }
         all.mapNotNull { lever -> lever.needs }.forEach { needs ->
             val on = it[needs.key] as? Stepped ?: error("${needs.key}: no such stepped lever")
             needs.positions.forEach(on::rank)

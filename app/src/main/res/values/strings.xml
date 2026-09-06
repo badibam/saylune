@@ -211,6 +211,13 @@
     <string name="lever_advance_words_waits">The conversation waits for the corrected sentence</string>
     <string name="lever_advance_sound_carries_on">The passage closes without a retake</string>
     <string name="lever_advance_sound_waits">The passage does not close before a retake</string>
+
+    <string name="lever_sensitivity_lenient_plus">Judged very leniently</string>
+    <string name="lever_sensitivity_lenient">Judged leniently</string>
+    <string name="lever_sensitivity_normal">Judged normally</string>
+    <string name="lever_sensitivity_severe">Judged severely</string>
+    <string name="lever_sensitivity_severe_plus">Judged very severely</string>
+
     <string name="setting_effort">Reasoning</string>
     <string name="effort_none">None</string>
     <string name="effort_low">Low</string>
