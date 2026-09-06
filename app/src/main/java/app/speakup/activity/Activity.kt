@@ -1,5 +1,9 @@
 package app.speakup.activity
 
+import app.speakup.levers.Positions
+import app.speakup.notes.Weights
+import app.speakup.rules.Instructing
+import app.speakup.rules.Rule
 import java.util.UUID
 
 /**
@@ -30,8 +34,92 @@ data class Activity(
      * work would cost a closed vocabulary and buy less than it costs.
      */
     val matter: String = "",
-    /** How it was set. Null while nothing sets it. */
-    val settings: Settings? = null,
+    /**
+     * What opens the sitting: the situation, and the staging only the character sees.
+     *
+     * **Not to be confused with [matter]**, which says what it turned out to be about and
+     * which the AI may write after the fact: an instruction *push him onto the past, he
+     * avoids it* can give a conversation whose matter ends up being *his move*. Confusing
+     * them would let a title written by the AI overwrite the brief.
+     *
+     * Null in a free conversation until the learner writes one -- the one activity whose
+     * brief comes from him rather than from a file.
+     */
+    val brief: Brief? = null,
+    /**
+     * Where every lever of this sitting sits, and **that is the whole of what it stores of
+     * its settings** (`docs/design/activity-model.md`).
+     *
+     * The test is that every entry answers the same question: *where is this parameter right
+     * now*. A ramp does not answer it, it says how things will change; an origin does not
+     * either, it says where the settings came from. Those have fields of their own, below.
+     *
+     * **Always on the line, a definition or no definition.** A definition is a template
+     * applied at creation and not a dependency kept afterwards: the alternative -- a pointer
+     * for sittings from a block, values for the rest -- would make one field sometimes a
+     * pointer and sometimes values, and force every reader to settle which before reading.
+     * The duplication cannot drift, the definition being fixed.
+     */
+    val settings: Positions = Positions(),
+    /**
+     * What this sitting looks at, fixed when it was written and moved by nothing.
+     *
+     * **The weights are constant for the whole sitting, and no patch moves one.** Otherwise
+     * the closing note would be a mean of measures taken under different rules, unreadable
+     * for the learner as for a ranking -- which is the argument served everywhere here: a note
+     * is never read without the combination that produced it, so there has to be one.
+     *
+     * Null while nothing weighs anything, which is a free conversation until its definition
+     * is written (step 14).
+     */
+    val weights: Weights? = null,
+    /**
+     * The instructions in force at the start, by judged marking.
+     *
+     * **Only a judged marking takes them** -- free text entering the criterion the judge
+     * reads, and never a sheet: two sheets are read from one pass of the judge over the spans,
+     * and there is nothing for a per-sheet instruction to attach to. On the spans an
+     * instruction touches **relevance alone**; the correctness notches are absolute.
+     */
+    val instructions: List<Instructing> = emptyList(),
+    /**
+     * What may change during the sitting, and when.
+     *
+     * They come from the definition and are copied onto the line with everything else: a
+     * sitting whose settings a rule moved cannot recompute its own state without them.
+     */
+    val rules: List<Rule> = emptyList(),
+    /**
+     * What a draw or the AI chose, in order.
+     *
+     * **Without it a sitting whose settings a draw or the AI moved no longer recomputes**, so
+     * it no longer compares to itself three weeks later. It is the project's criterion applied
+     * to the two deciders nothing reproduces: store what depends on something that will not be
+     * found again. Keeping a random seed would cost less and would only replay right if the
+     * code had not moved.
+     */
+    val journal: List<Chosen> = emptyList(),
+    /**
+     * Which definition this came from, and at which version. Null for a free conversation.
+     *
+     * **It only ever groups** -- opening the next level, filing a score -- and is never
+     * consulted to know how the sitting was set: that is on the line. And it names the
+     * **version** as well, without which an update that fixes a scene makes two runs that
+     * believe themselves the same incomparable.
+     */
+    val origin: Origin? = null,
+    /**
+     * Which rules engine produced [journal].
+     *
+     * **Everything stored carries the version of what produced it**, applied to the run
+     * itself. Replaying this journal under a semantics that has changed -- a release later --
+     * gives a different state, and a sitting stops comparing to itself. **What is done about
+     * it is the same answer as for the cache eviction: a change of engine takes the
+     * resumption away**, the sitting staying readable without being able to carry on. Replaying
+     * a journal under a semantics that moved would give another state without saying so, which
+     * is worse than stopping.
+     */
+    val engine: Int = ENGINE,
     val status: Status,
     val createdAt: Long,
     /** When it stopped being a suggestion. Null while it has not started. */
@@ -43,7 +131,31 @@ data class Activity(
     val by: Prescriber,
     val id: String = UUID.randomUUID().toString(),
 ) {
+
+    /**
+     * Whether this sitting can be carried on, or only read.
+     *
+     * **A change of rules engine takes the resumption away**, and that is the same answer the
+     * project gives for the cache eviction: the sitting stays readable without being able to
+     * go on. Its effective state is recomputed from the settings, the rules and the journal,
+     * and replaying that journal under a semantics that has moved gives a different state
+     * **without saying so**, which is worse than stopping.
+     *
+     * A journal with nothing in it replays under any semantics: there is nothing to reread,
+     * so nothing can be reread differently.
+     */
+    val resumable: Boolean get() = journal.isEmpty() || engine == ENGINE
+
     companion object {
+
+        /**
+         * The rules engine this build interprets by.
+         *
+         * Bumped when the **meaning** of a rule changes, never when a rule is added: what it
+         * protects is a stored journal being replayable, and a journal only stops replaying
+         * when what it says comes to mean something else.
+         */
+        const val ENGINE = 1
 
         /**
          * A conversation, open, at one instant.
@@ -100,22 +212,55 @@ data class Outcome(
     val verdict: String,
     val judge: String,
     val at: Long,
+    /**
+     * The answers to the questions the definition declared, and nothing else.
+     *
+     * A challenge wanting a closing comment declares the question -- *what worked, what stuck?*
+     * -- and an activity that declares none has no text. A mechanism rather than a field to
+     * put anything in.
+     */
     val says: String,
+    /**
+     * A number, where the sitting produces one. Null everywhere else.
+     *
+     * **The arcade neither passes nor fails**, it returns a score: its ending is zero lives,
+     * and what counts is the number the outcome carries. Filing that in the free text would
+     * make it unusable.
+     */
+    val score: Int? = null,
 )
 
 /**
- * What an activity was set to, aptitude by aptitude, fixed for the whole of its run.
+ * What opens a sitting, in the two halves it cuts into and no more.
  *
- * **The form of the settings depends on the activity**; this is the conversation's. They bend
- * the content through the prompt, and they can bend the shape too: pronunciation at zero puts
- * the sound analysis out rather than computing it to show nothing of it.
+ * [situation] is true for everybody and is readable on the pre-game screen too. [staging]
+ * addresses the character alone and is **never shown**, on pain of sabotaging itself. Going
+ * finer would encroach on the instructions, which are already a field of their own with their
+ * own readers and their own lives.
  *
- * **This shape is not the one the design asks for**, and the step that fixes it is next. What
- * gets stored is a list of *lever* positions; an aptitude is a preset over levers, not a
- * parameter of its own. One level per aptitude cannot say what a hand-set sitting was, so it
- * would need a second way of describing the same sitting, and the two kept in step.
+ * The price of the single call is here, and it is said once: the staging sits in the judge's
+ * context, where it has no business, and what holds it at arm's length is a sentence saying
+ * the judge's criterion is the instruction. That is checked at a bench; it is not proved.
  */
-data class Settings(val levels: Map<Aptitude, Float> = emptyMap())
+data class Brief(val situation: String, val staging: String = "")
+
+/**
+ * Which definition a sitting came from, and at which version.
+ *
+ * A file shipped with the app **inherits the release's version for nothing**, where a row
+ * created at runtime has no natural one and would need one stamped on it and a migration
+ * written for it.
+ */
+data class Origin(val definition: String, val version: String)
+
+/**
+ * One choice a draw or the AI made, kept so the sitting recomputes.
+ *
+ * What does not come back on its own is the **choice**, and that alone: which rule fired, at
+ * which passage, and which of its packs was taken. The effects follow from the rule and the
+ * choice, so storing them too would be a second source that could drift from the first.
+ */
+data class Chosen(val rule: String, val passage: Int, val pack: Int, val at: Long)
 
 /**
  * The five aptitudes. They are independent: one can be intelligible and slow, correct and

@@ -1,10 +1,8 @@
 package app.speakup.store
 
 import app.speakup.activity.Activity
-import app.speakup.activity.Aptitude
 import app.speakup.activity.Outcome
 import app.speakup.activity.Prescriber
-import app.speakup.activity.Settings
 import app.speakup.activity.Status
 import app.speakup.capture.Ending
 import app.speakup.conversation.Speaker
@@ -27,34 +25,39 @@ import java.io.File
 internal fun Activity.row() = ActivityRow(
     id = id,
     matter = matter,
-    settings = settings?.let { levels ->
-        JSONObject().apply {
-            levels.levels.forEach { (aptitude, level) -> put(aptitude.name, level) }
-        }.toString()
-    },
+    settings = Sitting.write(settings),
+    brief = brief?.let { Sitting.write(it) },
+    weights = weights?.let { Sitting.write(it) },
+    instructions = Sitting.writeInstructions(instructions),
+    rules = Rules.write(rules),
+    journal = Sitting.writeJournal(journal),
+    origin = origin?.let { Sitting.write(it) },
+    engine = engine,
     status = status.name,
     createdAt = createdAt,
     startedAt = startedAt,
     endedAt = endedAt,
-    outcome = outcome?.let { OutcomeRow(it.verdict, it.judge, it.at, it.says) },
+    outcome = outcome?.let { OutcomeRow(it.verdict, it.judge, it.at, it.says, it.score) },
     prescriber = by.name,
 )
 
 internal fun ActivityRow.activity() = Activity(
     id = id,
     matter = matter,
-    settings = settings?.let { stored ->
-        val json = JSONObject(stored)
-        Settings(json.keys().asSequence().associate {
-            Aptitude.valueOf(it) to json.getDouble(it).toFloat()
-        })
-    },
+    settings = Sitting.readPositions(settings),
+    brief = brief?.let { Sitting.readBrief(it) },
+    weights = weights?.let { Sitting.readWeights(it) },
+    instructions = Sitting.readInstructions(instructions),
+    rules = Rules.read(rules),
+    journal = Sitting.readJournal(journal),
+    origin = origin?.let { Sitting.readOrigin(it) },
+    engine = engine,
     status = Status.valueOf(status),
     createdAt = createdAt,
     startedAt = startedAt,
     endedAt = endedAt,
     outcome = outcome?.takeIf { it.verdict != null }?.let {
-        Outcome(it.verdict!!, it.judge.orEmpty(), it.at ?: createdAt, it.says.orEmpty())
+        Outcome(it.verdict!!, it.judge.orEmpty(), it.at ?: createdAt, it.says.orEmpty(), it.score)
     },
     by = Prescriber.valueOf(prescriber),
 )

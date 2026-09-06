@@ -16,6 +16,15 @@ package app.speakup.levers
 data class Positions(private val set: Map<String, Position> = emptyMap()) {
 
     /**
+     * Only what this sitting actually says, which is what gets written down.
+     *
+     * A key nobody moved is not in here: it answers with the catalogue's declared default,
+     * and storing that would write a decision where nobody made one -- so a default that
+     * changed in a later release would look like a choice the learner had taken.
+     */
+    fun all(): Map<String, Position> = set
+
+    /**
      * Where [key] sits, its declared default when this sitting says nothing about it.
      *
      * **An undeclared key fails outright**, and that is the whole point of there being a

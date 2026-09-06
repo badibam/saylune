@@ -22,7 +22,7 @@ import app.speakup.sheets.Sheets
  * sheet in a challenge's note that its author never named, and taking it for 0 would drop one
  * they thought they had asked for; neither is distinguishable from what they meant.
  */
-class Weights(private val byPath: Map<String, Float>) {
+class Weights(val byPath: Map<String, Float>) {
 
     init {
         require(byPath.values.all { it >= 0f }) { "a negative weight" }

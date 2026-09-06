@@ -177,17 +177,16 @@ data class ConversationState(
     val speed: Float = 1f,
     /** Whether the marks are on at all, settled once for the conversation. Null until asked. */
     val analysis: Readiness? = null,
+) {
+
     /**
-     * Where every lever of this sitting sits.
+     * Where every lever of this sitting sits -- the activity's own, and never a copy.
      *
+     * **Always on its line**, so this is a read and not a second place settings could live.
      * Empty is not *no settings*: an undeclared key answers with the catalogue's own default,
      * which is what the app does when nobody has asked for anything -- a free conversation.
-     * What fills this from the activity, and persists it, is the step that turns the
-     * settings into a list of lever positions; until then the sitting is at the defaults and
-     * the code path that reads them is the same one.
      */
-    val positions: Positions = Positions(),
-) {
+    val positions: Positions get() = activity.settings
 
     /**
      * Every reading of the utterance [of], oldest first: its own, then each one that says it

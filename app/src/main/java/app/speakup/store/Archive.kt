@@ -36,8 +36,28 @@ import kotlinx.coroutines.flow.Flow
 data class ActivityRow(
     @PrimaryKey val id: String,
     val matter: String,
-    /** The levels, written out. Null while nothing sets them. */
-    val settings: String?,
+    /**
+     * Where every lever of this sitting sits, written out.
+     *
+     * **Always on the line, a definition or no definition**: a definition is a template
+     * applied at creation and not a dependency kept afterwards, so there is never a pointer
+     * here that a reader would have to follow to know how the sitting was set.
+     */
+    val settings: String,
+    /** What opens it. Null in a free conversation until the learner writes one. */
+    val brief: String?,
+    /** What it looks at. Null while nothing weighs anything. */
+    val weights: String?,
+    /** The instructions in force at the start, by judged marking. */
+    val instructions: String,
+    /** What may change during it, and when. Empty until a definition declares any. */
+    val rules: String,
+    /** What a draw or the AI chose, in order. Without it the sitting stops recomputing. */
+    val journal: String,
+    /** Which definition it came from and at which version. Null for a free conversation. */
+    val origin: String?,
+    /** Which rules engine produced the journal. A change of it takes the resumption away. */
+    val engine: Int,
     val status: String,
     val createdAt: Long,
     val startedAt: Long?,
@@ -52,6 +72,8 @@ data class OutcomeRow(
     val judge: String?,
     val at: Long?,
     val says: String?,
+    /** A number where the sitting produces one -- a score. Null everywhere else. */
+    val score: Int?,
 )
 
 /**
@@ -138,7 +160,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 4)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 5)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -234,12 +256,62 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * The activity in the shape the design asks for: seven fields it was missing, and an
+         * eighth that changes type.
+         *
+         * **The settings stop being one level per aptitude and become a list of lever
+         * positions**, which is exactly what the doc says to store: an aptitude is a preset
+         * over levers and not a parameter of its own, so one level per aptitude could not say
+         * what a hand-set sitting was and would have needed a second way of describing the
+         * same sitting, with the two kept in step.
+         *
+         * **The old levels are not carried over, and that is not a loss to repair.** A level
+         * per aptitude does not translate into lever positions -- nothing in it says which
+         * levers, or where -- and positions invented at migration time would be
+         * indistinguishable from ones somebody chose. The sittings keep their matter, their
+         * status and their utterances; they carry no settings, which is exactly true of them:
+         * nothing ever wrote one, the field having had no producer.
+         *
+         * The rest arrive empty, which is what they are: no brief, no weights, no
+         * instructions, no rules, nothing chosen, no definition behind them. The engine is
+         * stamped at the version this build interprets by, since a journal with nothing in it
+         * replays under any semantics.
+         *
+         * The table is rebuilt rather than altered: `ALTER TABLE ... DROP COLUMN` arrived in
+         * SQLite 3.35, and `minSdk` 26 ships 3.18.
+         */
+        private val ACTIVITY_IN_SHAPE = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE `activities_new` (`id` TEXT NOT NULL, `matter` TEXT NOT NULL, " +
+                        "`settings` TEXT NOT NULL, `brief` TEXT, `weights` TEXT, " +
+                        "`instructions` TEXT NOT NULL, `rules` TEXT NOT NULL, " +
+                        "`journal` TEXT NOT NULL, `origin` TEXT, `engine` INTEGER NOT NULL, " +
+                        "`status` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                        "`startedAt` INTEGER, `endedAt` INTEGER, `prescriber` TEXT NOT NULL, " +
+                        "`outcome_verdict` TEXT, `outcome_judge` TEXT, `outcome_at` INTEGER, " +
+                        "`outcome_says` TEXT, `outcome_score` INTEGER, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "INSERT INTO `activities_new` SELECT `id`, `matter`, '{}', NULL, NULL, " +
+                        "'[]', '[]', '[]', NULL, ${app.speakup.activity.Activity.ENGINE}, " +
+                        "`status`, `createdAt`, `startedAt`, `endedAt`, `prescriber`, " +
+                        "`outcome_verdict`, `outcome_judge`, `outcome_at`, `outcome_says`, " +
+                        "NULL FROM `activities`",
+                )
+                db.execSQL("DROP TABLE `activities`")
+                db.execSQL("ALTER TABLE `activities_new` RENAME TO `activities`")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
-            ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS).build().also { instance = it }
+            ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE)
+                .build().also { instance = it }
         }
     }
 }
