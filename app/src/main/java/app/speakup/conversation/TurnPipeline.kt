@@ -353,7 +353,7 @@ data class ConversationState(
         else -> true
     }
 
-    private fun waits(key: String) = (positions.of(key) as? At)?.name == "attend"
+    private fun waits(key: String) = (positions.of(key) as? At)?.name == "waits"
 
     /**
      * The run as the language model should remember it: **the last attempt of each passage,
@@ -649,7 +649,7 @@ class TurnPipeline(
             // heard until it is made; *carries on* offers it, and the conversation advances
             // whatever happens.
             val echoing = closing != null && reply.echo != null &&
-                (_state.value.positions.of(Levers.ADVANCE_WORDS.key) as? At)?.name == "attend"
+                (_state.value.positions.of(Levers.ADVANCE_WORDS.key) as? At)?.name == "waits"
             val spoken = if (echoing) reply.echo!! else reply.spoken
             if (echoing) {
                 Trace.add("turn: the echo is played, the continuation is held")

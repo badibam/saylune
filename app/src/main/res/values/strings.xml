@@ -119,13 +119,13 @@
     </plurals>
     <string name="lever_model_listens_none">You say it again from memory</string>
     <string name="lever_model_listens_free">The model can be heard without limit</string>
-    <string name="lever_pace_free">The pace is free</string>
-    <string name="lever_pace_set">The model\'s pace is set</string>
-    <plurals name="lever_pace_value">
+    <string name="lever_tempo_free">The tempo is free</string>
+    <string name="lever_tempo_set">The model\'s tempo is set</string>
+    <plurals name="lever_tempo_value">
         <item quantity="one">Your answer lasts at most %1$d%% of the model\'s time</item>
         <item quantity="other">Your answer lasts at most %1$d%% of the model\'s time</item>
     </plurals>
-    <string name="lever_pace_value_moot">The pace is free</string>
+    <string name="lever_tempo_value_moot">The tempo is free</string>
     <plurals name="lever_retakes">
         <item quantity="one">The passage can be said again %1$d time</item>
         <item quantity="other">The passage can be said again %1$d times</item>

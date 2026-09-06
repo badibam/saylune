@@ -185,7 +185,7 @@ data class Span(val from: Int, val to: Int) {
  * words.** Making it say *"It was, like, um, I went to the…"* is out of the question -- the
  * model is what is given to imitate, and the whole montage rests on it being the truth.
  *
- * [notch] is the stumbling scale, `retenu` / `abandonne` / `remplissage`, judged and never
+ * [notch] is the stumbling scale, `kept` / `abandoned` / `filler`, judged and never
  * computed off a word list: *um* has no other use, but *I mean*, *like*, *well* are all real
  * words, and only the judge sees the use.
  */
@@ -206,6 +206,6 @@ data class Turn(val spoken: List<Word>, val recorded: Int, val rendered: Int) {
     val kept: List<Word> get() = spoken.filter { it.notch == KEPT }
 
     companion object {
-        const val KEPT = "retenu"
+        const val KEPT = "kept"
     }
 }

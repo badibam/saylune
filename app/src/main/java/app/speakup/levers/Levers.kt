@@ -23,7 +23,7 @@ object Levers {
 
     /** Zero is *from memory*: zero turns the lever off where that is true, so one lever. */
     val MODEL_LISTENS = Numeric(
-        key = "ecoutes-modele",
+        key = "model-listens",
         says = R.plurals.lever_model_listens,
         min = 0, max = null, step = 1,
         fallback = Count(null),
@@ -33,13 +33,13 @@ object Levers {
         saysUnbounded = R.string.lever_model_listens_free,
     )
 
-    val PACE = Stepped(
-        key = "cadence",
+    val TEMPO = Stepped(
+        key = "tempo",
         steps = listOf(
-            Step("libre", R.string.lever_pace_free),
-            Step("imposee", R.string.lever_pace_set),
+            Step("free", R.string.lever_tempo_free),
+            Step("set", R.string.lever_tempo_set),
         ),
-        fallback = "libre",
+        fallback = "free",
         held = Held.App,
     )
 
@@ -56,18 +56,18 @@ object Levers {
      * The default allows that fifth rather than demanding the model's exact length: a scene
      * that turns the pace on without saying more is asking to keep up, not to match.
      */
-    val PACE_VALUE = Numeric(
-        key = "cadence.valeur",
-        says = R.plurals.lever_pace_value,
+    val TEMPO_VALUE = Numeric(
+        key = "tempo.value",
+        says = R.plurals.lever_tempo_value,
         min = 50, max = 300, step = 10,
         fallback = Count(120),
         hard = HardSide.Low,
         held = Held.App,
-        needs = Requirement("cadence", setOf("imposee"), R.string.lever_pace_value_moot),
+        needs = Requirement("tempo", setOf("set"), R.string.lever_tempo_value_moot),
     )
 
     val RETAKES = Numeric(
-        key = "redites-permises",
+        key = "retakes-allowed",
         says = R.plurals.lever_retakes,
         min = 0, max = null, step = 1,
         fallback = Count(null),
@@ -77,22 +77,22 @@ object Levers {
     )
 
     val ELOCUTION_SENDS_BACK = sendsBack(
-        "elocution", R.string.lever_elocution_lets_through, R.string.lever_elocution_sends_back,
+        "pronunciation", R.string.lever_elocution_lets_through, R.string.lever_elocution_sends_back,
     )
 
     // ── Understanding ───────────────────────────────────────────────────────────────────
 
     val AI_LENGTH = Stepped(
-        key = "tour-ia.longueur",
+        key = "ai-turn.length",
         steps = listOf(
-            Step("courte", R.string.lever_ai_length_short,
+            Step("short", R.string.lever_ai_length_short,
                  "Keep each reply to a sentence or two."),
-            Step("moyenne", R.string.lever_ai_length_medium,
+            Step("medium", R.string.lever_ai_length_medium,
                  "Keep each reply to two or three sentences."),
-            Step("longue", R.string.lever_ai_length_long,
+            Step("long", R.string.lever_ai_length_long,
                  "Your replies may run to five or six sentences."),
         ),
-        fallback = "moyenne",
+        fallback = "medium",
         held = Held.Model,
     )
 
@@ -102,16 +102,16 @@ object Levers {
      * guaranteeing anything in exchange.
      */
     val AI_COMPLEXITY = Stepped(
-        key = "tour-ia.complexite",
+        key = "ai-turn.complexity",
         steps = listOf(
-            Step("basse", R.string.lever_ai_complexity_low,
+            Step("low", R.string.lever_ai_complexity_low,
                  "Use plain, common words and simple sentence shapes."),
-            Step("moyenne", R.string.lever_ai_complexity_medium,
+            Step("medium", R.string.lever_ai_complexity_medium,
                  "Use ordinary everyday language."),
-            Step("elevee", R.string.lever_ai_complexity_high,
+            Step("high", R.string.lever_ai_complexity_high,
                  "Use a wider vocabulary and more involved sentence shapes."),
         ),
-        fallback = "moyenne",
+        fallback = "medium",
         held = Held.Model,
     )
 
@@ -122,19 +122,19 @@ object Levers {
      * and no challenge could take it back.
      */
     val AI_DISPLAY = Stepped(
-        key = "tour-ia.affichage",
+        key = "ai-turn.display",
         steps = listOf(
-            Step("texte", R.string.lever_ai_display_text),
-            Step("brouille", R.string.lever_ai_display_scrambled),
-            Step("qui-parle", R.string.lever_ai_display_speaker),
-            Step("rien", R.string.lever_ai_display_nothing),
+            Step("text", R.string.lever_ai_display_text),
+            Step("scrambled", R.string.lever_ai_display_scrambled),
+            Step("speaker", R.string.lever_ai_display_speaker),
+            Step("nothing", R.string.lever_ai_display_nothing),
         ),
-        fallback = "brouille",
+        fallback = "scrambled",
         held = Held.App,
     )
 
     val REPLAY = Numeric(
-        key = "reecoute",
+        key = "replays",
         says = R.plurals.lever_replay,
         min = 0, max = null, step = 1,
         fallback = Count(null),
@@ -155,29 +155,29 @@ object Levers {
      * effects. Neither is decided, so neither has a file behind it.
      */
     val NOISE = Stepped(
-        key = "bruit",
+        key = "noise",
         steps = listOf(
-            Step("aucun", R.string.lever_noise_none),
-            Step("present", R.string.lever_noise_some),
-            Step("fort", R.string.lever_noise_heavy),
+            Step("none", R.string.lever_noise_none),
+            Step("some", R.string.lever_noise_some),
+            Step("heavy", R.string.lever_noise_heavy),
         ),
-        fallback = "aucun",
+        fallback = "none",
         held = Held.App,
     )
 
     val FILTER = Stepped(
-        key = "filtre",
+        key = "filter",
         steps = listOf(
-            Step("aucun", R.string.lever_filter_none),
-            Step("leger", R.string.lever_filter_light),
-            Step("marque", R.string.lever_filter_heavy),
+            Step("none", R.string.lever_filter_none),
+            Step("light", R.string.lever_filter_light),
+            Step("heavy", R.string.lever_filter_heavy),
         ),
-        fallback = "aucun",
+        fallback = "none",
         held = Held.App,
     )
 
     val UNDERSTANDING_SENDS_BACK = sendsBack(
-        "comprehension",
+        "understanding",
         R.string.lever_understanding_lets_through, R.string.lever_understanding_sends_back,
     )
 
@@ -187,13 +187,13 @@ object Levers {
     val ECHO = Stepped(
         key = "echo",
         steps = listOf(
-            Step("explicite", R.string.lever_echo_explicit,
+            Step("explicit", R.string.lever_echo_explicit,
                  "When they get something wrong, say the corrected form back to them "
                      + "plainly, then carry on with your reply."),
             Step("indirect", R.string.lever_echo_indirect,
                  "When they get something wrong, recast it inside your own reply without "
                      + "pointing at it."),
-            Step("absent", R.string.lever_echo_none,
+            Step("none", R.string.lever_echo_none,
                  "Do not correct them in your reply. Answer as if nothing were wrong."),
         ),
         fallback = "indirect",
@@ -205,18 +205,18 @@ object Levers {
      * where the app explains nothing -- was not expressible at all.
      */
     val EXPLANATION = Stepped(
-        key = "explication",
+        key = "explanation",
         steps = listOf(
-            Step("regle-et-phrase", R.string.lever_explanation_rule_and_sentence),
-            Step("regle", R.string.lever_explanation_rule),
-            Step("aucune", R.string.lever_explanation_none),
+            Step("rule-and-sentence", R.string.lever_explanation_rule_and_sentence),
+            Step("rule", R.string.lever_explanation_rule),
+            Step("none", R.string.lever_explanation_none),
         ),
-        fallback = "aucune",
+        fallback = "none",
         held = Held.Model,
     )
 
     val REWORDINGS = Numeric(
-        key = "reformulations-permises",
+        key = "rewordings-allowed",
         says = R.plurals.lever_rewordings,
         min = 0, max = null, step = 1,
         fallback = Count(null),
@@ -227,12 +227,12 @@ object Levers {
 
     /** The one aptitude a free conversation sends back on. */
     val CORRECTNESS_SENDS_BACK = Stepped(
-        key = "correction.fait-refaire",
+        key = "correctness.sends-back",
         steps = listOf(
-            Step("non", R.string.lever_correctness_lets_through),
-            Step("oui", R.string.lever_correctness_sends_back),
+            Step("no", R.string.lever_correctness_lets_through),
+            Step("yes", R.string.lever_correctness_sends_back),
         ),
-        fallback = "oui",
+        fallback = "yes",
         held = Held.App,
     )
 
@@ -244,7 +244,7 @@ object Levers {
      * forbidden word have no hard end, so they are not levers.
      */
     val RELEVANCE_SENDS_BACK = sendsBack(
-        "pertinence", R.string.lever_relevance_lets_through, R.string.lever_relevance_sends_back,
+        "relevance", R.string.lever_relevance_lets_through, R.string.lever_relevance_sends_back,
     )
 
     // ── Fluency ─────────────────────────────────────────────────────────────────────────
@@ -257,9 +257,9 @@ object Levers {
      * with a pause, which is exactly why its silences say nothing -- between two stretches
      * the blank measures the thumb.
      */
-    const val BY_HAND = "doigt"
-    const val ARMED = "armee"
-    const val ARMED_AND_SENDING = "armee-et-silence"
+    const val BY_HAND = "by-hand"
+    const val ARMED = "armed"
+    const val ARMED_AND_SENDING = "armed-and-sending"
 
     val CAPTURE = Stepped(
         key = "capture",
@@ -278,7 +278,7 @@ object Levers {
      * fact that the turn goes on its own.
      */
     val SILENCE_THRESHOLD = Numeric(
-        key = "seuil-silence",
+        key = "silence-threshold",
         says = R.plurals.lever_silence_threshold,
         min = 1, max = 30, step = 1,
         fallback = Count(5),
@@ -296,7 +296,7 @@ object Levers {
      * length; it goes up when windowing arrives, and the lever stays.
      */
     val TURN_LENGTH = Numeric(
-        key = "duree-tour",
+        key = "turn-length",
         says = R.plurals.lever_turn_length,
         min = 3, max = 30, step = 1,
         fallback = Count(30),
@@ -332,12 +332,12 @@ object Levers {
      * hesitates through is what sends the take, so the button would be a race against it.
      */
     val DISCARD_TAKE = Stepped(
-        key = "jeter-la-prise",
+        key = "discard-take",
         steps = listOf(
-            Step("permis", R.string.lever_discard_take_allowed),
-            Step("interdit", R.string.lever_discard_take_forbidden),
+            Step("allowed", R.string.lever_discard_take_allowed),
+            Step("forbidden", R.string.lever_discard_take_forbidden),
         ),
-        fallback = "permis",
+        fallback = "allowed",
         held = Held.App,
         needs = Requirement(
             "capture", setOf(BY_HAND, ARMED), R.string.lever_discard_take_moot,
@@ -345,7 +345,7 @@ object Levers {
     )
 
     val FLUENCY_SENDS_BACK = sendsBack(
-        "fluidite", R.string.lever_fluency_lets_through, R.string.lever_fluency_sends_back,
+        "fluency", R.string.lever_fluency_lets_through, R.string.lever_fluency_sends_back,
     )
 
     // ── The activity itself ─────────────────────────────────────────────────────────────
@@ -357,25 +357,25 @@ object Levers {
      * beside "lay a patch".
      */
     val LIVES = Stepped(
-        key = "vies",
+        key = "lives",
         steps = listOf(
-            Step("pas-de-vies", R.string.lever_lives_off),
-            Step("comptees", R.string.lever_lives_on),
+            Step("no-lives", R.string.lever_lives_off),
+            Step("counted", R.string.lever_lives_on),
         ),
-        fallback = "pas-de-vies",
+        fallback = "no-lives",
         held = Held.App,
     )
 
     /** Zero ends the sitting, which is a declared property of the lever and not a rule. */
     val LIVES_LEFT = Numeric(
-        key = "vies.restantes",
+        key = "lives.left",
         says = R.plurals.lever_lives_left,
         min = 0, max = null, step = 1,
         fallback = Count(3),
         hard = HardSide.Low,
         held = Held.App,
         saysUnbounded = R.string.lever_lives_left_free,
-        needs = Requirement("vies", setOf("comptees"), R.string.lever_lives_left_moot),
+        needs = Requirement("lives", setOf("counted"), R.string.lever_lives_left_moot),
     )
 
     /**
@@ -389,22 +389,22 @@ object Levers {
      * close**: the answer plays, and the big button stays unavailable until a retake is made.
      */
     val ADVANCE_WORDS = Stepped(
-        key = "avance.mots",
+        key = "advance.words",
         steps = listOf(
-            Step("poursuit", R.string.lever_advance_words_carries_on),
-            Step("attend", R.string.lever_advance_words_waits),
+            Step("carries-on", R.string.lever_advance_words_carries_on),
+            Step("waits", R.string.lever_advance_words_waits),
         ),
-        fallback = "poursuit",
+        fallback = "carries-on",
         held = Held.App,
     )
 
     val ADVANCE_SOUND = Stepped(
-        key = "avance.son",
+        key = "advance.sound",
         steps = listOf(
-            Step("poursuit", R.string.lever_advance_sound_carries_on),
-            Step("attend", R.string.lever_advance_sound_waits),
+            Step("carries-on", R.string.lever_advance_sound_carries_on),
+            Step("waits", R.string.lever_advance_sound_waits),
         ),
-        fallback = "poursuit",
+        fallback = "carries-on",
         held = Held.App,
     )
 
@@ -418,14 +418,14 @@ object Levers {
      * while it is done again. Marking without blocking is the ordinary free conversation.
      */
     private fun sendsBack(aptitude: String, lets: Int, sends: Int) = Stepped(
-        key = "$aptitude.fait-refaire",
-        steps = listOf(Step("non", lets), Step("oui", sends)),
-        fallback = "non",
+        key = "$aptitude.sends-back",
+        steps = listOf(Step("no", lets), Step("yes", sends)),
+        fallback = "no",
         held = Held.App,
     )
 
     val all: List<Lever> = listOf(
-        MODEL_LISTENS, PACE, PACE_VALUE, RETAKES, ELOCUTION_SENDS_BACK,
+        MODEL_LISTENS, TEMPO, TEMPO_VALUE, RETAKES, ELOCUTION_SENDS_BACK,
         AI_LENGTH, AI_COMPLEXITY, AI_DISPLAY, REPLAY, NOISE, FILTER, UNDERSTANDING_SENDS_BACK,
         ECHO, EXPLANATION, REWORDINGS, CORRECTNESS_SENDS_BACK,
         RELEVANCE_SENDS_BACK,

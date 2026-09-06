@@ -99,7 +99,7 @@ Et **`mode` n'est pas un champ** : « arcade », « campagne », « défi », «
 
 **Ce n'est pas purement cosmétique pour autant** : la couche décide **quelle définition part**, et pour une campagne elle dérive quel niveau est ouvert depuis les résultats. C'est ce que le bloc annonce déjà en disant que « poursuivre la campagne » et « choisir un défi » sont deux gestes distincts dans l'app. Peu de code, mais pas un drapeau.
 
-**Et les libertés d'un mode ne sont pas un mécanisme à lui.** Qu'en conversation libre un appui sur le texte de l'IA bascule brouillé/net, et qu'un défi ne le permette pas, est l'application de ce qui est déjà écrit — **le module décide quels leviers il expose** (« Qui décide de la pression »). Cliquer, c'est l'apprenant qui déplace `tour-ia.affichage` ; un défi qui le pose ne l'expose pas. La liste des libertés d'un mode est donc la liste des leviers que sa définition laisse ouverts, plus les gestes qui ne sont pas des leviers — rien à inventer, et ça se règle définition par définition plutôt que d'être câblé au mode.
+**Et les libertés d'un mode ne sont pas un mécanisme à lui.** Qu'en conversation libre un appui sur le texte de l'IA bascule brouillé/net, et qu'un défi ne le permette pas, est l'application de ce qui est déjà écrit — **le module décide quels leviers il expose** (« Qui décide de la pression »). Cliquer, c'est l'apprenant qui déplace `ai-turn.display` ; un défi qui le pose ne l'expose pas. La liste des libertés d'un mode est donc la liste des leviers que sa définition laisse ouverts, plus les gestes qui ne sont pas des leviers — rien à inventer, et ça se règle définition par définition plutôt que d'être câblé au mode.
 
 ## L'état d'une séance
 
@@ -198,27 +198,27 @@ Il y a donc **une sensibilité par feuille**, déclarée dans l'unité de cette 
 
 | clé | forme | positions | défaut | tenu par |
 |---|---|---|---|---|
-| `ecoutes-modele` | nombre | 0 à sans maximum ; 0 vaut *de mémoire* | sans maximum | l'app |
-| `cadence` | marches | libre, imposée | libre | l'app |
-| `cadence.valeur` | nombre | % de la durée du modèle | — | l'app |
-| `redites-permises` | nombre | 0 à sans maximum | sans maximum | l'app |
-| `elocution.fait-refaire` | marches | non, oui | non | l'app |
+| `model-listens` | nombre | 0 à sans maximum ; 0 vaut *de mémoire* | sans maximum | l'app |
+| `tempo` | marches | libre, imposée | libre | l'app |
+| `tempo.value` | nombre | % de la durée du modèle | — | l'app |
+| `retakes-allowed` | nombre | 0 à sans maximum | sans maximum | l'app |
+| `pronunciation.sends-back` | marches | non, oui | non | l'app |
 
-`cadence.valeur` est **sans objet** quand `cadence` est libre.
+`tempo.value` est **sans objet** quand `tempo` est libre.
 
 **Compréhension**
 
 | clé | forme | positions | défaut | tenu par |
 |---|---|---|---|---|
-| `tour-ia.longueur` | marches | courte, moyenne, longue | moyenne | le modèle |
-| `tour-ia.complexite` | marches | basse, moyenne, élevée | moyenne | le modèle |
-| `tour-ia.affichage` | marches | le texte, le texte brouillé, seulement qui parle, rien | le texte brouillé | l'app |
-| `reecoute` | nombre | 0 à sans maximum ; 0 vaut *interdite* | sans maximum | l'app |
-| `bruit` | marches | aucun, présent, fort | aucun | l'app |
-| `filtre` | marches | aucun, léger, marqué | aucun | l'app |
-| `comprehension.fait-refaire` | marches | non, oui | non | l'app |
+| `ai-turn.length` | marches | courte, moyenne, longue | moyenne | le modèle |
+| `ai-turn.complexity` | marches | basse, moyenne, élevée | moyenne | le modèle |
+| `ai-turn.display` | marches | le texte, le texte brouillé, seulement qui parle, rien | le texte brouillé | l'app |
+| `replays` | nombre | 0 à sans maximum ; 0 vaut *interdite* | sans maximum | l'app |
+| `noise` | marches | aucun, présent, fort | aucun | l'app |
+| `filter` | marches | aucun, léger, marqué | aucun | l'app |
+| `understanding.sends-back` | marches | non, oui | non | l'app |
 
-Les positions de `tour-ia.complexite` sont **volontairement génériques** : c'est un levier demandé, donc le modèle l'interprète selon la scène, et des noms prescriptifs lui retireraient cette souplesse sans rien garantir en échange.
+Les positions de `ai-turn.complexity` sont **volontairement génériques** : c'est un levier demandé, donc le modèle l'interprète selon la scène, et des noms prescriptifs lui retireraient cette souplesse sans rien garantir en échange.
 
 **Le bruit et le filtre étaient un seul levier et en font deux**, parce qu'ils sont indépendants : une pièce calme sur une mauvaise ligne, un café bruyant sur une ligne nette. Le **bruit** est un fond sonore, donc un fichier, donc du contenu que la brique *Lieu* possède déjà ; le **filtre** est un traitement du signal — la bande passante d'un téléphone, un hachage périodique. Les deux s'appliquent **à la lecture**, jamais au rendu mis en cache, le même fichier servant d'étalon à la mesure.
 
@@ -229,17 +229,17 @@ Les positions de `tour-ia.complexite` sont **volontairement génériques** : c'e
 | clé | forme | positions | défaut | tenu par |
 |---|---|---|---|---|
 | `echo` | marches | explicite, indirect, absent | indirect | le modèle |
-| `explication` | marches | la règle et la phrase, la règle, aucune | aucune | le modèle |
-| `reformulations-permises` | nombre | 0 à sans maximum | sans maximum | l'app |
-| `correction.fait-refaire` | marches | non, oui | oui | l'app |
+| `explanation` | marches | la règle et la phrase, la règle, aucune | aucune | le modèle |
+| `rewordings-allowed` | nombre | 0 à sans maximum | sans maximum | l'app |
+| `correctness.sends-back` | marches | non, oui | oui | l'app |
 
-`echo` et `explication` sont des **aides**, donc leurs positions se lisent à l'envers de l'intuition : c'est l'absence qui est le cran dur. Elles se déclarent quand même du facile au dur, comme tout le monde.
+`echo` et `explanation` sont des **aides**, donc leurs positions se lisent à l'envers de l'intuition : c'est l'absence qui est le cran dur. Elles se déclarent quand même du facile au dur, comme tout le monde.
 
 **Pertinence**
 
 | clé | forme | positions | défaut | tenu par |
 |---|---|---|---|---|
-| `pertinence.fait-refaire` | marches | non, oui | non | l'app |
+| `relevance.sends-back` | marches | non, oui | non | l'app |
 
 C'est le seul levier de cette aptitude, et il ne dit rien de ce qu'elle exige : tout ce qu'elle exige vit dans la **consigne**, qu'elle est la seule à porter. Le registre, la longueur imposée, le mot interdit n'ont pas de côté dur, donc ils ne sont pas des leviers. Il lui reste par ailleurs ce que toute feuille a, sa sensibilité et son poids.
 
@@ -248,13 +248,13 @@ C'est le seul levier de cette aptitude, et il ne dit rien de ce qu'elle exige : 
 | clé | forme | positions | défaut | tenu par |
 |---|---|---|---|---|
 | `capture` | marches | doigt, armée, armée et envoi au silence | doigt | l'app |
-| `seuil-silence` | nombre | secondes | — | l'app |
-| `duree-tour` | nombre | secondes, maximum 30 | 30 | l'app |
+| `silence-threshold` | nombre | secondes | — | l'app |
+| `turn-length` | nombre | secondes, maximum 30 | 30 | l'app |
 | `preparation` | nombre | secondes | 0 | l'app |
-| `jeter-la-prise` | marches | permis, interdit | permis | l'app |
-| `fluidite.fait-refaire` | marches | non, oui | non | l'app |
+| `discard-take` | marches | permis, interdit | permis | l'app |
+| `fluency.sends-back` | marches | non, oui | non | l'app |
 
-`seuil-silence` et `preparation` sont **sans objet** en capture au doigt, où c'est le pouce qui arme. `jeter-la-prise` l'est en capture armée avec envoi au silence, pour la raison inverse — c'est la seule position où l'apprenant n'est pas seul à envoyer (« La capture »). Le maximum de `duree-tour` est le plafond technique, et il remonte quand le fenêtrage de l'analyse arrive.
+`silence-threshold` et `preparation` sont **sans objet** en capture au doigt, où c'est le pouce qui arme. `discard-take` l'est en capture armée avec envoi au silence, pour la raison inverse — c'est la seule position où l'apprenant n'est pas seul à envoyer (« La capture »). Le maximum de `turn-length` est le plafond technique, et il remonte quand le fenêtrage de l'analyse arrive.
 
 **`preparation` est le temps entre la fin de la réponse de l'IA et l'armement du micro.** Elle était nommée une fois en passant, parmi les aides qu'un curseur retire, sans levier ni définition. Elle en a une maintenant, et c'est celle-là plutôt qu'un temps de réflexion accordé *à l'intérieur* du tour : ce second sens serait une ligne interne à la mesure de fluidité, et une ligne interne ne se règle jamais — c'est déjà le sort du délai de grâce d'une seconde. Vivant hors du tour, elle ne touche aucune mesure.
 
@@ -262,10 +262,10 @@ C'est le seul levier de cette aptitude, et il ne dit rien de ce qu'elle exige : 
 
 | clé | forme | positions | défaut | tenu par |
 |---|---|---|---|---|
-| `vies` | marches | pas de vies, comptées | pas de vies | l'app |
-| `vies.restantes` | nombre | 0 à sans maximum ; 0 met fin | — | l'app |
-| `avance.mots` | marches | poursuit, attend | poursuit | l'app |
-| `avance.son` | marches | poursuit, attend | poursuit | l'app |
+| `lives` | marches | pas de vies, comptées | pas de vies | l'app |
+| `lives.left` | nombre | 0 à sans maximum ; 0 met fin | — | l'app |
+| `advance.words` | marches | poursuit, attend | poursuit | l'app |
+| `advance.sound` | marches | poursuit, attend | poursuit | l'app |
 
 **Les cinq `fait-refaire` et les deux `avance` sont sur deux axes différents.** Le premier dit **si le passage est à refaire** quand une aptitude ne passe pas ; le second dit **si la conversation attend** pendant qu'on le refait. On peut vouloir marquer sans bloquer, ce qui est la conversation libre ordinaire.
 
@@ -649,7 +649,7 @@ Faire découper toute la phrase par le juge est écarté : couper du correct n'e
 
 **Deux empans qui se recouvrent ne comptent pas deux fois** : un mot prend le pire cran qu'il porte, et il compte une fois. La précédence est `ne se dit pas`, puis `mal formé`, puis `ok`.
 
-**Son nom d'écran est `Grammar` / `Grammaire`, et `correction` reste le nom du code** (tranché le 2026-09-06). C'est le nom de l'**aptitude** : la feuille dessous s'appelle `Form` / `Forme`, pour ne pas répéter son titre à une ligne d'écart (« Les noms d'écran »). Le terme du code est large et exact — il couvre la syntaxe et l'idiome — mais il se lit à l'écran comme le geste de corriger, ce qui est faux : *« en cause : la Correction »* se comprend *« on t'a corrigé »*. `Langue` a été écarté pour l'inverse : exact et fade, tout étant la langue dans une app de langue. Ce que `Grammar` coûte est borné — quand la faute est idiomatique plutôt que syntaxique, le nom trompe sur le *pourquoi*, et la marque, elle, dit toujours *quels mots*.
+**Son nom d'écran est `Grammar` / `Grammaire`, et `correctness` reste le nom du code** (tranché le 2026-09-06). C'est le nom de l'**aptitude** : la feuille dessous s'appelle `Form` / `Forme`, pour ne pas répéter son titre à une ligne d'écart (« Les noms d'écran »). Le terme du code est large et exact — il couvre la syntaxe et l'idiome — mais il se lit à l'écran comme le geste de corriger, ce qui est faux : *« en cause : la Correction »* se comprend *« on t'a corrigé »*. `Langue` a été écarté pour l'inverse : exact et fade, tout étant la langue dans une app de langue. Ce que `Grammar` coûte est borné — quand la faute est idiomatique plutôt que syntaxique, le nom trompe sur le *pourquoi*, et la marque, elle, dit toujours *quels mots*.
 
 **La correction pose une seule question — est-ce que c'est de l'anglais ? — et c'est un jugement absolu, donc elle ne prend aucune consigne.** Une consigne est toujours une exigence de situation ; elle appartient donc entièrement à la pertinence. *« Parle au passé »* ne fait pas de *I'll go there* une phrase mal formée, c'est de l'anglais irréprochable qui ne convient pas ici.
 
@@ -881,7 +881,7 @@ Conséquence de forme : le petit bouton n'existe que sur le **passage ouvert**, 
 
 **Ça retire au projet le refus général de dédire, et le remplace par quelque chose de plus étroit.** Ce que l'app ne fait toujours pas, c'est jouer une réponse puis la contredire sur la même phrase : dans une tentative, l'appel rend la continuation et l'écho ensemble et l'app en joue **une** (« Deux branches pour la correction »). Ce qu'elle fait maintenant, c'est refaire l'échange quand la phrase à laquelle il répondait n'existe plus. Les deux ne se confondent pas — l'une est un dédit sans cause, l'autre la conséquence d'un fait neuf.
 
-**Et ça ne fait pas doublon avec « attend »**, dont c'était le soupçon. « Attend » **force** la réparation : le gros bouton est indisponible, on ne sort pas du passage sans dépenser ses tentatives, et on n'entend qu'un écho en attendant. « Poursuit » l'**offre** : la conversation avance quoi qu'il arrive, et l'échange ne se corrige que si l'apprenant choisit de reformuler. Aucune position d'`avance.mots` n'exprimait ça.
+**Et ça ne fait pas doublon avec « attend »**, dont c'était le soupçon. « Attend » **force** la réparation : le gros bouton est indisponible, on ne sort pas du passage sans dépenser ses tentatives, et on n'entend qu'un écho en attendant. « Poursuit » l'**offre** : la conversation avance quoi qu'il arrive, et l'échange ne se corrige que si l'apprenant choisit de reformuler. Aucune position d'`advance.words` n'exprimait ça.
 
 Le cas de la phrase corrigée qui dit autre chose que ce que l'IA avait compris **disparaît donc pour une reformulation**, puisque la réponse se refait dessus. Il reste pour un passage clos sans réparation : l'app répond à l'intention, se tromper d'intention est le cas déjà écrit de `../reference.md`, et le remède est celui de n'importe quelle conversation — le dire au tour suivant.
 
@@ -957,7 +957,7 @@ Le second n'est pas une décision mais **une absence de sol** : une phrase qui n
 
 **La porte des mots est fermée dès qu'une aptitude des mots ne passe pas**, plusieurs pouvant le dire à la fois. Elles ne se disputent pas : le registre et la grammaire sont deux façons pour les mots de changer, pas deux critères concurrents.
 
-**Elle lit la même barre que tout le reste** : un passage dont la note ne passe pas est un passage à refaire, donc son son ne s'analyse pas. Ne pas passer force le nouvel essai quand `avance.mots` est sur « attend » ; sinon ça ne force rien, mais l'app tient quand même la phrase pour une phrase à refaire — elle marque, propose de reformuler, et n'analyse pas le son. Une seule barre, deux conséquences selon l'avance.
+**Elle lit la même barre que tout le reste** : un passage dont la note ne passe pas est un passage à refaire, donc son son ne s'analyse pas. Ne pas passer force le nouvel essai quand `advance.words` est sur « attend » ; sinon ça ne force rien, mais l'app tient quand même la phrase pour une phrase à refaire — elle marque, propose de reformuler, et n'analyse pas le son. Une seule barre, deux conséquences selon l'avance.
 
 **Rien de ce qui est jugé ne s'éteint quand elle se ferme.** Toutes les feuilles jugées se calculent, puisque ce sont elles qui décident si elle se ferme — l'éteindre par sa propre décision serait circulaire. Ce qui s'éteint est l'analyse du son, et elle seule.
 
@@ -1044,17 +1044,17 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 
 | feuille | EN | FR |
 |---|---|---|
-| `intelligibilite` | Clarity | Clarté |
-| `proximite` | Precision | Précision |
-| `melodie` | Melody | Mélodie |
-| `accent-lexical` | Stress | Accentuation |
-| `correction` | Form | Forme |
-| `pertinence` | Choice | Choix |
-| `suivi` | Reply | Réponse |
-| `continuite` | Continuity | Continuité |
-| `plus-long-silence` | Longest gap | Silence max |
-| `debit` | Pace | Débit |
-| `remplissage-reprises` | Hesitations | Hésitations |
+| `intelligibility` | Clarity | Clarté |
+| `proximity` | Precision | Précision |
+| `melody` | Melody | Mélodie |
+| `lexical-stress` | Stress | Accentuation |
+| `correctness` | Form | Forme |
+| `relevance` | Choice | Choix |
+| `uptake` | Reply | Réponse |
+| `continuity` | Continuity | Continuité |
+| `longest-silence` | Longest gap | Silence max |
+| `pace` | Pace | Débit |
+| `stumbling` | Hesitations | Hésitations |
 
 **Trois branches n'ont qu'une feuille, et c'est ce qui rend leurs noms difficiles.** Ailleurs le titre nomme le domaine et les feuilles se distinguent entre elles ; sous correction, pertinence et compréhension, le titre a déjà pris le nom du domaine, donc la feuille doit dire autre chose que lui. Et pour deux d'entre elles il y a une contrainte de plus : **la correction et la pertinence sortent d'un seul marquage, sur les mêmes éléments**. Leur nom ne peut donc pas être l'unité — les deux diraient *Mots* — il doit être la **question**. D'où `Forme` contre `Choix`, deux mots courts et opposés qui rendent visible que les mêmes mots sont lus deux fois : *est-ce que c'est de l'anglais*, puis *était-ce l'anglais qu'il fallait*.
 
@@ -1071,17 +1071,42 @@ Et deux noms sont fades exprès. **`Continuity` / `Continuité`**, parce que `Fl
 
 | branche | EN | FR |
 |---|---|---|
-| `elocution` | Pronunciation | Prononciation |
-| `comprehension` | Understanding | Compréhension |
-| `correction` | Grammar | Grammaire |
-| `pertinence` | Relevance | Pertinence |
-| `fluidite` | Fluency | Fluidité |
+| `pronunciation` | Pronunciation | Prononciation |
+| `understanding` | Understanding | Compréhension |
+| `correctness` | Grammar | Grammaire |
+| `relevance` | Relevance | Pertinence |
+| `fluency` | Fluency | Fluidité |
 
 Trois d'entre eux étaient forcés : ce sont les branches à une seule feuille, et c'est de ne pas se répéter avec elles qui a fixé `Forme`, `Choix` et `Réponse`. Un titre a de la place, étant seul sur sa ligne avec sa lettre — la contrainte des douze colonnes ne vaut que pour un nom de feuille, qui partage sa ligne avec une mesure.
 
-**`Elocution` n'est pas le mot anglais**, et c'est le seul faux ami de la table : en anglais il désigne l'art de parler en public, la déclamation. Posé tel quel il annoncerait un cours d'éloquence au-dessus de quatre feuilles qui comptent des `th` ratés. `Pronunciation` couvre exactement la branche, prosodie comprise — dans l'enseignement des langues, la mélodie et l'accent en font partie. Le français prend `Prononciation` pour répondre à l'anglais et parce que c'est le mot que l'apprenant connaît ; `élocution` reste celui du doc et la clé du code, comme `correction` sous `Grammaire`.
+**`Elocution` n'est pas le mot anglais**, et c'est le seul faux ami de la table : en anglais il désigne l'art de parler en public, la déclamation. Posé tel quel il annoncerait un cours d'éloquence au-dessus de quatre feuilles qui comptent des `th` ratés. `Pronunciation` couvre exactement la branche, prosodie comprise — dans l'enseignement des langues, la mélodie et l'accent en font partie. Le français prend `Prononciation` pour répondre à l'anglais et parce que c'est le mot que l'apprenant connaît ; `élocution` reste celui du doc et la clé du code, comme `correctness` sous `Grammaire`.
 
 **`Relevance` est le maillon faible de la table, et il est gardé sciemment.** En anglais il tire vers *hors sujet*, quand la feuille marque aussi un mot **plat qui est parfaitement dans le sujet** — l'objection même qui l'avait écarté comme nom de feuille. Deux choses le rattrapent à ce niveau-là : dans une liste de cinq, il se lit *as-tu dit ce qu'il fallait* ; et la feuille juste dessous dit `Choice`, ce qui élargit la lecture aussitôt. Le risque était plus grand sur une ligne de mesure que sur un titre de groupe. `Aptness` serait exact et se lit mal.
+
+### Les jetons de code
+
+**Les clés du code sont en anglais, la prose de ce doc reste en français** (arrêté le 2026-09-06). C'est la règle de `dev_base` appliquée telle quelle : la couche code est anglaise sans négociation, la conception s'écrit en français. Les deux se rejoignaient mal jusqu'ici, les clés étant françaises — ce qui coûtait notamment au juge, à qui le prompt demandait en anglais de renvoyer `remplissage` pour un *um*.
+
+Les **clés** — chemins de nœud, clés de leviers — sont donc écrites en anglais **dans ce doc aussi**, puisqu'un nom entre accents graves désigne un identifiant et pas une idée : `pronunciation/melody`, `correctness.sends-back`, `tempo.value`.
+
+Les **crans** sont l'inverse : ce doc les nomme en français parce qu'ils sont du vocabulaire de conception, et le code porte un jeton anglais. Les positions de leviers suivent la même règle et se traduisent d'elles-mêmes — `libre`/`free`, `attend`/`waits`, `oui`/`yes` —, mais les crans ne se devinent pas :
+
+| cran | jeton |
+|---|---|
+| `ne se dit pas` | `not-said` |
+| `mal formé` | `malformed` |
+| `à côté` | `off-target` |
+| `plat` | `flat` |
+| `juste` | `apt` |
+| `retenu` | `kept` |
+| `abandonné` | `abandoned` |
+| `remplissage` | `filler` |
+| `entre les lignes` | `implied` |
+| `précis` | `precise` |
+| `en rapport` | `on-point` |
+| `sur le sujet` | `on-topic` |
+
+**`cadence` devient `tempo` et pas `pace`**, parce que la feuille `pace` occupe déjà le mot : le débit est ce qu'on fait spontanément, la cadence une exigence de tenir un temps donné. En français les deux mots existaient déjà — la feuille dit *Débit*, le levier dit *rythme* —, c'est l'anglais qui les confondait.
 
 ## Ce qui est jugé, ce qui est calculé
 
@@ -1175,7 +1200,7 @@ Concrètement, trois choses : la réponse **n'ajoute rien** — elle ne répond 
 |---|---|---|
 | l'analyse du son ne tourne pas | la prononciation de cette tentative | automatique, dès que le passage est déclaré à reformuler |
 | une reprise est proposée | l'écran | automatique |
-| la conversation attend | le fil — le passage ne se ferme pas | `avance.mots` ou `avance.son`, selon le côté |
+| la conversation attend | le fil — le passage ne se ferme pas | `advance.words` ou `advance.sound`, selon le côté |
 
 **Les deux dernières sont indépendantes**, et ça se voit dans les deux sens. Porte des mots fermée sans attendre est la conversation libre ordinaire : la phrase est marquée, ses sons ne sont pas analysés, l'IA répond et le fil continue. Attendre sans fermer la porte des mots est le blocage sur la prononciation : les mots ne changent pas, donc l'analyse a tourné — c'est même elle qui a rendu le verdict — et c'est la réponse qui est retenue.
 
@@ -1230,7 +1255,7 @@ boucle sur les tentatives :
   - l'analyse du son NE TOURNE PAS si le passage est à reformuler,
     ou si un mot est marqué `ne se dit pas`
   - ce que l'app joue : la continuation, ou l'écho si le passage est
-    à reformuler et que `avance.mots` est sur « attend »
+    à reformuler et que `advance.words` est sur « attend »
 
   ── second temps : à la fin de l'analyse, si elle a tourné ──
   - l'app calcule les feuilles du son : intelligibilité, proximité,
@@ -1445,7 +1470,7 @@ Le micro **ne s'arme jamais avant la fin de la réponse de l'IA**. Un symbole es
 
 Ce qui se voit alors : le flux s'arrête, la ligne d'état porte les deux issues et le compte restant — *reformule-la, ou lance un tour neuf ; il te reste deux reformulations* —, le petit bouton reprend, le gros passe. Le silence du micro est le signal, et il n'a pas besoin d'être doublé par une fenêtre à écarter.
 
-**Une prise se jette avant d'être envoyée, et c'est un levier** — `jeter-la-prise`, tranché le 2026-09-06. Le geste existe dans l'app depuis le début : on parle, on relâche, et on jette au lieu d'envoyer. Rien n'est parti, rien n'a été mesuré, aucune tentative n'est dépensée. Sans lui, la seule sortie d'une phrase ratée serait de l'envoyer, ce qui dépense une tentative pour un raclement de gorge. Mais librement offert, il rend le compte des tentatives contournable : dans un défi qui n'en donne qu'une, on recommence dix fois en jetant chaque prise, et la tentative reste intacte. Un défi doit donc pouvoir le fermer, ce qui est exactement la définition d'un levier — il y a un côté facile.
+**Une prise se jette avant d'être envoyée, et c'est un levier** — `discard-take`, tranché le 2026-09-06. Le geste existe dans l'app depuis le début : on parle, on relâche, et on jette au lieu d'envoyer. Rien n'est parti, rien n'a été mesuré, aucune tentative n'est dépensée. Sans lui, la seule sortie d'une phrase ratée serait de l'envoyer, ce qui dépense une tentative pour un raclement de gorge. Mais librement offert, il rend le compte des tentatives contournable : dans un défi qui n'en donne qu'une, on recommence dix fois en jetant chaque prise, et la tentative reste intacte. Un défi doit donc pouvoir le fermer, ce qui est exactement la définition d'un levier — il y a un côté facile.
 
 Il est **sans objet en capture armée avec envoi au silence**, la seule position où une horloge envoie aussi : le silence pendant lequel on hésite à jeter est ce qui envoie la prise, donc le bouton y serait une course contre la pendule, perdue par qui réfléchit. Ce qui sépare cette position des deux autres n'est pas l'envoi au clic, qui y reste le geste normal, mais le fait que l'apprenant ne soit plus seul à pouvoir envoyer.
 

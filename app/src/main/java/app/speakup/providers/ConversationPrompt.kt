@@ -77,47 +77,47 @@ internal object ConversationPrompt {
         "from" and "to" are character offsets into "intended", "from" included and "to"
         excluded, and both must fall exactly on a word boundary. Mark only what is worth
         marking: a word in no span counts as "ok" on both scales. Correctness notches are
-        "ne-se-dit-pas", "mal-forme", "ok"; relevance notches are "a-cote", "plat", "ok",
-        "juste".
+        "not-said", "malformed", "ok"; relevance notches are "off-target", "flat", "ok",
+        "apt".
 
         Correctness asks one question and one only: **is the sentence built right?** Not
         whether it is polished, formal, or the phrasing you would have picked. Spoken
         English counts as English: "Gonna try?", "Going out later?", "I ain't got none",
-        "I'm doing good" are all "ok". Use "mal-forme" for a sentence a native speaker of
+        "I'm doing good" are all "ok". Use "malformed" for a sentence a native speaker of
         no variety and no register would produce -- a wrong tense, a missing or wrong
         article, a wrong preposition, an impossible word order, a verb that does not take
-        that object. Use "ne-se-dit-pas" only when the words do not exist as English at
+        that object. Use "not-said" only when the words do not exist as English at
         all, which is rarer than it sounds.
 
         Relevance asks the other question: **did they aim right?** -- for the situation,
-        for who is listening, for what was asked. "juste" is the turn of phrase a native
-        would have reached for and they found it; "plat" is aiming right but limply --
-        vague, basic, or said before; "a-cote" is missing what was called for, including
+        for who is listening, for what was asked. "apt" is the turn of phrase a native
+        would have reached for and they found it; "flat" is aiming right but limply --
+        vague, basic, or said before; "off-target" is missing what was called for, including
         the tone and the register. This is where variety, register and any instruction
         you have been given are judged, never in correctness.
 
         "stumbling": the parts of "intended" that are not part of the sentence, as a list
         of {"from": <int>, "to": <int>, "notch": <notch>} on the same offsets and the same
-        word-boundary rule. Notches are "abandonne" for words belonging to a start they
-        gave up on, and "remplissage" for "um", "like", "I mean" used as a crutch. Anything
+        word-boundary rule. Notches are "abandoned" for words belonging to a start they
+        gave up on, and "filler" for "um", "like", "I mean" used as a crutch. Anything
         you do not mark counts as kept. Judge the use and not the word: "I mean what I say"
         is kept, "it was, I mean, hard" is filler.
 
         "following": one notch for the whole turn, saying what their answer proves they
-        took in from your last turn. "entre-les-lignes" answers what was implied and not
-        said; "precis" picks up something only somebody who heard could pick up;
-        "en-rapport" answers what the turn said without picking up a detail;
-        "sur-le-sujet" catches the topic and not the turn; "vague" would have worked
-        whatever you had said; "a-cote" answers something else. Judge what the answer shows
+        took in from your last turn. "implied" answers what was implied and not
+        said; "precise" picks up something only somebody who heard could pick up;
+        "on-point" answers what the turn said without picking up a detail;
+        "on-topic" catches the topic and not the turn; "vague" would have worked
+        whatever you had said; "off-target" answers something else. Judge what the answer shows
         they took in, never how well it was said: a badly built sentence can be perfectly
-        on point. If your last turn does not exist, use "a-cote" only if they really are
+        on point. If your last turn does not exist, use "off-target" only if they really are
         off; a first turn has nothing to follow.
 
         "spoken": your reply, in English, as it should be said aloud.
 
         "difficulty": one notch for the turn you have just written, weighing its length,
-        its vocabulary and its structure together: "tres-facile", "facile", "moyen",
-        "difficile", "tres-difficile".
+        its vocabulary and its structure together: "very-easy", "easy", "medium",
+        "hard", "very-hard".
 
         "echo": include this field only when you marked something in "spans". One short
         line that picks the slip up and hands the sentence back, in your own voice, the way
@@ -223,8 +223,8 @@ internal object ConversationPrompt {
         JSONObject().put("role", role).put("content", content)
 
     /** The notch names the contract above lists, straight from the catalogue that owns them. */
-    val CORRECTNESS get() = Sheets.columnOf("correction/correction")
-    val RELEVANCE get() = Sheets.columnOf("pertinence/pertinence")
-    val STUMBLING get() = Sheets.columnOf("fluidite/remplissage-reprises")
-    val FOLLOWING get() = Sheets.columnOf("comprehension/suivi")
+    val CORRECTNESS get() = Sheets.columnOf("correctness/correctness")
+    val RELEVANCE get() = Sheets.columnOf("relevance/relevance")
+    val STUMBLING get() = Sheets.columnOf("fluency/stumbling")
+    val FOLLOWING get() = Sheets.columnOf("understanding/uptake")
 }

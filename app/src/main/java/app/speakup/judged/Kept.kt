@@ -101,8 +101,8 @@ class Kept(
         }
 
         /** Worst first, which is what makes a word carry at most one of them. */
-        val STUMBLING = listOf("abandonne", "remplissage", "retenu")
+        val STUMBLING = listOf("abandoned", "filler", "kept")
 
-        const val KEPT = "retenu"
+        const val KEPT = "kept"
     }
 }

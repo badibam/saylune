@@ -66,7 +66,7 @@ data class Measured(val sheet: Sheet, val figure: Float?)
  * more work.
  *
  * [difficulty] is what the model said of the turn it had just written, and it is the weight of
- * `suivi` alone: that sheet does not measure a length of the learner's, it measures how much
+ * `uptake` alone: that sheet does not measure a length of the learner's, it measures how much
  * of the matter sent his way came back. Null on a passage with no AI turn in front of it,
  * where following is absent rather than nil.
  */
@@ -112,8 +112,8 @@ fun noteOver(passages: List<Passage>, weights: Weights, sensitivity: (Sheet) -> 
     return if (carried > 0f) Note(total / carried) else null
 }
 
-/** What this sheet weighs by on this passage: the length, or the difficulty for `suivi`. */
+/** What this sheet weighs by on this passage: the length, or the difficulty for `uptake`. */
 private fun lengthOf(sheet: Sheet, passage: Passage): Float? =
     if (sheet === Sheets.of(FOLLOWING)) passage.difficulty else passage.keptWords.toFloat()
 
-private const val FOLLOWING = "comprehension/suivi"
+private const val FOLLOWING = "understanding/uptake"

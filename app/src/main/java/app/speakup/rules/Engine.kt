@@ -256,7 +256,7 @@ class Engine(private val rules: List<Rule>) {
          * a counter. That is what makes there be no lives object, so no kind of effect *take a
          * life* beside *lay a patch*.
          */
-        const val LIVES = "vies.restantes"
+        const val LIVES = "lives.left"
     }
 }
 

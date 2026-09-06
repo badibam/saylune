@@ -377,7 +377,7 @@ fun ConversationScreen(
                 // one hesitates through is what sends the take, so the button would be a race
                 // against the pendulum, lost by whoever thinks.
                 val mayDiscard = turn.positions.live(Levers.DISCARD_TAKE.key) &&
-                    (turn.positions.of(Levers.DISCARD_TAKE.key) as? At)?.name == "permis"
+                    (turn.positions.of(Levers.DISCARD_TAKE.key) as? At)?.name == "allowed"
                 if (mayDiscard) {
                     OutlinedButton(onClick = { recorder.discard(); repeating = null }) {
                         Text(stringResource(R.string.capture_redo))

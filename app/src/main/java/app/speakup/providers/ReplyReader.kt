@@ -55,7 +55,7 @@ internal object ReplyReader {
 
         val following = parsed.required("following", content)
         val difficulty = parsed.required("difficulty", content)
-        check(following, Sheets.columnOf("comprehension/suivi"), "following", content)
+        check(following, Sheets.columnOf("understanding/uptake"), "following", content)
         check(difficulty, Sheets.DIFFICULTY, "difficulty", content)
 
         // Unfolding is where the bounds are checked against the words of `intended`, so it
@@ -118,9 +118,9 @@ internal object ReplyReader {
  * boundary, or on a notch the catalogue does not declare.
  */
 fun Judgement.words(): Words {
-    val correctness = Sheets.columnOf("correction/correction")
-    val relevance = Sheets.columnOf("pertinence/pertinence")
-    val stumble = Sheets.columnOf("fluidite/remplissage-reprises")
+    val correctness = Sheets.columnOf("correctness/correctness")
+    val relevance = Sheets.columnOf("relevance/relevance")
+    val stumble = Sheets.columnOf("fluency/stumbling")
     return Words(
         correctness = unfold(
             intended, spans.map { Marked(it.from, it.to, it.correctness) },
@@ -140,7 +140,7 @@ fun Judgement.words(): Words {
  * One notch per word, on each of the three scales that mark words.
  *
  * The three lists cover the same words in the same order, so the words a sheet reads are a
- * filter over them: **the kept words** are those the stumbling calls `retenu`, and that is
+ * filter over them: **the kept words** are those the stumbling calls `kept`, and that is
  * what `kept` means for the analysis seam.
  */
 data class Words(
@@ -150,5 +150,5 @@ data class Words(
 ) {
 
     /** The stretches of `intended` the model was synthesised on: everything not given up. */
-    val kept: List<IntRange> get() = stumbling.filter { it.notch == "retenu" }.map { it.at }
+    val kept: List<IntRange> get() = stumbling.filter { it.notch == "kept" }.map { it.at }
 }

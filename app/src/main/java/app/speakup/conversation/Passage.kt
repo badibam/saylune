@@ -89,8 +89,8 @@ data class Passage(
  * gives the sound analysis a turn it would never have had on a malformed one.
  */
 enum class Attempt(val lever: String) {
-    Rewording("reformulations-permises"),
-    Repeat("redites-permises"),
+    Rewording("rewordings-allowed"),
+    Repeat("retakes-allowed"),
 }
 
 /**

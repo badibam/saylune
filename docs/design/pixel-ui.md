@@ -149,7 +149,7 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 
 **Le brouillage est fixe** — la même lettre se couvre toujours pareil, donc le même texte se brouille pareil partout et tout le temps, comme une marque. Le tirage vient d'une graine qui est la lettre elle-même, et les carrés font 2 pixels **dans les deux graisses** : couvrir la *Thin* de pixels isolés a été essayé et rend un grésillement au lieu d'une phrase, la *Thin* recevant simplement moins de carrés puisqu'elle a moins d'encre.
 
-**Ce n'est pas une préférence, c'est une position du levier `tour-ia.affichage`** (`activity-model.md`), dont c'est le défaut. Elle tombe entre le texte net et *seulement qui parle*, le support laissé étant une aide de moins que le texte et une de plus que rien. En conversation libre l'apprenant la déplace lui-même et elle reste où il l'a laissée ; une activité qui veut imposer le net, ou n'en rien montrer, la pose comme n'importe quel autre levier. Une préférence vaudrait partout et aucun défi ne pourrait la reprendre.
+**Ce n'est pas une préférence, c'est une position du levier `ai-turn.display`** (`activity-model.md`), dont c'est le défaut. Elle tombe entre le texte net et *seulement qui parle*, le support laissé étant une aide de moins que le texte et une de plus que rien. En conversation libre l'apprenant la déplace lui-même et elle reste où il l'a laissée ; une activité qui veut imposer le net, ou n'en rien montrer, la pose comme n'importe quel autre levier. Une préférence vaudrait partout et aucun défi ne pourrait la reprendre.
 
 ## Le tour marqué
 

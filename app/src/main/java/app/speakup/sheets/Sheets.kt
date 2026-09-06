@@ -8,7 +8,7 @@ package app.speakup.sheets
  * new branch of code, and a definition written by a model becomes possible without handing it
  * the code -- one hands it this.
  *
- * **A node is addressed by its path**, `elocution/melodie`, which is what lets an aptitude and
+ * **A node is addressed by its path**, `pronunciation/melody`, which is what lets an aptitude and
  * its single sheet keep the names the doc gives them without colliding. A condition names a
  * path; on a branch only the note is readable, on a sheet all three readings are.
  *
@@ -38,17 +38,17 @@ object Sheets {
      * `ok` is worth the full mark and not 0,90, because **there is no notch above it**: a
      * difficult construction brought off right has no fixed norm -- difficult depends on who
      * is speaking, and the app has no learner level -- so an ambitious sentence that lands
-     * gets marked `juste` on the relevance side, where the criterion is situational.
+     * gets marked `apt` on the relevance side, where the criterion is situational.
      *
-     * `ne se dit pas` is close to nothing rather than nothing: a passage made of it is not
+     * `not-said` is close to nothing rather than nothing: a passage made of it is not
      * English at all. It needs no catastrophic note either, its real effect passing through no
      * note at all -- one word at that notch and the sound analysis does not run, for want of
      * anything to compare against.
      */
     private val CORRECTNESS = Reading.Column(
         listOf(
-            Notch("ne-se-dit-pas", 0.05f),
-            Notch("mal-forme", 0.40f),
+            Notch("not-said", 0.05f),
+            Notch("malformed", 0.40f),
             Notch("ok", 1.00f),
         ),
         fallback = "ok",
@@ -57,9 +57,9 @@ object Sheets {
     /** Relevance: did you aim right? The one measure of the project with a good end. */
     private val RELEVANCE = Reading.Column(
         listOf(
-            Notch("a-cote", 0.10f),
-            Notch("plat", 0.50f),
-            Notch("juste", 1.00f),
+            Notch("off-target", 0.10f),
+            Notch("flat", 0.50f),
+            Notch("apt", 1.00f),
             Notch("ok", 0.90f),
         ),
         fallback = "ok",
@@ -68,23 +68,23 @@ object Sheets {
     /**
      * Stumbling: a spoken word is kept, abandoned, or filler -- three slices of one cake.
      *
-     * The judge marks only what is not kept, so **an unmarked word is `retenu`** -- the same
+     * The judge marks only what is not kept, so **an unmarked word is `kept`** -- the same
      * shape as `ok` on the language scales, and far less output to ask of it than one notch
      * per spoken word. An abandoned word costs a little more than a filler, a restart
      * dragging more of the sentence with it than an *um* does.
      */
     private val STUMBLING = Reading.Column(
         listOf(
-            Notch("abandonne", 0.30f),
-            Notch("remplissage", 0.45f),
-            Notch("retenu", 1.00f),
+            Notch("abandoned", 0.30f),
+            Notch("filler", 0.45f),
+            Notch("kept", 1.00f),
         ),
-        fallback = "retenu",
+        fallback = "kept",
     )
 
     /**
      * **Not a sheet**: what the model says of the turn it just wrote, which serves as the
-     * weight of `suivi`.
+     * weight of `uptake`.
      *
      * It says nothing about the learner, so it has no sheet, no sensitivity and no
      * instruction. Length alone was too coarse -- *"Fancy a cuppa?"* is harder than forty
@@ -98,11 +98,11 @@ object Sheets {
      */
     val DIFFICULTY = Reading.Column(
         listOf(
-            Notch("tres-difficile", 1.00f),
-            Notch("difficile", 0.80f),
-            Notch("moyen", 0.55f),
-            Notch("facile", 0.30f),
-            Notch("tres-facile", 0.15f),
+            Notch("very-hard", 1.00f),
+            Notch("hard", 0.80f),
+            Notch("medium", 0.55f),
+            Notch("easy", 0.30f),
+            Notch("very-easy", 0.15f),
         ),
         fallback = null,
     )
@@ -115,19 +115,19 @@ object Sheets {
      * coarse judgement repeated gives a fine figure. Here there is a single element, so the
      * precision **is** the notch's.
      *
-     * `entre les lignes` sits **just above** `precis` and not far ahead: a turn with nothing
-     * implied caps at `precis`, and that lack must cost almost nothing. `vague` is what holds
+     * `implied` sits **just above** `precise` and not far ahead: a turn with nothing
+     * implied caps at `precise`, and that lack must cost almost nothing. `vague` is what holds
      * the sheet up -- without it, the plausible answer that commits to nothing had to be
      * counted right or wrong, and both were wrong.
      */
     private val FOLLOWING = Reading.Column(
         listOf(
-            Notch("entre-les-lignes", 1.00f),
-            Notch("precis", 0.95f),
-            Notch("en-rapport", 0.80f),
-            Notch("sur-le-sujet", 0.50f),
+            Notch("implied", 1.00f),
+            Notch("precise", 0.95f),
+            Notch("on-point", 0.80f),
+            Notch("on-topic", 0.50f),
             Notch("vague", 0.25f),
-            Notch("a-cote", 0.00f),
+            Notch("off-target", 0.00f),
         ),
         fallback = null,
     )
@@ -145,9 +145,9 @@ object Sheets {
      * These are the two opposite challenges of the project: *make yourself understood* counts
      * only what changes the word, *lose your accent* counts everything.
      */
-    private val ELOCUTION = Branch("elocution", listOf(
+    private val ELOCUTION = Branch("pronunciation", listOf(
         Sheet(
-            name = "intelligibilite",
+            name = "intelligibility",
             elements = Elements.Sounds,
             // The line is where the screen's ramp saturates, and it is not measured: the
             // labelled set puts controls at 0,3 points and outright faults above 93, so
@@ -160,7 +160,7 @@ object Sheets {
             series = listOf(0.70f, 0.80f, 0.88f, 0.93f, 0.96f, 0.98f, 0.99f, 0.995f),
         ),
         Sheet(
-            name = "proximite",
+            name = "proximity",
             elements = Elements.Sounds,
             reading = Reading.Slope(from = 0f, to = 100f),
             unit = Unit.Share,
@@ -178,7 +178,7 @@ object Sheets {
          * with the learner's melody.
          */
         Sheet(
-            name = "melodie",
+            name = "melody",
             elements = Elements.Syllables,
             reading = Reading.Raw,
             unit = Unit.Semitones,
@@ -193,7 +193,7 @@ object Sheets {
          * validated.
          */
         Sheet(
-            name = "accent-lexical",
+            name = "lexical-stress",
             elements = Elements.StressedWords,
             reading = Reading.Either,
             unit = Unit.Share,
@@ -207,9 +207,9 @@ object Sheets {
      * One sheet under the aptitude, and the branch stays: a condition reads *"understanding is
      * in E"* by naming the aptitude, which a bare sheet would not let it do.
      */
-    private val UNDERSTANDING = Branch("comprehension", listOf(
+    private val UNDERSTANDING = Branch("understanding", listOf(
         Sheet(
-            name = "suivi",
+            name = "uptake",
             elements = Elements.Whole,
             reading = FOLLOWING,
             unit = Unit.NotchValue,
@@ -229,9 +229,9 @@ object Sheets {
      * for every activity** -- and it is that invariance that makes correctness checkable at
      * the bench on isolated sentences.
      */
-    private val CORRECTION = Branch("correction", listOf(
+    private val CORRECTION = Branch("correctness", listOf(
         Sheet(
-            name = "correction",
+            name = "correctness",
             elements = Elements.KeptWords,
             reading = CORRECTNESS,
             unit = Unit.Share,
@@ -242,9 +242,9 @@ object Sheets {
         ),
     ))
 
-    private val RELEVANCE_BRANCH = Branch("pertinence", listOf(
+    private val RELEVANCE_BRANCH = Branch("relevance", listOf(
         Sheet(
-            name = "pertinence",
+            name = "relevance",
             elements = Elements.KeptWords,
             reading = RELEVANCE,
             unit = Unit.Share,
@@ -257,9 +257,9 @@ object Sheets {
     /**
      * Four sheets, and **nothing is counted twice**: `continuite` owns all the silence
      * *between* words, `plus-long-silence` owns the block, `debit` reads only the time the
-     * mouth is articulating, and `remplissage-reprises` owns the hesitations.
+     * mouth is articulating, and `stumbling` owns the hesitations.
      */
-    private val FLUENCY = Branch("fluidite", listOf(
+    private val FLUENCY = Branch("fluency", listOf(
         /**
          * The share of the turn spent in silence, **minus the model's on the same sentence**,
          * in points of percentage, and it can be negative -- keeping quieter than the model is
@@ -271,7 +271,7 @@ object Sheets {
          * and a ratio turns hypersensitive there.
          */
         Sheet(
-            name = "continuite",
+            name = "continuity",
             elements = Elements.TurnTime,
             reading = Reading.Raw,
             unit = Unit.PercentPoints,
@@ -289,7 +289,7 @@ object Sheets {
          * diluted by the turn's length. The worst silence depends on nothing but itself.
          */
         Sheet(
-            name = "plus-long-silence",
+            name = "longest-silence",
             elements = Elements.Whole,
             reading = Reading.Raw,
             unit = Unit.Seconds,
@@ -307,7 +307,7 @@ object Sheets {
          * one -- an extension, not a rework.
          */
         Sheet(
-            name = "debit",
+            name = "pace",
             elements = Elements.Whole,
             reading = Reading.Raw,
             unit = Unit.Percent,
@@ -324,7 +324,7 @@ object Sheets {
          * stammers makes it mute without ever saying so, and fluency will look excellent.
          */
         Sheet(
-            name = "remplissage-reprises",
+            name = "stumbling",
             elements = Elements.SpokenWords,
             reading = STUMBLING,
             unit = Unit.Share,
@@ -357,16 +357,16 @@ object Sheets {
          * letters, and a two-valued figure makes a poor member of a mean anyway -- all or
          * nothing, no gradation, and its weight would tip a whole aptitude at once.
          */
-        Sheet("tour-interrompu", Elements.Whole, Reading.Either, Unit.Share, null, null, null),
+        Sheet("interrupted-turn", Elements.Whole, Reading.Either, Unit.Share, null, null, null),
         /**
          * The three counts. They are whole numbers, they do not normalise, and above all they
          * **climb at every attempt**: weighed into an aptitude that sends the passage back,
          * the note can never cross the bar again and the learner burns attempts with no way
          * out. A challenge that wants success first time writes it as a **condition**.
          */
-        Sheet("redites", Elements.Whole, Reading.Raw, Unit.Times, Direction.LowIsGood, null, null),
-        Sheet("reformulations", Elements.Whole, Reading.Raw, Unit.Times, Direction.LowIsGood, null, null),
-        Sheet("ecoutes", Elements.Whole, Reading.Raw, Unit.Times, Direction.LowIsGood, null, null),
+        Sheet("retakes", Elements.Whole, Reading.Raw, Unit.Times, Direction.LowIsGood, null, null),
+        Sheet("rewordings", Elements.Whole, Reading.Raw, Unit.Times, Direction.LowIsGood, null, null),
+        Sheet("listens", Elements.Whole, Reading.Raw, Unit.Times, Direction.LowIsGood, null, null),
     )
 
     /** Every node of the tree, by its path. */

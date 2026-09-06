@@ -13,7 +13,7 @@ import app.speakup.judged.unfold
  *
  * **The two halves come from two places, and neither can give the other.** The seam works out
  * *where* a word sits -- that is a reading of audio and nothing else does it -- and the judge
- * says *what* it is, `retenu` / `abandonne` / `remplissage`, which is a judgement of use and
+ * says *what* it is, `kept` / `abandoned` / `filler`, which is a judgement of use and
  * not of sound: *um* has no other employment, but *I mean*, *like*, *well* are real words. So
  * this is composed here, above both, rather than inside either.
  *
@@ -29,7 +29,7 @@ import app.speakup.judged.unfold
 fun Analysed.timed(stumbling: List<Marked>): Turn = Turn(
     // Unfolded here and against [marking]'s own text, which is the string every offset in
     // this object indexes into: the words this walks and the words the marks sit on are then
-    // the same words by construction. A turn nothing judged unfolds to every word `retenu`,
+    // the same words by construction. A turn nothing judged unfolds to every word `kept`,
     // which is the reading a judge that said nothing leaves -- the same one [Kept.of] takes.
     spoken = unfold(marking.text, stumbling, Kept.STUMBLING, Kept.KEPT).mapNotNull { word ->
         // A word no sound of the learner's decoding landed on drops out rather than being

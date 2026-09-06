@@ -39,7 +39,7 @@ data class Register(
      */
     val rampLightnessSpread: Float = 0f,
     /**
-     * The hue of the good end -- the `juste` bracket, the stress target, `entre les lignes`.
+     * The hue of the good end -- the `apt` bracket, the stress target, `implied`.
      * Green, unless the eye reading it does not separate green from red.
      */
     val goodHue: Float = 150f,
@@ -147,7 +147,7 @@ class Palette(private val register: Register) {
     // ── The two greens ──────────────────────────────────────────────────────────────────
 
     /**
-     * The good end, wherever it exists: the `juste` notch of relevance and `entre les lignes`
+     * The good end, wherever it exists: the `apt` notch of relevance and `implied`
      * of following. It is the only measure of the project that has a good end.
      */
     val green = Lch(register.rampLightness, 0.10f, register.goodHue)

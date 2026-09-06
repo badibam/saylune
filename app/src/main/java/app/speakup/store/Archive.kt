@@ -165,7 +165,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 7)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 8)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -359,13 +359,145 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+
+        /**
+         * The stored keys go English, like the code that reads them.
+         *
+         * Every one of them lives inside JSON in a text column -- lever keys and their
+         * positions in `settings`, node paths in `weights`, both again in `rules` and
+         * `journal`, and the judge's notches in `judged`. So the rewrite is a token
+         * substitution, and it is **quoted on both sides**: replacing a bare `non` would eat
+         * the first French word that contains one, in a brief the learner wrote.
+         *
+         * The list is the exact inverse of the rename, longest first so that no key is eaten
+         * by one of its own prefixes -- `redites` would otherwise swallow `redites-permises`.
+         */
+        private val KEYS_IN_ENGLISH = object : Migration(7, 8) {
+            private val moved = listOf(
+            "fluidite/remplissage-reprises" to "fluency/stumbling",
+            "fluidite/plus-long-silence" to "fluency/longest-silence",
+            "comprehension.fait-refaire" to "understanding.sends-back",
+            "elocution/intelligibilite" to "pronunciation/intelligibility",
+            "elocution/accent-lexical" to "pronunciation/lexical-stress",
+            "correction.fait-refaire" to "correctness.sends-back",
+            "reformulations-permises" to "rewordings-allowed",
+            "pertinence.fait-refaire" to "relevance.sends-back",
+            "elocution.fait-refaire" to "pronunciation.sends-back",
+            "correction/correction" to "correctness/correctness",
+            "pertinence/pertinence" to "relevance/relevance",
+            "fluidite.fait-refaire" to "fluency.sends-back",
+            "remplissage-reprises" to "stumbling",
+            "elocution/proximite" to "pronunciation/proximity",
+            "comprehension/suivi" to "understanding/uptake",
+            "fluidite/continuite" to "fluency/continuity",
+            "tour-ia.complexite" to "ai-turn.complexity",
+            "elocution/melodie" to "pronunciation/melody",
+            "tour-ia.affichage" to "ai-turn.display",
+            "plus-long-silence" to "longest-silence",
+            "tour-ia.longueur" to "ai-turn.length",
+            "redites-permises" to "retakes-allowed",
+            "armee-et-silence" to "armed-and-sending",
+            "entre-les-lignes" to "implied",
+            "intelligibilite" to "intelligibility",
+            "tour-interrompu" to "interrupted-turn",
+            "regle-et-phrase" to "rule-and-sentence",
+            "fluidite/debit" to "fluency/pace",
+            "ecoutes-modele" to "model-listens",
+            "jeter-la-prise" to "discard-take",
+            "vies.restantes" to "lives.left",
+            "cadence.valeur" to "tempo.value",
+            "accent-lexical" to "lexical-stress",
+            "reformulations" to "rewordings",
+            "tres-difficile" to "very-hard",
+            "seuil-silence" to "silence-threshold",
+            "comprehension" to "understanding",
+            "ne-se-dit-pas" to "not-said",
+            "sur-le-sujet" to "on-topic",
+            "avance.mots" to "advance.words",
+            "explication" to "explanation",
+            "pas-de-vies" to "no-lives",
+            "tres-facile" to "very-easy",
+            "remplissage" to "filler",
+            "avance.son" to "advance.sound",
+            "duree-tour" to "turn-length",
+            "continuite" to "continuity",
+            "correction" to "correctness",
+            "pertinence" to "relevance",
+            "en-rapport" to "on-point",
+            "elocution" to "pronunciation",
+            "proximite" to "proximity",
+            "qui-parle" to "speaker",
+            "explicite" to "explicit",
+            "mal-forme" to "malformed",
+            "abandonne" to "abandoned",
+            "difficile" to "hard",
+            "reecoute" to "replays",
+            "fluidite" to "fluency",
+            "brouille" to "scrambled",
+            "comptees" to "counted",
+            "poursuit" to "carries-on",
+            "interdit" to "forbidden",
+            "cadence" to "tempo",
+            "melodie" to "melody",
+            "redites" to "retakes",
+            "ecoutes" to "listens",
+            "imposee" to "set",
+            "moyenne" to "medium",
+            "present" to "some",
+            "filtre" to "filter",
+            "permis" to "allowed",
+            "attend" to "waits",
+            "courte" to "short",
+            "longue" to "long",
+            "elevee" to "high",
+            "aucune" to "none",
+            "marque" to "heavy",
+            "absent" to "none",
+            "a-cote" to "off-target",
+            "facile" to "easy",
+            "retenu" to "kept",
+            "precis" to "precise",
+            "bruit" to "noise",
+            "suivi" to "uptake",
+            "debit" to "pace",
+            "basse" to "low",
+            "texte" to "text",
+            "aucun" to "none",
+            "leger" to "light",
+            "regle" to "rule",
+            "libre" to "free",
+            "doigt" to "by-hand",
+            "armee" to "armed",
+            "moyen" to "medium",
+            "juste" to "apt",
+            "vies" to "lives",
+            "fort" to "heavy",
+            "rien" to "nothing",
+            "plat" to "flat",
+            "non" to "no",
+            "oui" to "yes",
+            )
+
+            private fun rewrite(column: String) =
+                moved.fold("`$column`") { sql, (from, to) ->
+                    "REPLACE($sql, '\"$from\"', '\"$to\"')"
+                }
+
+            override fun migrate(db: SupportSQLiteDatabase) {
+                listOf("settings", "weights", "instructions", "rules", "journal").forEach {
+                    db.execSQL("UPDATE `activities` SET `$it` = ${rewrite(it)}")
+                }
+                db.execSQL("UPDATE `utterances` SET `judged` = ${rewrite("judged")}")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
-                    SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER)
+                    SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH)
                 .build().also { instance = it }
         }
     }

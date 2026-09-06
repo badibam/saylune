@@ -48,7 +48,7 @@ data class Span(
     val to: Int,
     /** `ne-se-dit-pas`, `mal-forme` or `ok`. **Absolute**: no instruction moves them. */
     val correctness: String,
-    /** `a-cote`, `plat`, `ok` or `juste`. **Situational**, and an instruction shapes them. */
+    /** `a-cote`, `flat`, `ok` or `apt`. **Situational**, and an instruction shapes them. */
     val relevance: String,
 )
 
@@ -86,7 +86,7 @@ fun words(text: String): List<IntRange> {
  * word takes the **worst** notch it carries, worst being first in [precedence].
  *
  * **A word carrying nothing takes [fallback]**, which is a notch like any other and never an
- * absence -- `ok` for the two language scales, `retenu` for the stumbling.
+ * absence -- `ok` for the two language scales, `kept` for the stumbling.
  *
  * **The bounds must land on word boundaries.** They come from a model, so they can be wrong,
  * and a bound falling inside a word would slide the mark onto letters the judge never named.

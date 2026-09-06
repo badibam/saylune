@@ -41,17 +41,17 @@ object Sheeting {
     private fun figure(
         sheet: Sheet, judged: Judgement?, analysed: Analysed?, timed: Turn?,
     ): Float? = when (Sheets.scoredPathOf(sheet)) {
-        "elocution/intelligibilite" -> analysed?.let { sounds(it, sheet) }
-        "elocution/proximite" -> analysed?.let { sounds(it, sheet) }
-        "elocution/melodie" -> analysed?.let { melody(it) }
-        "elocution/accent-lexical" -> analysed?.let { stress(it) }
-        "comprehension/suivi" -> judged?.let { notch(sheet, it.following) }
-        "correction/correction" -> judged?.let { column(sheet, it.words().correctness) }
-        "pertinence/pertinence" -> judged?.let { column(sheet, it.words().relevance) }
-        "fluidite/continuite" -> timed?.let { Fluency.continuity(it) }
-        "fluidite/plus-long-silence" -> timed?.let { Fluency.longestSilence(it) }
-        "fluidite/debit" -> timed?.let { Fluency.rate(it) }
-        "fluidite/remplissage-reprises" -> judged?.let { column(sheet, it.words().stumbling) }
+        "pronunciation/intelligibility" -> analysed?.let { sounds(it, sheet) }
+        "pronunciation/proximity" -> analysed?.let { sounds(it, sheet) }
+        "pronunciation/melody" -> analysed?.let { melody(it) }
+        "pronunciation/lexical-stress" -> analysed?.let { stress(it) }
+        "understanding/uptake" -> judged?.let { notch(sheet, it.following) }
+        "correctness/correctness" -> judged?.let { column(sheet, it.words().correctness) }
+        "relevance/relevance" -> judged?.let { column(sheet, it.words().relevance) }
+        "fluency/continuity" -> timed?.let { Fluency.continuity(it) }
+        "fluency/longest-silence" -> timed?.let { Fluency.longestSilence(it) }
+        "fluency/pace" -> timed?.let { Fluency.rate(it) }
+        "fluency/stumbling" -> judged?.let { column(sheet, it.words().stumbling) }
         else -> null
     }
 

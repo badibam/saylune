@@ -101,13 +101,13 @@
     </plurals>
     <string name="lever_model_listens_none">Tu redis de mémoire</string>
     <string name="lever_model_listens_free">Le modèle peut être écouté à l\'infini</string>
-    <string name="lever_pace_free">Le rythme est libre</string>
-    <string name="lever_pace_set">Le rythme du modèle est imposé</string>
-    <plurals name="lever_pace_value">
+    <string name="lever_tempo_free">Le rythme est libre</string>
+    <string name="lever_tempo_set">Le rythme du modèle est imposé</string>
+    <plurals name="lever_tempo_value">
         <item quantity="one">Ta réponse dure au maximum %1$d %% du temps du modèle</item>
         <item quantity="other">Ta réponse dure au maximum %1$d %% du temps du modèle</item>
     </plurals>
-    <string name="lever_pace_value_moot">Le rythme est libre</string>
+    <string name="lever_tempo_value_moot">Le rythme est libre</string>
     <plurals name="lever_retakes">
         <item quantity="one">Le passage peut être redit %1$d fois</item>
         <item quantity="other">Le passage peut être redit %1$d fois</item>

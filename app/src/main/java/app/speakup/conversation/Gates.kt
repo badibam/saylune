@@ -30,13 +30,13 @@ import app.speakup.sheets.Sheets
 object Gates {
 
     /** The aptitudes whose failure changes the words. */
-    val WORDS = listOf("correction", "pertinence", "comprehension")
+    val WORDS = listOf("correctness", "relevance", "understanding")
 
     /** The aptitudes whose failure leaves the sentence as it is. */
-    val SOUND = listOf("elocution", "fluidite")
+    val SOUND = listOf("pronunciation", "fluency")
 
     /**
-     * The notch of `ne se dit pas`, whose presence is **an absence of ground and not a
+     * The notch of `not-said`, whose presence is **an absence of ground and not a
      * decision**: a phrase that does not exist in the language cannot be synthesised, and
      * making the model say a non-phrase would give a non-phrase to imitate.
      */
@@ -106,7 +106,7 @@ object Gates {
      * the words' gate is settable -- an activity chooses which aptitudes it sends back -- this
      * one is not negotiable.
      *
-     * **`mal formé` is not in this case**, and putting it there was tried: one grammar fault in
+     * **`malformed` is not in this case**, and putting it there was tried: one grammar fault in
      * a thirty-word turn would kill the whole sound analysis, and a learner makes one nearly
      * every turn, so pronunciation would almost never be measured. It closes by the
      * **correctness note**, like everything else.
@@ -120,7 +120,7 @@ object Gates {
      * **Only one is at *yes* in a free conversation**: correctness.
      */
     private fun sendsBack(aptitude: String, settings: Positions): Boolean =
-        (settings.of("$aptitude.fait-refaire") as? At)?.name == "oui"
+        (settings.of("$aptitude.sends-back") as? At)?.name == "yes"
 
     /**
      * Whether the note of [aptitude] falls under the bar.
