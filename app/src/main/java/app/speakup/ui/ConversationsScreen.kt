@@ -19,12 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import app.speakup.R
+import app.speakup.activity.Definitions
 import app.speakup.conversation.TurnPipeline
 import app.speakup.store.ActivityRow
+import app.speakup.store.Sitting
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Date
+import java.util.Locale
 
 /**
  * Every conversation, most recent first, and the way to start another.
@@ -34,9 +38,14 @@ import java.util.Date
  * conversation but the one being had, and a filter on status would hide the list. Sorting and
  * filtering are for later.
  *
- * A row shows the name the model gave the conversation and when it started. The name is the
- * activity's matter, which for a conversation is what is being talked about -- and it arrives
- * on the first answer, so only a conversation nobody has spoken in yet has none.
+ * A row shows **the name of the definition it came from**, and when it started. Nothing here
+ * is named by the model any more: what a sitting is called is decided by the file it was
+ * opened from, before a word is said.
+ *
+ * **This screen is the catalogue the proof of concept left behind**, and it is on its way out:
+ * the free door is to show one tile per shipped definition rather than one row per sitting
+ * (`docs/design/pixel-ui.md`). It stays until those tiles exist, because it is the only way to
+ * reach a conversation that is not the open one.
  */
 @Composable
 fun ConversationsScreen(
@@ -80,16 +89,24 @@ fun ConversationsScreen(
 
 @Composable
 private fun Row(row: ActivityRow, current: Boolean, onOpen: () -> Unit) {
+    val context = LocalContext.current
+    val language = Locale.getDefault().language
     Column(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(vertical = 10.dp),
     ) {
+        val named = row.origin?.let { origin ->
+            runCatching {
+                Definitions.of(context, Sitting.readOrigin(origin).definition)
+                    .title.inLanguage(language)
+            }.getOrNull()
+        }
         Text(
-            row.matter.ifBlank { stringResource(R.string.conversation_unnamed) },
+            named ?: stringResource(R.string.conversation_unnamed),
             style = MaterialTheme.typography.bodyLarge,
             // The one being had is marked rather than hidden: opening it again is harmless,
             // and a list that leaves out where you are is a list you cannot read yourself in.
             fontWeight = if (current) FontWeight.Bold else FontWeight.Normal,
-            color = if (row.matter.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (named == null) MaterialTheme.colorScheme.onSurfaceVariant
                     else MaterialTheme.colorScheme.onSurface,
         )
         Text(

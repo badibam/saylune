@@ -67,6 +67,7 @@ object Definitions {
             id = id,
             version = version,
             title = text(file.getJSONObject("title")),
+            short = text(file.getJSONObject("short")),
             brief = file.optJSONObject("brief")?.let { Sitting.readBrief(it.toString()) },
             cast = file.optJSONArray("cast").objects().map {
                 Character(it.getString("key"), text(it.getJSONObject("short")))

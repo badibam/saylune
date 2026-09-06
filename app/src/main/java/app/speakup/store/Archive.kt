@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.Flow
 @Entity(tableName = "activities")
 data class ActivityRow(
     @PrimaryKey val id: String,
-    val matter: String,
     /**
      * Where every lever of this sitting sits, written out.
      *
@@ -167,7 +166,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 9)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 10)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -516,13 +515,49 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * The subject leaves the line: nothing names a sitting but its definition.
+         *
+         * The column held a label the model wrote, which was the proof of concept's only
+         * descriptive field and has no reader left -- a sitting is identified by the file it
+         * was opened from. The labels go with it; what those conversations were is in their
+         * turns, which nothing here touches.
+         *
+         * The table is rebuilt rather than altered: dropping a column arrived in SQLite 3.35
+         * and `minSdk` 26 ships 3.18.
+         */
+        private val NAMED_BY_ITS_DEFINITION = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE `activities_new` (`id` TEXT NOT NULL, " +
+                        "`settings` TEXT NOT NULL, `brief` TEXT, `weights` TEXT, `cast` TEXT, " +
+                        "`instructions` TEXT NOT NULL, `rules` TEXT NOT NULL, " +
+                        "`journal` TEXT NOT NULL, `origin` TEXT, `engine` INTEGER NOT NULL, " +
+                        "`status` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                        "`startedAt` INTEGER, `endedAt` INTEGER, `prescriber` TEXT NOT NULL, " +
+                        "`outcome_verdict` TEXT, `outcome_judge` TEXT, `outcome_at` INTEGER, " +
+                        "`outcome_says` TEXT, `outcome_score` INTEGER, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "INSERT INTO `activities_new` SELECT `id`, `settings`, `brief`, `weights`, " +
+                        "`cast`, `instructions`, `rules`, `journal`, `origin`, `engine`, " +
+                        "`status`, `createdAt`, `startedAt`, `endedAt`, `prescriber`, " +
+                        "`outcome_verdict`, `outcome_judge`, `outcome_at`, `outcome_says`, " +
+                        "`outcome_score` FROM `activities`",
+                )
+                db.execSQL("DROP TABLE `activities`")
+                db.execSQL("ALTER TABLE `activities_new` RENAME TO `activities`")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(
                 context.applicationContext, Archive::class.java, "archive",
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
-                    SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH, CAST_ON_THE_LINE)
+                    SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH, CAST_ON_THE_LINE,
+                    NAMED_BY_ITS_DEFINITION)
                 .build().also { instance = it }
         }
     }

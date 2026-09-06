@@ -42,7 +42,6 @@ class SittingTest {
     ))
 
     private fun sitting() = Activity(
-        matter = "the barman",
         settings = set,
         origin = Origin("pub/opening", "1.4.0"),
         journal = listOf(Chosen("R1", passage = 3, pack = 1, at = 1_700_000L)),

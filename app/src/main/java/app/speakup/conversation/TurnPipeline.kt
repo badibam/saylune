@@ -506,7 +506,6 @@ class TurnPipeline(
             )
         }
         Trace.add("conversation: opened", "activity" to activity.id,
-                  "titled" to activity.matter.ifBlank { null },
                   "utterances" to _state.value.utterances.size.toString())
     }
 
@@ -604,7 +603,6 @@ class TurnPipeline(
             val reply = conversation.reply(
                 _state.value.history(), heard,
                 scene = Scene(
-                    titled = _state.value.activity.matter.ifBlank { null },
                     brief = _state.value.activity.brief,
                     cast = _state.value.activity.cast,
                 ),
@@ -690,11 +688,6 @@ class TurnPipeline(
 
             // A new name arrives only when there is a reason for one; any other turn leaves
             // the conversation called what it was called.
-            // **A name that is already there is never replaced, and the code is what says
-            // so.** The prompt asks for nothing once there is one, which saves the tokens;
-            // this is what makes it true, and it is what a scene named by its definition
-            // rests on -- an instruction is asked, a line of code is done.
-            reply.about?.takeIf { _state.value.activity.matter.isBlank() }?.let { name(it) }
 
             if (closing != null || groundless) {
                 Trace.add(
@@ -1015,24 +1008,6 @@ class TurnPipeline(
             write(again.id)
         } catch (failure: ChainFailure) {
             Trace.fail("redo: could not be measured", "why" to failure.message)
-        }
-    }
-
-    /**
-     * Call the conversation [title], and keep it called that.
-     *
-     * The title is the activity's **matter**, not a field of its own: the design says the
-     * matter of a conversation is what is being talked about, which is exactly what a title
-     * says in a few words. Two fields for one idea would be two things to keep in step.
-     *
-     * Under the writer and never taking it itself: it is called from inside a turn, which
-     * already holds it.
-     */
-    private suspend fun name(title: String) {
-        val named = _state.value.activity.copy(matter = title)
-        _state.update { it.copy(activity = named) }
-        runCatching { archive.update(named.row()) }.onFailure {
-            Trace.fail("archive: the new title was not kept", "why" to it.message)
         }
     }
 

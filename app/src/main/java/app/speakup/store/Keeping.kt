@@ -25,7 +25,6 @@ import java.io.File
 
 internal fun Activity.row() = ActivityRow(
     id = id,
-    matter = matter,
     settings = Sitting.write(settings),
     brief = brief?.let { Sitting.write(it) },
     weights = weights?.let { Sitting.write(it) },
@@ -45,7 +44,6 @@ internal fun Activity.row() = ActivityRow(
 
 internal fun ActivityRow.activity() = Activity(
     id = id,
-    matter = matter,
     settings = Sitting.readPositions(settings),
     brief = brief?.let { Sitting.readBrief(it) },
     weights = weights?.let { Sitting.readWeights(it) },

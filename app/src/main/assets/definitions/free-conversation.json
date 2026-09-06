@@ -1,8 +1,12 @@
 {
   "id": "free-conversation",
   "title": {
-    "en": "Speakup",
-    "fr": "Speakup"
+    "en": "Free conversation",
+    "fr": "Conversation libre"
+  },
+  "short": {
+    "en": "Free",
+    "fr": "Libre"
   },
   "brief": {
     "situation": "",

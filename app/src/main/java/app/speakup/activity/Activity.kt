@@ -15,9 +15,9 @@ import java.util.UUID
  * indirection that nothing had a use for.
  *
  * **The conversation is one of these**, in the same table and with the same fields, and every
- * field means something for it: its matter is what is being talked about, its settings are
- * the ones set for the sitting, its status says whether it is still open, its outcome adds up
- * like any other. What sets it apart is how it behaves, never its shape -- its thread is just
+ * field means something for it: its settings are the ones set for the sitting, its status says
+ * whether it is still open, its outcome adds up like any other. What it is called is its
+ * definition's business and not a field here -- nothing in the app is named by the model. What sets it apart is how it behaves, never its shape -- its thread is just
  * the ordered run of its utterances, so no field carries it.
  *
  * *Naming*: this shares a name with `android.app.Activity`, which one debug screen imports.
@@ -25,15 +25,6 @@ import java.util.UUID
  * with a class that never meets it costs more at every reading than it saves once.
  */
 data class Activity(
-    /**
-     * What the activity is about, as free text.
-     *
-     * Free text on purpose, plus structured pointers only where they come for nothing -- the
-     * sounds, which the analysis already returns coded. Telling two activities that bear on
-     * the same thing apart is reading work, which the language model does; making it schema
-     * work would cost a closed vocabulary and buy less than it costs.
-     */
-    val matter: String = "",
     /**
      * What opens the sitting: the situation, and the staging only the character sees.
      *

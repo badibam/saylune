@@ -86,14 +86,28 @@ class DefinitionTest {
         }
     }
 
+    /** Two names, two budgets: only the short one answers to the status line's ten columns. */
     @Test
-    fun `a short title over the line the status line leaves fails`() {
+    fun `a short name over what the status line leaves fails`() {
         assertThrows(IllegalArgumentException::class.java) {
             Definitions.parse(
                 "some-scene", VERSION,
-                minimal().replace(""""en": "Scene"""", """"en": "A far longer title""""),
+                minimal().replace(
+                    """"short": { "en": "Scene" }""",
+                    """"short": { "en": "A far longer name" }""",
+                ),
             )
         }
+    }
+
+    /** The long one has no ceiling: a tile has room a status line does not. */
+    @Test
+    fun `a long name is not held to the short one's line`() {
+        val long = Definitions.parse(
+            "some-scene", VERSION,
+            minimal().replace(""""title": { "en": "Scene" }""", """"title": { "en": "A far longer name" }"""),
+        )
+        assertEquals("A far longer name", long.title.inLanguage("en"))
     }
 
     /** A shape of answer this build does not know fails outright rather than being dropped. */
@@ -128,6 +142,7 @@ class DefinitionTest {
         {
           "id": "some-scene",
           "title": { "en": "Scene" },
+          "short": { "en": "Scene" },
           $extra
           "weights": { ${
         Sheets.tree.children.joinToString(",") { branch ->

@@ -35,8 +35,7 @@ interface Conversation {
      * from the kept audio file rather than asking for the sentence again.
      *
      * [scene] is what this activity is, frozen at launch: who is speaking and what is being
-     * played. Its name is sent every turn and comes back only while there is none -- see
-     * [Reply.about].
+     * played: who is speaking, and what is being played.
      */
     suspend fun reply(
         history: List<Exchange>, heard: List<Word>, scene: Scene, present: Present = Present(),
@@ -88,11 +87,11 @@ data class Present(
  * the app is and what it returns; who is speaking comes from the definition, where an author
  * can write someone else.
  *
- * [titled] is the name this sitting goes by: a definition's own for a scene, and what the
- * model called it for a conversation that had no name. Once set it does not move.
+ * **The name is not here**, because the model has no use for one: what a sitting is called is
+ * a label on a tile, decided by the file it came from, and the brief already says everything
+ * about the scene that the character has to know.
  */
 data class Scene(
-    val titled: String? = null,
     val brief: Brief? = null,
     val cast: List<Character> = emptyList(),
 )
@@ -129,17 +128,4 @@ data class Reply(
      * models do best; calibrating a fresh constraint is not.
      */
     val choice: String?,
-    /**
-     * What the conversation is about, **and only ever for one that has no name yet**.
-     *
-     * It fills the activity's `matter` and not a title of its own, which is why it is not
-     * called one: a definition's title is a declared short name for the status line, and this
-     * is the subject of a conversation nobody named. Null is the ordinary answer and the field
-     * is ordinarily absent.
-     *
-     * **What holds a declared name still is the code and not this instruction.** The prompt
-     * asks for nothing once there is a name, which saves the tokens; the pipeline ignores one
-     * that comes anyway, which is what makes it true.
-     */
-    val about: String? = null,
 )

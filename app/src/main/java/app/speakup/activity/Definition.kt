@@ -32,12 +32,22 @@ data class Definition(
     /** The release's, inherited for nothing. Also named by [Origin]. */
     val version: String,
     /**
-     * The short title the status line carries, ten characters at most.
+     * The name of this activity, as a tile and a heading carry it.
      *
-     * Truncated at display in any case; declaring it lets the author choose what survives the
-     * truncation rather than suffer it (`pixel-ui.md`, "La charpente").
+     * **Every definition names itself**, the plainest one included -- the tile with no theme
+     * is called *Free*. So nothing in the app is anonymous, and no model ever names anything:
+     * what a sitting is called is decided by the file it came from, before a word is said.
      */
     val title: Text,
+    /**
+     * The same name cut to what the status line has room for, ten characters at most.
+     *
+     * **Two readers, two budgets**: a tile takes half the width of a portrait screen, the
+     * status line takes what is left once the lives, the score and the note are laid out on
+     * its right. Declaring both lets the author choose what survives the cut rather than
+     * suffer a truncation (`pixel-ui.md`, "La charpente").
+     */
+    val short: Text,
     /** What opens the sitting. Null in a free conversation, whose brief comes from the learner. */
     val brief: Brief? = null,
     /** Who speaks, besides the learner. */
@@ -75,8 +85,8 @@ data class Definition(
         require(cast.none { it.key == Speaker.LEARNER }) {
             "${Speaker.LEARNER} is the learner's own key and a character may not take it"
         }
-        require(title.byLanguage.values.all { it.length <= TITLE_LIMIT }) {
-            "$id: a short title over $TITLE_LIMIT characters"
+        require(short.byLanguage.values.all { it.length <= SHORT_LIMIT }) {
+            "$id: a short name over $SHORT_LIMIT characters"
         }
         require(cast.map { it.key }.toSet().size == cast.size) { "$id: two characters, one key" }
         require(questions.map { it.key }.toSet().size == questions.size) {
@@ -86,7 +96,7 @@ data class Definition(
 
     companion object {
         /** What the status line has room for once the right-hand fields are full. */
-        const val TITLE_LIMIT = 10
+        const val SHORT_LIMIT = 10
     }
 }
 

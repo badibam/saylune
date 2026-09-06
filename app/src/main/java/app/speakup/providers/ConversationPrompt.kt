@@ -139,13 +139,6 @@ internal object ConversationPrompt {
         line that picks the slip up and hands the sentence back, in your own voice, the way
         a native speaker would. To "I have twenty five years": "Ah, you're
         twenty-five!". Leave the field out entirely when nothing was marked.
-
-        "about": include this field only when part 2 says this conversation has no name
-        yet **and** you can now tell what it is about -- which is usually not on the first
-        turn. Six words at most, in English, no full stop. On every other turn leave the
-        field out entirely, and never send a new one for a conversation that is already
-        named: a name that changes is a name nobody can recognise in a list, which is the
-        one thing it is for.
     """.trimIndent()
 
     /**
@@ -168,17 +161,6 @@ internal object ConversationPrompt {
         if (scene.cast.size > 1) {
             lines += "Say who is speaking, by key, among: " +
                 scene.cast.joinToString(", ") { it.key }
-        }
-        // **Named or not, and nothing in between.** A scene is named by its definition before
-        // a word is said, so it is never asked; a free conversation is asked until it has a
-        // name and never again. One rule, and it does not have to know which kind it is
-        // looking at -- only whether what it has in front of it is named.
-        lines += when {
-            scene.titled.isNullOrBlank() ->
-                "This conversation has no name yet. Send an \"about\" when you can tell " +
-                    "what it is about."
-            else -> "This conversation is called: ${scene.titled}. That is its name; " +
-                "do not send another."
         }
         return lines.joinToString("\n\n")
     }

@@ -66,21 +66,6 @@ class ConversationPromptTest {
         assertTrue(ConversationPrompt.activity(several).contains("Say who is speaking"))
     }
 
-    // ── A name is asked for once, and only where there is none ──────────────────────────
-
-    /**
-     * The rule does not have to know what kind of activity it is looking at, only whether what
-     * it has is named: a scene is named by its definition before a word is said, a free
-     * conversation until the model finds one.
-     */
-    @Test
-    fun `a name is asked for only while there is none`() {
-        assertTrue(ConversationPrompt.activity(Scene(titled = null)).contains("no name yet"))
-        val named = ConversationPrompt.activity(Scene(titled = "The interview"))
-        assertTrue(named.contains("The interview"))
-        assertTrue(named.contains("do not send another"))
-    }
-
     // ── Part 4 says where the conversation stands ───────────────────────────────────────
 
     @Test
