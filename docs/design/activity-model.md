@@ -810,8 +810,6 @@ Sur *« It was, like, um, I went to the— I was going to the store »* : quator
 
 **Découper l'audio de l'apprenant pour n'en garder que les huit mots est refusé** par un invariant déjà écrit : rien ne se fait à un seul des deux audios (`../reference.md`). Et ça empirerait le problème de couture ci-dessous.
 
-**La couture de l'analyse gagne donc un paramètre** — `examine(said, model, text, kept)`. `text` reste la chaîne affichée, celle où toutes les marques s'indexent, et elle porte maintenant les hésitations ; `kept` dit les morceaux qui comptent, ceux sur lesquels le modèle a été synthétisé. Sans hésitation, `kept` couvre tout le texte et le comportement est celui d'aujourd'hui. C'est le seul endroit où « deux enregistrements de la même phrase » (`analysis/Analysis.kt`) cesse d'être exact : les deux audios ne portent plus le même texte, l'un contenant l'autre.
-
 **Prix assumé : aux coutures, un ou deux sons sont comparés hors de leur contexte.** Le *I* retenu qui suit un *the* abandonné n'a pas devant lui ce que le modèle a devant le sien, et un son est influencé par celui qui le précède. Ça ne se propage pas — une faute ne contamine pas la suite de la phrase (`../analysis.md`, brique 11) — et la redite l'annule, une phrase dite d'un trait n'ayant plus de couture. C'est une raison de plus de faire redire un tour hésitant.
 
 **Le bafouillage ne coupe pas l'analyse du son.** Ce qui la coupe est que la phrase va être *réécrite* : les mots changent, donc l'analyse porterait sur du texte mort. Ici les mots retenus sont les bons, ils ont seulement été dits en trébuchant. L'analyse tourne, au prix des coutures.

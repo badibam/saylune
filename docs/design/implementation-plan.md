@@ -51,16 +51,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ## Les étapes
 
-### 9. La couture d'analyse
-
-Les quatre feuilles calculées sont écrites (`fluency/Fluency.kt`), et la traduction d'un offset du texte retenu vers le tour entier aussi (`judged/Kept.kt`). Ce qui reste est de les brancher.
-
-**Ce que ça fait.** `examine(said, model, text, kept)` : `text` reste la chaîne affichée où toutes les marques s'indexent et porte les hésitations, `kept` dit les morceaux sur lesquels le modèle a été synthétisé. Le modèle ne se synthétise plus que sur le texte retenu ; sa grille se joint à ce texte-là, et ses offsets reviennent au tour entier **avant** `Added.found`, qui compare les deux jonctions et exige qu'elles soient dans le même repère — la jonction de l'apprenant, elle, se fait sur le texte entier, puisqu'il a tout dit. Puis les **temps par mot** se tirent des sons (`saidMs`, `modelMs` et leurs offsets de caractères) pour remplir `Fluency.Turn`.
-
-**Ce qui se prouve.** Que les marques restent sur leurs lettres quand le tour porte des hésitations — c'est-à-dire que le remap est bien posé avant ce qui compare les deux jonctions.
-
-**Avec l'humain.** Le **seuil de la pause**, que le doc pose à 200 ms et veut au-dessus de la plus longue fermeture d'occlusive. Il est mesurable sur les prises gardées du téléphone, qui portent les temps par son : à faire plutôt qu'à laisser posé à la main.
-
 ### 10. La capture en trois positions et l'audio en segments
 
 **Ce que ça fait.** Un tour devient une **liste de segments** — une durée de silence, ou de l'audio, le silence jamais stocké en échantillons —, chaque segment de parole gardant sa marge de vrai audio, et rien de silencieux ne part au réseau. Les trois positions : l'ouverture à la main, l'armement automatique, l'armement avec envoi au silence de plus de x. **Toutes s'ouvrent d'un appui** — `ui/ConversationScreen.kt` et `TurnRecorder` tiennent aujourd'hui le doigt enfoncé (`detectTapGestures`, `hold`/`release`), et ça devient appuyer, rappuyer pour la pause, rappuyer pour reprendre. La pause n'existe qu'à la première position, donc `PAUSE` est un bouton à part, absent des deux autres. `PAUSE` et `ENVOYER` commandent tout ce qui enregistre, lancé par le gros bouton ou par le petit d'un passage, et la ligne d'état nomme lequel tourne — sans ce nom, deux boutons partagés seraient ambigus. **Le micro ne s'arme pas tout seul tant qu'un passage attend une reprise**, ce qui recrée l'appui sur lequel un passage se ferme. La préparation, les deux décomptes visibles, le symbole d'enregistrement. Le levier `jeter-la-prise`, qui gouverne enfin le bouton *Redo* que `ui/ConversationScreen.kt` porte déjà sans que rien ne le règle, et qui est sans objet à la troisième position. Chaque tour porte **sa position de capture** et **comment il s'est fini**, envoyé ou interrompu et par laquelle des deux horloges. Le retrait des plages vides. Migration Room sur `utterances`.
