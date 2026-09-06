@@ -112,8 +112,8 @@
     <string name="lever_pace_free">The pace is free</string>
     <string name="lever_pace_set">The model\'s pace is set</string>
     <plurals name="lever_pace_value">
-        <item quantity="one">The turn must fit in %1$d%% of the model\'s time</item>
-        <item quantity="other">The turn must fit in %1$d%% of the model\'s time</item>
+        <item quantity="one">Your answer lasts at most %1$d%% of the model\'s time</item>
+        <item quantity="other">Your answer lasts at most %1$d%% of the model\'s time</item>
     </plurals>
     <string name="lever_pace_value_moot">The pace is free</string>
     <plurals name="lever_retakes">
@@ -133,7 +133,7 @@
     <string name="lever_ai_display_text">What is said is shown</string>
     <string name="lever_ai_display_scrambled">Only the shape of what is said is shown</string>
     <string name="lever_ai_display_speaker">Only who speaks is shown</string>
-    <string name="lever_ai_display_nothing">Nothing is shown</string>
+    <string name="lever_ai_display_nothing">Neither the answer nor the speaker is shown</string>
     <plurals name="lever_replay">
         <item quantity="one">The turn can be heard again %1$d time</item>
         <item quantity="other">The turn can be heard again %1$d times</item>

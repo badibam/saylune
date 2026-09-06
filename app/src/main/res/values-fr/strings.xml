@@ -94,8 +94,8 @@
     <string name="lever_pace_free">Le rythme est libre</string>
     <string name="lever_pace_set">Le rythme du modèle est imposé</string>
     <plurals name="lever_pace_value">
-        <item quantity="one">Le tour doit tenir en %1$d %% du temps du modèle</item>
-        <item quantity="other">Le tour doit tenir en %1$d %% du temps du modèle</item>
+        <item quantity="one">Ta réponse dure au maximum %1$d %% du temps du modèle</item>
+        <item quantity="other">Ta réponse dure au maximum %1$d %% du temps du modèle</item>
     </plurals>
     <string name="lever_pace_value_moot">Le rythme est libre</string>
     <plurals name="lever_retakes">
@@ -115,7 +115,7 @@
     <string name="lever_ai_display_text">Ce qui est dit s\'affiche</string>
     <string name="lever_ai_display_scrambled">Seule la forme de ce qui est dit s\'affiche</string>
     <string name="lever_ai_display_speaker">Seul le nom de qui parle s\'affiche</string>
-    <string name="lever_ai_display_nothing">Rien ne s\'affiche</string>
+    <string name="lever_ai_display_nothing">La réponse et le personnage ne s\'affichent pas</string>
     <plurals name="lever_replay">
         <item quantity="one">Le tour peut être réécouté %1$d fois</item>
         <item quantity="other">Le tour peut être réécouté %1$d fois</item>
