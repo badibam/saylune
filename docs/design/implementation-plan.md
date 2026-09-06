@@ -37,7 +37,7 @@ Repris de la décision du 2026-09-05, plus ce que cette session y ajoute. Le cri
 
 Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'une valeur qu'un banc réglera plus tard passe par lui ; la forme du code, l'arithmétique et ce que les docs ont déjà tranché, non. Chaque étape porte sa liste ; voici la règle qui les gouverne.
 
-**Avec lui** : la norme de la correction et la frontière d'`intended` ; les colonnes des trois marquages jugés ; les séries de chaque feuille et le nombre de positions de sensibilité ; l'arbre des poids de la conversation libre ; les phrases lisibles de chaque position de levier ; les valeurs des deux palettes et de la rechange daltonisme ; le facteur d'échelle ; la liste des glyphes et leur dessin ; la forme de la charpente ; ce que la fenêtre d'attente porte en conversation libre ; ce que chaque mesure lit de l'audio ; le format d'un fichier de définition ; le levier à tirer si la latence est mauvaise.
+**Avec lui** : la norme de la correction et la frontière d'`intended` ; les colonnes des trois marquages jugés ; les séries de chaque feuille et le nombre de positions de sensibilité ; l'arbre des poids de la conversation libre ; les phrases lisibles de chaque position de levier ; les valeurs des deux palettes et de la rechange daltonisme ; le facteur d'échelle ; la liste des glyphes et leur dessin ; ce que la fenêtre d'attente porte en conversation libre ; ce que chaque mesure lit de l'audio ; le format d'un fichier de définition ; le levier à tirer si la latence est mauvaise.
 
 **Sans lui** : la forme des types, le schéma Room et ses migrations, le parsing du contrat, toute l'arithmétique, la résolution par vagues, quels tests s'écrivent, la mécanique du thème, le rendu du marquage et toutes les valeurs que `pixel-ui.md` a déjà réglées à l'œil, l'emplacement des fichiers, l'ordre des commits dans une étape, et la notation des provisoires au TODO.
 
@@ -50,14 +50,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 - **La persistance n'est pas une étape, c'est une couture** : un champ neuf s'écrit en base dans l'étape qui le crée. Trois migrations en sortent, aux étapes 3, 10 et 11, manuelles et conservées indéfiniment.
 
 ## Les étapes
-
-### 15. La charpente, les cadres, les descendantes
-
-**Ce que ça fait.** Deux objets distincts remplacent la rangée de boutons de `MainActivity.Root` : une **ligne d'état** en haut, une **barre d'actions** en bas, deux lignes de grille en permanence, les actions là où est le pouce, et un endroit pour ce que `reference.md` exige partout — qu'une chose indisponible porte sa raison. Le narrateur d'état existe déjà : c'est le `Text` de `ui/ConversationScreen.kt` qui dit *hearing*, *thinking*, *speaking*. Il monte dans la seconde ligne du haut, dans son cadre, toujours pleine, et il gagne les raisons. La pile de navigation qui descend, les quatre écrans actuels étant un interrupteur à quatre positions. Les cadres, écrits en caractères : la police porte déjà ses seize pièces à partir de U+E000, en deux tons par superposition de deux couches de texte, à poser sur un pas de rangée de 11.
-
-**Ce qui se prouve.** La règle du cadre, vérifiée en écrivant un écran : si une chose est encadrée, on doit pouvoir dire ce qu'on fait avec ; sinon c'est un aplat. Jamais l'écran entier, jamais le fil ni le tour marqué.
-
-**Tranché le 2026-09-06**, et écrit dans `pixel-ui.md` (« La charpente ») : la règle de partage — en haut ce qui est vrai, en bas ce qu'on peut faire —, les deux lignes du haut, la barre d'actions d'une ligne en bas, et le fait qu'un dessin fin n'oblige pas à une cible tactile fine.
 
 ### 16. Le tour marqué redessiné
 

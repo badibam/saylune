@@ -137,6 +137,8 @@ Les quatre marques du suivi, du débit, des pauses et du remplissage n'ajoutent 
 
 **Un cadre dit « objet ».** Un menu, une boîte de dialogue, une carte d'activité, l'élément sélectionné. Jamais l'écran entier — deux colonnes de chaque côté sur les 32 disponibles, payées le plus cher sur le plus petit écran — et jamais le fil de conversation ni le tour marqué, qui ont besoin de toute la largeur. La règle se vérifie en écrivant un écran : si une chose est encadrée, on doit pouvoir dire ce qu'on fait avec ; sinon c'est un aplat.
 
+**Un cadre fait deux rangées au minimum, et une ligne de texte encadrée en coûte donc deux et pas trois** (établi le 2026-09-07 en l'écrivant). Quatre pixels de bordure, la boîte de quatorze rangées de la police, quatre pixels de bordure : vingt-deux, la tuile deux fois. C'est ce qui fait tenir les deux lignes du haut. En largeur, le contenu est décalé d'une cellule entière de chaque côté, la bordure laissant sept pixels d'air à l'intérieur sans qu'on les demande.
+
 **Un panneau peut n'être qu'un aplat**, un pavé de fond plus clair calé sur les cellules. C'est la forme la plus douce dont on dispose, puisqu'un aplat n'a pas d'arête à adoucir.
 
 ## Le texte de l'IA
