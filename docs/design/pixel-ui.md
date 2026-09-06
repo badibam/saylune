@@ -227,14 +227,14 @@ Recompté le 2026-09-06 sur le pire écran, et le cas se détend : l'étiquette 
 
 | entrée | largeur |
 |---|---|
-| le petit bouton, `SAY` / `DIS` — son étiquette dit la porte du moment | 3 |
+| le petit bouton, le **micro**, dans un cadre | 3 |
 | l'écoute, le triangle | 1 |
 | le côté que l'écoute atteint, `ME` / `AI`, une seule étiquette qui bascule | 2 |
 | la vitesse, `×1` `×½` `×⅓`, une seule étiquette qui cycle | 2 |
 | les notes du passage | 1 |
 | l'analyse des sons, la loupe | 1 |
 
-Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire écran. Le petit bouton n'apparaît que sur le passage ouvert, les tentatives s'arrêtant à la clôture (`activity-model.md`) ; les cinq autres entrées valent sur tout passage qui porte un enregistrement.
+Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire écran. **Le petit bouton garde ses trois colonnes en devenant un glyphe** (tranché le 2026-09-06) : un micro dans un cadre, là où les cinq autres entrées sont nues. Ce que le cadre achète est de le distinguer d'une rangée où tout le reste écoute ou règle — il est le seul à ouvrir le micro. Et ce que le glyphe évite est une largeur qui dépend de l'état : une étiquette qui aurait dit la porte du moment ferait 3 colonnes en `DIS` et 9 en `REFORMULE`, donc 21 sur 21 en français, et surtout elle **décalerait les cinq autres entrées** à chaque fois qu'une porte se ferme. Une rangée dont la géométrie dépend de l'état est ce que la grille existe pour empêcher. La flèche circulaire n'était pas libre : elle recommence l'enregistrement en capture à la main. Le petit bouton n'apparaît que sur le passage ouvert, les tentatives s'arrêtant à la clôture (`activity-model.md`) ; les cinq autres entrées valent sur tout passage qui porte un enregistrement.
 
 **Le petit bouton se comporte comme le gros** : un appui lance, il se montre actif, et ce qui suit — la pause, l'envoi — est en bas. Un seul comportement à apprendre pour les deux, ce qui est tout l'intérêt d'avoir mis les trois positions de capture au même geste.
 
@@ -246,7 +246,9 @@ Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire
 
 **Tout s'ouvre d'un appui**, aux trois positions de capture, la première ayant cessé de se tenir au doigt maintenu (`activity-model.md`, tranché le 2026-09-06). C'est ce qui permet à `MON TOUR` d'exister partout du même geste : sans ça, un bouton qui sert dans deux régimes de capture aurait deux comportements que rien à l'écran n'annonce.
 
-**Le gros bouton dit un tour de parole et pas une page suivante** : il ferme le passage précédent et ouvre le mien, ce qui est exactement ce qui se passe. Il forme un couple lisible avec le petit — `DIS` reprend la même phrase, `MON TOUR` en dit une neuve. `CONTINUER` a été écarté, qui laisserait croire qu'on saute un tour. Grisé, il porte ce qui manque pour qu'il redevienne possible — *reformule d'abord*, *redis d'abord* — pendant que la ligne d'état du haut porte la raison.
+**Le gros bouton dit un tour de parole et pas une page suivante** : il ferme le passage précédent et ouvre le mien, ce qui est exactement ce qui se passe. Il forme un couple lisible avec le petit — le petit reprend la même phrase, `MON TOUR` en dit une neuve. `CONTINUER` a été écarté, qui laisserait croire qu'on saute un tour.
+
+**Grisé, il ne dit rien de plus, et c'est la ligne d'état qui porte la raison** (tranché le 2026-09-06). Il portait *reformule d'abord* ; ça contredisait la règle plus forte et plus répétée d'un cran au-dessus — **chacun dit une chose et une seule** —, celle-là même qui a sorti `PAUSE` du gros bouton. Un `MON TOUR` grisé qui affiche autre chose est une seconde personnalité. La règle du projet, qu'une chose indisponible porte sa raison, reste tenue : la ligne d'état la porte, et sur un écran où le gros bouton fait trois lignes en bas et la ligne d'état deux en haut, les deux se voient ensemble. **Le partage vaut pour tous les boutons** : ce qu'on peut faire est dit par le grisage, ce qu'il faut faire par la ligne d'état — la porte du moment, *reformule-la* ou *redis-la*, et le compte restant.
 
 **`ENVOYER` existe aux trois positions de capture**, et pas seulement aux deux à envoi manuel : le doc du modèle d'activité dit de la troisième que « le clic reste le geste normal », le silence n'y étant que le filet qui rattrape un tour que personne n'envoie. Ce qui change d'une position à l'autre est ce qui **arme** le micro, jamais ce qui envoie.
 
