@@ -69,12 +69,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 **Ce que ça laisse dû.** La séparation des quatre crans en registre clair est une mesure à refaire, pas un réglage à recopier.
 
-### 8. Les notes : séries, fenêtres, A–E, agrégation à plat
-
-**Ce que ça fait.** Un nombre de 0 à 1, les cinq lettres découpant l'échelle en cinquièmes égaux, la barre A/B à 0,60 par construction. Les quarts de bande donnant le modifieur, d'affichage seulement, jamais stocké et jamais nommé par une condition. Une position de sensibilité est une fenêtre de quatre bornes consécutives dans la série de la feuille. L'agrégation se fait **une fois, à plat** : les poids se multiplient en descendant, chaque feuille pèse par la longueur du passage en mots retenus — sauf le suivi, qui pèse sur la difficulté du tour de l'IA —, et une feuille absente sort de la somme sans jamais valoir zéro. On garde les nombres et les crans en base, jamais les lettres.
-
-**Ce qui se prouve.** Le cas chiffré du doc, cascade 60 contre plat 65, qui est une affirmation de conception à ne pas perdre. Qu'une feuille absente sort de la somme. Qu'un cran de sensibilité vaut exactement une lettre, sur les sons comme sur le silence comme sur le débit. Qu'une série dont les bords rendent une lettre inatteignable est **détectée** — le test prouve le détecteur, pas la série. Le test d'inversion des deux feuilles de sons, pour ce qu'il prouve vraiment : qu'une feuille unique ne peut pas rendre les deux verdicts, quelle que soit sa série.
-
 ### 9. Les feuilles calculées et la couture d'analyse
 
 **Ce que ça fait.** `examine(said, model, text, kept)` : `text` reste la chaîne affichée où toutes les marques s'indexent et porte maintenant les hésitations, `kept` dit les morceaux sur lesquels le modèle a été synthétisé. La voix modèle ne dit que les mots retenus, l'apprenant s'aligne sur tout ce qu'il a dit. Puis les quatre feuilles calculées de la fluidité : la continuité, avec le seuil de pause et le délai de grâce d'une seconde aux deux bords ; le plus long silence ; le débit, sur les seuls mots retenus des deux côtés ; le remplissage et les reprises, déplié depuis le bafouillage jugé.
