@@ -51,18 +51,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ## Les étapes
 
-### 2. L'arbre des feuilles, les colonnes, les séries
-
-**Ce que ça fait.** L'arbre des feuilles déclaré en un endroit, chacune disant son nom et sa place, ses éléments, comment un élément prend sa valeur — colonne, rampe, vrai/faux, ou rien quand elle n'a qu'un élément —, l'unité de son chiffre, sa direction quand le chiffre garde une unité brute, sa série, si elle prend une consigne, si elle donne une note. Les onze feuilles de la grille des mesures, plus celles qui ne donnent pas de note : le tour interrompu et les trois comptes. Les colonnes des trois marquages jugés. Les séries en première passe de valeurs raisonnables.
-
-**Pourquoi ici.** Un défi s'écrit contre une liste et jamais contre le code ; cette liste est ce contre quoi le contrat, les notes, les règles et les portes vont tous se lire.
-
-**Ce qui se prouve.** Qu'une feuille à un seul élément garde son unité brute et n'a rien à moyenner ; que le dénominateur est ce que la feuille lit et non le passage entier ; qu'une feuille binaire n'a ni sensibilité ni poids plutôt que des champs inertes ; que la valeur d'un élément est toujours une qualité entre 0 et 1, le haut étant le bon bout.
-
-**Avec l'humain.** Les colonnes, ancrées chacune par sa phrase — *un passage entièrement fait de ça vaudrait…* Les séries et le nombre de positions de sensibilité, qui s'y décide et pas avant.
-
-**Ce que ça laisse dû.** La feuille des mouvements de la mélodie reste candidate et non livrée. L'accent lexical entre bien dans la somme, ce qui est son branchement acté le 2026-09-05.
-
 ### 3. Le contrat enrichi, le prompt, et l'énoncé qui gagne ses marquages
 
 **Ce que ça fait.** `chain/Conversation.kt` rend, dans l'ordre : `intended`, les empans de langue avec leurs deux étiquettes, le bafouillage mot à mot, le suivi, `spoken`, la difficulté du tour, l'écho de reprise quand quelque chose est marqué, le choix de menu quand une règle en offre un, et `title` s'il y a lieu. `faulty` disparaît, absorbé par le marquage. `providers/ConversationPrompt.kt` se réorganise en quatre parties — le contexte de l'app, celui de l'activité, l'historique, le présent —, les consignes vivant dans la quatrième et non la deuxième. La couture d'analyse prend `kept`. Migration Room sur `utterances`.
