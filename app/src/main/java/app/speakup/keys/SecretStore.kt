@@ -3,6 +3,7 @@ package app.speakup.keys
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -35,24 +36,44 @@ class SecretStore(private val context: Context) {
     /**
      * Everything entered so far. Absent and blank are the same thing to a caller.
      *
-     * Every entry is decrypted on every read, and a turn reads this seven times -- twice for
-     * recognition, twice for the language model, three times for the synthesis, each of the
-     * three links once for the switching class and once for the provider it resolves to. What
-     * that costs is traced rather than assumed: the gaps it sits in were measured at 262, 365
-     * and 726 ms on the turn of 2026-09-06 13:17, and nothing said how much of them was this.
+     * **Decrypted once per version of the store, not once per read.** A turn reads this ten
+     * times -- twice per link for the switching class and the provider it resolves to, three
+     * for the synthesis, which asks for the voice as well, and three more for the model the
+     * analysis compares against. Measured on 2026-09-06: every read cost 92 to 241 ms, which
+     * is where the silent gaps between the links came from.
+     *
+     * What costs that is the decryption itself and not the key lookup, which was tried first
+     * and moved almost nothing: the key is hardware-backed, so its material never leaves the
+     * Keystore and **every** cipher operation is a round trip to it, once per entry.
+     *
+     * The cache is keyed on the identity of the snapshot DataStore hands out. That is sound
+     * rather than lucky: the object is immutable, and any write makes a new one -- so a stale
+     * entry cannot be read back, and there is nothing to invalidate by hand.
      */
     fun values(): Flow<Map<Secret, String>> = context.secrets.data.map { prefs ->
-        val began = System.nanoTime()
-        val out = Secret.entries.mapNotNull { secret ->
-            prefs[stringPreferencesKey(secret.id)]?.let { secret to decrypt(it) }
-        }.toMap()
-        Trace.add(
-            "secrets: read",
-            "entries" to out.size.toString(),
-            "ms" to ((System.nanoTime() - began) / 1_000_000).toString(),
-        )
-        out
+        held?.takeIf { it.first === prefs }?.second ?: run {
+            val began = System.nanoTime()
+            val fresh = Secret.entries.mapNotNull { secret ->
+                prefs[stringPreferencesKey(secret.id)]?.let { secret to decrypt(it) }
+            }.toMap()
+            Trace.add(
+                "secrets: decrypted",
+                "entries" to fresh.size.toString(),
+                "ms" to ((System.nanoTime() - began) / 1_000_000).toString(),
+            )
+            held = prefs to fresh
+            fresh
+        }
     }
+
+    /**
+     * The last snapshot decrypted, with what it decrypted to.
+     *
+     * Volatile and nothing more: two callers arriving together decrypt twice and store the
+     * same answer, which costs one read of the store and cannot be wrong.
+     */
+    @Volatile
+    private var held: Pair<Preferences, Map<Secret, String>>? = null
 
     suspend fun write(secret: Secret, value: String) {
         val key = stringPreferencesKey(secret.id)
