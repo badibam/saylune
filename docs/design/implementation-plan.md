@@ -59,20 +59,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 **Ce que ça rend.** Une mesure, pas une conclusion. L'appel unique ne se coupe pas ; si le chiffre est mauvais, les leviers sont un modèle sans raisonnement pour ce maillon ou un prompt plus court, et le choix se fait devant le chiffre.
 
-### 5. Le thème, la grille, les rythmes du marquage
-
-**Ce que ça fait.** Un thème propre au projet exposé par `CompositionLocalProvider`, hors de Material : les couleurs, la typographie, la grille — facteur d'échelle dérivé de la densité, largeur et hauteur de cellule —, et les rythmes du marquage, épaisseurs de trait, halo, air, interligne. Les lectures porteuses de `MaterialTheme` disparaissent, `typography.headlineSmall` pour le style du tour marqué et `colorScheme.surface` pour le fond dont le halo est découpé.
-
-**Pourquoi ici.** `pixel-ui.md` le dit première et la moins chère maintenant, l'UI faisant neuf fichiers et environ 2 200 lignes. Si la grille ne vit pas dans le thème, chaque composable la recalcule et ils divergeront.
-
-**Avec l'humain.** Le facteur d'échelle, que le doc dit sans critère calculable : ça se tranche en regardant, et le repère utile est la hauteur de capitale en dp.
-
-### 6. La police, ses accents, l'échelle entière
-
-**Ce que ça fait.** Poser les deux TTF de `../../font/` dans `res/font/` et calculer l'échelle par facteur entier depuis la densité. **Les glyphes sont dessinés** — accents, descendantes, cadres, meubles, lettres brouillées, 275 par graisse — et la boîte est passée de 11 × 11 à 11 × 15, ce que `pixel-ui.md` décrit. Il reste donc à déclarer au thème les **deux pas verticaux**, 15 pour une ligne de texte et 11 pour une rangée de cadre, jamais le défaut de la police qui vaut 14.
-
-**Pourquoi les accents ici et pas à leur rang.** `pixel-ui.md` rangeait les glyphes ajoutés en cinquième position de son ordre de travail, après la police en deuxième. Entre les deux, l'interface française perdait ses accents, ce que le zéro texte en dur rend visible immédiatement. Le point est réglé : tout a été dessiné d'un coup, en session, et il n'y a plus d'intervalle.
-
 ### 7. Les deux palettes et la rechange daltonisme
 
 **Ce que ça fait.** Le prune de nuit et le prune pâle, une trentaine d'entrées : trois fonds, trois encres, la rampe d'alarme à quatre crans, les deux verts, le bleu du contour de mélodie, les teintes de décor et de halo. La règle du marquage tenue dans les deux registres — la distance perceptuelle OKLab sur le premier cran. L'écrêtage de gamut par réduction de chroma, les mélanges en OKLab. La rampe continue de `ui/MarkingColors.kt` disparaît. **La palette de rechange du daltonisme dans la même passe.**

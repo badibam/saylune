@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.Canvas
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -29,13 +28,13 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import app.speakup.marking.Contour
 import app.speakup.marking.TurnMarking
+import app.speakup.ui.theme.Speakup
 
 /**
  * One turn of the learner, carrying the three scales at once.
@@ -57,14 +56,14 @@ fun MarkedTurn(
     val measurer = rememberTextMeasurer()
     val colors = markingColors()
     val density = LocalDensity.current
-    val style = MaterialTheme.typography.headlineSmall
+    val style = Speakup.type.text
 
     BoxWithConstraints(modifier) {
         val widthPx = with(density) { maxWidth.roundToPx() }
 
-        // Two layouts from the same constraints and the same weight spans, so they align to
-        // the pixel. The halo pass must not inherit the phoneme colours, or the outline
-        // itself would be coloured; a uniform string is the only way to be sure of that.
+        // Two layouts from the same constraints and the same text, so they align to the
+        // pixel. The halo pass must not inherit the phoneme colours, or the outline itself
+        // would be coloured; a uniform string is the only way to be sure of that.
         val layouts = remember(marking, colors, widthPx, style) {
             TurnLayouts(
                 filled = measurer.measure(
@@ -113,16 +112,10 @@ fun MarkedTurn(
 
 private class TurnLayouts(val filled: TextLayoutResult, val outline: TextLayoutResult)
 
-/**
- * Weight says where the model put its stress -- a property of the utterance being imitated,
- * not a verdict on the learner. Colour says how far a phoneme fell below it.
- */
+/** Colour says how far a phoneme fell below the model. */
 private fun annotate(marking: TurnMarking, colors: MarkingColors, tinted: Boolean): AnnotatedString =
     buildAnnotatedString {
         append(marking.text)
-        marking.syllables.filter { it.modelStressed }.forEach {
-            addStyle(SpanStyle(fontWeight = FontWeight.Bold), it.start, it.end)
-        }
         if (tinted) {
             addStyle(SpanStyle(color = colors.ink), 0, marking.text.length)
             marking.phonemes.forEach {
