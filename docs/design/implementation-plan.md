@@ -51,16 +51,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 ## Les étapes
 
-### 11. L'activité change de forme
-
-**Ce que ça fait.** Les sept champs qui manquent et le huitième qui change de type : le `brief`, les règles, le journal des changements appliqués, l'origine — la définition **et sa version** —, les consignes par marquage jugé, l'arbre des poids, la version du moteur de règles, et le résultat qui peut porter un nombre. Les réglages cessent d'être une position par aptitude pour devenir une **liste de positions de leviers**, qui est exactement ce que le doc dit de stocker. L'énoncé porte **qui parle** comme une identité et non plus apprenant-ou-IA. Migration Room sur `activities`.
-
-**Pourquoi ici.** Parce que l'étape suivante produit du journal et des positions effectives, et qu'un champ non persisté à l'instant où il existe est une séance qui ne se recalcule plus après un redémarrage. C'est le seul endroit où ce plan s'écarte de la colonne vertébrale posée en session, qui rangeait la persistance plus tard ; la règle « un champ se persiste dès qu'il existe » l'emporte.
-
-**Ce qui se prouve.** Qu'une exécution porte toujours ses positions **sur sa ligne**, y compris issue d'une définition — jamais un pointeur qu'il faudrait suivre. Que l'origine ne sert qu'à grouper et n'est jamais consultée pour savoir comment la séance était réglée. Qu'un changement de version du moteur de règles **retire la reprise** au lieu de rejouer le journal sous une autre sémantique.
-
-**Ce que ça laisse dû.** L'identité du locuteur est en place et une seule voix la remplit : la distribution et les personnages multiples sont écrits comme champ et n'ont pas d'écran.
-
 ### 12. Le moteur de règles
 
 **Ce que ça fait.** Son propre module, hors de `TurnPipeline`. Les six sortes de déclencheur et les trois moments. Les trois sortes d'effet, et pas une de plus : un patch, la fin, un message au modèle. Un patch porte des positions ou des déplacements, et éventuellement des consignes ; il porte sa phrase de mise en scène avec son drapeau avant/après, la phrase mécanique étant déclarée avec le levier. Les trois familles — levier, consigne ou interrupteur, drapeau. La résolution **par vagues** contre un même instantané. La vérification terminale des vies **après** les vagues, sur l'état stabilisé. Le menu calculé et non maintenu.
