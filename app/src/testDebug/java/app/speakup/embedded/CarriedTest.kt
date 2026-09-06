@@ -31,9 +31,9 @@ class CarriedTest {
     private val stumbled = "It was like um I went to the I was going to the store"
 
     private val hesitations = listOf(
-        Marked(7, 11, "remplissage"),   // like
-        Marked(12, 14, "remplissage"),  // um
-        Marked(15, 28, "abandonne"),    // I went to the
+        Marked(7, 11, "filler"),   // like
+        Marked(12, 14, "filler"),  // um
+        Marked(15, 28, "abandoned"),    // I went to the
     )
 
     /** What the model was made to say: "It was I was going to the store". */

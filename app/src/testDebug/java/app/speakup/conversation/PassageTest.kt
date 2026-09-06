@@ -155,7 +155,7 @@ class PassageTest {
     private fun sheet(path: String) = Sheets.of(path) as Sheet
 
     private fun sendsBack(vararg aptitudes: String) = Positions(
-        aptitudes.associate { "$it.fait-refaire" to At("oui") },
+        aptitudes.associate { "$it.sends-back" to At("yes") },
     )
 
     /**
@@ -191,22 +191,22 @@ class PassageTest {
     fun `the words gate names all the aptitudes in cause`() {
         val closing = Gates.words(
             measured = listOf(
-                Measured(sheet("correction/correction"), 0f),
-                Measured(sheet("pertinence/pertinence"), 0f),
+                Measured(sheet("correctness/correctness"), 0f),
+                Measured(sheet("relevance/relevance"), 0f),
             ),
-            passage = scored(), settings = sendsBack("correction", "pertinence"),
+            passage = scored(), settings = sendsBack("correctness", "relevance"),
             weights = weights, sensitivity = strict, truncated = false, keptWords = 5,
         )
-        assertEquals(Closing.Aptitudes(listOf("correction", "pertinence")), closing)
+        assertEquals(Closing.Aptitudes(listOf("correctness", "relevance")), closing)
     }
 
     /** An aptitude the activity does not send back never closes a gate, however it scored. */
     @Test
     fun `an aptitude that does not send back lets through`() {
         val closing = Gates.words(
-            measured = listOf(Measured(sheet("correction/correction"), 0f)),
+            measured = listOf(Measured(sheet("correctness/correctness"), 0f)),
             passage = scored(),
-            settings = Positions(mapOf("correction.fait-refaire" to At("non"))),
+            settings = Positions(mapOf("correctness.sends-back" to At("no"))),
             weights = weights, sensitivity = strict, truncated = false, keptWords = 5,
         )
         assertNull(closing)
@@ -224,7 +224,7 @@ class PassageTest {
             passage = scored(), settings = Positions(),
             weights = weights, sensitivity = strict, truncated = false, keptWords = 5,
         )
-        assertEquals(Closing.Aptitudes(listOf("correction")), closing)
+        assertEquals(Closing.Aptitudes(listOf("correctness")), closing)
         assertNull(Gates.sound(
             measured = flat.map { Measured(sheet(it), 0f) },
             passage = scored(), settings = Positions(),
@@ -240,7 +240,7 @@ class PassageTest {
     fun `an aptitude nothing measured lets through`() {
         val closing = Gates.sound(
             measured = emptyList(), passage = scored(),
-            settings = sendsBack("elocution", "fluidite"),
+            settings = sendsBack("pronunciation", "fluency"),
             weights = weights, sensitivity = strict,
         )
         assertNull(closing)
@@ -250,8 +250,8 @@ class PassageTest {
     @Test
     fun `a passage over the bar lets through`() {
         val closing = Gates.words(
-            measured = listOf(Measured(sheet("correction/correction"), 1f)),
-            passage = scored(), settings = sendsBack("correction"),
+            measured = listOf(Measured(sheet("correctness/correctness"), 1f)),
+            passage = scored(), settings = sendsBack("correctness"),
             weights = weights, sensitivity = strict, truncated = false, keptWords = 5,
         )
         assertNull(closing)
@@ -290,18 +290,18 @@ class PassageTest {
             judged = app.speakup.judged.Judgement(
                 intended = "I go there yesterday",
                 spans = emptyList(), stumbling = emptyList(),
-                following = "precis", difficulty = "moyenne",
+                following = "precise", difficulty = "medium",
             ),
             analysed = null,
             timed = null,
         )
-        val judged = listOf("correction/correction", "pertinence/pertinence", "comprehension/suivi")
+        val judged = listOf("correctness/correctness", "relevance/relevance", "understanding/uptake")
         judged.forEach { path ->
             val measured = read.first { Sheets.scoredPathOf(it.sheet) == path }
             assertTrue("$path has no figure", measured.figure != null)
         }
         // And the sound ones are absent rather than zero: absent leaves the sum, a zero enters it.
-        listOf("elocution/proximite", "elocution/melodie").forEach { path ->
+        listOf("pronunciation/proximity", "pronunciation/melody").forEach { path ->
             assertNull(read.first { Sheets.scoredPathOf(it.sheet) == path }.figure)
         }
     }
@@ -309,8 +309,8 @@ class PassageTest {
     // ── The way out of a blocked passage ────────────────────────────────────────────────
 
     private fun waiting(vararg on: String) = Positions(
-        on.associate { "avance.$it" to At("attend") } +
-            mapOf("correction.fait-refaire" to At("oui")),
+        on.associate { "advance.$it" to At("waits") } +
+            mapOf("correctness.sends-back" to At("yes")),
     )
 
     /**
@@ -321,8 +321,8 @@ class PassageTest {
     fun `waiting holds the big button until the attempts run out`() {
         val opener = said("I go there yesterday")
         val blocked = state(opener).copy(
-            activity = Activity.conversation().copy(settings = waiting("mots")),
-            wordsGate = Closing.Aptitudes(listOf("correction")),
+            activity = Activity.conversation().copy(settings = waiting("words")),
+            wordsGate = Closing.Aptitudes(listOf("correctness")),
         )
         assertEquals(Standing.ToReword, blocked.standing())
         assertFalse(blocked.closes())
@@ -339,10 +339,10 @@ class PassageTest {
         val spent = state(opener).copy(
             activity = Activity.conversation().copy(
                 settings = Positions(
-                    waiting("mots").all() + mapOf(Attempt.Rewording.lever to Count(0)),
+                    waiting("words").all() + mapOf(Attempt.Rewording.lever to Count(0)),
                 ),
             ),
-            wordsGate = Closing.Aptitudes(listOf("correction")),
+            wordsGate = Closing.Aptitudes(listOf("correctness")),
         )
         assertEquals(Standing.Open, spent.standing())
         assertTrue(spent.closes())
@@ -358,14 +358,14 @@ class PassageTest {
         val none = state(opener).copy(
             activity = Activity.conversation().copy(
                 settings = Positions(
-                    waiting("mots", "son").all() + mapOf(
+                    waiting("words", "sound").all() + mapOf(
                         Attempt.Rewording.lever to Count(0),
                         Attempt.Repeat.lever to Count(0),
                     ),
                 ),
             ),
-            wordsGate = Closing.Aptitudes(listOf("correction")),
-            soundGate = Closing.Aptitudes(listOf("elocution")),
+            wordsGate = Closing.Aptitudes(listOf("correctness")),
+            soundGate = Closing.Aptitudes(listOf("pronunciation")),
         )
         assertTrue(none.closes())
     }
@@ -379,9 +379,9 @@ class PassageTest {
     fun `the words come before the sound`() {
         val opener = said("I go there yesterday")
         val both = state(opener).copy(
-            activity = Activity.conversation().copy(settings = waiting("mots")),
-            wordsGate = Closing.Aptitudes(listOf("correction")),
-            soundGate = Closing.Aptitudes(listOf("elocution")),
+            activity = Activity.conversation().copy(settings = waiting("words")),
+            wordsGate = Closing.Aptitudes(listOf("correctness")),
+            soundGate = Closing.Aptitudes(listOf("pronunciation")),
         )
         assertEquals(Standing.ToReword, both.standing())
     }
@@ -394,8 +394,8 @@ class PassageTest {
             activity = Activity.conversation().copy(
                 settings = Positions(mapOf(Attempt.Rewording.lever to Count(0))),
             ),
-            wordsGate = Closing.Aptitudes(listOf("correction")),
-            soundGate = Closing.Aptitudes(listOf("elocution")),
+            wordsGate = Closing.Aptitudes(listOf("correctness")),
+            soundGate = Closing.Aptitudes(listOf("pronunciation")),
         )
         assertEquals(Standing.ToSayAgain, left.standing())
     }

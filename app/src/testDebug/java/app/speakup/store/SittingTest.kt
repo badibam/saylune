@@ -37,7 +37,7 @@ class SittingTest {
         Levers.SILENCE_THRESHOLD.key to Count(4),
         // *No maximum* is a position and not an absence, so it has to survive the round trip
         // as one -- read back as a missing key it would answer with the catalogue's default.
-        "redites-permises" to Count(null),
+        "retakes-allowed" to Count(null),
     ))
 
     private fun sitting() = Activity(
@@ -66,8 +66,8 @@ class SittingTest {
     @Test
     fun `no maximum survives as a position`() {
         val back = sitting().row().activity()
-        assertTrue("redites-permises" in back.settings.all())
-        assertEquals(Count(null), back.settings.of("redites-permises"))
+        assertTrue("retakes-allowed" in back.settings.all())
+        assertEquals(Count(null), back.settings.of("retakes-allowed"))
     }
 
     /**
@@ -116,14 +116,14 @@ class SittingTest {
             Rule(
                 key = "R1",
                 whenever = Trigger.Reaches(
-                    "vies.restantes", Count(0), Moment.PassageClosed,
+                    "lives.left", Count(0), Moment.PassageClosed,
                 ),
                 choice = listOf(Pack(listOf(
                     Effect.Message("the barman looks away", now = true),
                     Effect.Patch(
-                        positions = mapOf("vies.restantes" to Count(1)),
+                        positions = mapOf("lives.left" to Count(1)),
                         moves = mapOf(Levers.SILENCE_THRESHOLD.key to 1),
-                        instructions = listOf(Instructing("pertinence", "speak in the past", 3)),
+                        instructions = listOf(Instructing("relevance", "speak in the past", 3)),
                         arming = mapOf("R1" to false, "R2" to true),
                         staging = Staging("a passer-by knocks into you", before = true),
                     ),
@@ -148,11 +148,11 @@ class SittingTest {
     fun `every kind of trigger comes back as itself`() {
         val triggers = listOf(
             Trigger.Clock(Trigger.Clock.Which.Silence, 5_000),
-            Trigger.Node("elocution/melodie", Trigger.Node.Reads.Note, "D", Moment.EndOfAttempt),
+            Trigger.Node("pronunciation/melody", Trigger.Node.Reads.Note, "D", Moment.EndOfAttempt),
             Trigger.Passages(every = 3),
             Trigger.Passages(at = 10),
             Trigger.Judged("if the room has been booked", Moment.PassageClosed),
-            Trigger.Moved("vies.restantes", harder = true, moment = Moment.PassageClosed),
+            Trigger.Moved("lives.left", harder = true, moment = Moment.PassageClosed),
             Trigger.Reaches("capture", At(Levers.ARMED), Moment.PassageClosed),
         )
         val rules = triggers.mapIndexed { at, trigger ->

@@ -377,13 +377,13 @@ class EngineTest {
     fun `two instructions on one marking coexist`() {
         val engine = Engine(listOf(
             Rule("A", Trigger.Passages(every = 1), listOf(Pack(listOf(Effect.Patch(
-                instructions = listOf(Instructing("pertinence", "speak in the past", 2)),
+                instructions = listOf(Instructing("relevance", "speak in the past", 2)),
             ))))),
         ))
         val out = engine.resolve(
             Moment.PassageClosed,
             start("A", at = Positions()).copy(
-                instructions = listOf(Instructing("pertinence", "keep it formal")),
+                instructions = listOf(Instructing("relevance", "keep it formal")),
             ),
             AtPassage(1),
         )
@@ -395,8 +395,8 @@ class EngineTest {
     fun `an instruction with a life expires and a lasting one does not`() {
         val engine = Engine(emptyList())
         var state = start().copy(instructions = listOf(
-            Instructing("pertinence", "speak in the past", 2),
-            Instructing("suivi", "keep it formal"),
+            Instructing("relevance", "speak in the past", 2),
+            Instructing("uptake", "keep it formal"),
         ))
         state = engine.aged(state)
         assertEquals(2, state.instructions.size)
@@ -409,17 +409,17 @@ class EngineTest {
     fun `an instruction can be taken off`() {
         val engine = Engine(listOf(
             Rule("A", Trigger.Passages(every = 1), listOf(Pack(listOf(Effect.Patch(
-                instructions = listOf(Instructing("pertinence", null)),
+                instructions = listOf(Instructing("relevance", null)),
             ))))),
         ))
         val out = engine.resolve(
             Moment.PassageClosed,
             start("A").copy(instructions = listOf(
-                Instructing("pertinence", "speak in the past"),
-                Instructing("suivi", "answer the question"),
+                Instructing("relevance", "speak in the past"),
+                Instructing("uptake", "answer the question"),
             )),
             AtPassage(1),
         )
-        assertEquals(listOf("suivi"), out.state.instructions.map { it.marking })
+        assertEquals(listOf("uptake"), out.state.instructions.map { it.marking })
     }
 }

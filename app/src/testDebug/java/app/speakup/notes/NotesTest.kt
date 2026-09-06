@@ -117,7 +117,7 @@ class NotesTest {
      */
     @Test
     fun `a negative continuity gap lands in A without clipping`() {
-        val window = sheet("fluidite/continuite").windowAt(2)
+        val window = sheet("fluency/continuity").windowAt(2)
         // The figure itself is never clipped on the way in: a negative gap is read as it
         // stands, and it lands in the same band as zero.
         assertEquals(Letter.A, window.noteOf(-8f).letter)
@@ -133,7 +133,7 @@ class NotesTest {
      */
     @Test
     fun `a bound outside what a share can be makes a letter unreachable`() {
-        val impossible = sheet("correction/correction").copy(
+        val impossible = sheet("correctness/correctness").copy(
             // A share never passes 1, so nothing can reach A above this bound.
             series = listOf(0.70f, 0.80f, 0.87f, 0.92f, 0.95f, 0.97f, 0.985f, 1.30f),
         )
@@ -191,8 +191,8 @@ class NotesTest {
         val thickAccent = List(50) { 20f }
         val twoWrong = List(48) { 3f } + listOf(95f, 95f)
 
-        val intelligibility = sheet("elocution/intelligibilite")
-        val proximity = sheet("elocution/proximite")
+        val intelligibility = sheet("pronunciation/intelligibility")
+        val proximity = sheet("pronunciation/proximity")
 
         val understood = { sounds: List<Float> -> sounds.count { it < 30f } / sounds.size.toFloat() }
         val close = { sounds: List<Float> -> sounds.map { 1f - it / 100f }.average().toFloat() }
@@ -218,18 +218,18 @@ class NotesTest {
 
     // ── The flat aggregation ────────────────────────────────────────────────────────────
 
-    private val sounds = sheet("elocution/intelligibilite")
-    private val melody = sheet("elocution/melodie")
-    private val correctness = sheet("correction/correction")
+    private val sounds = sheet("pronunciation/intelligibility")
+    private val melody = sheet("pronunciation/melody")
+    private val correctness = sheet("correctness/correctness")
 
     /** Elocution 2 (sounds 1, melody 1) against correctness 1, and nothing else counts. */
     private val weights = Weights(
         buildMap {
             Sheets.all.forEach { put(Sheets.pathOf(it), 0f) }
-            listOf("elocution", "comprehension", "correction", "pertinence", "fluidite")
+            listOf("pronunciation", "understanding", "correctness", "relevance", "fluency")
                 .forEach { put(it, 0f) }
-            put("elocution", 2f)
-            put("correction", 1f)
+            put("pronunciation", 2f)
+            put("correctness", 1f)
             put(Sheets.pathOf(sounds), 1f)
             put(Sheets.pathOf(melody), 1f)
             put(Sheets.pathOf(correctness), 1f)
@@ -291,14 +291,14 @@ class NotesTest {
     /** Following weighs on the difficulty of the AI turn, not on the length of the answer. */
     @Test
     fun `following weighs on the difficulty of the turn it answered`() {
-        val following = sheet("comprehension/suivi")
+        val following = sheet("understanding/uptake")
         val weights = Weights(
             buildMap {
                 Sheets.all.forEach { put(Sheets.pathOf(it), 0f) }
-                listOf("elocution", "comprehension", "correction", "pertinence", "fluidite")
+                listOf("pronunciation", "understanding", "correctness", "relevance", "fluency")
                     .forEach { put(it, 0f) }
-                put("comprehension", 1f)
-                put("correction", 1f)
+                put("understanding", 1f)
+                put("correctness", 1f)
                 put(Sheets.pathOf(following), 1f)
                 put(Sheets.pathOf(correctness), 1f)
             }

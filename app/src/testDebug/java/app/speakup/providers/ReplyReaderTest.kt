@@ -17,8 +17,8 @@ class ReplyReaderTest {
         intended: String = "I go there yesterday",
         spans: String = "[]",
         stumbling: String = "[]",
-        following: String = "\"precis\"",
-        difficulty: String = "\"moyen\"",
+        following: String = "\"precise\"",
+        difficulty: String = "\"medium\"",
         extra: String = "",
     ) = """
         {"intended": "$intended", "spans": $spans, "stumbling": $stumbling,
@@ -29,8 +29,8 @@ class ReplyReaderTest {
         val reply = ReplyReader.read(answer(), "i go there yesterday")
         assertEquals("Ah, yesterday!", reply.spoken)
         assertEquals("I go there yesterday", reply.judged.intended)
-        assertEquals("precis", reply.judged.following)
-        assertEquals("moyen", reply.judged.difficulty)
+        assertEquals("precise", reply.judged.following)
+        assertEquals("medium", reply.judged.difficulty)
         // Absent is the ordinary answer for all three, and means "there is none".
         assertNull(reply.echo)
         assertNull(reply.choice)
@@ -39,10 +39,10 @@ class ReplyReaderTest {
 
     @Test fun `a span unfolds onto the words it names`() {
         val reply = ReplyReader.read(
-            answer(spans = """[{"from":0,"to":4,"correctness":"mal-forme","relevance":"ok"}]"""),
+            answer(spans = """[{"from":0,"to":4,"correctness":"malformed","relevance":"ok"}]"""),
             "i go there yesterday",
         )
-        assertEquals(listOf("mal-forme", "mal-forme", "ok", "ok"),
+        assertEquals(listOf("malformed", "malformed", "ok", "ok"),
                      reply.judged.words().correctness.map { it.notch })
         // The two scales cover the same words, so one span carries both notches.
         assertTrue(reply.judged.words().relevance.all { it.notch == "ok" })
@@ -51,11 +51,11 @@ class ReplyReaderTest {
     @Test fun `the kept words are what the stumbling leaves alone`() {
         val reply = ReplyReader.read(
             answer(intended = "It was um nice",
-                   stumbling = """[{"from":7,"to":9,"notch":"remplissage"}]"""),
+                   stumbling = """[{"from":7,"to":9,"notch":"filler"}]"""),
             "it was um nice",
         )
         val words = reply.judged.words()
-        assertEquals(listOf("retenu", "retenu", "remplissage", "retenu"),
+        assertEquals(listOf("kept", "kept", "filler", "kept"),
                      words.stumbling.map { it.notch })
         assertEquals(listOf(0..1, 3..5, 10..13), words.kept)
     }
@@ -89,7 +89,7 @@ class ReplyReaderTest {
         // mark the judge meant. The place to say so is the seam that read it.
         assertTrue(runCatching {
             ReplyReader.read(
-                answer(spans = """[{"from":1,"to":4,"correctness":"mal-forme","relevance":"ok"}]"""),
+                answer(spans = """[{"from":1,"to":4,"correctness":"malformed","relevance":"ok"}]"""),
                 "i go there yesterday",
             )
         }.isFailure)
@@ -97,7 +97,7 @@ class ReplyReaderTest {
 
     @Test fun `an echo comes back only when something was marked`() {
         val reply = ReplyReader.read(
-            answer(spans = """[{"from":0,"to":4,"correctness":"mal-forme","relevance":"ok"}]""",
+            answer(spans = """[{"from":0,"to":4,"correctness":"malformed","relevance":"ok"}]""",
                    extra = ""","echo": "Ah, you went there yesterday!""""),
             "i go there yesterday",
         )

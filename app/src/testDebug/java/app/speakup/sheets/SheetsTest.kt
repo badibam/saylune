@@ -17,7 +17,7 @@ class SheetsTest {
     private val scored get() = Sheets.all.filter { it.scored }
 
     @Test fun `a sheet with one element keeps its raw unit and has nothing to average`() {
-        val silence = Sheets.of("fluidite/plus-long-silence") as Sheet
+        val silence = Sheets.of("fluency/longest-silence") as Sheet
         assertEquals(Elements.Whole, silence.elements)
         assertEquals(Reading.Raw, silence.reading)
         assertEquals(Unit.Seconds, silence.unit)
@@ -29,11 +29,11 @@ class SheetsTest {
     @Test fun `the denominator is what the sheet reads, never the whole passage`() {
         // Each of these reads a different population of the same turn, and that is the whole
         // point: the weight picks the columns, the denominator follows the weight.
-        assertEquals(Elements.KeptWords, (Sheets.of("correction/correction") as Sheet).elements)
+        assertEquals(Elements.KeptWords, (Sheets.of("correctness/correctness") as Sheet).elements)
         assertEquals(Elements.SpokenWords,
-                     (Sheets.of("fluidite/remplissage-reprises") as Sheet).elements)
+                     (Sheets.of("fluency/stumbling") as Sheet).elements)
         assertEquals(Elements.StressedWords,
-                     (Sheets.of("elocution/accent-lexical") as Sheet).elements)
+                     (Sheets.of("pronunciation/lexical-stress") as Sheet).elements)
         // Two sheets on one judged marking, and they do not read the same words.
         val spans = scored.filter { it.from == Marking.LanguageSpans }
         assertEquals(2, spans.size)
@@ -41,7 +41,7 @@ class SheetsTest {
     }
 
     @Test fun `a binary sheet has neither sensitivity nor weight`() {
-        val interrupted = Sheets.of("tour-interrompu") as Sheet
+        val interrupted = Sheets.of("interrupted-turn") as Sheet
         assertEquals(Reading.Either, interrupted.reading)
         // No series means no sensitivity window to pick, and it is outside the tree, so
         // there is no node for a weight to sit on. Two fields with no object rather than
@@ -94,20 +94,20 @@ class SheetsTest {
         // A word carrying nothing is `ok`, which is a notch like any other -- and an
         // unmarked spoken word is `retenu`, the same shape. Only the sheets whose single
         // element the judge always marks have nothing to fall back to.
-        assertEquals("ok", Sheets.columnOf("correction/correction").fallback)
-        assertEquals("ok", Sheets.columnOf("pertinence/pertinence").fallback)
-        assertEquals("retenu", Sheets.columnOf("fluidite/remplissage-reprises").fallback)
-        assertNull(Sheets.columnOf("comprehension/suivi").fallback)
+        assertEquals("ok", Sheets.columnOf("correctness/correctness").fallback)
+        assertEquals("ok", Sheets.columnOf("relevance/relevance").fallback)
+        assertEquals("kept", Sheets.columnOf("fluency/stumbling").fallback)
+        assertNull(Sheets.columnOf("understanding/uptake").fallback)
     }
 
     @Test fun `correctness has no notch above ok, relevance does`() {
         // There is no norm for a difficult construction brought off right, so it has no
         // notch; an ambitious sentence that lands is marked on the relevance side, where
         // the criterion is situational by construction.
-        val correction = (Sheets.of("correction/correction") as Sheet).reading as Reading.Column
+        val correction = (Sheets.of("correctness/correctness") as Sheet).reading as Reading.Column
         assertEquals(1.00f, correction.notches.first { it.name == "ok" }.value, 0f)
-        val relevance = (Sheets.of("pertinence/pertinence") as Sheet).reading as Reading.Column
-        assertTrue(relevance.notches.first { it.name == "juste" }.value >
+        val relevance = (Sheets.of("relevance/relevance") as Sheet).reading as Reading.Column
+        assertTrue(relevance.notches.first { it.name == "apt" }.value >
                    relevance.notches.first { it.name == "ok" }.value)
     }
 
@@ -115,14 +115,14 @@ class SheetsTest {
         // Correctness is an absolute judgement against a norm the app fixes, identical for
         // every activity: no instruction moves it. Relevance carries everything a challenge
         // wants to demand.
-        assertEquals(Marking.LanguageSpans, (Sheets.of("correction/correction") as Sheet).from)
-        assertEquals(Marking.LanguageSpans, (Sheets.of("pertinence/pertinence") as Sheet).from)
+        assertEquals(Marking.LanguageSpans, (Sheets.of("correctness/correctness") as Sheet).from)
+        assertEquals(Marking.LanguageSpans, (Sheets.of("relevance/relevance") as Sheet).from)
     }
 
     @Test fun `a path nobody declared fails outright`() {
         assertTrue(runCatching { Sheets.of("elocution/rythme") }.isFailure)
-        assertTrue(runCatching { Sheets.of("melodie") }.isFailure)
-        assertNotNull(Sheets.of("elocution/melodie"))
+        assertTrue(runCatching { Sheets.of("melody") }.isFailure)
+        assertNotNull(Sheets.of("pronunciation/melody"))
     }
 
     @Test fun `every node is reachable by the path it is addressed with`() {

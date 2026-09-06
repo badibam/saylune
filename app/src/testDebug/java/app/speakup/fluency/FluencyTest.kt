@@ -7,8 +7,8 @@ import org.junit.Test
 
 class FluencyTest {
 
-    private fun kept(from: Int, to: Int, model: Span?) = Word(Span(from, to), model, "retenu")
-    private fun filler(from: Int, to: Int) = Word(Span(from, to), null, "remplissage")
+    private fun kept(from: Int, to: Int, model: Span?) = Word(Span(from, to), model, "kept")
+    private fun filler(from: Int, to: Int) = Word(Span(from, to), null, "filler")
 
     /** Three words said cleanly, the model saying the same three at the same speed. */
     private fun even(): Turn = Turn(

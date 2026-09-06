@@ -85,6 +85,6 @@ class CaptureTest {
         val free = Positions()
         assertEquals(At(Levers.BY_HAND), free.of(Levers.CAPTURE.key))
         assertFalse(free.live(Levers.SILENCE_THRESHOLD.key))
-        assertEquals(At("permis"), free.of(Levers.DISCARD_TAKE.key))
+        assertEquals(At("allowed"), free.of(Levers.DISCARD_TAKE.key))
     }
 }

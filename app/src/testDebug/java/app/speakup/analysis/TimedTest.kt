@@ -21,7 +21,7 @@ class TimedTest {
     /** "I am um twenty five", the `um` a filler the model was never given. */
     private val text = "I am um twenty five"
 
-    private val filler = listOf(Marked(5, 7, "remplissage"))
+    private val filler = listOf(Marked(5, 7, "filler"))
 
     private fun word(at: IntRange) = at
 
@@ -62,10 +62,10 @@ class TimedTest {
     @Test
     fun `every word the mouth said is there, and only the kept ones face a model`() {
         val turn = analysed().timed(filler)
-        assertEquals(listOf("retenu", "retenu", "remplissage", "retenu", "retenu"),
+        assertEquals(listOf("kept", "kept", "filler", "kept", "kept"),
                      turn.spoken.map { it.notch })
         assertEquals(4, turn.kept.size)
-        assertNull(turn.spoken.first { it.notch == "remplissage" }.model)
+        assertNull(turn.spoken.first { it.notch == "filler" }.model)
     }
 
     /**
@@ -76,7 +76,7 @@ class TimedTest {
     @Test
     fun `a stumble's seconds land in the stumble and in no word said cleanly`() {
         val turn = analysed().timed(filler)
-        val um = turn.spoken.first { it.notch == "remplissage" }
+        val um = turn.spoken.first { it.notch == "filler" }
         assertEquals(800, um.said.length)
         turn.kept.forEach {
             assertTrue("${it.said} overlaps the filler", it.said.to <= um.said.from ||

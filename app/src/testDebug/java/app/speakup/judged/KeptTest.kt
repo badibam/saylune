@@ -31,16 +31,16 @@ class KeptTest {
     @Test
     fun `the model is never made to say the filler`() {
         val text = "I am [um] twenty five"
-        val kept = Kept.of(text, listOf(marked(5, 9, "remplissage")))
+        val kept = Kept.of(text, listOf(marked(5, 9, "filler")))
         assertEquals("I am twenty five", kept.text)
     }
 
     @Test
     fun `an abandoned start is left out too`() {
         val kept = Kept.of(stumbled, listOf(
-            marked(7, 11, "remplissage"),   // like
-            marked(12, 14, "remplissage"),  // um
-            marked(15, 28, "abandonne"),    // I went to the
+            marked(7, 11, "filler"),   // like
+            marked(12, 14, "filler"),  // um
+            marked(15, 28, "abandoned"),    // I went to the
         ))
         assertEquals("It was I was going to the store", kept.text)
     }
@@ -52,9 +52,9 @@ class KeptTest {
     @Test
     fun `every offset of the model text lands on its own letter in the whole turn`() {
         val kept = Kept.of(stumbled, listOf(
-            marked(7, 11, "remplissage"),
-            marked(12, 14, "remplissage"),
-            marked(15, 28, "abandonne"),
+            marked(7, 11, "filler"),
+            marked(12, 14, "filler"),
+            marked(15, 28, "abandoned"),
         ))
         kept.text.indices.forEach { at ->
             val there = kept.inWhole(at)
@@ -72,9 +72,9 @@ class KeptTest {
     @Test
     fun `a span of the model text keeps its word in the whole turn`() {
         val kept = Kept.of(stumbled, listOf(
-            marked(7, 11, "remplissage"),
-            marked(12, 14, "remplissage"),
-            marked(15, 28, "abandonne"),
+            marked(7, 11, "filler"),
+            marked(12, 14, "filler"),
+            marked(15, 28, "abandoned"),
         ))
         val store = kept.text.indexOf("store")
         val carried = kept.inWhole(store..(store + 4))
@@ -85,9 +85,9 @@ class KeptTest {
     @Test
     fun `carrying an offset across is monotone`() {
         val kept = Kept.of(stumbled, listOf(
-            marked(7, 11, "remplissage"),
-            marked(12, 14, "remplissage"),
-            marked(15, 28, "abandonne"),
+            marked(7, 11, "filler"),
+            marked(12, 14, "filler"),
+            marked(15, 28, "abandoned"),
         ))
         val carried = kept.text.indices.map { kept.inWhole(it) }
         carried.zipWithNext().forEach { (a, b) -> assertTrue("$a then $b", b >= a) }
@@ -98,9 +98,9 @@ class KeptTest {
     fun `a turn with nothing kept leaves the model nothing to say`() {
         val text = "um like um"
         val kept = Kept.of(text, listOf(
-            marked(0, 2, "remplissage"),
-            marked(3, 7, "remplissage"),
-            marked(8, 10, "remplissage"),
+            marked(0, 2, "filler"),
+            marked(3, 7, "filler"),
+            marked(8, 10, "filler"),
         ))
         assertTrue(kept.ranges.isEmpty())
         assertEquals("", kept.text)
