@@ -49,7 +49,7 @@ Cadratin de 1024 unités, une unité de dessin valant 64 unités, avance de 11 p
 
 **Il n'en manque plus** (relevé et dessiné le 2026-09-06). Les notes du passage sont un **histogramme**, jeter la prise une **flèche circulaire**. Trois choix de fond derrière le lot :
 
-- **Un glyphe ne remplace un mot que là où la place manque.** La rangée de commandes est contrainte à quinze colonnes sur vingt-et-une, donc elle est en glyphes ; `MON TOUR`, `PAUSE`, `ENVOYER` restent des mots, parce qu'ils commandent sous pression et qu'`ENVOYER` dépense une tentative. Les glyphes de la capture — micro, pause, arrêt, flèche circulaire — servent donc les états et l'écran des leviers, pas les boutons du bas.
+- **Un glyphe ne remplace un mot que là où la place manque.** La rangée de commandes est la seule qui manque de place — quinze colonnes sur vingt-huit, donc elle est en glyphes ; `MON TOUR`, `PAUSE`, `ENVOYER` restent des mots, parce qu'ils commandent sous pression et qu'`ENVOYER` dépense une tentative. Les glyphes de la capture — micro, pause, arrêt, flèche circulaire — servent donc les états et l'écran des leviers, pas les boutons du bas.
 - **Une famille se dessine entière.** Le triangle et le disque appelaient la pause et l'arrêt, `×½` appelait `×¼` : un membre manquant se remarque, et il coûte moins de le dessiner maintenant que de le découvrir absent devant un écran.
 - **La prose de l'IA a sa liste fermée** — `— – °` et les huit lettres à accent aigu, que la machinerie des accents composait déjà pour rien. Rien derrière : un caractère absent rend un carré vide, ce qui est bruyant et vrai, là où un repli silencieux masquerait le trou (`universel`, no-fallback). Le brouillage, lui, a un repli, mais **pour une lettre seulement** — la ponctuation reste claire, étant le support qui fait qu'un panneau brouillé se lit comme une phrase.
 
@@ -61,7 +61,9 @@ Le facteur est un **entier**, et c'est la seule contrainte dure : à 3,5 certain
 
 Il n'y a **pas de critère calculable** derrière sa valeur : c'est l'arbitrage entre la lisibilité des lettres et le nombre de colonnes, et il se tranche en regardant. Le repère utile est la hauteur de capitale en dp, pas le facteur.
 
-**La densité varie d'un appareil à l'autre, donc le nombre de colonnes aussi** : à facteur constant, un écran de 720 en donne moitié moins qu'un 1440. La mise en page doit tenir dans une plage, jamais viser un nombre précis.
+**Le nombre de colonnes se compte en dp et pas en pixels** — recompté le 2026-09-06, et ce doc disait l'inverse. Le facteur suit la densité, donc une cellule fait toujours à peu près **11 dp**, et le nombre de colonnes est la largeur de l'écran en dp divisée par 11 : **29** sur un petit téléphone de 320 dp, **32** sur un ordinaire de 360, **37** sur un grand de 411. Un écran de 720 pixels n'en donne pas moitié moins qu'un 1440 : sa densité est moitié moindre elle aussi, il prend le facteur 2, et il rend les mêmes 32 colonnes avec les mêmes lettres de 10 dp. Pour que 720 pixels ne fassent vraiment que 21 colonnes, il faudrait un écran de 240 dp de large, plus étroit qu'aucun téléphone.
+
+**Le pire écran est donc celui dont la densité tombe mal, pas le plus étroit.** À 420 dpi la densité vaut 2,625 ; le facteur devant être entier il monte à 3, les lettres sortent à 11,4 dp au lieu de 10 et la cellule à 12,6 dp — **28 colonnes** sur 360 dp. C'est ce nombre qui commande les mises en page. Il est **calculé et non mesuré** : rien n'écrit encore le facteur, le thème étant l'étape 1 de l'ordre de travail, et le vérifier demande de poser la police sur un vrai téléphone.
 
 ## La grille
 
@@ -215,7 +217,7 @@ Réglages retenus : **5 pixels d'air** entre les lettres et leur enceinte, **1 p
 - **Le débit s'écrit en caractères** — `>><<` `><` `=` `<->` `<-->` — centré dans un champ de quatre colonnes, pour que la pastille ne bouge pas quand le cran change.
 - **Un emplacement vide dit *non mesuré***, et non *rien à signaler* (`activity-model.md`).
 
-Recompté le 2026-09-06 sur le pire écran, et le cas se détend : l'étiquette porte un nom de locuteur — `You` / `Speakup` aujourd'hui, le nom du personnage demain — donc `Le barman` 9, un blanc, la pastille 1, un blanc, le débit 4 font **quinze colonnes sur les vingt-et-une** d'un 720. Il reste six colonnes de marge, là où le doc craignait de n'en avoir aucune sur seize.
+Recompté le 2026-09-06 sur le pire écran, et le cas se détend : l'étiquette porte un nom de locuteur — `You` / `Speakup` aujourd'hui, le nom du personnage demain — donc `Le barman` 9, un blanc, la pastille 1, un blanc, le débit 4 font **quinze colonnes sur les vingt-huit** du pire écran. Il en reste treize de marge, là où le doc craignait de n'en avoir aucune sur seize.
 
 **Quand un nom déborde quand même, le nom se tronque et jamais les marques.** Les marques portent une mesure ; l'étiquette porte une identité qu'on connaît déjà, deux ou trois locuteurs alternant dans une conversation. Une définition déclare donc un **nom court** par personnage, comme elle déclare un titre court, et l'app tronque de toute façon — l'ellipse est dans la police. C'est là que le tour marqué se vérifie, pas seulement à trente-deux colonnes.
 
@@ -234,7 +236,7 @@ Recompté le 2026-09-06 sur le pire écran, et le cas se détend : l'étiquette 
 | les notes du passage | 1 |
 | l'analyse des sons, la loupe | 1 |
 
-Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire écran. **Le petit bouton garde ses trois colonnes en devenant un glyphe** (tranché le 2026-09-06) : un micro dans un cadre, là où les cinq autres entrées sont nues. Ce que le cadre achète est de le distinguer d'une rangée où tout le reste écoute ou règle — il est le seul à ouvrir le micro. Et ce que le glyphe évite est une largeur qui dépend de l'état : une étiquette qui aurait dit la porte du moment ferait 3 colonnes en `DIS` et 9 en `REFORMULE`, donc 21 sur 21 en français, et surtout elle **décalerait les cinq autres entrées** à chaque fois qu'une porte se ferme. Une rangée dont la géométrie dépend de l'état est ce que la grille existe pour empêcher. La flèche circulaire n'était pas libre : elle recommence l'enregistrement en capture à la main. Le petit bouton n'apparaît que sur le passage ouvert, les tentatives s'arrêtant à la clôture (`activity-model.md`) ; les cinq autres entrées valent sur tout passage qui porte un enregistrement.
+Dix colonnes plus cinq séparations font **quinze sur les vingt-huit** du pire écran. **Le petit bouton garde ses trois colonnes en devenant un glyphe** (tranché le 2026-09-06) : un micro dans un cadre, là où les cinq autres entrées sont nues. Ce que le cadre achète est de le distinguer d'une rangée où tout le reste écoute ou règle — il est le seul à ouvrir le micro. Et ce que le glyphe évite est une largeur qui dépend de l'état : une étiquette qui aurait dit la porte du moment ferait 3 colonnes en `DIS` et 9 en `REFORMULE`, et surtout elle **décalerait les cinq autres entrées** à chaque fois qu'une porte se ferme. Une rangée dont la géométrie dépend de l'état est ce que la grille existe pour empêcher. La flèche circulaire n'était pas libre : elle recommence l'enregistrement en capture à la main. Le petit bouton n'apparaît que sur le passage ouvert, les tentatives s'arrêtant à la clôture (`activity-model.md`) ; les cinq autres entrées valent sur tout passage qui porte un enregistrement.
 
 **Le petit bouton se comporte comme le gros** : un appui lance, il se montre actif, et ce qui suit — la pause, l'envoi — est en bas. Un seul comportement à apprendre pour les deux, ce qui est tout l'intérêt d'avoir mis les trois positions de capture au même geste.
 
@@ -252,7 +254,7 @@ Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire
 
 **`ENVOYER` existe aux trois positions de capture**, et pas seulement aux deux à envoi manuel : le doc du modèle d'activité dit de la troisième que « le clic reste le geste normal », le silence n'y étant que le filet qui rattrape un tour que personne n'envoie. Ce qui change d'une position à l'autre est ce qui **arme** le micro, jamais ce qui envoie.
 
-**Le bas commande tout ce qui enregistre, quelle que soit son origine.** Le gros bouton lance un tour neuf, le petit bouton d'un passage lance une reprise, et dans les deux cas ce sont les mêmes `PAUSE` et `ENVOYER` qui suivent. Les redoubler dans la rangée de commandes tiendrait — deux glyphes de plus font dix-neuf colonnes sur vingt-et-une — et ce n'est pas la place qui l'écarte : ce serait deux `ENVOYER` faisant le même travail à deux endroits, celui qu'on presse dépendant de ce qu'on a lancé. C'est aussi ce que le partage de la charpente dit déjà, la barre d'actions portant les points d'entrée constants et ce qui est au-dessus l'action du moment — un enregistrement en cours **est** l'action du moment.
+**Le bas commande tout ce qui enregistre, quelle que soit son origine.** Le gros bouton lance un tour neuf, le petit bouton d'un passage lance une reprise, et dans les deux cas ce sont les mêmes `PAUSE` et `ENVOYER` qui suivent. Les redoubler dans la rangée de commandes tiendrait — deux glyphes de plus font dix-neuf colonnes sur vingt-huit — et ce n'est pas la place qui l'écarte : ce serait deux `ENVOYER` faisant le même travail à deux endroits, celui qu'on presse dépendant de ce qu'on a lancé. C'est aussi ce que le partage de la charpente dit déjà, la barre d'actions portant les points d'entrée constants et ce qui est au-dessus l'action du moment — un enregistrement en cours **est** l'action du moment.
 
 **Ce qui rend ce partage sûr est que la ligne d'état nomme ce qui tourne** : pas *enregistrement en cours* mais *tour en cours*, *redite en cours*, *reformulation en pause*. Sans ce nom, deux boutons partagés seraient ambigus ; avec lui, il n'y a jamais qu'un enregistrement et l'écran dit lequel.
 
@@ -277,7 +279,7 @@ Deux objets distincts remplacent la rangée de boutons de `MainActivity.Root`, e
 
 La première est la **ligne d'état** : le **titre court** à gauche, et à droite, calés, les champs que le mode utilise — les **vies**, le **score**, la **note**. Chaque champ est simplement absent quand le mode ne s'en sert pas, dans un ordre fixe pour que rien ne bouge quand une valeur change. Aucun bouton : quatre points d'entrée y prendraient 192 dp sur les 360 de l'écran, et ils seraient loin du pouce.
 
-- Le **titre court** est un champ déclaré par la définition, plafonné à **dix caractères** — ce que la ligne laisse sur un 720 quand la droite est pleine — et tronqué de toute façon à l'affichage. En conversation libre il n'y a pas de définition à nommer : il porte alors **qui on a en face**, ce qui est la porte d'entrée de la rencontre de personnage (`../../NOTES.md`) obtenue sans champ neuf.
+- Le **titre court** est un champ déclaré par la définition, plafonné à **dix caractères** — ce que la ligne laisse quand la droite est pleine — et tronqué de toute façon à l'affichage. En conversation libre il n'y a pas de définition à nommer : il porte alors **qui on a en face**, ce qui est la porte d'entrée de la rencontre de personnage (`../../NOTES.md`) obtenue sans champ neuf.
 - Les **vies** tiennent dans un champ de **trois colonnes, toujours** : jusqu'à trois, des cœurs, qu'on lit d'un coup sans compter ; au-delà, un cœur et le nombre, `♥15`. L'affichage plafonne à 99, et un défi qui donne plus de 99 vies n'a pas de vies, il a un décor.
 - La **note** est celle de la séance en cours, qui n'a pas de formule à elle : c'est l'agrégation à plat des passages déjà clos (`activity-model.md`). Elle saute pendant les trois premiers, le dénominateur étant petit, et ce n'est pas un défaut à corriger — la masquer dirait *non mesuré*, ce qui serait faux.
 
@@ -303,30 +305,34 @@ Pour les trois feuilles à colonne — la grammaire, la pertinence, le remplissa
 
 **Et cette barre reprend la rampe du marquage.** Le rouge qui a souligné `ne se dit pas` dans le tour compte ses mots ici. Ce n'est pas dépenser la teinte pour du décor — c'est la même mesure lue deux fois —, donc le bilan et le tour marqué parlent la même langue de couleur, sans rien à apprendre en passant de l'un à l'autre.
 
-**Sa disposition tient dans vingt et une colonnes**, le budget d'un 720, qui commande (arrêté le 2026-09-06). Une ligne de feuille porte trois champs : le **nom** jusqu'à 12 colonnes — `Accentuation` est pile au budget —, la **mesure** sur 6, la **lettre** sur 1. Six colonnes suffisent à tout ce qui est un nombre : `47/50`, `2,3 st`, `-22 %`, `3,2 s`, `précis`.
+**Sa disposition tient dans vingt-huit colonnes**, le budget du pire écran (repris le 2026-09-06, sur une arithmétique corrigée — la première l'avait posé à vingt et une). Une ligne de feuille porte trois champs : le **nom** à gauche, la **mesure** calée à droite, la **lettre** en dernière colonne.
+
+**La mesure est calée contre la lettre et court vers la gauche autant que le nom le permet.** C'est ce qui fait tenir `entre les lignes`, seize colonnes, sur la ligne dont le nom n'en fait que sept — et donc ce qui évite d'inventer des noms courts pour les six crans du suivi, qui gardent les mots du doc. Aucun nom de feuille n'a plus de plafond non plus : les douze colonnes qui en tenaient lieu étaient une conséquence du mauvais budget.
 
 ```
- Passage 4         B
- ÉLOCUTION         B
-  Clarté      47/50 B
-  Précision      72 C
-  Mélodie    2,3 st B
-  Accentuation 8/11 A
- COMPRÉHENSION     B
-  Réponse    précis B
- GRAMMAIRE         C
-  Forme      ▓▓░░░ C
- PERTINENCE        C
-  Choix      ▓▓▓░░ C
- FLUIDITÉ          B
-  Continuité    +18 B
-  Silence max   3,2 A
-  Débit         -22 B
-  Hésitations ▓▓░░ C
-      [   OK   ]
+ Passage 4                 B
+ PRONONCIATION             B
+  Clarté             47/50 B
+  Précision             72 C
+  Mélodie           2,3 ½t B
+  Accentuation        8/11 A
+ COMPRÉHENSION             A
+  Réponse entre les lignes A
+ GRAMMAIRE                 C
+  Forme               ▓▓░░ C
+ PERTINENCE                C
+  Choix              ▓▓▓░░ C
+ FLUIDITÉ                  B
+  Continuité       +18 pts B
+  Silence max        3,2 s A
+  Débit              -22 % B
+  Hésitations         ▓▓░░ C
+        [   OK   ]
 ```
 
 Cinq titres d'aptitude et onze feuilles font **seize lignes de contenu** : l'écran ne défile pas sur un écran haut, et défile en paysage. C'est exactement pourquoi l'`OK` vit dans la barre du bas et non dans le flux.
+
+**Trois règles derrière les unités.** Une **fraction plutôt qu'un pourcentage** quand la feuille compte des éléments : `47/50` dit ce que `94 %` cache, que le tour faisait cinquante sons — sur un tour de trois, le pourcentage serait un mensonge de précision. Un **signe partout où la mesure est un écart**, `+` pour plus que le modèle et `-` pour moins, donc `-22 %` se lit *22 % plus lent*. Et **pas d'unité là où elle n'apprend rien** : les « points » de la précision sont une unité interne, l'écrire ne dit rien à personne. Le demi-ton s'écrit `½t`, ce que le glyphe de la fraction rend possible depuis le même jour.
 
 **Aucune tendance dedans.** Une flèche *« +1 depuis le passage précédent »* comparerait deux lectures prises sous des règles qui n'ont aucune raison d'être les mêmes, et une note ne se lit jamais sans la combinaison qui l'a produite (`activity-model.md`). Il ne montre qu'une seule prise, la dernière du passage, comme le fil.
 
@@ -338,7 +344,7 @@ Cinq titres d'aptitude et onze feuilles font **seize lignes de contenu** : l'éc
 
 Ce que l'écran montre est trouvé et vit dans `ui/AnalysisReadout.kt` — une ligne par caractère du tour, son ou pas, pour que la phrase se lise en descendant la colonne. Ce qui suit est sa disposition, arrêtée le 2026-09-06.
 
-**Un son par ligne, et la ligne n'a qu'une seule cible : ouvrir.** Le rang porte les lettres, `modèle → toi`, les points et la barre, ce qui tient dans vingt et une colonnes une fois la barre à cinq. Il en portait trois — écouter le modèle, s'écouter, déplier — et trois boutons dans les onze pixels d'une ligne se ratent. **Les deux écoutes descendent donc dans le bloc ouvert**, où la place existe. Ce qui se perd est un geste, deux appuis au lieu d'un pour entendre un son ; ce qui se garde est la raison d'être de l'écran, puisqu'à trois lignes par son on en voit dix et la phrase disparaît. Quand on veut écouter, on s'est de toute façon arrêté sur une ligne.
+**Un son par ligne, et la ligne n'a qu'une seule cible : ouvrir.** Le rang porte les lettres sur 6, `modèle → toi` sur 8, les points sur 5 et la barre sur 6, soit vingt-sept des vingt-huit colonnes. Il en portait trois — écouter le modèle, s'écouter, déplier — et trois boutons dans les onze pixels d'une ligne se ratent. **Les deux écoutes descendent donc dans le bloc ouvert**, où la place existe. Ce qui se perd est un geste, deux appuis au lieu d'un pour entendre un son ; ce qui se garde est la raison d'être de l'écran, puisqu'à trois lignes par son on en voit dix et la phrase disparaît. Quand on veut écouter, on s'est de toute façon arrêté sur une ligne.
 
 **Le bloc s'ouvre dans la liste et n'est jamais un pop-up.** Une seule ligne ouverte à la fois : on retape pour fermer, on tape ailleurs pour déplacer l'ouverture, donc il n'y a aucun geste d'écartement à inventer et rien ne recouvre la phrase qu'on est en train de lire. Le pop-up reste ce que ce doc en a fait ailleurs, le reçu d'une règle qui s'efface. **Quand une ligne s'ouvre, la liste remonte pour la caler en haut de l'écran** — sinon vingt lignes se déplient sous une ligne du bas et personne ne les voit.
 
@@ -347,18 +353,21 @@ Ce que l'écran montre est trouvé et vit dans `ui/AnalysisReadout.kt` — une l
 **Les symboles des répartitions ont leurs trois lignes**, comme tout ce qui se touche. Le bloc ouvert fait donc une vingtaine de lignes, et ça ne coûte rien : la hauteur n'est précieuse qu'au niveau replié, où on veut la phrase entière.
 
 ```
-f    f → f     2  ░░░░░
-o    ɑ → ɑ     4  ░░░░░
-r    ɹ → w    31  ▓▓▓▓▓
-th   ð → d    18  ▓▓▓░░
-  ┌─────────┐ ┌─────────┐
-  │ MODÈLE ▶│ │ TOI    ▶│
-  └─────────┘ └─────────┘
-    ð    72     d    61
-    d    19     ð    22
-    z     9     z    17
-i    ɪ → ɪ     2  ░░░░░
+f      f → f       2
+o      ɑ → ɑ       4
+r      ɹ → w      31 ▓▓▓▓▓▓
+th     ð → d      18 ▓▓▓░░░
+ ┌───────────┐┌───────────┐
+ │ MODÈLE   ▶││ TOI      ▶│
+ └───────────┘└───────────┘
+     ð   72       d   61
+     d   19       ð   22
+     z    9       z   17
+i      ɪ → ɪ       2
+n      n → n       1
 ```
+
+**La flèche, le triangle et la barre sont des meubles, pas de l'Unicode.** `arrow.right` à U+E018, `play` à U+E010, les quatre blocs de jauge à partir de U+E012 : la police n'a ni `→` ni `▶` ni les blocs de trame, et une chaîne qui les écrirait en Unicode rendrait du vide. La part non remplie de la barre est la jauge peinte dans l'encre atténuée, comme sur l'écran de bilan.
 
 **Les trois gestes d'écoute de l'app ne se recouvrent pas** : toucher un mot du tour marqué le joue, l'écoute de la rangée de commandes joue la phrase entière, et ici on descend au son.
 

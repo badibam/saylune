@@ -75,7 +75,7 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 **Ce qui se prouve.** Qu'un groupe porte son identité et non son étiquette, donc qu'un groupe coupé par un retour à la ligne ouvre d'un côté et ferme de l'autre. Que la courbe ne se coupe qu'aux fragments écartés et reste d'un seul tenant aux pauses. Qu'éteindre un canal n'éteint que son affichage et jamais sa mesure.
 
-**Tranché le 2026-09-06** : les marques des mots **restent** une fois la porte passée, et les retirer est une préférence ; l'écran de 720 se détend au recompte, quinze colonnes sur vingt-et-une, avec un nom court par personnage et la règle que le nom se tronque et jamais les marques. **Reste avec l'humain** : le débordement d'un interligne sur l'autre, à régler en ajustant l'air.
+**Tranché le 2026-09-06** : les marques des mots **restent** une fois la porte passée, et les retirer est une préférence ; l'écran se détend au recompte, quinze colonnes sur vingt-huit, avec un nom court par personnage et la règle que le nom se tronque et jamais les marques. **Reste avec l'humain** : le débordement d'un interligne sur l'autre, à régler en ajustant l'air.
 
 ### 17. L'écran de conversation sous le nouveau déroulé
 

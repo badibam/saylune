@@ -1040,7 +1040,7 @@ Deux collisions écartées, à ne pas rouvrir. **Le délai avant de parler ne se
 
 ### Les noms d'écran
 
-**Onze feuilles, deux langues, douze colonnes** (arrêté le 2026-09-06). Ce qu'un écran affiche n'est pas la clé de la feuille mais un nom court, plafonné à ce que laisse la ligne d'un 720 (`pixel-ui.md`). Le critère est celui qui a donné `Grammar` : comment ça se lit à l'écran, jamais l'exactitude du terme.
+**Onze feuilles, deux langues** (arrêté le 2026-09-06). Ce qu'un écran affiche n'est pas la clé de la feuille mais un nom court. Il n'a pas de plafond de largeur : la mesure se cale contre la lettre et court vers la gauche autant que le nom le laisse (`pixel-ui.md`). Le critère est celui qui a donné `Grammar` : comment ça se lit à l'écran, jamais l'exactitude du terme.
 
 | feuille | EN | FR |
 |---|---|---|
@@ -1077,7 +1077,7 @@ Et deux noms sont fades exprès. **`Continuity` / `Continuité`**, parce que `Fl
 | `relevance` | Relevance | Pertinence |
 | `fluency` | Fluency | Fluidité |
 
-Trois d'entre eux étaient forcés : ce sont les branches à une seule feuille, et c'est de ne pas se répéter avec elles qui a fixé `Forme`, `Choix` et `Réponse`. Un titre a de la place, étant seul sur sa ligne avec sa lettre — la contrainte des douze colonnes ne vaut que pour un nom de feuille, qui partage sa ligne avec une mesure.
+Trois d'entre eux étaient forcés : ce sont les branches à une seule feuille, et c'est de ne pas se répéter avec elles qui a fixé `Forme`, `Choix` et `Réponse`. Un titre a d'autant plus de place qu'il est seul sur sa ligne avec sa lettre, là où un nom de feuille partage la sienne avec une mesure.
 
 **`Elocution` n'est pas le mot anglais**, et c'est le seul faux ami de la table : en anglais il désigne l'art de parler en public, la déclamation. Posé tel quel il annoncerait un cours d'éloquence au-dessus de quatre feuilles qui comptent des `th` ratés. `Pronunciation` couvre exactement la branche, prosodie comprise — dans l'enseignement des langues, la mélodie et l'accent en font partie. Le français prend `Prononciation` pour répondre à l'anglais et parce que c'est le mot que l'apprenant connaît ; `élocution` reste celui du doc et la clé du code, comme `correctness` sous `Grammaire`.
 
