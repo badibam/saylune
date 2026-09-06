@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
+import app.speakup.debug.Trace
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -88,18 +89,40 @@ class TurnRecorder(private val context: Context) {
     }
 
     /**
-     * Close the turn and hand back the wav. Null when nothing was said -- a caller must not
-     * send an empty file to a provider and read the answer as a turn.
+     * Close the turn and hand back both readings of it. Null when nothing was said -- a
+     * caller must not send an empty file to a provider and read the answer as a turn.
      */
-    suspend fun send(): File? = withContext(Dispatchers.IO) {
+    suspend fun send(): Take? = withContext(Dispatchers.IO) {
         pause()
         val samples = pcm?.takeIf { it.length() > 0 } ?: return@withContext null
-        val wav = File(samples.parentFile, samples.nameWithoutExtension + ".wav")
-        WavFile.wrap(samples, wav)
+        // **The empty stretches come out here**, between the recording and everything that
+        // reads it. What is kept on disk is the speech alone -- silence costs its length and
+        // no samples -- and what every reader gets is the turn put back together, silence
+        // included: the analysis rests on continuous frames, and stripping one of the two
+        // recordings and not the other is the asymmetry the whole montage exists to avoid.
+        val stretches = Segments.cut(samples)
+        val speech = File(samples.parentFile, samples.nameWithoutExtension + ".speech")
+        Segments.keep(samples, speech, stretches)
+        val rebuilt = File(samples.parentFile, samples.nameWithoutExtension + ".whole")
+        Segments.rebuild(speech, rebuilt, stretches)
+        Trace.add(
+            "capture: stretches",
+            "speech / silence" to
+                "${stretches.count { it.speech }} / ${stretches.count { !it.speech }}",
+            "speech / recorded" to "${speech.length()} / ${samples.length()} bytes",
+        )
+
+        val name = samples.nameWithoutExtension
+        val whole = File(samples.parentFile, "$name.wav")
+        WavFile.wrap(rebuilt, whole)
+        val spoken = File(samples.parentFile, "$name-speech.wav")
+        WavFile.wrap(speech, spoken)
+        rebuilt.delete()
+        speech.delete()
         samples.delete()
         pcm = null
         _state.value = CaptureState()
-        wav
+        Take(whole, spoken)
     }
 
     @SuppressLint("MissingPermission") // The screen holds the button behind the grant.
@@ -186,6 +209,21 @@ class TurnRecorder(private val context: Context) {
         const val CEILING_MS = 30_000
     }
 }
+
+/**
+ * One finished turn, in the two readings the app needs of it.
+ *
+ * [whole] is the turn as it was said, the empty stretches rebuilt as silence. **Everything
+ * measured reads this one**: the analysis rests on continuous frames and on the rule that
+ * nothing is done to one of the two recordings alone -- the model's render carries its own
+ * silences and nobody strips those -- so a take with its blanks taken out would be an
+ * asymmetry dressed as an economy.
+ *
+ * [spoken] is the speech alone, and it exists for one sentence of the doc: **no silence goes
+ * to the network.** It is what the recognition is given, which has no use for the blanks and
+ * charges for the seconds.
+ */
+data class Take(val whole: File, val spoken: File)
 
 /**
  * What the two clocks are set to for this turn, read off the sitting's levers.

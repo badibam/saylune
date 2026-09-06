@@ -128,9 +128,9 @@ fun ConversationScreen(
             // Read before `send` clears the state: the two facts belong to the take, and
             // the take is about to stop existing as a recording in progress.
             val ending = capture.ending
-            recorder.send()?.let { file ->
-                if (said != null) pipeline.redo(said, file, position, ending)
-                else pipeline.submit(file, position, ending)
+            recorder.send()?.let { take ->
+                if (said != null) pipeline.redo(said, take, position, ending)
+                else pipeline.submit(take, position, ending)
             }
             repeating = null
         }
