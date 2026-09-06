@@ -17,6 +17,7 @@ Un pixel de dessin vaut 64 unités, le cadratin 1024, l'avance 704.
 
 - `frames.py` — découpe les seize pièces de cadre depuis la formule du banc.
 - `furniture.py` — les vingt-cinq meubles de la zone privée. Ce qui est un symbole plein — le disque, le triangle, la jauge, le cœur, le micro, la loupe, l'œil, le cadenas, l'histogramme, les points — est identique dans les deux graisses ; ce qui est un trait — les flèches, la coche, la croix, les curseurs, le retour, la flèche circulaire — s'amincit avec le reste.
+- `phonemes.py` — les quatorze phonèmes de l'API que l'analyse affiche. Trois sont une lettre tournée ou en miroir, sept une lettre plus une barre ou un crochet — donc les deux graisses tombent seules —, quatre sont dessinés par graisse.
 - `scramble.py` — couvre chaque lettre de carrés, pour le tour de l'IA qu'on voit sans le lire.
 
 Les TTF compilés sont dans `ttf/`. Les poser dans `app/src/main/res/font/` est le geste de l'app, pas celui d'ici.
