@@ -1378,9 +1378,13 @@ Le rétro touche aussi le marquage, qui est aujourd'hui un instrument de précis
 
 La capture est **un levier de fluidité, à trois positions**, et l'échelle gradue exactement ce que la fluidité peut lire.
 
-1. **Maintien du doigt, envoi manuel.** Ce que fait l'app aujourd'hui : on appuie pour parler, on relâche pour réfléchir, on réappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
-2. **Armement automatique, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le **délai avant de parler** et les **silences intérieurs** deviennent mesurables.
-3. **Armement automatique, envoi au clic ou sur un silence de plus de x**, silence du début compris. Le clic reste le geste normal ; un tour que personne n'envoie est **interrompu**, et c'est ce que cette position demande, de la réactivité. Aucune mesure neuve ne s'y ajoute, et aucun silence n'y dépasse x, puisqu'à x le tour est déjà parti.
+1. **Ouverture à la main, avec pause, envoi manuel.** On appuie pour parler, on rappuie pour mettre en pause et réfléchir, on rappuie pour continuer, on envoie quand c'est dit. Aucune mesure de silence n'est possible — entre deux segments, l'écart mesure le pouce.
+2. **Armement automatique, sans pause, envoi manuel.** Le micro s'ouvre dès que l'IA a fini et reste ouvert jusqu'à l'envoi. Le **délai avant de parler** et les **silences intérieurs** deviennent mesurables, ce qui est exactement ce que retirer la pause achète.
+3. **Armement automatique, sans pause, envoi au clic ou sur un silence de plus de x**, silence du début compris. Le clic reste le geste normal ; un tour que personne n'envoie est **interrompu**, et c'est ce que cette position demande, de la réactivité. Aucune mesure neuve ne s'y ajoute, et aucun silence n'y dépasse x, puisqu'à x le tour est déjà parti.
+
+**Tout s'ouvre et s'envoie du même geste aux trois positions : un appui** (tranché le 2026-09-06). La première position se tenait au doigt maintenu, ce qui la faisait diverger des deux autres sur le geste et non sur ce qu'elle mesure — et obligeait, chaque fois qu'un bouton devait servir dans les deux régimes, à lui donner deux comportements que rien à l'écran n'annonçait. La bascule garde les segments à l'identique, puisque la position 1 séparait déjà des segments de parole par des pauses commandées au pouce ; elle change qui les délimite, pas ce qu'ils sont.
+
+**Ce qui distingue alors les positions n'est plus le geste mais deux faits** : qui ouvre le micro, et si la pause existe. La pause est ce qui interdit de lire les silences, donc elle vit là où ils ne se lisent pas, et nulle part ailleurs.
 
 Un tour interrompu est **tronqué et envoyé tel quel** : ce qui restait à dire n'est jamais capté, le micro ne se rouvrant qu'après la réponse de l'IA. Il n'est pas coupé en deux tours.
 
@@ -1389,6 +1393,10 @@ Un tour interrompu est **tronqué et envoyé tel quel** : ce qui restait à dire
 **Les deux décomptes sont visibles, toujours** — celui du silence de x et celui de la durée maximale du tour. Deux temps qui s'épuisent, montrés de la même façon. Ce n'est pas un levier.
 
 Le micro **ne s'arme jamais avant la fin de la réponse de l'IA**. Un symbole est visible dès que ça enregistre : il n'informe pas seulement, il fait partie de la pression — savoir que ça tourne change la façon dont on parle.
+
+**Et il ne s'arme jamais tout seul tant qu'un passage attend une reprise** (tranché le 2026-09-06). Ce que ça répare : le passage se ferme à l'appui sur le gros bouton, *l'app n'ayant rien à deviner de ce qui vient d'être dit, c'est un fait d'interface* — or l'armement automatique supprime l'appui, donc le fait. En « poursuit », où le gros bouton est disponible, l'app recevrait une prise sans savoir si c'est la tentative suivante ou un tour neuf qui clôt le passage non réparé, et rien ne trancherait, les tentatives pouvant être sans maximum. Suspendre l'armement recrée l'instant de la décision, et seulement là où il avait disparu : en « attend », le gros bouton étant indisponible, tout ce qui se dit est déjà une tentative et rien n'est ambigu.
+
+Ce qui se voit alors : le flux s'arrête, la ligne d'état porte les deux issues et le compte restant — *reformule-la, ou lance un tour neuf ; il te reste deux reformulations* —, le petit bouton reprend, le gros passe. Le silence du micro est le signal, et il n'a pas besoin d'être doublé par une fenêtre à écarter.
 
 **Une prise se jette avant d'être envoyée, et c'est un levier** — `jeter-la-prise`, tranché le 2026-09-06. Le geste existe dans l'app depuis le début : on parle, on relâche, et on jette au lieu d'envoyer. Rien n'est parti, rien n'a été mesuré, aucune tentative n'est dépensée. Sans lui, la seule sortie d'une phrase ratée serait de l'envoyer, ce qui dépense une tentative pour un raclement de gorge. Mais librement offert, il rend le compte des tentatives contournable : dans un défi qui n'en donne qu'une, on recommence dix fois en jetant chaque prise, et la tentative reste intacte. Un défi doit donc pouvoir le fermer, ce qui est exactement la définition d'un levier — il y a un côté facile.
 

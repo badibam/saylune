@@ -148,9 +148,9 @@
     <string name="lever_relevance_lets_through">Viser à côté ne fait rien refaire</string>
     <string name="lever_relevance_sends_back">Viser à côté fait reformuler le passage</string>
 
-    <string name="lever_capture_finger">Le bouton se tient enfoncé pour parler</string>
-    <string name="lever_capture_armed">Le micro s\'ouvre seul, l\'envoi reste manuel</string>
-    <string name="lever_capture_armed_and_sending">Le micro s\'ouvre seul, et le silence envoie le tour</string>
+    <string name="lever_capture_finger">Le micro s\'ouvre et se met en pause à la main, donc les silences ne comptent pas</string>
+    <string name="lever_capture_armed">Le micro s\'ouvre seul et ne se met jamais en pause, donc les silences comptent</string>
+    <string name="lever_capture_armed_and_sending">Le micro s\'ouvre seul et ne se met jamais en pause, et le silence envoie le tour</string>
     <plurals name="lever_silence_threshold">
         <item quantity="one">Le tour part après %1$d s de silence</item>
         <item quantity="other">Le tour part après %1$d s de silence</item>

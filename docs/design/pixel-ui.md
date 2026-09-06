@@ -227,7 +227,11 @@ Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire
 
 **Les notes et les sons sont deux entrées et non une**, les deux ne parlant pas de la même chose : l'une rend le bilan du passage, feuille par feuille, l'autre descend d'un cran dans l'inventaire son par son que `ui/AnalysisReadout.kt` dessine déjà.
 
-**Le bas de l'écran fait quatre lignes de grille.** Sur trois, le **gros bouton** — `MON TOUR` / `MY TURN`, toujours le même mot — sur deux tiers de largeur, et **`ENVOYER`** sur le tiers restant. Sur une, la **barre d'actions**.
+**Le bas de l'écran fait quatre lignes de grille.** Sur trois, **trois boutons** — le **gros bouton** `MON TOUR` / `MY TURN`, `PAUSE`, et **`ENVOYER`**. Sur une, la **barre d'actions**. Leur partage en largeur reste à régler au banc : le gros bouton tenait les deux tiers quand ils n'étaient que deux.
+
+**Chacun dit une chose et une seule, et disparaît là où il n'a pas de travail.** C'est ce qui remplace un objet unique qui aurait changé de sens en route — `MON TOUR` devenant pause pendant qu'on parle, puis grisé selon la position de capture, ferait trois personnalités sur un bouton, et un changement visible ne dispense pas de l'apprendre. `PAUSE` n'existe donc qu'en capture à la main, la seule position qui en a une (`activity-model.md`) ; son absence est la forme juste à l'écran, et la phrase du levier reste la forme juste au moment où on choisit la position, avant de jouer.
+
+**Tout s'ouvre d'un appui**, aux trois positions de capture, la première ayant cessé de se tenir au doigt maintenu (`activity-model.md`, tranché le 2026-09-06). C'est ce qui permet à `MON TOUR` d'exister partout du même geste : sans ça, un bouton qui sert dans deux régimes de capture aurait deux comportements que rien à l'écran n'annonce.
 
 **Le gros bouton dit un tour de parole et pas une page suivante** : il ferme le passage précédent et ouvre le mien, ce qui est exactement ce qui se passe. Il forme un couple lisible avec le petit — `DIS` reprend la même phrase, `MON TOUR` en dit une neuve. `CONTINUER` a été écarté, qui laisserait croire qu'on saute un tour. Grisé, il porte ce qui manque pour qu'il redevienne possible — *reformule d'abord*, *redis d'abord* — pendant que la ligne d'état du haut porte la raison.
 
@@ -250,6 +254,8 @@ La première est la **ligne d'état** : le **titre court** à gauche, et à droi
 - La **note** est celle de la séance en cours, qui n'a pas de formule à elle : c'est l'agrégation à plat des passages déjà clos (`activity-model.md`). Elle saute pendant les trois premiers, le dénominateur étant petit, et ce n'est pas un défaut à corriger — la masquer dirait *non mesuré*, ce qui serait faux.
 
 La seconde est la **ligne d'état du tour**, dans son propre cadre, **toujours pleine et à jour**. Ce n'est pas une boîte d'alerte mais le narrateur du cycle : *à toi de parler*, *Speakup répond…*, *reformule-la — en cause : Grammar*, *écoute le modèle et redis*, *il te reste deux redites*. Elle occupe aussi les onze secondes d'attente sans rien coûter, et elle est l'endroit que `../reference.md` exige partout — celui où une chose indisponible porte sa raison.
+
+**Quand une reprise attend, elle porte les deux issues et pas seulement l'obligation** — *reformule-la, ou lance un tour neuf ; il te reste deux reformulations*. C'est ce qui rend inutile la fenêtre qu'on aurait mise là : le micro ne s'arme pas tant que la reprise attend (`activity-model.md`), donc le flux s'arrête visiblement, cette ligne dit quoi et combien il reste, et les deux boutons portent les issues. Un pop-up ajouterait un second objet disant la même chose et un geste à écarter sur chaque passage marqué.
 
 **En bas, la barre d'actions**, d'une seule ligne, en glyphes : l'**œil** (ce qui s'affiche), les **leviers ouverts** de cette séance, le **retour**. Elle porte les points d'entrée, qui sont constants pour un écran ; le gros bouton juste au-dessus porte l'action du moment, qui change d'un instant à l'autre. Les mélanger ferait bouger une entrée de place selon l'état du passage.
 

@@ -166,9 +166,9 @@
     <string name="lever_relevance_lets_through">Missing the mark sends nothing back</string>
     <string name="lever_relevance_sends_back">Missing the mark sends the passage back to be reworded</string>
 
-    <string name="lever_capture_finger">The button is held down to speak</string>
-    <string name="lever_capture_armed">The mic opens on its own, sending stays manual</string>
-    <string name="lever_capture_armed_and_sending">The mic opens on its own, and silence sends the turn</string>
+    <string name="lever_capture_finger">The mic is opened and paused by hand, so silences do not count</string>
+    <string name="lever_capture_armed">The mic opens on its own and never pauses, so silences count</string>
+    <string name="lever_capture_armed_and_sending">The mic opens on its own and never pauses, and silence sends the turn</string>
     <plurals name="lever_silence_threshold">
         <item quantity="one">The turn goes after %1$d s of silence</item>
         <item quantity="other">The turn goes after %1$d s of silence</item>
