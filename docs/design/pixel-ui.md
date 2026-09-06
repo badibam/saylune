@@ -223,7 +223,9 @@ Recompté le 2026-09-06 sur le pire écran, et le cas se détend : l'étiquette 
 | les notes du passage | 1 |
 | l'analyse des sons, la loupe | 1 |
 
-Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire écran. Le petit bouton n'apparaît que sur le passage ouvert, les redites s'arrêtant à la clôture (`activity-model.md`) ; les cinq autres entrées valent sur tout passage qui porte un enregistrement.
+Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire écran. Le petit bouton n'apparaît que sur le passage ouvert, les tentatives s'arrêtant à la clôture (`activity-model.md`) ; les cinq autres entrées valent sur tout passage qui porte un enregistrement.
+
+**Le petit bouton se comporte comme le gros** : un appui lance, il se montre actif, et ce qui suit — la pause, l'envoi — est en bas. Un seul comportement à apprendre pour les deux, ce qui est tout l'intérêt d'avoir mis les trois positions de capture au même geste.
 
 **Les notes et les sons sont deux entrées et non une**, les deux ne parlant pas de la même chose : l'une rend le bilan du passage, feuille par feuille, l'autre descend d'un cran dans l'inventaire son par son que `ui/AnalysisReadout.kt` dessine déjà.
 
@@ -236,6 +238,19 @@ Dix colonnes plus cinq séparations font **quinze sur les vingt-et-une** du pire
 **Le gros bouton dit un tour de parole et pas une page suivante** : il ferme le passage précédent et ouvre le mien, ce qui est exactement ce qui se passe. Il forme un couple lisible avec le petit — `DIS` reprend la même phrase, `MON TOUR` en dit une neuve. `CONTINUER` a été écarté, qui laisserait croire qu'on saute un tour. Grisé, il porte ce qui manque pour qu'il redevienne possible — *reformule d'abord*, *redis d'abord* — pendant que la ligne d'état du haut porte la raison.
 
 **`ENVOYER` existe aux trois positions de capture**, et pas seulement aux deux à envoi manuel : le doc du modèle d'activité dit de la troisième que « le clic reste le geste normal », le silence n'y étant que le filet qui rattrape un tour que personne n'envoie. Ce qui change d'une position à l'autre est ce qui **arme** le micro, jamais ce qui envoie.
+
+**Le bas commande tout ce qui enregistre, quelle que soit son origine.** Le gros bouton lance un tour neuf, le petit bouton d'un passage lance une reprise, et dans les deux cas ce sont les mêmes `PAUSE` et `ENVOYER` qui suivent. Les redoubler dans la rangée de commandes tiendrait — deux glyphes de plus font dix-neuf colonnes sur vingt-et-une — et ce n'est pas la place qui l'écarte : ce serait deux `ENVOYER` faisant le même travail à deux endroits, celui qu'on presse dépendant de ce qu'on a lancé. C'est aussi ce que le partage de la charpente dit déjà, la barre d'actions portant les points d'entrée constants et ce qui est au-dessus l'action du moment — un enregistrement en cours **est** l'action du moment.
+
+**Ce qui rend ce partage sûr est que la ligne d'état nomme ce qui tourne** : pas *enregistrement en cours* mais *tour en cours*, *redite en cours*, *reformulation en pause*. Sans ce nom, deux boutons partagés seraient ambigus ; avec lui, il n'y a jamais qu'un enregistrement et l'écran dit lequel.
+
+**Les états des boutons en découlent, et ils tiennent en quatre lignes.**
+
+| quand | ce que portent les boutons |
+|---|---|
+| un enregistrement tourne, d'où qu'il vienne | `PAUSE` et `ENVOYER` vivants ; `MON TOUR` grisé — on ne commence pas un tour neuf en parlant |
+| rien n'enregistre | `PAUSE` grisé ; `ENVOYER` absent, faute de prise à envoyer |
+| une reprise tourne | le petit bouton du passage ouvert se montre actif ; les autres passages n'en ont pas |
+| une reprise attend d'être décidée | `MON TOUR` et le petit bouton vivants tous les deux — sauf en « attend », où `MON TOUR` reste grisé jusqu'à l'épuisement des tentatives (`activity-model.md`) |
 
 **Un dessin fin n'oblige pas à une cible tactile fine.** La barre d'actions se dessine sur une ligne et sa zone tactile déborde vers le haut sur trois ; un glyphe d'une colonne reçoit la même marge invisible. C'est ce qui réconcilie la recommandation des 48 dp avec une charpente qui n'en dépense qu'une.
 
