@@ -127,7 +127,7 @@ enum class Aptitude {
     /** Following someone at their speed, with their reductions, without a text. */
     Understanding,
     /** The well-formed sentence, and the rule applied while speaking rather than known. */
-    Wording,
+    Correctness,
     /** Finding one's words fast enough, carrying on, not stopping in the middle. */
     Fluency,
     /**
@@ -135,6 +135,9 @@ enum class Aptitude {
      *
      * The only one whose failure is invisible: nothing signals that what was just said is a
      * poor version of the idea.
+     *
+     * It is the one that carries an activity's instruction, so everything a challenge wants
+     * to demand -- a register, an imposed length, a forbidden word -- lands here.
      */
-    Range,
+    Relevance,
 }

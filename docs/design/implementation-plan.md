@@ -4,6 +4,8 @@ Ce que le chantier 0 fait, dans quel ordre, et pourquoi cet ordre-là. Écrit le
 
 Il ne redit rien de ce que ces docs disent. Une étape nomme ce qu'elle fait, pourquoi elle tombe là, ce qu'elle prouve, ce qui s'y décide avec l'humain, et ce qu'elle laisse dû.
 
+**Une étape écrite sort d'ici** — le code et les commits la portent, et ce qu'elle laisse dû passe au TODO. Les numéros ne se resserrent pas derrière elle : ils désignent une étape, ils ne la comptent pas.
+
 ## Ce qui a été acté en ouverture du chantier (2026-09-06)
 
 Cinq choses, tranchées en session avant d'écrire une ligne.
@@ -48,18 +50,6 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 - **La persistance n'est pas une étape, c'est une couture** : un champ neuf s'écrit en base dans l'étape qui le crée. Trois migrations en sortent, aux étapes 3, 10 et 11, manuelles et conservées indéfiniment.
 
 ## Les étapes
-
-### 1. Le catalogue des leviers
-
-**Ce que ça fait.** La déclaration de chaque levier — sa clé, sa forme, ses positions, son défaut, qui le tient, et la phrase lisible de chacune de ses positions. Les deux formes, à marches et à nombre, la sentinelle « pas de maximum », le sans-objet qui reste sur la ligne et s'affiche grisé en portant sa raison. Les positions d'un levier à marches se déclarent du facile au dur, donc le côté dur n'est un champ que sur les leviers à nombre. Une vingtaine d'entrées, celles du catalogue de `activity-model.md`, qui y est un brouillon dont aucune liste n'est close.
-
-**Pourquoi ici.** C'est la première des déclarations, et tout ce qui suit s'écrit contre elle : une règle pose des positions, un préréglage en pose un paquet, l'écran d'avant-partie lit leurs phrases, le menu envoyé au modèle est fait de patchs tout prêts.
-
-**Ce qui se prouve.** Qu'une clé absente échoue franchement plutôt que de prendre un défaut silencieux ; qu'un déplacement s'arrête à la borne sans erreur ; qu'un déplacement qui n'a rien bougé ne notifie rien ; que la direction se lit dans les deux formes.
-
-**Avec l'humain.** Les phrases lisibles, une par position, en français et en anglais. Le défaut de chaque levier là où le brouillon le laisse ouvert. Le renommage de `Wording` en correction et de `Range` en pertinence, que `reference.md` a déjà acté côté doc.
-
-**Ce que ça laisse dû.** Le bruit et le filtre sont déclarés et ne s'utilisent pas.
 
 ### 2. L'arbre des feuilles, les colonnes, les séries
 
