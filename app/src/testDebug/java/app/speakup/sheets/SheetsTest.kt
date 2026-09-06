@@ -91,13 +91,13 @@ class SheetsTest {
     }
 
     @Test fun `an unmarked element takes a notch and never an absence`() {
-        // A word carrying nothing is `ok`, which is a notch like any other. Where the judge
-        // marks every element, there is nothing to fall back to.
-        val correction = (Sheets.of("correction/correction") as Sheet).reading as Reading.Column
-        assertEquals("ok", correction.fallback)
-        val stumbling =
-            (Sheets.of("fluidite/remplissage-reprises") as Sheet).reading as Reading.Column
-        assertNull(stumbling.fallback)
+        // A word carrying nothing is `ok`, which is a notch like any other -- and an
+        // unmarked spoken word is `retenu`, the same shape. Only the sheets whose single
+        // element the judge always marks have nothing to fall back to.
+        assertEquals("ok", Sheets.columnOf("correction/correction").fallback)
+        assertEquals("ok", Sheets.columnOf("pertinence/pertinence").fallback)
+        assertEquals("retenu", Sheets.columnOf("fluidite/remplissage-reprises").fallback)
+        assertNull(Sheets.columnOf("comprehension/suivi").fallback)
     }
 
     @Test fun `correctness has no notch above ok, relevance does`() {

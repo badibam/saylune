@@ -68,15 +68,41 @@ object Sheets {
     /**
      * Stumbling: a spoken word is kept, abandoned, or filler -- three slices of one cake.
      *
-     * No precedence to declare: the judge marks every spoken word exactly once, so no word
-     * carries two. An abandoned word costs a little more than a filler, a restart dragging
-     * more of the sentence with it than an *um* does.
+     * The judge marks only what is not kept, so **an unmarked word is `retenu`** -- the same
+     * shape as `ok` on the language scales, and far less output to ask of it than one notch
+     * per spoken word. An abandoned word costs a little more than a filler, a restart
+     * dragging more of the sentence with it than an *um* does.
      */
     private val STUMBLING = Reading.Column(
         listOf(
-            Notch("retenu", 1.00f),
             Notch("abandonne", 0.30f),
             Notch("remplissage", 0.45f),
+            Notch("retenu", 1.00f),
+        ),
+        fallback = "retenu",
+    )
+
+    /**
+     * **Not a sheet**: what the model says of the turn it just wrote, which serves as the
+     * weight of `suivi`.
+     *
+     * It says nothing about the learner, so it has no sheet, no sensitivity and no
+     * instruction. Length alone was too coarse -- *"Fancy a cuppa?"* is harder than forty
+     * simple words -- and the complexity lever does not replace it: that asks for a level, it
+     * does not promise every sentence is hard. So it is one answer per sentence.
+     *
+     * Five notches and not the three of the complexity lever: this is a **weight**, and a
+     * weight wants gradation where a request wants room to interpret. Its limits are written
+     * with it: nobody checks it, it does not replay identically, and it is the model scoring
+     * what it has just written.
+     */
+    val DIFFICULTY = Reading.Column(
+        listOf(
+            Notch("tres-difficile", 1.00f),
+            Notch("difficile", 0.80f),
+            Notch("moyen", 0.55f),
+            Notch("facile", 0.30f),
+            Notch("tres-facile", 0.15f),
         ),
         fallback = null,
     )
@@ -371,4 +397,15 @@ object Sheets {
     /** Where [node] sits, as the path a condition names. */
     fun pathOf(node: Node): String =
         byPath.entries.first { it.value === node }.key
+
+    /**
+     * The column of the sheet at [path].
+     *
+     * The one place notch names live. Whoever reads a marking back from the model checks it
+     * against this rather than against a list of its own, so a notch the catalogue does not
+     * declare fails at the seam instead of travelling on as data nothing can read.
+     */
+    fun columnOf(path: String): Reading.Column =
+        (of(path) as? Sheet)?.reading as? Reading.Column
+            ?: error("$path: not a sheet read by a column")
 }
