@@ -15,6 +15,18 @@ Un pixel de dessin vaut 64 unités, le cadratin 1024, l'avance 704.
 - `check.py` — prouve que tout ce qu'on n'a pas touché rend au pixel près comme Mono10.
 - `plank.py` — dessine une planche PNG pour juger en regardant.
 
+- `frames.py` — découpe les seize pièces de cadre depuis la formule du banc.
+- `furniture.py` — les treize meubles de la zone privée.
+- `scramble.py` — couvre chaque lettre de carrés, pour le tour de l'IA qu'on voit sans le lire.
+
+Les TTF compilés sont dans `ttf/`. Les poser dans `app/src/main/res/font/` est le geste de l'app, pas celui d'ici.
+
+## La zone privée
+
+- `U+E000`–`U+E00F` — les cadres : huit pièces en couche claire, les mêmes en couche sombre.
+- `U+E010`–`U+E01C` — les meubles : triangle, disque d'enregistrement, quatre blocs de jauge, quatre flèches, coche, croix, cœur.
+- `U+E100` + le codet de la lettre — sa version brouillée. La table de l'app est donc une addition : un caractère se brouille si son codet décalé existe dans la police.
+
 Ajouter un caractère : écrire son bloc `@nom U+XXXX` dans les deux cartes, relancer `build.py`.
 
 ## Licence
