@@ -72,7 +72,7 @@ Le prune parce que **c'est la seule teinte froide qu'aucune mesure n'a réservé
 
 | | prune de nuit | prune pâle |
 |---|---|---|
-| fond — clarté, chroma | 0,20 · 0,045 | 0,90 · 0,075 |
+| fond — clarté, chroma | 0,20 · 0,045 | 0,94 · 0,075 |
 | encre neutre — clarté | 0,64 | 0,40 |
 | rampe — clarté, chroma | 0,78 · 0,130 | 0,43 · 0,140 |
 | teinte de fin de rampe | 32 | 29 |

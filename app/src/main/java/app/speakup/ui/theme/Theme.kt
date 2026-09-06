@@ -29,7 +29,7 @@ fun SpeakupTheme(
     val density = LocalDensity.current
     val grid = remember(density) { gridFor(density) }
     CompositionLocalProvider(
-        LocalPalette provides if (dark) DarkRegister else LightRegister,
+        LocalPalette provides remember(dark) { Palette(if (dark) NightPlum else PalePlum) },
         LocalTypography provides remember(grid, density) { Typography(grid, density) },
         LocalGrid provides grid,
         LocalRhythm provides Rhythm(),

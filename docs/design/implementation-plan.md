@@ -59,15 +59,15 @@ Le critère : ce qui relève d'un jugement de langue, d'un goût visuel, ou d'un
 
 **Ce que ça rend.** Une mesure, pas une conclusion. L'appel unique ne se coupe pas ; si le chiffre est mauvais, les leviers sont un modèle sans raisonnement pour ce maillon ou un prompt plus court, et le choix se fait devant le chiffre.
 
-### 7. Les deux palettes et la rechange daltonisme
+### 7. La rechange daltonisme
 
-**Ce que ça fait.** Le prune de nuit et le prune pâle, une trentaine d'entrées : trois fonds, trois encres, la rampe d'alarme à quatre crans, les deux verts, le bleu du contour de mélodie, les teintes de décor et de halo. La règle du marquage tenue dans les deux registres — la distance perceptuelle OKLab sur le premier cran. L'écrêtage de gamut par réduction de chroma, les mélanges en OKLab. La rampe continue de `ui/MarkingColors.kt` disparaît. **La palette de rechange du daltonisme dans la même passe.**
+Les deux registres sont écrits, portés par les sept nombres du banc et dérivés d'eux. Ce qui reste est la moitié qui n'a aucune valeur nulle part.
 
-**Pourquoi ici, et pourquoi la rechange maintenant.** Avant que la vaguelette, les crochets, la pastille et les chevrons naissent, sinon ils se posent sur une rampe qu'on remplace ensuite. Et le cas qui exige la rechange est le pire du doc : *juste* et *à côté* sont la même forme et deux verdicts opposés, séparés par la seule couleur ; en deutéranopie la marque d'une réussite devient celle d'une faute. Déplacer une teinte coûte une heure ici et tout le doc plus tard.
+**Ce que ça fait.** Une palette de rechange, en préférence utilisateur, qui tient **la même règle de marquage** — la distance perceptuelle OKLab sur le premier cran, dans les deux registres — et qui trouve pour les crochets deux teintes restant séparées sous la perception visée.
 
-**Avec l'humain.** Les valeurs des deux registres et de la rechange, réglées au banc d'essai qui dessine un écran complet à la résolution réelle. Ce que la rechange couvre : les confusions rouge-vert d'abord, la tritanopie couverte ou déclarée hors périmètre.
+**Pourquoi avant l'étape 16.** Le cas qui l'exige est le pire du doc : *juste* et *à côté* sont la même forme et deux verdicts opposés, séparés par la seule couleur. En deutéranopie la marque d'une réussite devient celle d'une faute. Si les crochets naissent d'abord, ils se posent sur une rampe qu'on remplace ensuite.
 
-**Ce que ça laisse dû.** La séparation des quatre crans en registre clair est une mesure à refaire, pas un réglage à recopier.
+**Avec l'humain.** Les valeurs, au banc, qui ne les porte pas encore. Et **ce qu'elle couvre** : les confusions rouge-vert d'abord, la tritanopie — qui toucherait le bleu du contour de mélodie — couverte ou déclarée hors périmètre.
 
 ### 9. Les feuilles calculées et la couture d'analyse
 

@@ -331,9 +331,6 @@ private fun Bar(part: Float, modifier: Modifier = Modifier) {
     }
 }
 
-/** Where the ramp of `MarkingColors.kt` tops out, so a full bar means a saturated mark. */
-private const val SATURATES = 30f
-
 // 11 sp fitted the widest row on the narrowest phone and was unreadable doing it. The row
 // is laid out by weights rather than by columns of characters, so it reflows instead of
 // wrapping, and the size is free to be chosen for the eye. The fixed widths below follow it.
