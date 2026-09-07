@@ -52,6 +52,13 @@ import java.util.Locale
  * history screen out of reach is lost to use -- so it asks, on **no** by default, in the
  * register rather than in a dialogue box: the two buttons become the question, and the answer
  * is where the hand already is.
+ *
+ * **Saying yes empties the screen and starts nothing.** The situation comes back with its
+ * holes, and the sitting is opened by the press on *begin* that follows, like on a theme
+ * nobody had touched -- so the questions are asked before a word is spoken, and a scene whose
+ * character speaks first does not start talking over an empty situation. What that costs is
+ * that the old sitting only goes out of reach when the new one opens: leaving the screen
+ * between the two puts it back within reach, which is the harmless half of the mistake.
  */
 @Composable
 fun SituationScreen(
@@ -79,15 +86,21 @@ fun SituationScreen(
     val answers = remember(theme.id) { mutableStateMapOf<String, String>() }
     var gender by rememberSaveable(theme.id) { mutableStateOf("") }
     var asking by rememberSaveable(theme.id) { mutableStateOf(false) }
+    // Whether the learner has said yes to starting over. It hides the sitting rather than
+    // ending it: everything below reads [standing] and [spoken], so the screen is exactly the
+    // one a theme nobody had opened shows.
+    var over by rememberSaveable(theme.id) { mutableStateOf(false) }
+    val standing = started.takeIf { !over }
+    val spoken = if (over) 0 else passages
 
     Column(modifier.fillMaxSize().padding(horizontal = grid.cell)) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(grid.cell),
         ) {
-            if (started != null) {
+            if (standing != null) {
                 Text(
-                    said(theme.brief?.situation.orEmpty(), started.situation, palette.own.srgb),
+                    said(theme.brief?.situation.orEmpty(), standing.situation, palette.own.srgb),
                     style = type.text,
                     color = palette.ink.srgb,
                 )
@@ -140,16 +153,16 @@ fun SituationScreen(
                 Way(stringResource(R.string.situation_no), Modifier.weight(1f)) { asking = false }
                 Way(stringResource(R.string.situation_yes), Modifier.weight(1f)) {
                     asking = false
-                    onStart(answers.toMap(), gender.takeIf { it.isNotEmpty() })
+                    over = true
                 }
             } else {
                 Way(
                     stringResource(
-                        if (passages == 0) R.string.situation_begin else R.string.situation_carry_on
+                        if (spoken == 0) R.string.situation_begin else R.string.situation_carry_on
                     ),
                     Modifier.weight(1f),
                 ) {
-                    if (started == null) onStart(answers.toMap(), gender.takeIf { it.isNotEmpty() })
+                    if (standing == null) onStart(answers.toMap(), gender.takeIf { it.isNotEmpty() })
                     else onCarryOn()
                 }
                 Way(
@@ -157,7 +170,7 @@ fun SituationScreen(
                     Modifier.weight(1f),
                     // Nothing to start over before something has started, and an entry that is
                     // off is dimmed and still there rather than absent.
-                    enabled = started != null,
+                    enabled = standing != null,
                 ) { asking = true }
             }
         }
