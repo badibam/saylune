@@ -28,3 +28,6 @@ captures/
 bench/out/
 __pycache__/
 *.pyc
+
+# Editor swap files, which are never anyone else's business.
+.*.kate-swp
