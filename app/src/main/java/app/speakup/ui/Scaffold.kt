@@ -64,6 +64,16 @@ fun Scaffold(
     lives: Int?,
     /** What the narrator says right now. Never empty. */
     status: String,
+    /**
+     * What pressing the line does, or null where it is only read.
+     *
+     * **The sound's gate's notification gives the model to listen to** (`pixel-ui.md`), and it
+     * is a state rather than a receipt, so it lives in this line. Making the line itself the
+     * target is what gives it the listening without adding a second object saying the same
+     * thing: the remedy for a sound fault has never been a written instruction, it is hearing
+     * the model and saying it again.
+     */
+    onStatus: (() -> Unit)? = null,
     actions: List<Action>,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
@@ -101,7 +111,12 @@ fun Scaffold(
                 Text(hearts(it), style = type.text, color = palette.ramp.last().srgb, maxLines = 1)
             }
         }
-        Framed(Modifier.fillMaxWidth().padding(horizontal = grid.cell)) {
+        Framed(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = grid.cell)
+                .let { if (onStatus == null) it else it.clickable(onClick = onStatus) },
+        ) {
             Text(
                 reason?.let { stringResource(it) } ?: status,
                 modifier = Modifier.align(Alignment.CenterStart),

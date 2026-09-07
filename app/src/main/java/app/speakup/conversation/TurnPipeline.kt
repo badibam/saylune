@@ -10,6 +10,7 @@ import app.speakup.chain.Reply
 import app.speakup.chain.Scene
 import app.speakup.chain.Word
 import app.speakup.activity.Activity
+import app.speakup.activity.Chosen
 import app.speakup.activity.Definition
 import app.speakup.activity.Definitions
 import app.speakup.capture.Ending
@@ -26,6 +27,13 @@ import app.speakup.judged.Kept
 import app.speakup.judged.Marked
 import app.speakup.fluency.Fluency
 import app.speakup.notes.Measured
+import app.speakup.notes.Passage as Scored
+import app.speakup.rules.Engine
+import app.speakup.rules.Moment
+import app.speakup.rules.Notice
+import app.speakup.rules.State as RuleState
+import app.speakup.rules.Instructing
+import app.speakup.rules.Trigger
 import app.speakup.notes.Sheeting
 import app.speakup.sheets.Sheet
 import app.speakup.sheets.Sheets
@@ -315,16 +323,48 @@ data class ConversationState(
      * call, nothing retracted -- which is what makes that way out free.
      */
     val held: String? = null,
+    /**
+     * What the rules have made of the sitting: the **effective** positions, which rules are
+     * armed, the instructions standing, and the outcome once something has ended it.
+     *
+     * **The declared position of a lever and its effective position are two things**, and
+     * confusing them is what made it look contradictory that the settings are fixed for the
+     * whole sitting while the lives run out. The definition writes the first, which never
+     * moves and lives on the activity's line; the patches move the second, which is what the
+     * learner lives.
+     *
+     * Held as a value rather than recomputed on every read because a wave has to see what the
+     * wave before it did -- and **null until a moment has run**, which is what keeps it from
+     * going stale: a state carrying a copy of settings that a later activity replaced would
+     * answer with the settings of a sitting one has left. Null means nothing has moved yet, so
+     * [positions] reads the declared ones and there is nothing to keep in step.
+     *
+     * **What it does not do yet is survive a reopening**: replaying the journal to rebuild it
+     * needs the facts each past moment was read against, which nothing keeps, so a sitting
+     * picked up again starts from its declared positions (`../../../../../../TODO.md`).
+     */
+    val effective: RuleState? = null,
+    /**
+     * What the last moment left to show, until the pop-up has shown it.
+     *
+     * Cleared by the screen and not by a clock here: a notice nobody has seen is a change the
+     * learner cannot reconstruct, and the whole value of the mechanical phrase is that he can.
+     */
+    val notices: List<Notice> = emptyList(),
 ) {
 
     /**
-     * Where every lever of this sitting sits -- the activity's own, and never a copy.
+     * Where every lever of this sitting sits **right now**.
      *
-     * **Always on its line**, so this is a read and not a second place settings could live.
-     * Empty is not *no settings*: an undeclared key answers with the catalogue's own default,
-     * which is what the app does when nobody has asked for anything -- a free conversation.
+     * The effective positions and not the declared ones: everything that reads a setting --
+     * the clocks, the buttons, the gates, the prompt -- wants where the lever is at this
+     * instant, which is the declared position plus whatever the patches have moved. The
+     * declared ones stay on the activity's line, where nothing rewrites them.
      */
-    val positions: Positions get() = activity.settings
+    val positions: Positions get() = (effective ?: stateOf(activity)).positions
+
+    /** Where the rules stand, which is the declared state until one of them has fired. */
+    val standing: RuleState get() = effective ?: stateOf(activity)
 
     /**
      * Every reading of the utterance [of], oldest first: its own, then each one that says it
@@ -444,6 +484,19 @@ data class ConversationState(
 }
 
 /**
+ * Where a sitting's rules stand when nothing has fired yet: the declared positions, the rules
+ * armed at the start, the instructions the definition laid.
+ *
+ * A rule is **never removed**; what it did is undone, and being armed is what says whether it
+ * is watching. So the arming starts from what each rule declares and moves only by a patch.
+ */
+fun stateOf(activity: Activity): RuleState = RuleState(
+    positions = activity.settings,
+    armed = activity.rules.filter { it.armed }.map { it.key }.toSet(),
+    instructions = activity.instructions,
+)
+
+/**
  * One turn through the three links: what was heard, what to answer, and the voice answering.
  *
  * The chain is bloquante but repairable by construction. Nothing here throws a turn away:
@@ -547,6 +600,12 @@ class TurnPipeline(
                 definition = activity.origin
                     ?.let { from -> Definitions.of(context, from.definition) } ?: free,
                 utterances = run,
+                // **From the declared positions, not from where the last sitting's rules left
+                // them**: replaying the journal to rebuild the effective state needs the facts
+                // each past moment was read against, and nothing keeps those
+                // (`../../../../../../TODO.md`).
+                effective = null,
+                notices = emptyList(),
                 // The run is another conversation's now, so anything that pointed into the
                 // old one has to go: a retry of a recording from the conversation just left
                 // would send it into this one.
@@ -576,6 +635,8 @@ class TurnPipeline(
                 activity = fresh,
                 definition = free,
                 utterances = emptyList(),
+                effective = null,
+                notices = emptyList(),
                 pending = null,
                 failure = null,
             )
@@ -658,13 +719,18 @@ class TurnPipeline(
                 ),
                 // What governs this turn: the levers the model holds, and how the recording
                 // stopped -- which the app knows and does not leave it to guess.
-                present = Present(
-                    _state.value.positions, closedBy,
-                    // A rewording is another attempt at the passage that is already open; a
-                    // turn that rewords nothing opens the next one. Derived from the run,
-                    // like the passages themselves, so it cannot fall out of step with it.
-                    passage = _state.value.passages().size + if (rewords == null) 1 else 0,
-                ),
+                present = frontDoor().let { (standing, laid) ->
+                    Present(
+                        _state.value.positions, closedBy,
+                        // A rewording is another attempt at the passage that is already open;
+                        // a turn that rewords nothing opens the next one. Derived from the
+                        // run, like the passages themselves, so it cannot fall out of step
+                        // with it.
+                        passage = _state.value.passages().size + if (rewords == null) 1 else 0,
+                        instructions = standing,
+                        said = laid,
+                    )
+                },
             )
 
             // The two utterances are held by identity from here on. Their place in the run is
@@ -797,34 +863,72 @@ class TurnPipeline(
      * **Nothing judged goes out when it closes.** Every judged sheet computes, since they are
      * what decide whether it closes; putting them out by their own decision would be circular.
      */
-    private fun wordsGate(said: Utterance, reply: Reply, groundless: Boolean): Closing? {
+    private suspend fun wordsGate(said: Utterance, reply: Reply, groundless: Boolean): Closing? {
         val activity = _state.value.activity
-        val weights = activity.weights ?: return null.also {
-            // Nothing weighs anything, so no node has a note and no gate has a failure to
-            // declare. A free conversation is in that state until its definition is written.
-            _state.update { it.copy(wordsGate = null) }
-        }
         val marked = reply.judged.words()
         val measured = Sheeting.of(reply.judged, analysed = null, timed = null)
-        val closing = Gates.words(
-            measured = measured,
-            passage = app.speakup.notes.Passage(
-                keptWords = marked.kept.size,
-                difficulty = null,
-                measured = measured,
-            ),
-            settings = activity.settings,
-            weights = weights,
-            sensitivity = ::sensitivityOf,
-            truncated = said.ending != null,
-            keptWords = marked.kept.size,
+        val scored = Scored(
+            keptWords = marked.kept.size, difficulty = null, measured = measured,
         )
         // The figures the gate read, kept on the line rather than dropped with it. The gate
         // hands on a verdict; what a passage is read back from later is the numbers.
         note(said.id, measured)
+        val closing = activity.weights?.let { weights ->
+            Gates.words(
+                measured = measured,
+                passage = scored,
+                settings = _state.value.positions,
+                weights = weights,
+                sensitivity = ::sensitivityOf,
+                truncated = said.ending != null,
+                keptWords = marked.kept.size,
+            )
+        }
+        // Nothing weighing anything means no node has a note and no gate has a failure to
+        // declare -- a free conversation is in that state until its definition is written --
+        // and it says nothing about the rules: a clock, a passage count and a lever are all
+        // readable with no tree at all. So the moment fires either way.
         _state.update { it.copy(wordsGate = closing) }
+        endOfAttempt(
+            measured, scored,
+            Material(
+                correctness = marked.correctness,
+                relevance = marked.relevance,
+                stumbling = marked.stumbling,
+            ),
+        )
         return closing
     }
+
+    /**
+     * **The end of an attempt, and the rules of that moment fire here.**
+     *
+     * Within it the exact instant **follows from the sheet** rather than being declared: a
+     * language sheet exists from the moment the call returns, a sound sheet only once the
+     * analysis has finished. So this runs twice, and each run sees the sheets that exist by
+     * then -- which is the order of the two gates the doc already writes.
+     */
+    private suspend fun endOfAttempt(measured: List<Measured>, scored: Scored, of: Material) {
+        fire(Moment.EndOfAttempt, world(measured, scored, of))
+    }
+
+    /** What the rules read of the sitting right now. */
+    private fun world(
+        measured: List<Measured> = emptyList(),
+        scored: Scored? = null,
+        of: Material = Material(),
+        clocks: Map<Trigger.Clock.Which, Int> = emptyMap(),
+    ) = World(
+        // How many passages have **closed**, which is one fewer than the run holds while the
+        // last one is still open.
+        passage = (_state.value.passages().size - 1).coerceAtLeast(0),
+        measured = measured,
+        scored = scored,
+        weights = _state.value.activity.weights,
+        sensitivity = ::sensitivityOf,
+        material = of,
+        clocks = clocks,
+    )
 
     /**
      * How severe this sitting is on [sheet], as a position of its sensitivity.
@@ -918,6 +1022,32 @@ class TurnPipeline(
         // The gates spoke about a passage that is over. What follows opens a fresh one, and
         // its own gates are read when its own call returns.
         _state.update { it.copy(wordsGate = null, soundGate = null) }
+        // **The passage's close, where everything else falls**: the patches, the ramp, the
+        // lives, the end of the sitting. Its note is the last attempt's and the count of
+        // attempts is known, which is what makes this the moment for them.
+        val last = _state.value.open()?.last
+        val measured = last?.measured.orEmpty().mapNotNull { (path, figure) ->
+            (Sheets.of(path) as? Sheet)?.let { Measured(it, figure) }
+        }
+        fire(
+            Moment.PassageClosed,
+            world(
+                measured = measured,
+                scored = Scored(
+                    keptWords = last?.judged?.words()?.kept?.size ?: 0,
+                    difficulty = null,
+                    measured = measured,
+                ),
+            ),
+        )
+        // **What is laid only counts for what follows**: a passage already spoken is never
+        // rejudged, so an instruction expires between passages and never inside one.
+        _state.update {
+            // Nothing standing, nothing to age -- and materialising the effective state for a
+            // sitting whose rules never fired would freeze a copy of settings for no reason.
+            if (it.standing.instructions.isEmpty()) it
+            else it.copy(effective = Engine(it.activity.rules).aged(it.standing))
+        }
     }
 
     /**
@@ -927,23 +1057,23 @@ class TurnPipeline(
      * rewritten has no sound analysis at all -- so **the two exhaustions do not fall in the
      * same place**: the rewordings' before the sound analysis has run, the repeats' after.
      */
-    private fun soundGate(of: String, analysed: Analysed, stumbling: List<Marked>) {
+    private suspend fun soundGate(of: String, analysed: Analysed, stumbling: List<Marked>) {
         val activity = _state.value.activity
-        val weights = activity.weights ?: return
         val spoken = _state.value.utterances.firstOrNull { it.id == of } ?: return
         val timed = analysed.timed(stumbling)
         val measured = Sheeting.of(spoken.judged, analysed, timed)
-        val closing = Gates.sound(
-            measured = measured,
-            passage = app.speakup.notes.Passage(
-                keptWords = timed.kept.size,
-                difficulty = null,
-                measured = measured,
-            ),
-            settings = activity.settings,
-            weights = weights,
-            sensitivity = ::sensitivityOf,
+        val scored = Scored(
+            keptWords = timed.kept.size, difficulty = null, measured = measured,
         )
+        val closing = activity.weights?.let { weights ->
+            Gates.sound(
+                measured = measured,
+                passage = scored,
+                settings = _state.value.positions,
+                weights = weights,
+                sensitivity = ::sensitivityOf,
+            )
+        }
         // The second of the two goes: the sound's sheets join the judged ones already on the
         // line, rather than replacing them. The pace's side rides with them, being the one
         // thing its symmetric figure cannot say.
@@ -958,6 +1088,18 @@ class TurnPipeline(
             // own scale -- and naming the worst of them would be an election.
             Trace.add("passage: to say again -- hear the model and say it again")
         }
+        // The second run of the moment, on the sheets that exist only now. Which instant a
+        // rule falls on inside it follows from the sheet it reads, and is never declared.
+        endOfAttempt(
+            measured, scored,
+            Material(
+                correctness = spoken.judged?.words()?.correctness.orEmpty(),
+                relevance = spoken.judged?.words()?.relevance.orEmpty(),
+                stumbling = spoken.judged?.words()?.stumbling.orEmpty(),
+                sounds = analysed.sounds,
+                blanks = Fluency.blanks(timed),
+            ),
+        )
     }
 
     /**
@@ -1110,6 +1252,95 @@ class TurnPipeline(
             // the learner the conversation -- but it says so rather than passing for kept.
             Trace.fail("archive: not written", "why" to it.message)
         }
+    }
+
+    /**
+     * **The first moment: while recording**, where the two clocks are all there is to read.
+     *
+     * Nothing else exists at that instant -- the person is speaking, no sheet has been read --
+     * so a rule of this moment reads a clock and nothing more. That is not a restriction laid
+     * down, it is a fact about what exists.
+     *
+     * Driven from the screen, which is what watches the recorder, and once a second rather than
+     * on every frame: a rule fires at most once per moment anyway, and a clock trigger names
+     * whole seconds.
+     */
+    suspend fun ticking(elapsedMs: Int, silenceMs: Int) = writing.withLock {
+        if (_state.value.activity.rules.isEmpty()) return@withLock
+        fire(
+            Moment.Recording,
+            world(clocks = mapOf(
+                Trigger.Clock.Which.TurnLength to elapsedMs,
+                Trigger.Clock.Which.Silence to silenceMs,
+            )),
+        )
+    }
+
+    /**
+     * Take back what the screen has shown of the last moment.
+     *
+     * The notices are cleared by whoever showed them and not by a clock here: a notice nobody
+     * saw is a change the learner cannot reconstruct, and being able to reconstruct why a note
+     * moved is the whole value of the mechanical phrase.
+     */
+    fun shown() {
+        _state.update { it.copy(notices = emptyList()) }
+    }
+
+    /**
+     * Run the rules of [moment] against [world], and land what they do.
+     *
+     * **By waves, and the engine is what does that**: every trigger reads the same snapshot,
+     * every effect lands together, and what those made true opens the next wave. This only
+     * hands it the world and takes the result.
+     *
+     * Three things come back and each goes where it belongs. The **state** replaces the
+     * effective one, which is what every reader of a setting sees from here on. The
+     * **notices** wait on the state until the pop-up has shown them -- a change nobody saw is
+     * a change the learner cannot reconstruct. And what a **draw or the model chose** goes to
+     * the journal and to the store at once: without it the effective state of a sitting no
+     * longer recomputes, and the sitting stops comparing to itself three weeks later.
+     *
+     * A sitting with no rules is the ordinary free conversation, and it returns without
+     * building anything.
+     */
+    private suspend fun fire(moment: Moment, world: World) {
+        val activity = _state.value.activity
+        if (activity.rules.isEmpty()) return
+        val out = Engine(activity.rules).resolve(moment, _state.value.standing, world)
+        _state.update { it.copy(effective = out.state, notices = it.notices + out.notices) }
+        // The messages are prose for the model, and they are held until the next call carries
+        // them: the front door opens on the turn that follows, not on the one just read.
+        // **The prose only, and the flag not yet.** A message that declares it provokes a
+        // turn at once wants an AI turn with no learner turn in front of it, which is the same
+        // thing a definition's opening wants -- and neither is written (`../../TODO.md`). What
+        // is carried is what every message says either way.
+        messages += out.messages.map { it.prose }
+        if (out.chosen.isEmpty()) return
+        val at = System.currentTimeMillis()
+        val journal = activity.journal + out.chosen.map {
+            Chosen(it.rule, world.passage, it.pack, at)
+        }
+        _state.update { it.copy(activity = it.activity.copy(journal = journal)) }
+        runCatching { archive.update(_state.value.activity.row()) }.onFailure {
+            Trace.fail("archive: the journal was not written", "why" to it.message)
+        }
+    }
+
+    /**
+     * What a rule has told the model and the next call has not yet carried.
+     *
+     * Held here rather than on the state because it is **transport**: it belongs to the call
+     * being built, it is emptied by it, and nothing on screen reads it. The screen's half of a
+     * change is the notice, which is a different thing said to a different reader.
+     */
+    private var messages = mutableListOf<String>()
+
+    /** The instructions standing, and what a rule has just said, for the call about to go. */
+    private fun frontDoor(): Pair<List<Instructing>, List<String>> {
+        val laid = messages.toList()
+        messages = mutableListOf()
+        return _state.value.standing.instructions to laid
     }
 
     /**

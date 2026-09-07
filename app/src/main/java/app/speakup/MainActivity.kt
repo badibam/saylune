@@ -39,6 +39,8 @@ import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.store.Archive
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import app.speakup.ui.Action
 import app.speakup.ui.Channel
 import app.speakup.ui.Channels
@@ -165,6 +167,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
     // screen is pushed onto it: the conversation says which passage, the stack says where.
     var notesOf by rememberSaveable { mutableStateOf<String?>(null) }
 
+    val scope = rememberCoroutineScope()
     val back = Action(Glyphs.BACK) { if (stack.size > 1) stack.removeAt(stack.lastIndex) }
 
     // Without this the top line sits under the status bar and the bar at the bottom under the
@@ -204,6 +207,12 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                 title = turn.definition.short.inLanguage(Locale.getDefault().language),
                 lives = livesLeft(turn.positions),
                 status = turnStatus(turn, capture, repeating),
+                // The sound's gate's own half: it names nothing -- being wired to elocution
+                // and fluency alone, what it named would be a constant -- and it gives the
+                // model to hear, which is the remedy for every sound fault.
+                onStatus = turn.open()?.last?.id?.takeIf { turn.soundGate != null }?.let { of ->
+                    { scope.launch { pipeline.hear(of) } }
+                },
                 actions = listOf(
                     back,
                     // Both are the conversation's own, and both are off with their reason:

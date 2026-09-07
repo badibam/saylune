@@ -1,6 +1,5 @@
 package app.speakup.ui
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -269,69 +268,6 @@ private fun one(value: Float): String = String.format(Locale.getDefault(), "%.1f
 private fun signed(value: Float): String =
     (if (value < 0f) "-" else "+") + abs(value).roundToInt()
 
-/** The five aptitude titles, which head the groups of the screen. */
-@StringRes
-private fun nameOfAptitude(name: String): Int = when (name) {
-    "pronunciation" -> R.string.aptitude_pronunciation
-    "understanding" -> R.string.aptitude_understanding
-    "correctness" -> R.string.aptitude_correctness
-    "relevance" -> R.string.aptitude_relevance
-    "fluency" -> R.string.aptitude_fluency
-    else -> error("$name: no screen name. The tree is the list of them.")
-}
-
-/**
- * The short name of the sheet at [path].
- *
- * **A key to a resource, held at the screen's level** and never a field on `Sheet`: `Sheets` is
- * a pure JVM catalogue that `ConversationPrompt` and `ReplyReader` read outside any UI, and
- * hanging an Android resource on it would make it inseparable from the platform for the
- * convenience of one screen.
- *
- * The criterion is how it reads on screen and never how exact the term is -- which is what gave
- * `Grammar` over `correctness`, and `Form` and `Choice` under it, two short opposites that make
- * visible that the same words are read twice: *is this English*, then *was it the English that
- * was wanted*.
- */
-@StringRes
-private fun nameOfSheet(path: String): Int = when (path) {
-    INTELLIGIBILITY -> R.string.sheet_intelligibility
-    PROXIMITY -> R.string.sheet_proximity
-    MELODY -> R.string.sheet_melody
-    STRESS -> R.string.sheet_lexical_stress
-    CORRECTNESS -> R.string.sheet_correctness
-    RELEVANCE -> R.string.sheet_relevance
-    UPTAKE -> R.string.sheet_uptake
-    CONTINUITY -> R.string.sheet_continuity
-    LONGEST_SILENCE -> R.string.sheet_longest_silence
-    PACE -> R.string.sheet_pace
-    STUMBLING -> R.string.sheet_stumbling
-    else -> error("$path: no screen name. The tree is the list of them.")
-}
-
-/** The following's six notches in words, the one sheet whose measure is a notch and not a figure. */
-@StringRes
-private fun nameOfNotch(notch: String): Int = when (notch) {
-    "implied" -> R.string.notch_implied
-    "precise" -> R.string.notch_precise
-    "on-point" -> R.string.notch_on_point
-    "on-topic" -> R.string.notch_on_topic
-    "vague" -> R.string.notch_vague
-    "off-target" -> R.string.notch_off_target
-    else -> error("$notch: no screen name. The column is the list of them.")
-}
-
-private const val INTELLIGIBILITY = "pronunciation/intelligibility"
-private const val PROXIMITY = "pronunciation/proximity"
-private const val MELODY = "pronunciation/melody"
-private const val STRESS = "pronunciation/lexical-stress"
-private const val CORRECTNESS = "correctness/correctness"
-private const val RELEVANCE = "relevance/relevance"
-private const val UPTAKE = "understanding/uptake"
-private const val CONTINUITY = "fluency/continuity"
-private const val LONGEST_SILENCE = "fluency/longest-silence"
-private const val PACE = "fluency/pace"
-private const val STUMBLING = "fluency/stumbling"
 
 /** How wide a notch bar is, in cells. Five columns of the twenty-eight the worst screen gives. */
 private const val BAR_CELLS = 5

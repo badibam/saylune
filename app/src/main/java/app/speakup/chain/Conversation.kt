@@ -5,6 +5,7 @@ import app.speakup.judged.Judgement
 import app.speakup.activity.Brief
 import app.speakup.activity.Character
 import app.speakup.levers.Positions
+import app.speakup.rules.Instructing
 
 /**
  * The language model: it answers, it decides what the learner meant, and it marks.
@@ -76,6 +77,24 @@ data class Present(
      * One by default, which is what a sitting with nothing said yet is on.
      */
     val passage: Int = 1,
+    /**
+     * The instructions standing on the judged markings, in the words a definition wrote.
+     *
+     * **A instruction has three readers, which is what tells it from every other effect**: the
+     * learner, who has to read it to follow it; the character, who has to know it to play with
+     * it; and the judge, who marks against it. This is the character's copy.
+     */
+    val instructions: List<Instructing> = emptyList(),
+    /**
+     * What a rule has just told the model, in an author's words.
+     *
+     * **This is the front door, and it is the only way the state reaches the model.** A lost
+     * life, a failed passage, a threshold that just got shorter reach it only if a rule decided
+     * to say so. That is what gives an author control over what their character knows: with no
+     * rule the fault changes nothing in the scene; with one, the receptionist sighs and doubts
+     * the booking was ever made.
+     */
+    val said: List<String> = emptyList(),
 )
 
 /**

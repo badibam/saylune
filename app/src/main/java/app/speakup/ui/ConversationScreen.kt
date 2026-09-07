@@ -142,6 +142,13 @@ fun ConversationScreen(
     // turns. Sending is the same gesture the hand would have made, so it is the same lambda.
     LaunchedEffect(capture.ending) { if (capture.ending != null) send() }
 
+    // **The recording moment, driven from here** -- this is what watches the recorder, and the
+    // two clocks are all a rule of that moment can read. Once a second and not on every frame:
+    // a rule fires at most once per moment anyway, and a clock trigger names whole seconds.
+    LaunchedEffect(capture.recording, capture.elapsedMs / 1000, capture.silenceMs / 1000) {
+        if (capture.recording) pipeline.ticking(capture.elapsedMs, capture.silenceMs)
+    }
+
     // **The mic never arms before the AI has finished answering**, and it never arms on its
     // own while a passage waits for a repair -- which is what recreates the press a passage
     // closes on. The second half has nothing to read yet: the passage's four states arrive
@@ -287,6 +294,11 @@ fun ConversationScreen(
 
         DebugPanel()
       }
+
+      // **A receipt, and it goes when it has been read.** It sits between the thread and the
+      // buttons rather than over them: what it says is why the buttons under it have just
+      // changed, and covering them would hide the very thing it is explaining.
+      RuleNotice(turn.notices, onSeen = pipeline::shown)
 
       val busy = turn.phase != Phase.Idle
       val recordingSomething = capture.recording || capture.hasAudio
@@ -525,17 +537,20 @@ fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String
         stringResource(R.string.capture_repeat_paused, clocks(turn, capture))
     capture.hasAudio ->
         stringResource(R.string.capture_turn_paused, clocks(turn, capture))
+    // **It names every aptitude in cause and never the worst**: several may say so at once,
+    // and they are not competing criteria -- register and grammar are two ways for the words
+    // to change. Naming one would be an election, which the project does nowhere. In the
+    // learner's own words, which is what the aptitude names are for: `correctness` is a key.
     turn.standing() == Standing.ToReword -> stringResource(
         R.string.passage_reword,
-        (turn.wordsGate as? Closing.Aptitudes)?.names?.joinToString(", ")
+        (turn.wordsGate as? Closing.Aptitudes)?.names
+            ?.map { stringResource(nameOfAptitude(it)) }
+            ?.joinToString(", ")
             ?: stringResource(R.string.passage_no_matter),
     )
     turn.standing() == Standing.ToSayAgain -> stringResource(R.string.passage_say_again)
     else -> stringResource(R.string.capture_press)
 }
-
-/** The pace's path in the sheet tree, which is how a figure is addressed on an utterance. */
-private const val PACE = "fluency/pace"
 
 /**
  * **The two countdowns, and they are visible at all times** -- the time the turn has run and

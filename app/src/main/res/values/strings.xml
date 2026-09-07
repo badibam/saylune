@@ -288,4 +288,9 @@
     <!-- The readout: the two framed listenings, which play this very recording. -->
     <string name="readout_model">MODEL</string>
     <string name="readout_you">YOU</string>
+    <!-- The pop-up of a rule: the mechanical phrase, and which way the change went. -->
+    <string name="notice_harder">Harder</string>
+    <string name="notice_easier">Easier</string>
+    <string name="notice_move">%1$s — %2$s</string>
+    <string name="notice_of_sheet">%1$s — %2$s: %3$s</string>
 </resources>

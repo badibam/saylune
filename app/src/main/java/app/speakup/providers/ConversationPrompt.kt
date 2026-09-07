@@ -202,6 +202,12 @@ internal object ConversationPrompt {
         // forbids finishing a cut-off turn; this is what says one was cut off, which the
         // transcript alone cannot -- a sentence that reads whole can have been truncated on
         // a word the recogniser dropped, and one that reads broken can be how someone talks.
+        // The instructions in force, in the words a definition wrote. They sit here, in part 4,
+        // and not with the scene: laid before the history they would be buried under thirty
+        // turns at the very moment they have to govern the next one.
+        present.instructions.mapNotNull { it.text }.forEach { lines += it }
+        // What a rule has just laid, which is the whole of what the state says to the model.
+        present.said.forEach { lines += it }
         present.ending?.let {
             lines += when (it) {
                 Ending.ByLength -> "The turn you are reading was cut off: the recording " +
