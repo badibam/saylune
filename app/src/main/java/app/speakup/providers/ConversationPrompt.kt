@@ -119,7 +119,9 @@ internal object ConversationPrompt {
         would have reached for and they found it; "flat" is aiming right but limply --
         vague, basic, or said before; "off-target" is missing what was called for, including
         the tone and the register. This is where variety, register and any instruction
-        you have been given are judged, never in correctness.
+        you have been given are judged, never in correctness. Relevance takes those
+        four notches and no others: "following" below names a different scale, and
+        its notches never appear here.
 
         "stumbling": the parts of "intended" that are not part of the sentence, as a list
         of {"from": <int>, "to": <int>, "notch": <notch>} on the same offsets and the same
