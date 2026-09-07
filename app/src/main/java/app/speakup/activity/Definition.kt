@@ -5,6 +5,7 @@ import app.speakup.levers.Positions
 import app.speakup.notes.Weights
 import app.speakup.rules.Instructing
 import app.speakup.rules.Rule
+import app.speakup.rules.Trigger
 
 /**
  * An activity written in advance, and **it is data and not code**. Replayed as often as one
@@ -66,7 +67,7 @@ data class Definition(
     val instructions: List<Instructing> = emptyList(),
     val rules: List<Rule> = emptyList(),
     /**
-     * What the model answers at the end of the sitting, and what the next scenes receive.
+     * The holes of the fiction the model fills, at the moments the author wrote.
      *
      * **Declared by the scene that produces the answer**, never by the one that needs it: only
      * the model that was there can answer. The price is an author's -- writing scene 2, one
@@ -192,22 +193,96 @@ data class Slot(val key: String, val ask: Text) {
 }
 
 /**
- * Something the model answers at the end of the sitting.
+ * A hole of the fiction the model fills, at a moment the author wrote.
  *
- * **The free text of an outcome is these answers and nothing else.** A challenge wanting a
- * closing comment declares the question; one that declares none has no text.
+ * *How did his talk go? Did he find the miller's wife? Is the queen safe?* The answer becomes
+ * a **fact of the sitting**: it comes back to the model on every turn after, it may be shown
+ * to the learner, and a later scene reads it.
  *
- * Two limits, and they are known. **The model writes its own memory**, and nothing checks it --
- * the same family as `intended`. And **it grows**: at scene 12 the answers of eleven scenes
- * travel. Only the declared questions travel, which bounds it, not always enough.
+ * **This is what makes a tile worth replaying.** A fixed staging does not vary, and a menu of
+ * rules varies only between the branches an author enumerated. A free answer settled at the
+ * opening has the model write down a fact nobody enumerated and **freezes** it -- it commits
+ * once instead of re-improvising its character every turn. Variety stops being drift.
+ *
+ * **The app serves the question and the model answers on the spot**, which is the inversion
+ * the whole thing rests on: not a menu of empty fields it fills when it likes, but a question
+ * put at the moment said, whose answer is a **required field of that turn**. The judgement is
+ * still taken on trust; the **presence** of an answer is checked like any other field.
+ *
+ * **None of it is mechanical.** An answer is prose the prompt rereads: no condition reads it,
+ * no patch hangs off it. Whatever the app has to carry out goes through the rules, whose menu
+ * is closed. Letting the model choose outside the machinery is the one place generosity costs
+ * nothing -- what nobody reads back needs neither contract nor guard.
+ *
+ * Two limits, and they are known. **Nothing validates a free answer**, the same family as
+ * `intended`. And **it grows**: at scene 12 the answers of eleven scenes travel. Only the
+ * declared questions travel, which bounds it, not always enough.
  */
 data class Question(
+    /** What names it in the answer and in the run. */
     val key: String,
-    /** Asked of the model, so in English like everything else it reads. */
+    /** Put to the model, so in English like everything else it reads. */
     val ask: String,
     val answers: Answers,
+    /**
+     * When it is put. **Triggers, exactly as a rule's are**, and several are allowed.
+     *
+     * The author writes *when* and the app serves the question then, which takes every bit of
+     * discretion over the calendar away from the model -- and asks it nothing the project does
+     * not already ask: a `Judged` trigger, *when he has got the appointment*, is the same
+     * judgement as a model left free to fill a field whenever it likes, except that it is
+     * **written by the author**, so readable in the file and recorded in the journal.
+     */
+    val moments: List<Trigger>,
+    val rung: Rung = Rung.FromTheTalk,
+    /**
+     * Whether the learner is told. **One flag, and it governs both surfaces.**
+     *
+     * Up: he is told when the fact is settled, and the resume screen reminds him of it. Down:
+     * it is plumbing for the model, never shown, neither at the time nor after.
+     *
+     * **One flag because the two sets are necessarily the same**: a resume screen can only
+     * show what the learner has **already learnt**, or reopening a conversation would reveal
+     * what playing it did not -- and the app cannot know what he worked out by talking.
+     *
+     * It is a real choice of staging. *The speaker is stung, his room was half empty* with the
+     * flag up is a **set** one is given and reminded of; with it down it is something one
+     * **finds out by talking**, and the app will never bring it back up.
+     */
+    val shown: Boolean = false,
 ) {
-    init { require(key.isNotBlank()) { "a question with no key" } }
+    init {
+        require(key.isNotBlank()) { "a question with no key" }
+        require(ask.isNotBlank()) { "$key: a question with nothing asked" }
+        require(moments.isNotEmpty()) { "$key: a question with no moment to be put at" }
+    }
+
+    /**
+     * The one answer that is not the fiction: **it does not know**.
+     *
+     * It is in the menu at the first rung and at that one alone, whether the shape is free or
+     * closed. **Said rather than left out**, because a missing field is indistinguishable from
+     * a model that forgot and from a parse that failed -- the project's rule against hiding a
+     * gap behind a silence. At the two other rungs the model cannot run out of an answer, so
+     * the case does not arise.
+     */
+    companion object { const val DONT_KNOW = "I don't know" }
+}
+
+/**
+ * How far the model may go. **A staircase with a floor, not three modes.**
+ *
+ * What the conversation has established **always wins**; the rungs only say what happens when
+ * it does not settle it. Written as a staircase and not as three labels, or invention will
+ * overrule the truth and an answer will contradict what has just happened.
+ */
+enum class Rung {
+    /** Only from what has been said. Where nothing establishes it, it does not know. */
+    FromTheTalk,
+    /** Failing certainty, conclude from what has been said. */
+    MayExtrapolate,
+    /** Failing anything to conclude from, decide. */
+    MayInvent,
 }
 
 /**
@@ -223,8 +298,31 @@ sealed interface Answers {
     /** Prose, which only the next prompt reads. */
     data object Free : Answers
 
-    /** One of these, which code reads. Yes/no is this with two of them. */
-    data class OneOf(val among: List<String>) : Answers {
-        init { require(among.size >= 2) { "a closed answer with fewer than two options" } }
+    /**
+     * One of these, which code reads. Yes/no is this with two of them.
+     *
+     * **The options are an author's text**, so each carries its own table of languages like a
+     * title does. The English is required and it is the **key**: it is what goes out in the
+     * prompt, what the model answers with, and what the answer is checked against by
+     * membership. The screen shows the translation where the file has one.
+     */
+    data class OneOf(val among: List<Text>) : Answers {
+        init {
+            require(among.size >= 2) { "a closed answer with fewer than two options" }
+        }
+
+        /** What goes to the model and comes back: the English of each option. */
+        val keys: List<String> get() = among.map { it.byLanguage.getValue(Text.BASE) }
     }
 }
+
+/**
+ * One thing a model settled, and when.
+ *
+ * **A later answer succeeds the one before it, it does not correct it.** *The queen was safe
+ * at passage 5 and is not at passage 15* is a story, not a mistake put right -- so nothing is
+ * ever overwritten, and a question put at several moments carries a run of answers.
+ *
+ * [passage] is where the sitting stood when it was settled, which is what makes it dated.
+ */
+data class Settled(val passage: Int, val text: String)

@@ -1,6 +1,12 @@
 package app.speakup.providers
 
+import app.speakup.activity.Answers
+import app.speakup.activity.Question
+import app.speakup.activity.Rung
+import app.speakup.activity.Text
+import app.speakup.chain.ChainFailure
 import app.speakup.chain.Reply
+import app.speakup.rules.Trigger
 import app.speakup.judged.Judgement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -41,6 +47,66 @@ class ReplyReaderTest {
         // Not "nothing was marked" -- there was nothing to mark, nobody having spoken.
         assertNull(reply.judged)
         assertNull(reply.echo)
+    }
+
+    // ── The questions the app puts ──────────────────────────────────────────────────────
+
+    private fun question(
+        key: String = "mood",
+        answers: Answers = Answers.Free,
+        rung: Rung = Rung.FromTheTalk,
+    ) = Question(key, "How did his talk go?", answers,
+                 moments = listOf(Trigger.Opening), rung = rung)
+
+    private val yesNo = Answers.OneOf(listOf(
+        Text(mapOf("en" to "yes")), Text(mapOf("en" to "no")),
+    ))
+
+    @Test fun `an answer to a question the app put comes back under its key`() {
+        val reply = ReplyReader.read(
+            answer(extra = ""","established": {"mood": "His room was half empty."}"""),
+            "i go there yesterday",
+            asking = listOf(question()),
+        )
+        assertEquals(mapOf("mood" to "His room was half empty."), reply.established)
+    }
+
+    /**
+     * **The presence of an answer is checked and its content is not.** That is the whole of
+     * what serving the question buys: the app chose the moment, so a missing answer is the
+     * contract broken and not a model that had nothing to say.
+     */
+    @Test fun `a question put and not answered is the contract broken`() {
+        assertTrue(runCatching {
+            ReplyReader.read(answer(), "x", asking = listOf(question()))
+        }.exceptionOrNull() is ChainFailure)
+    }
+
+    /** A closed shape is checked by membership, on the English that went out. */
+    @Test fun `an answer outside the options offered is refused`() {
+        assertTrue(runCatching {
+            ReplyReader.read(
+                answer(extra = ""","established": {"safe": "maybe"}"""),
+                "x", asking = listOf(question("safe", yesNo)),
+            )
+        }.exceptionOrNull() is ChainFailure)
+    }
+
+    /**
+     * *It does not know* is a member at the first rung and at that one alone -- said rather
+     * than left out, a missing field being indistinguishable from a model that forgot.
+     */
+    @Test fun `it does not know is an option at the first rung and nowhere else`() {
+        val said = ""","established": {"safe": "${Question.DONT_KNOW}"}"""
+        assertEquals(
+            mapOf("safe" to Question.DONT_KNOW),
+            ReplyReader.read(answer(extra = said), "x",
+                             asking = listOf(question("safe", yesNo))).established,
+        )
+        assertTrue(runCatching {
+            ReplyReader.read(answer(extra = said), "x",
+                             asking = listOf(question("safe", yesNo, Rung.MayInvent)))
+        }.exceptionOrNull() is ChainFailure)
     }
 
     @Test fun `a clean answer reads back whole`() {

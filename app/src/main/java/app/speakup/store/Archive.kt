@@ -75,7 +75,6 @@ data class OutcomeRow(
     val verdict: String?,
     val judge: String?,
     val at: Long?,
-    val says: String?,
     /** A number where the sitting produces one -- a score. Null everywhere else. */
     val score: Int?,
 )
@@ -124,6 +123,14 @@ data class UtteranceRow(
     val ending: String?,
     /** The marks, as the screen shows them. Null when nothing read this. */
     val marking: String?,
+    /**
+     * What the model settled on this turn, by question key. Null on nearly every one.
+     *
+     * **On the turn that settled it and nowhere else**: the series of answers to a question is
+     * the run in order, and the passage that dates each one is where its turn sits, so a table
+     * beside the run would be a second source that could fall out of step with it.
+     */
+    val established: String?,
     val sounds: String?,
     /** What each sheet made of it, by path. Null where nothing measured it. */
     val measured: String?,
@@ -194,7 +201,7 @@ interface ArchiveDao {
     fun passages(learner: String = "learner"): Flow<List<PassageCount>>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 12)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 13)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -616,6 +623,44 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * What the model settled, on the turn that settled it -- and the free text of an
+         * outcome, which held it before there was anywhere better, goes.
+         *
+         * The column was written for a design where the model answered once at the end. It
+         * answers at moments an author wrote now, so the answers arrive while the sitting runs
+         * and a sitting walked away from has them with no outcome at all: they are facts of
+         * the sitting and not of how it went. Nothing ever wrote the column, so nothing is
+         * lost by dropping it.
+         *
+         * The activities table is rebuilt rather than altered: dropping a column arrived in
+         * SQLite 3.35 and `minSdk` 26 ships 3.18.
+         */
+        private val ESTABLISHED_ON_THE_TURN = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `utterances` ADD COLUMN `established` TEXT")
+                db.execSQL(
+                    "CREATE TABLE `activities_new` (`id` TEXT NOT NULL, " +
+                        "`settings` TEXT NOT NULL, `brief` TEXT, `weights` TEXT, `cast` TEXT, " +
+                        "`instructions` TEXT NOT NULL, `rules` TEXT NOT NULL, " +
+                        "`journal` TEXT NOT NULL, `origin` TEXT, `engine` INTEGER NOT NULL, " +
+                        "`status` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                        "`startedAt` INTEGER, `endedAt` INTEGER, `prescriber` TEXT NOT NULL, " +
+                        "`outcome_verdict` TEXT, `outcome_judge` TEXT, `outcome_at` INTEGER, " +
+                        "`outcome_score` INTEGER, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "INSERT INTO `activities_new` SELECT `id`, `settings`, `brief`, `weights`, " +
+                        "`cast`, `instructions`, `rules`, `journal`, `origin`, `engine`, " +
+                        "`status`, `createdAt`, `startedAt`, `endedAt`, `prescriber`, " +
+                        "`outcome_verdict`, `outcome_judge`, `outcome_at`, " +
+                        "`outcome_score` FROM `activities`",
+                )
+                db.execSQL("DROP TABLE `activities`")
+                db.execSQL("ALTER TABLE `activities_new` RENAME TO `activities`")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
@@ -623,7 +668,8 @@ abstract class Archive : RoomDatabase() {
                 context.applicationContext, Archive::class.java, "archive",
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
                     SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH, CAST_ON_THE_LINE,
-                    NAMED_BY_ITS_DEFINITION, FIGURES_ON_THE_LINE, RECORDING_LENGTH)
+                    NAMED_BY_ITS_DEFINITION, FIGURES_ON_THE_LINE, RECORDING_LENGTH,
+                    ESTABLISHED_ON_THE_TURN)
                 .build().also { instance = it }
         }
     }

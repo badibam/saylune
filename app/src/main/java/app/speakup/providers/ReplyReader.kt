@@ -1,5 +1,8 @@
 package app.speakup.providers
 
+import app.speakup.activity.Answers
+import app.speakup.activity.Question
+import app.speakup.activity.Rung
 import app.speakup.chain.ChainFailure
 import app.speakup.chain.Reply
 import app.speakup.debug.Trace
@@ -32,7 +35,12 @@ internal object ReplyReader {
      * asking it to invent a sentence nobody spoke. Everything the reader checks is a field
      * about that turn, so on this path only `spoken` is required.
      */
-    fun read(content: String, transcript: String, provoked: Boolean = false): Reply {
+    fun read(
+        content: String,
+        transcript: String,
+        provoked: Boolean = false,
+        asking: List<Question> = emptyList(),
+    ): Reply {
         val parsed = runCatching { JSONObject(content) }.getOrElse {
             // The raw answer goes in the trace: a model that breaks its format is only
             // fixable by someone who can read what it actually wrote.
@@ -47,11 +55,16 @@ internal object ReplyReader {
         }
 
         val choice = parsed.optString("choice").trim().ifBlank { null }
+        val established = established(parsed, asking, content)
 
         if (provoked) {
             Trace.add("conversation: spoke of its own accord", "spoken" to spoken,
-                      "picked from the menu" to choice)
-            return Reply(judged = null, spoken = spoken, echo = null, choice = choice)
+                      "picked from the menu" to choice,
+                      "settled" to established.keys.joinToString().ifEmpty { null })
+            return Reply(
+                judged = null, spoken = spoken, echo = null, choice = choice,
+                established = established,
+            )
         }
 
         val intended = parsed.optString("intended").ifBlank { transcript }
@@ -105,8 +118,54 @@ internal object ReplyReader {
             "intended fell back to the transcript" to
                 if (parsed.optString("intended").isBlank()) "yes" else null,
         )
-        return Reply(judged = judged, spoken = spoken, echo = echo, choice = choice)
+        return Reply(
+            judged = judged, spoken = spoken, echo = echo, choice = choice,
+            established = established,
+        )
     }
+
+    /**
+     * What the model settled, checked against what it was asked.
+     *
+     * **The presence of an answer is checked and its content is not**, which is the whole of
+     * what serving the question buys: the app put the question at a moment it chose, so a
+     * missing answer is the contract broken and not a model that had nothing to say. Judgement
+     * is still taken on trust.
+     *
+     * A closed shape is checked by **membership**, on the English of each option -- which is
+     * the key that went out and the one that comes back. *It does not know* is a member at the
+     * first rung and at that one alone, whether the shape is free or closed: it is what the
+     * model says instead of leaving a field out, a gap behind a silence being unreadable.
+     */
+    private fun established(
+        parsed: JSONObject, asking: List<Question>, content: String,
+    ): Map<String, String> {
+        if (asking.isEmpty()) return emptyMap()
+        val settled = parsed.optJSONObject("established")
+        return asking.associate { question ->
+            val answer = settled?.optString(question.key).orEmpty().trim()
+            if (answer.isBlank()) {
+                Trace.fail("conversation: a question was put and not answered",
+                           "question" to question.key, "content" to content)
+                throw ChainFailure("the model left \"${question.key}\" unanswered")
+            }
+            val among = question.answers as? Answers.OneOf
+            if (among != null && answer !in allowed(among, question)) {
+                Trace.fail("conversation: an answer outside the options offered",
+                           "question" to question.key, "answered" to answer,
+                           "content" to content)
+                throw ChainFailure(
+                    "the model answered \"$answer\" to \"${question.key}\", " +
+                        "which is not one of its options",
+                )
+            }
+            question.key to answer
+        }
+    }
+
+    private fun allowed(among: Answers.OneOf, question: Question): List<String> =
+        among.keys + if (question.rung == Rung.FromTheTalk) listOf(Question.DONT_KNOW)
+        else emptyList()
 
     private fun JSONObject.required(field: String, content: String): String {
         val value = optString(field).trim()

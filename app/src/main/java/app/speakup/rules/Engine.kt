@@ -365,8 +365,14 @@ interface Facts {
 /**
  * Whether [trigger] holds right now: against [state] for what reads a position, against
  * [moved] for what reads a change.
+ *
+ * **Public because a rule is not the only thing a trigger says *when* for.** A question's
+ * moments are triggers too, and read by anything but this they would be a second reading of
+ * one kind -- two spellings that drift the day either moves. [moved] is what the wave just
+ * past moved, and is empty for anybody reading outside a wave, which is what makes a trigger
+ * on a change read false there rather than guess.
  */
-private fun Facts.holds(trigger: Trigger, state: State, moved: List<Move>): Boolean =
+fun Facts.holds(trigger: Trigger, state: State, moved: List<Move> = emptyList()): Boolean =
     when (trigger) {
         is Trigger.Clock -> clock(trigger.which) >= trigger.ms
         is Trigger.Node -> node(trigger)

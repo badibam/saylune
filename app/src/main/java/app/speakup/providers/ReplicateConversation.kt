@@ -72,7 +72,7 @@ internal class ReplicateConversation(
             throw ChainFailure("$model answered with nothing at all")
         }
 
-        return ReplyReader.read(unwrapped(content), transcript, present.provoked)
+        return ReplyReader.read(unwrapped(content), transcript, present.provoked, present.asking)
     }
 
     /** Replicate hands text back in pieces as it is produced, or whole. Both are answers. */

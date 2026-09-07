@@ -4,7 +4,10 @@ import app.speakup.chain.Exchange
 import app.speakup.levers.Levers
 import app.speakup.levers.Position
 import app.speakup.capture.Ending
+import app.speakup.activity.Answers
 import app.speakup.activity.Brief
+import app.speakup.activity.Question
+import app.speakup.activity.Rung
 import app.speakup.chain.Present
 import app.speakup.chain.Scene
 import app.speakup.levers.Stepped
@@ -135,6 +138,16 @@ internal object ConversationPrompt {
         on point. If your last turn does not exist, use "off-target" only if they really are
         off; a first turn has nothing to follow.
 
+        "established": include this field only when the instruction for this turn lists
+        questions to settle. An object whose keys are exactly the keys listed there and
+        whose values are your answers, one per question and none left out. Each question
+        says what shape its answer takes and how far you may go. What the conversation has
+        already established always wins; how far you may go only says what to do when it
+        does not settle the matter. Write an answer the way the situation is written: the
+        learner is "you", everybody else is named or spoken of in the third person -- these
+        answers are reread later by another character, and by the learner, so a "I am still
+        stung" would have lost its subject by then.
+
         "spoken": your reply, in English, as it should be said aloud.
 
         "difficulty": one notch for the turn you have just written, weighing its length,
@@ -206,6 +219,10 @@ internal object ConversationPrompt {
         // and not with the scene: laid before the history they would be buried under thirty
         // turns at the very moment they have to govern the next one.
         present.instructions.mapNotNull { it.text }.forEach { lines += it }
+        // **The questions of this turn, whose answers are required fields.** They go here, in
+        // the part rebuilt every turn, because that is what they are: put at one moment and at
+        // no other, so laid where they apply rather than in a heading every call carries.
+        present.asking.forEach { lines += asked(it) }
         // What a rule has just laid, which is the whole of what the state says to the model.
         present.said.forEach { lines += it }
         present.ending?.let {
@@ -217,6 +234,40 @@ internal object ConversationPrompt {
             }
         }
         return if (lines.isEmpty()) "" else "For this turn:\n" + lines.joinToString("\n") { "- $it" }
+    }
+
+    /**
+     * One question, as the turn's instruction puts it.
+     *
+     * The shape and the rung are said with it rather than declared once in part 1: a sitting
+     * mixes questions of different rungs, and a rule stated in general would have to be
+     * matched back to each question by the reader.
+     *
+     * **The rung is written as a staircase**, each one repeating the floor under it -- what
+     * the conversation established wins -- or invention overrules the truth and an answer
+     * contradicts what has just happened.
+     */
+    private fun asked(question: Question): String {
+        val shape = when (val answers = question.answers) {
+            is Answers.Free -> "Answer in prose, a sentence or two."
+            is Answers.OneOf -> "Answer with exactly one of: " +
+                (answers.keys + if (question.rung == Rung.FromTheTalk)
+                    listOf(Question.DONT_KNOW) else emptyList()).joinToString(", ")
+        }
+        val far = when (question.rung) {
+            Rung.FromTheTalk ->
+                "Answer only from what has been said in this conversation. If nothing there " +
+                    "settles it, answer exactly \"${Question.DONT_KNOW}\"."
+            Rung.MayExtrapolate ->
+                "Answer from what has been said. Where that does not settle it, conclude " +
+                    "from what has been said."
+            Rung.MayInvent ->
+                "Answer from what has been said. Where that does not settle it, conclude " +
+                    "from what has been said; and where there is nothing to conclude from, " +
+                    "decide."
+        }
+        return "Settle this, under the key \"${question.key}\" of \"established\": " +
+            "${question.ask} $shape $far"
     }
 
     /** The whole instruction: part 1, then part 2, then part 4. Part 3 is the message list. */
@@ -282,7 +333,16 @@ internal object ConversationPrompt {
      * the one thing legal at the start of a JSON document.
      */
     fun answered(history: List<Exchange>, at: Int): String {
-        val said = JSONObject().put("spoken", history[at].text)
+        val said = JSONObject()
+        // **Before `spoken`, as the contract asks it to be written**: what the character says
+        // is said knowing what has just been settled, so a replay that put the fact after the
+        // reply would show the model an order it is being told never to write in.
+        history[at].established.takeIf { it.isNotEmpty() }?.let { facts ->
+            said.put("established", JSONObject().apply {
+                facts.forEach { (key, answer) -> put(key, answer) }
+            })
+        }
+        said.put("spoken", history[at].text)
         // `intended` belonged to the learner's turn just before, which is where the pipeline
         // always puts it. Written out only when it really is there.
         history.getOrNull(at - 1)?.takeIf { it.fromLearner }?.let { said.put("intended", it.text) }

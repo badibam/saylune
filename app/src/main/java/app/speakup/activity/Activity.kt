@@ -275,6 +275,13 @@ enum class Prescriber {
  * -- that nothing reproduces identically. Knowing who judged and when is what makes two
  * outcomes separated in time comparable; without that attribution, any aggregate mixes judges
  * without saying so. This is the smallest form, and it will grow.
+ *
+ * **What the model settled is not here**, though it used to be a field of this. Those answers
+ * are facts of the **sitting** and not of how it went: they arrive while it runs, a sitting
+ * walked away from has them and no outcome at all, and each one lives on the turn that settled
+ * it, where the prompt puts it back. Copying them here would be a second source that could
+ * fall out of step with the first. What an outcome adds is that they are **readable by a later
+ * scene**: without an ending there is no issue, so nothing downstream reads anything.
  */
 data class Outcome(
     /**
@@ -298,14 +305,6 @@ data class Outcome(
      */
     val judge: String,
     val at: Long,
-    /**
-     * The answers to the questions the definition declared, and nothing else.
-     *
-     * A challenge wanting a closing comment declares the question -- *what worked, what stuck?*
-     * -- and an activity that declares none has no text. A mechanism rather than a field to
-     * put anything in.
-     */
-    val says: String,
     /**
      * A number, where the sitting produces one. Null everywhere else.
      *

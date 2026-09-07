@@ -115,13 +115,26 @@ object Definitions {
         ask = json.getString("ask"),
         answers = when (val kind = json.getString("answers")) {
             "free" -> Answers.Free
+            // Each option is an author's text, so it carries its own table of languages; the
+            // English is the key, being what goes out and what comes back.
             "one-of" -> Answers.OneOf(
                 json.getJSONArray("among").let { among ->
-                    (0 until among.length()).map { among.getString(it) }
+                    (0 until among.length()).map { text(among.getJSONObject(it)) }
                 },
             )
             else -> error("'$kind' is not a shape of answer this build knows")
         },
+        // The moments are triggers, read by the same reader a rule's is: an unknown name fails
+        // outright rather than being dropped, a question served at another moment than the one
+        // written being a question put somewhere nobody asked for it.
+        moments = Rules.readTriggers(json.getJSONArray("when").toString()),
+        rung = when (val far = json.optString("rung").ifEmpty { "from-the-talk" }) {
+            "from-the-talk" -> Rung.FromTheTalk
+            "may-extrapolate" -> Rung.MayExtrapolate
+            "may-invent" -> Rung.MayInvent
+            else -> error("'$far' is not a rung this build knows")
+        },
+        shown = json.optBoolean("shown"),
     )
 
     private const val SUFFIX = ".json"

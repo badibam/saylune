@@ -57,6 +57,19 @@ internal object Rules {
         )
     }
 
+    /**
+     * A bare list of triggers, which is what a question's moments are.
+     *
+     * The same reader a rule's trigger goes through, for the reason every seam here is one
+     * reader: a moment written one way in a rule and another in a question would be two
+     * spellings of one kind, and the day one of them moves the other is silently wrong.
+     */
+    fun readTriggers(stored: String): List<Trigger> =
+        JSONArray(stored).objects().map { trigger(it) }
+
+    fun writeTriggers(of: List<Trigger>): String =
+        JSONArray().apply { of.forEach { put(trigger(it)) } }.toString()
+
     // ── Triggers ────────────────────────────────────────────────────────────────────────
 
     private fun trigger(of: Trigger): JSONObject = JSONObject().apply {

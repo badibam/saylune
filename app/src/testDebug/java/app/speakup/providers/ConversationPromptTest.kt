@@ -1,10 +1,14 @@
 package app.speakup.providers
 
+import app.speakup.activity.Answers
 import app.speakup.activity.Brief
 import app.speakup.activity.Character
 import app.speakup.activity.Text
+import app.speakup.activity.Question
+import app.speakup.activity.Rung
 import app.speakup.chain.Present
 import app.speakup.chain.Scene
+import app.speakup.rules.Trigger
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -77,6 +81,48 @@ class ConversationPromptTest {
     @Test
     fun `what the passage number means is said once, in the permanent part`() {
         assertTrue(ConversationPrompt.APP.contains("carries no instruction of its own"))
+    }
+
+    // ── The questions the app puts ──────────────────────────────────────────────────────
+
+    /**
+     * A question is put in part 4, which is rebuilt every turn, because that is what it is:
+     * put at one moment and at no other. Its shape and its rung go with it rather than being
+     * declared once, a sitting mixing questions of different rungs.
+     */
+    @Test
+    fun `a question is put with its shape and its rung`() {
+        val put = ConversationPrompt.present(Present(asking = listOf(
+            Question("mood", "How did his talk go?", Answers.Free,
+                     moments = listOf(Trigger.Opening), rung = Rung.MayInvent),
+        )))
+        assertTrue(put.contains("\"mood\""))
+        assertTrue(put.contains("How did his talk go?"))
+        assertTrue(put.contains("Answer in prose"))
+        // The staircase: the floor is repeated at every rung, or invention overrules truth.
+        assertTrue(put.contains("Answer from what has been said."))
+        assertTrue(put.contains("decide."))
+    }
+
+    /** *It does not know* is in the menu at the first rung and at that one alone. */
+    @Test
+    fun `it does not know is offered at the first rung only`() {
+        fun put(rung: Rung) = ConversationPrompt.present(Present(asking = listOf(
+            Question("safe", "Is the queen safe?",
+                     Answers.OneOf(listOf(Text(mapOf("en" to "yes")), Text(mapOf("en" to "no")))),
+                     moments = listOf(Trigger.Closing), rung = rung),
+        )))
+        assertTrue(put(Rung.FromTheTalk).contains(Question.DONT_KNOW))
+        assertFalse(put(Rung.MayExtrapolate).contains(Question.DONT_KNOW))
+    }
+
+    /** The field is declared once, in the permanent part, and it comes before the reply. */
+    @Test
+    fun `what is established is written before the character speaks`() {
+        assertTrue(
+            ConversationPrompt.APP.indexOf("\"established\"") <
+                ConversationPrompt.APP.indexOf("\"spoken\": your reply"),
+        )
     }
 
     private fun character(key: String) = Character(key, Text(mapOf("en" to key)))

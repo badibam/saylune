@@ -38,7 +38,7 @@ internal fun Activity.row() = ActivityRow(
     createdAt = createdAt,
     startedAt = startedAt,
     endedAt = endedAt,
-    outcome = outcome?.let { OutcomeRow(it.verdict, it.judge, it.at, it.says, it.score) },
+    outcome = outcome?.let { OutcomeRow(it.verdict, it.judge, it.at, it.score) },
     prescriber = by.name,
 )
 
@@ -58,7 +58,7 @@ internal fun ActivityRow.activity() = Activity(
     startedAt = startedAt,
     endedAt = endedAt,
     outcome = outcome?.takeIf { it.verdict != null }?.let {
-        Outcome(it.verdict!!, it.judge.orEmpty(), it.at ?: createdAt, it.says.orEmpty(), it.score)
+        Outcome(it.verdict!!, it.judge.orEmpty(), it.at ?: createdAt, it.score)
     },
     by = Prescriber.valueOf(prescriber),
 )
@@ -74,6 +74,7 @@ internal fun Utterance.row(rank: Int) = UtteranceRow(
     recorded = recorded,
     ending = ending?.name,
     marking = marking?.let { Marks.write(it) },
+    established = established.takeIf { it.isNotEmpty() }?.let { Established.write(it) },
     sounds = marking?.let { Marks.writeSounds(sounds) },
     measured = measured.takeIf { it.isNotEmpty() }?.let { Figures.write(it) },
     slower = slower,
@@ -107,6 +108,7 @@ internal fun UtteranceRow.utterance() = Utterance(
     // By name and never by ordinal, like every other enum that travels through here.
     ending = ending?.let { Ending.valueOf(it) },
     marking = marking?.let { Marks.read(it) },
+    established = established?.let { Established.read(it) }.orEmpty(),
     sounds = sounds?.let { Marks.readSounds(it) }.orEmpty(),
     measured = measured?.let { Figures.read(it) }.orEmpty(),
     slower = slower,

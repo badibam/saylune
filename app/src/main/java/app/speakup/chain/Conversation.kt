@@ -4,6 +4,7 @@ import app.speakup.capture.Ending
 import app.speakup.judged.Judgement
 import app.speakup.activity.Brief
 import app.speakup.activity.Character
+import app.speakup.activity.Question
 import app.speakup.levers.Positions
 import app.speakup.rules.Instructing
 
@@ -108,6 +109,19 @@ data class Present(
      * recording: nothing cuts off a person who is still speaking.
      */
     val provoked: Boolean = false,
+    /**
+     * The questions the app is putting on this turn, whose answers are **required fields**.
+     *
+     * **The app serves them and the model answers on the spot.** That is the inversion the
+     * mechanism rests on: not a menu of empty fields the model fills when it likes, but a
+     * question put at the moment its author wrote, so that the presence of an answer is
+     * checkable like any other field of the contract.
+     *
+     * They ride on the first call after the moment that put them, exactly as a rule's message
+     * does: a question due at the end of an attempt is one the call for that attempt has
+     * already gone without, and the next call is the earliest there is.
+     */
+    val asking: List<Question> = emptyList(),
 )
 
 /**
@@ -128,8 +142,21 @@ data class Scene(
     val cast: List<Character> = emptyList(),
 )
 
-/** One past turn, as the model should remember it. */
-data class Exchange(val fromLearner: Boolean, val text: String)
+/**
+ * One past turn, as the model should remember it.
+ *
+ * [established] is what the model settled on that very turn, and it travels with it rather
+ * than in a section of its own. **The fact is laid where it was established**, which carries
+ * its date for nothing -- a fact settled at the twelfth passage and put in a heading would
+ * read as a given of the start, and the model would play somebody who had always known it --
+ * and which does not break the cached prefix, the history being stable at the head and growing
+ * at the tail where a heading would grow in the middle.
+ */
+data class Exchange(
+    val fromLearner: Boolean,
+    val text: String,
+    val established: Map<String, String> = emptyMap(),
+)
 
 /**
  * What comes back: something to say, what the learner meant, and what was marked on it.
@@ -166,4 +193,12 @@ data class Reply(
      * models do best; calibrating a fresh constraint is not.
      */
     val choice: String?,
+    /**
+     * What the model settled, by question key. Empty where the turn put none.
+     *
+     * **It comes before `spoken` in the object the model writes**, and that is not a detail of
+     * order: the contract says each field written conditions the next, so the character speaks
+     * knowing what has just been established and never the other way round.
+     */
+    val established: Map<String, String> = emptyMap(),
 )

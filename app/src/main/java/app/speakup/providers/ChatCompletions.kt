@@ -81,6 +81,6 @@ internal object ChatCompletions {
                        "chars" to content.length.toString())
             throw ChainFailure("$model answered with nothing at all")
         }
-        return ReplyReader.read(content, transcript, present.provoked)
+        return ReplyReader.read(content, transcript, present.provoked, present.asking)
     }
 }
