@@ -385,29 +385,21 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
     }
 
     /**
-     * Where the weights sit, with `vocab.json` beside them.
+     * Where the weights sit, with `vocab.json` and `probe.json` beside them.
      *
-     * Not the app's own external directory, and that is measured rather than assumed: the
-     * app cannot list a subdirectory of it whose contents the shell created -- `list()`
-     * returns null while `isDirectory` is true. `/data/local/tmp` is the other way round,
-     * which is the arrangement `ProbeActivity` already runs on: SELinux lets an app read
-     * there and never write, and the shell may write there.
-     *
-     * That asymmetry is the whole reason this is a provisional. The doc calls for a 359 MB
-     * opt-in download, and an app writing its own storage would read it back with no
-     * question of permission at all. The download is not written
-     * (`../../../../../../../TODO.md`); when it is, this returns the app's own directory
-     * and nothing else in the analysis moves.
+     * The app's own directory, now that the app fetches them itself ([Weights]). It was
+     * `/data/local/tmp` for as long as the shell had to push them, and that detour was
+     * measured rather than chosen: an app cannot list a subdirectory of its own external
+     * storage whose contents the shell created -- `list()` returns null while `isDirectory`
+     * is true -- whereas SELinux lets it read `/data/local/tmp` and never write there.
+     * Nothing in the analysis moved when this changed, which is what the seam was for.
      */
-    private fun home(): File = File(HOME)
+    private fun home(): File = Weights.home(context)
 
     private fun weights(): File? =
         home().listFiles { file -> file.name.endsWith(".onnx") }?.firstOrNull()
 
     private companion object {
-        /** Where `adb push` can write and the app can read. Provisional, see [home]. */
-        const val HOME = "/data/local/tmp/saylune-analysis"
-
         /** Enough of the weights to tell two trained files apart, beside their size. */
         const val HEAD_BYTES = 64 * 1024
 

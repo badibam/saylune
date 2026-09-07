@@ -19,9 +19,9 @@ import java.io.File
 class ReducedTest {
 
     private val affinity = Affinity.read(
-        File("src/debug/assets/affinity.json"),
-        File("src/debug/assets/affinity-groups.json"),
-        File("src/debug/assets/affinity-reductions.json"),
+        File("src/main/assets/affinity.json"),
+        File("src/main/assets/affinity-groups.json"),
+        File("src/main/assets/affinity-reductions.json"),
     )
 
     private fun letters(text: String, symbols: List<String>) =

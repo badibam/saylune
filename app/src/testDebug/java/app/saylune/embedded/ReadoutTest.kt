@@ -23,9 +23,9 @@ class ReadoutTest {
             ?.filter { it.isDirectory }?.sortedBy { it.name }.orEmpty()
         assertTrue("no frozen turn -- generate one with bench/fixture.py", frozen.isNotEmpty())
 
-        val affinity = Affinity.read(File("src/debug/assets/affinity.json"),
-                                     File("src/debug/assets/affinity-groups.json"),
-                                     File("src/debug/assets/affinity-reductions.json"))
+        val affinity = Affinity.read(File("src/main/assets/affinity.json"),
+                                     File("src/main/assets/affinity-groups.json"),
+                                     File("src/main/assets/affinity-reductions.json"))
         val out = StringBuilder()
         frozen.forEach { turn ->
             val expected = JSONObject(File(turn, "expected.json").readText())

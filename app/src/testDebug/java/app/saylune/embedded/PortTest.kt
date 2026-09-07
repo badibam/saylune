@@ -186,5 +186,5 @@ class PortTest {
     }
 
     /** The very tables the debug build ships, read where they live rather than copied. */
-    private fun asset(name: String) = File("src/debug/assets", name)
+    private fun asset(name: String) = File("src/main/assets", name)
 }

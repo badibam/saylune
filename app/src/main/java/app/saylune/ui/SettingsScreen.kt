@@ -1,5 +1,7 @@
 package app.saylune.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +38,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import app.saylune.R
+import app.saylune.analysis.Weights
 import app.saylune.keys.Secret
 import app.saylune.keys.SecretStore
 import app.saylune.providers.Provider
@@ -163,12 +166,116 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
         }
 
         HorizontalDivider()
+        WeightsSection()
+
+        HorizontalDivider()
         HorizontalDivider()
         LatencySection(store)
 
         SoundCredits()
     }
 }
+
+/**
+ * The analysis model: whether it is here, and the two ways of getting it.
+ *
+ * **The section is here whether or not the model is.** An option that is off carries its
+ * reason, which is what the absent state does; and a model that is present needs somewhere
+ * to be removed from, 359 MB being the largest thing the app puts on the phone. A section
+ * that vanished once installed would leave that nowhere.
+ *
+ * It reads the flows the download writes rather than owning the work, so leaving the screen
+ * does not stop it and coming back finds it where it got to ([Weights.progress]).
+ */
+@Composable
+private fun WeightsSection() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var state by remember { mutableStateOf<Weights.State?>(null) }
+    var brought by remember { mutableStateOf<String?>(null) }
+    val progress by Weights.progress.collectAsState()
+    val failure by Weights.failure.collectAsState()
+    val running = progress != null
+
+    // Keyed on whether a download runs rather than on how far it got: the counter moves
+    // every few kilobytes, and re-reading the files that often would hash 359 MB on a loop.
+    // What this is for is the two moments the disk changes -- opening, and a download ending.
+    LaunchedEffect(running) { if (!running) state = Weights.state(context) }
+
+    // The system picker, which is what the android wisdom asks for over a broad permission:
+    // the user points at one file and the app is given that one, with nothing to declare.
+    val bring = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) scope.launch {
+            brought = Weights.adopt(context, uri).fold(
+                onSuccess = { context.getString(R.string.weights_brought, it.name) },
+                onFailure = { it.message },
+            )
+            state = Weights.state(context)
+        }
+    }
+
+    Text(stringResource(R.string.weights_title), style = MaterialTheme.typography.titleSmall)
+
+    when {
+        running -> Text(
+            stringResource(R.string.weights_getting, size(progress ?: 0L), size(Weights.total)),
+            style = MaterialTheme.typography.bodySmall,
+        )
+
+        state is Weights.State.Ready -> {
+            Text(
+                stringResource(R.string.weights_ready, size(Weights.total)),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            OutlinedButton(onClick = {
+                scope.launch { Weights.erase(context); state = Weights.state(context) }
+            }) { Text(stringResource(R.string.weights_erase)) }
+        }
+
+        else -> {
+            val wrong = state as? Weights.State.Wrong
+            Text(
+                if (wrong != null) stringResource(R.string.weights_wrong, wrong.piece)
+                else stringResource(R.string.weights_absent),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Text(
+                stringResource(R.string.weights_cost, size(Weights.total)),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (!Weights.addressed) {
+                Text(
+                    stringResource(R.string.weights_unaddressed),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { Weights.start(context) },
+                    enabled = Weights.addressed,
+                ) { Text(stringResource(R.string.weights_get)) }
+                // Any type: the picker filters on what the provider declares, and a phone
+                // has no idea what an .onnx is. What it really is gets settled by its
+                // digest anyway, which is the only check that means anything here.
+                OutlinedButton(onClick = { bring.launch(arrayOf("*/*")) }) {
+                    Text(stringResource(R.string.weights_bring))
+                }
+            }
+        }
+    }
+
+    failure?.let {
+        Text(
+            stringResource(R.string.weights_failed, it),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
+    brought?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+}
+
+/** Bytes as the offer says them: whole megabytes, decimal, like every download ever named. */
+private fun size(bytes: Long): String = "${(bytes + 500_000) / 1_000_000} MB"
 
 /**
  * The stopwatch: every model whose key is filled, on the same two sentences.

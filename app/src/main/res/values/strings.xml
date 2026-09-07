@@ -5,11 +5,26 @@
     <string name="sample_clean_turn">Clean turn</string>
     <string name="measured_turn">Measured turn — %1$s</string>
     <string name="no_turn_file">No measured turn. Write one with bench/turn.py, then push it to %1$s</string>
-    <string name="settings_title">Provider keys</string>
+    <string name="settings_title">Models and keys</string>
     <string name="settings_lead">The app has no keys of its own: bring yours. They are stored encrypted on this device and are sent only to the provider they belong to.</string>
+    <!-- The analysis model, which the app does not carry. Plain and short: it is a
+         chore standing between someone and the app, not an announcement. -->
+    <string name="weights_title">Analysis model</string>
+    <string name="weights_absent">Not here. No pronunciation marks without it.</string>
+    <string name="weights_cost">%1$s, once. It runs on the phone: no audio goes out for it.</string>
+    <string name="weights_get">Download</string>
+    <string name="weights_bring">Bring a file</string>
+    <string name="weights_resume">Resume — %1$s to go</string>
+    <string name="weights_getting">%1$s of %2$s</string>
+    <string name="weights_ready">timit-ipa · %1$s · checked</string>
+    <string name="weights_erase">Erase</string>
+    <string name="weights_wrong">%1$s is not the right file. Erase and start again.</string>
+    <string name="weights_unaddressed">No download address yet. You can still bring the files.</string>
+    <string name="weights_failed">Stopped: %1$s</string>
+    <string name="weights_brought">%1$s is in place.</string>
     <string name="settings_save">Save</string>
     <string name="settings_saved">Saved</string>
-    <string name="settings_open">Keys</string>
+    <string name="settings_open">Models and keys</string>
     <string name="secret_azure_key">Azure Speech — key</string>
     <string name="secret_azure_region">Azure Speech — region</string>
     <string name="secret_elevenlabs_key">ElevenLabs — API key</string>
