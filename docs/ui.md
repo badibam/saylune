@@ -22,7 +22,7 @@ Le pixel doit être **doux, et cette douceur est peinte, jamais filtrée** : tra
 
 **Mono10**, en licence SIL OFL 1.1 sans nom réservé, modifiée, renommée **Speakup Tile**, **embarquée dans `res/font/`** — jamais par le fournisseur Google Fonts, adossé aux services Play, donc une dépendance propriétaire que la facette `fdroid` interdit.
 
-Elle est **écrite et non plus empruntée** : sa source de vérité est un jeu de cartes de pixels en texte, dans `../font/`, que `build.py` compile en TTF ; le TTF se commite à côté, aucun outil n'étant appelé au build. `font/README.md` dit la boîte, les scripts et la carte de la zone privée.
+Elle est **écrite et non plus empruntée** : sa source de vérité est un jeu de cartes de pixels en texte, dans `../font/`, que `build.py` compile en TTF ; le TTF se commite à côté, aucun outil n'étant appelé au build. `../font/README.md` dit la boîte, les scripts et la carte de la zone privée.
 
 Cadratin de 1024 unités, une unité de dessin valant 64, avance de 11 pixels. **La boîte fait 11 × 15 pixels** : les capitales tiennent les rangées 0 à 9, les accents les rangées 10 et 11, les descendantes les rangées −1 et −2, et une rangée sépare deux lignes. Hauteur de capitale 10, hauteur d'x 8. La colonne 10 est l'interlettre et reste vide, sauf pour les pièces de cadre, qu'une fente d'un pixel trahirait. La graisse *Regular* a un trait de **2 pixels**, la *Thin* de 1 ; les deux sont offertes en préférence utilisateur, et la rampe reste lisible en *Thin*.
 
