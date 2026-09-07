@@ -14,8 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import app.speakup.R
 import app.speakup.ui.theme.Grid
 import app.speakup.ui.theme.Speakup
 
@@ -53,6 +55,20 @@ fun TurnLabel(
      * than greyed, an entry with no object being absent.
      */
     onPlay: (() -> Unit)? = null,
+    /**
+     * Open what the app sent to the model for this passage, or null where nothing may be.
+     *
+     * **Here and not in the row of commands underneath**, which is full: six framed entries
+     * take twenty-four of the twenty-six columns a padded worst screen gives, and a seventh
+     * would not fit. This line has room -- its right half is the marks and its left half is a
+     * name -- and the word borrows from the name's own slack, where it costs nothing until a
+     * name is long. **Left of the marks**, which keep the right end they were given.
+     *
+     * A word and not a glyph: no drawing says *what went out to the model*, and a wrong one
+     * would read as a command of the conversation. Lower case is the rest of the difference,
+     * every other label of the thread being capitals. Only the debug build passes one.
+     */
+    onDebug: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val grid = Speakup.grid
@@ -67,6 +83,15 @@ fun TurnLabel(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+        onDebug?.let { open ->
+            Spacer(Modifier.width(grid.cell))
+            Text(
+                stringResource(R.string.debug_prompt),
+                modifier = Modifier.clickable(onClick = open),
+                style = type.text,
+                color = colors.dim,
+            )
+        }
         onPlay?.let { play ->
             Spacer(Modifier.width(grid.cell))
             Text(

@@ -78,6 +78,7 @@
     <string name="debug_prompt_none">Nothing was sent for this passage in this run of the app. What is kept is what went out, and it lives in memory alone: a reopened sitting has none.</string>
     <string name="debug_prompt_close">close</string>
     <string name="debug_prompt_chars">%1$d chars, %2$d messages</string>
+    <string name="debug_prompt_size">%1$d chars</string>
     <string name="debug_prompt_raw">raw</string>
     <string name="analysis_engine_refused">Pronunciation marks are off for this session: the analysis engine could not be loaded.</string>
     <string name="analysis_unshipped">Pronunciation marks are off: this build carries no analysis engine.</string>

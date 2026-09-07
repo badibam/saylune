@@ -36,6 +36,7 @@ import app.speakup.levers.Count
 import app.speakup.levers.Levers
 import app.speakup.levers.Positions
 import app.speakup.levers.severityOn
+import app.speakup.debug.Trace
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.store.Archive
@@ -47,6 +48,7 @@ import app.speakup.ui.Channel
 import app.speakup.ui.Channels
 import app.speakup.ui.ConversationScreen
 import app.speakup.ui.ConversationsScreen
+import app.speakup.ui.PromptScreen
 import app.speakup.ui.Glyphs
 import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.DisplaySettingsScreen
@@ -119,7 +121,7 @@ class MainActivity : ComponentActivity() {
  * buttons. Still no navigation library -- the `android` wisdom holds one off until a graph
  * needs one, and a list one pushes onto and pops off is not a graph.
  */
-private enum class Screen { Title, Conversations, Conversation, Notes, Display, Settings, Marks }
+private enum class Screen { Title, Conversations, Conversation, Notes, Prompt, Display, Settings, Marks }
 
 /**
  * The app, from its root down.
@@ -168,6 +170,9 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
     // makes `PAUSE` and `SEND` unambiguous at the bottom. Saveable, so a rotation does not
     // turn a repeat into a new turn.
     var repeating by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Which passage the prompt screen is open on, named by the utterance that opened it.
+    var promptOf by rememberSaveable { mutableStateOf<String?>(null) }
 
     // Which attempt the passage's notes are open on. Held here, with the stack, because the
     // screen is pushed onto it: the conversation says which passage, the stack says where.
@@ -240,6 +245,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     onClosed = if (pushed) {
                         { notesOf = it; stack.add(Screen.Notes) }
                     } else null,
+                    onPrompt = { promptOf = it; stack.add(Screen.Prompt) },
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -274,6 +280,18 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     }
                 }
             }
+
+            // **The one screen that does not wear the scaffold below the root**, and the one
+            // that is not in the register at all: it is an instrument for reading a body of
+            // several thousand characters, which the eleven-pixel font on the grid cannot do.
+            // So it carries its own way out, in its own corner, rather than the register's
+            // action bar.
+            Screen.Prompt -> PromptScreen(
+                passage = turn.passages().indexOfFirst { it.opener.id == promptOf } + 1,
+                body = promptOf?.let { Trace.asked(it) },
+                onClose = { stack.removeAt(stack.lastIndex) },
+                modifier = Modifier.fillMaxSize(),
+            )
 
             Screen.Display -> Scaffold(
                 title = stringResource(R.string.display_what),

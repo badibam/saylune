@@ -41,6 +41,7 @@ import app.speakup.conversation.Speaker
 import app.speakup.conversation.Standing
 import app.speakup.conversation.Utterance
 import app.speakup.conversation.Phase
+import app.speakup.debug.Trace
 import androidx.compose.runtime.saveable.rememberSaveable
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Readiness
@@ -91,6 +92,8 @@ fun ConversationScreen(
     channels: Channels,
     /** Open the summary of the passage whose last attempt is this one. */
     onNotes: (String) -> Unit,
+    /** Open what went out to the model for this passage, named by the utterance that opened it. */
+    onPrompt: (String) -> Unit,
     /**
      * Show the summary of the passage that has just closed, or null where the learner has
      * turned that off.
@@ -290,6 +293,9 @@ fun ConversationScreen(
                     recorder.open(scope, settings)
                 },
                 onNotes = onNotes,
+                // The passage and not the attempt: what was sent is kept under the utterance
+                // that opened it, a rewording replacing it and a repeat sending nothing.
+                onPrompt = if (Trace.on) ({ onPrompt(spoken.id) }) else null,
                 thread = thread,
             )
         }
@@ -429,6 +435,8 @@ private fun Said(
     onHearAdded: (String, AddedSound) -> Unit,
     onOpenRepeat: () -> Unit,
     onNotes: (String) -> Unit,
+    /** Open what went out for this passage, or null in a build that traces nothing. */
+    onPrompt: (() -> Unit)?,
     /** The thread's own scroll, which the readout brings an opened row to the top of. */
     thread: ScrollState,
 ) {
@@ -456,6 +464,7 @@ private fun Said(
                 }
             },
             channels = channels,
+            onDebug = onPrompt,
         )
         // The earlier takes stay in the base for the measures and for a bench, and no screen
         // shows them.
