@@ -39,28 +39,24 @@
     <string name="capture_turn_paused">Your turn, paused — %1$s</string>
     <string name="capture_repeat_running">Saying it again — %1$s</string>
     <string name="capture_repeat_paused">Saying it again, paused — %1$s</string>
-    <string name="capture_pause">Pause</string>
-    <string name="capture_resume">Carry on</string>
     <string name="capture_clock">%1$s of %2$s</string>
     <string name="capture_clocks">%1$s of %2$s — silence %3$s of %4$s</string>
     <string name="capture_ended_length">Your turn was sent: it reached the time it had.</string>
     <string name="capture_ended_silence">Your turn was sent: the silence ran on.</string>
     <string name="capture_redo">Redo</string>
-    <string name="capture_send">Send</string>
+    <string name="capture_send">SEND</string>
     <string name="capture_permission">Speakup needs the microphone to hear your turn.</string>
     <string name="capture_grant">Allow the microphone</string>
     <string name="capture_kept">Turn kept: %1$s</string>
     <string name="measured_marks">Marks</string>
     <string name="mic_unprocessed">unprocessed microphone</string>
     <string name="mic_voice_recognition">speech microphone (this device offers no unprocessed one)</string>
-    <string name="capture_source">Recording through the %1$s.</string>
     <string name="phase_hearing">Listening to your turn…</string>
     <string name="phase_thinking">Thinking…</string>
     <string name="phase_speaking">Answering…</string>
     <string name="phase_measuring">Measuring your turn…</string>
     <string name="turn_retry">Try again</string>
     <string name="turn_failed">The chain gave way: %1$s. Your turn is kept — nothing to say again.</string>
-    <string name="conversation_empty">Hold the button and say something.</string>
     <string name="conversations_new">New conversation</string>
     <string name="conversations_none">No conversation yet.</string>
     <string name="conversation_unnamed">Untitled</string>
@@ -284,7 +280,7 @@
     <!-- The command row: two columns each, so the row's geometry never depends on the state. -->
     <string name="side_short_model">AI</string>
     <string name="side_short_learner">ME</string>
-    <string name="capture_my_turn">MY TURN</string>
+    <string name="capture_my_turn">SPEAK</string>
     <!-- The readout: the two framed listenings, which play this very recording. -->
     <string name="readout_model">MODEL</string>
     <string name="readout_you">YOU</string>

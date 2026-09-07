@@ -38,28 +38,24 @@
     <string name="capture_turn_paused">Ton tour, en pause — %1$s</string>
     <string name="capture_repeat_running">Redite — %1$s</string>
     <string name="capture_repeat_paused">Redite, en pause — %1$s</string>
-    <string name="capture_pause">Pause</string>
-    <string name="capture_resume">Continuer</string>
     <string name="capture_clock">%1$s sur %2$s</string>
     <string name="capture_clocks">%1$s sur %2$s — silence %3$s sur %4$s</string>
     <string name="capture_ended_length">Ton tour est parti : il a atteint le temps qu\'il avait.</string>
     <string name="capture_ended_silence">Ton tour est parti : le silence a duré.</string>
     <string name="capture_redo">Refaire</string>
-    <string name="capture_send">Envoyer</string>
+    <string name="capture_send">ENVOI</string>
     <string name="capture_permission">Speakup a besoin du micro pour entendre ton tour.</string>
     <string name="capture_grant">Autoriser le micro</string>
     <string name="capture_kept">Tour conservé : %1$s</string>
     <string name="measured_marks">Marques</string>
     <string name="mic_unprocessed">micro sans traitement</string>
     <string name="mic_voice_recognition">micro de reconnaissance (cet appareil n\'offre pas de source sans traitement)</string>
-    <string name="capture_source">Enregistrement par le %1$s.</string>
     <string name="phase_hearing">Écoute de ton tour…</string>
     <string name="phase_thinking">Réflexion…</string>
     <string name="phase_speaking">Réponse…</string>
     <string name="phase_measuring">Mesure de ton tour…</string>
     <string name="turn_retry">Réessayer</string>
     <string name="turn_failed">La chaîne a lâché : %1$s. Ton tour est conservé — rien à redire.</string>
-    <string name="conversation_empty">Maintiens le bouton et dis quelque chose.</string>
     <string name="speaker_learner">Toi</string>
     <string name="speaker_ai">Speakup</string>
     <string name="analysis_engine_refused">Les marques de prononciation sont éteintes pour cette séance : le moteur d\'analyse n\'a pas pu être chargé.</string>
@@ -267,7 +263,7 @@
     <!-- The command row: two columns each, so the row's geometry never depends on the state. -->
     <string name="side_short_model">IA</string>
     <string name="side_short_learner">MOI</string>
-    <string name="capture_my_turn">MON TOUR</string>
+    <string name="capture_my_turn">PARLER</string>
     <!-- The readout: the two framed listenings, which play this very recording. -->
     <string name="readout_model">MODÈLE</string>
     <string name="readout_you">TOI</string>

@@ -175,16 +175,22 @@ fun ConversationScreen(
     }
 
     val grid = Speakup.grid
-    // **The thread scrolls, the bottom does not.** The bottom is four grid rows -- three of
-    // buttons here, and the scaffold's action bar under them -- and what it commands is
-    // whatever records, so it has to be reachable while the thread is anywhere.
+    // **The thread scrolls, the bottom does not.** What the bottom commands is whatever
+    // records, so it has to be reachable while the thread is anywhere.
+    //
+    // **And a cell separates the two.** Left touching, the last line of the thread reads as a
+    // caption of the buttons under it -- the scaffold gives the same air above the content,
+    // and this is its other end.
     val thread = rememberScrollState()
     Column(modifier) {
       Column(
         modifier = Modifier
             .weight(1f)
-            .verticalScroll(thread)
-            .padding(vertical = grid.cell),
+            // Outside the scroll and not inside it: inside, the gap would be a last empty line
+            // of the thread and would scroll away with it, leaving the text against the buttons
+            // exactly when the thread is long enough for it to matter.
+            .padding(bottom = grid.cell)
+            .verticalScroll(thread),
         verticalArrangement = Arrangement.spacedBy(grid.cell),
       ) {
         if (!granted) {
@@ -199,13 +205,6 @@ fun ConversationScreen(
             return@Column
         }
 
-        if (turn.utterances.isEmpty()) {
-            Text(
-                stringResource(R.string.conversation_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
         // The passage still open, which is the last one the learner said. Saying it again
         // stops when a passage closes, so it is the only one that offers the small button.
         // Nothing closes a passage today but starting the next -- the big button that will
@@ -293,13 +292,6 @@ fun ConversationScreen(
             }
         }
 
-        Text(
-            stringResource(R.string.capture_source, stringResource(recorder.source.label)),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-
         DebugPanel()
       }
 
@@ -312,16 +304,17 @@ fun ConversationScreen(
       val recordingSomething = capture.recording || capture.hasAudio
       Buttons(
           myTurn = stringResource(R.string.capture_my_turn),
-          // **`PAUSE` exists at the first capture position and nowhere else**, the one position
-          // that has a pause at all. Elsewhere it is absent rather than greyed: absence is for
-          // what has no object, greying for what cannot be done at this instant.
-          pause = if (position == Levers.BY_HAND) stringResource(
-              if (capture.recording) R.string.capture_pause else R.string.capture_resume
-          ) else null,
-          // Absent where nothing records: there is no take to send.
-          send = if (capture.hasAudio && !busy) stringResource(R.string.capture_send) else null,
+          send = stringResource(R.string.capture_send),
           mayOpen = !busy && !recordingSomething && turn.closes(),
+          // **The pause exists at the first capture position and nowhere else**, the one
+          // position that has a pause at all. Greyed at the other two rather than gone: what
+          // has no object for the whole sitting still keeps its place in a row whose shape
+          // must not move under the thumb.
+          pauses = position == Levers.BY_HAND,
           mayPause = capture.recording || (capture.hasAudio && !busy),
+          recording = capture.recording,
+          // Greyed where nothing records: there is no take to send.
+          maySend = capture.hasAudio && !busy,
           // **Throwing a take away is a lever.** Offered freely it walks around the attempt
           // counters -- a challenge granting one attempt could be restarted ten times -- so a
           // challenge has to be able to close it. It has **no object at the third position**,
