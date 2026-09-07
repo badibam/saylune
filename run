@@ -128,7 +128,7 @@ def task_tile():
         )
         return
     subprocess.run(
-        ["claude", f"Lis @{guide.relative_to(ROOT)} et suis-le pour écrire une tuile."],
+        ["claude", f"Lis @{guide.relative_to(ROOT)} et suis-le."],
         cwd=ROOT,
         check=False,
     )

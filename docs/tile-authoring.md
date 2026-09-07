@@ -32,13 +32,35 @@ Un guide qui recopierait le schéma serait une seconde source qui dérive du par
 - **Aucune horloge.** Un levier qui décrit la personne rencontrée — sa voix, son débit, à quel point elle est dure à suivre — est de plein droit. Un levier qui met l'apprenant sous une horloge — armement automatique, plafond de tour, seuil de silence, budget de tentatives — ne l'est pas : rien en Libre ne l'annonce, la tuile ne montrant qu'un nom et un titre. C'est une règle éditoriale sur les fiches livrées, pas une contrainte du moteur.
 - **Aucun enjeu** : pas de vies, pas de règle de fin, pas d'issue. Donc **aucune question à la fermeture**, la vague de clôture ne s'ouvrant jamais en Libre — les questions se posent tous les cinq passages.
 
-## Le geste
+## Combien, et avec qui
 
-1. Choisir la fiche dans `design/tiles.md`. Si elle n'existe pas encore, elle s'écrit **d'abord là**, par le même travail de conception que les douze, avant d'entrer dans un fichier.
+**Une session ne porte pas sur une tuile.** Elle commence par lire `app/src/main/assets/definitions/` et `design/tiles.md`, dire lesquelles des scènes rédigées sont déjà des fichiers et lesquelles ne le sont pas, et **demander combien on en fait dans cette passe** — une, quelques-unes, le reste. Ne jamais le supposer.
+
+## Ce qui se demande et ce qui se propose
+
+La règle est celle du projet : on interprète comme le ferait un collègue attentif, et on ne s'arrête que là où deux lectures donneraient un travail différent.
+
+**Se propose, et on continue** — tout ce qui est du métier à l'intérieur d'un cadre déjà décidé : le nom, l'âge, le défaut, ce qu'il refuse, sa façon de parler, la formulation exacte de la situation, la tournure de l'ancre. Ça se montre en quelques lignes avant d'écrire le JSON — *qui / ce qu'il veut / son défaut / ce qu'il ne fera pas / comment il parle / ce qu'il a déjà décidé sur toi* — pour qu'une phrase suffise à le réorienter. Puis on écrit.
+
+**Se demande, et on s'arrête** — tout ce qui déplace le cadre :
+
+- une scène qui n'est pas dans `design/tiles.md` ;
+- une scène dont le moteur fait double emploi avec une déjà écrite ;
+- une règle éditoriale qu'il faudrait enfreindre — une horloge, un genre fixé, deux trous, une question à la fermeture ;
+- un champ que le parseur ne lit pas ;
+- un `id` ou un nom court qui entre en collision avec un existant.
+
+**Écrire une scène neuve est de la conception, pas de la transcription**, et ça suit la méthode de brainstorming du projet : énoncer d'abord la version la plus bête qui pourrait marcher et pourquoi elle ne suffit pas, puis **une seule question à la fois, avec un avis à chaque fois**, du global au spécifique. La scène entre dans `design/tiles.md` avant d'entrer dans un fichier.
+
+## Le geste, tuile par tuile
+
+1. Choisir la fiche dans `design/tiles.md`.
 2. Lire `Definitions.parse` et le catalogue.
-3. Écrire `app/src/main/assets/definitions/<id>.json`. Le nom du fichier et le champ `id` doivent coïncider, le parseur le vérifie.
-4. Vérifier : `./gradlew :app:testDebugUnitTest --tests '*DefinitionTest*'`. Ce test relit **tous** les fichiers livrés depuis le dossier même que l'app empaquette, sans appareil ni réseau.
-5. Committer, une tuile par commit, message en anglais.
+3. Proposer le personnage en quelques lignes, attendre le feu vert.
+4. Écrire `app/src/main/assets/definitions/<id>.json`. Le nom du fichier et le champ `id` doivent coïncider, le parseur le vérifie.
+5. Committer — **une tuile par commit**, message en anglais.
+
+Puis, une fois la passe finie : `./gradlew :app:testDebugUnitTest --tests '*DefinitionTest*'`. Ce test relit **tous** les fichiers livrés depuis le dossier même que l'app empaquette, sans appareil ni réseau, donc une seule exécution couvre le lot.
 
 ## Ce que le parseur ne lit pas encore reste dans le doc
 
@@ -57,4 +79,4 @@ La règle générale, et elle se maintient toute seule : **si `Definitions.parse
 
 ## À la fin
 
-Dire ce qui a été écrit, ce qui est resté dans `design/tiles.md` faute de champ pour le porter, et donner le résultat du test.
+Dire quelles tuiles ont été écrites, lesquelles restent à faire, ce qui est resté dans `design/tiles.md` faute de champ pour le porter, et donner le résultat du test.
