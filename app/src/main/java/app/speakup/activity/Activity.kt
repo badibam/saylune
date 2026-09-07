@@ -10,7 +10,7 @@ import java.util.UUID
  * One piece of work: what it is, what it is about, how it was set, where it got to, when, and
  * how it went.
  *
- * **An activity is one object** (`docs/design/activity-model.md`). There is nothing separate
+ * **An activity is one object** (`docs/activity.md`). There is nothing separate
  * for its scope and nothing separate for its run: the two were only ever told apart by an
  * indirection that nothing had a use for.
  *
@@ -40,7 +40,7 @@ data class Activity(
     val brief: Brief? = null,
     /**
      * Where every lever of this sitting sits, and **that is the whole of what it stores of
-     * its settings** (`docs/design/activity-model.md`).
+     * its settings** (`docs/activity.md`).
      *
      * The test is that every entry answers the same question: *where is this parameter right
      * now*. A ramp does not answer it, it says how things will change; an origin does not

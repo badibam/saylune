@@ -11,7 +11,7 @@ package app.speakup.ui
  *
  * **A frame in a grid of characters *is* text**: one lays a corner, some edges, another
  * corner, and it aligns itself for the price of a string. That is why these are glyphs rather
- * than shapes painted on a `Canvas`, which would have to be measured (`pixel-ui.md`).
+ * than shapes painted on a `Canvas`, which would have to be measured (`ui.md`).
  */
 object Glyphs {
 

@@ -8,7 +8,7 @@ import kotlin.math.roundToInt
 /**
  * The grid: one drawing pixel of the font, blown up by a whole number.
  *
- * **The grid is horizontal** (`pixel-ui.md`). What it protects is the marking's anchoring to
+ * **The grid is horizontal** (`ui.md`). What it protects is the marking's anchoring to
  * the characters: a rule covers a whole number of cells, the corners of sounds no letter
  * carries fall on exact bounds, and a whole class of rounding leaves `ui/MarkedTurn.kt`,
  * which measures at the sub-pixel today.
@@ -56,7 +56,7 @@ class Grid(
  * The scale for this screen: the whole number that puts a capital nearest **10 dp**, the size
  * of an app's ordinary text.
  *
- * **The factor is a whole number, and that is the only hard constraint** (`pixel-ui.md`): at
+ * **The factor is a whole number, and that is the only hard constraint** (`ui.md`): at
  * 3.5 some drawing pixels would come out three screen pixels wide and others four, strokes
  * would land at uneven thicknesses and the effect would collapse. There is **no computable
  * criterion** behind its value -- it is the trade between the legibility of the letters and

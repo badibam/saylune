@@ -3,7 +3,7 @@ package app.speakup.sheets
 /**
  * What a sheet is, and what one has to declare to be one.
  *
- * **A challenge is written against a list, never against the code** (`activity-model.md`).
+ * **A challenge is written against a list, never against the code** (`activity.md`).
  * Without this, laying a condition -- the sheet *longest silence*, five seconds -- means
  * knowing that sheet exists, what it is called, and that its number is in seconds and not a
  * percentage. That is to say: reading the calculation.

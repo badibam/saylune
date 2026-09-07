@@ -11,7 +11,7 @@ import androidx.compose.runtime.Immutable
  * [Grid.drawn] or into paint through [Grid.painted]. That is also what keeps them provable
  * without a screen.
  *
- * **The marks live in the leading, not in the cell** (`pixel-ui.md`). Eleven pixels do not
+ * **The marks live in the leading, not in the cell** (`ui.md`). Eleven pixels do not
  * hold the letters, their enclosure, the rule and the wave all at once. The letters keep
  * their cell; everything else spreads into the room added below.
  *

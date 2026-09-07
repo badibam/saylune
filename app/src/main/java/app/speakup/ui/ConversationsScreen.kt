@@ -44,7 +44,7 @@ import java.util.Locale
  *
  * **This screen is the catalogue the proof of concept left behind**, and it is on its way out:
  * the free door is to show one tile per shipped definition rather than one row per sitting
- * (`docs/design/pixel-ui.md`). It stays until those tiles exist, because it is the only way to
+ * (`docs/ui.md`). It stays until those tiles exist, because it is the only way to
  * reach a conversation that is not the open one.
  */
 @Composable

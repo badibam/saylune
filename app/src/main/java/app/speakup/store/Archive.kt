@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.Flow
  * **Stored is what depends on something that will not be found again** -- the audio of a
  * moment, the judgement of a judge, a version of a model. **Recomputed is everything that
  * depends only on the rows**: how many utterances, their order, the durations, anything a
- * count is enough to produce (`docs/design/activity-model.md`). So there is no column here
+ * count is enough to produce (`docs/activity.md`). So there is no column here
  * for the length of a run, none for the rank of a take, and none for the thread of a
  * conversation, which is the ordered run itself.
  *
@@ -183,7 +183,7 @@ abstract class Archive : RoomDatabase() {
          * An activity is a conversation and nothing else: what looked like other formats --
          * reading a text aloud, repeating after a model -- are moments inside a conversation
          * rather than shapes beside it, so a column every row filled the same way described an
-         * intention and not the model (`docs/design/activity-model.md`).
+         * intention and not the model (`docs/activity.md`).
          *
          * The table is rebuilt rather than altered: `ALTER TABLE ... DROP COLUMN` arrived in
          * SQLite 3.35, and `minSdk` 26 ships 3.18.

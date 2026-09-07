@@ -4,7 +4,7 @@ package app.speakup.levers
  * Where every lever of one sitting sits.
  *
  * **This is the whole of what a sitting stores of its settings** -- an open list of lever
- * positions and nothing else (`activity-model.md`). The test is that every entry answers the
+ * positions and nothing else (`activity.md`). The test is that every entry answers the
  * same question: *where is this parameter right now*. A ramp does not answer it, it says how
  * things will change; an origin does not either, it says where the settings came from. Those
  * have fields of their own.

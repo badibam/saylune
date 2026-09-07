@@ -21,7 +21,7 @@ import app.speakup.ui.theme.Speakup
 
 /**
  * The row of commands, which **lives in the thread under each passage** and not pinned to the
- * bottom of the screen (`pixel-ui.md`).
+ * bottom of the screen (`ui.md`).
  *
  * Six entries, at the same padding as the text above them, and **glyphs wherever possible**:
  * ten columns plus five separations make fifteen of the twenty-eight the worst screen gives.
@@ -136,7 +136,7 @@ fun Commands(
 /**
  * One entry: its ink on a column or two, and a touchable area three rows tall around it.
  *
- * **A fine drawing does not force a fine target** (`pixel-ui.md`): the recommendation is 48 dp
+ * **A fine drawing does not force a fine target** (`ui.md`): the recommendation is 48 dp
  * and a row is about 11 dp here, so a one-column glyph gets the invisible margin that
  * reconciles the two. It is not peculiar to this register -- list rows are padded for that
  * reason in any app; the only difference is that here the padding is visible, in empty cells.

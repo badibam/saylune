@@ -17,7 +17,7 @@ import kotlin.math.roundToInt
 /**
  * A frame, written as text, around [content].
  *
- * **A frame says "object"** (`pixel-ui.md`): a menu, a dialogue, an activity's tile, the
+ * **A frame says "object"** (`ui.md`): a menu, a dialogue, an activity's tile, the
  * selected thing. Never the whole screen, and never the thread nor the marked turn, which
  * need every column. The rule is checked by writing a screen: if a thing is framed, one must
  * be able to say what one does with it; otherwise it is a flat field.

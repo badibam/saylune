@@ -8,7 +8,7 @@ import app.speakup.levers.Position
  * The simplest thing that could work is a list of `passage → change`, and it does not do, for
  * two separate reasons: not every trigger is a passage number, and the decider is not always
  * the written data. Both are settled by pulling apart three things the word *ramp* held
- * together -- **when**, **what**, and **who chooses** (`activity-model.md`).
+ * together -- **when**, **what**, and **who chooses** (`activity.md`).
  *
  * **The types are here and the engine is not** (step 12 of the plan). What this file owes the
  * activity is a field that persists: the rules are what a definition declares, so a sitting

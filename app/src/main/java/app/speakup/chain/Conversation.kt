@@ -12,7 +12,7 @@ import app.speakup.rules.Instructing
  *
  * **One call does every job** -- playing the character, rebuilding `intended`, marking the
  * spans, judging the following, rating the difficulty of its own turn, and picking from the
- * menu when a rule offers one (`activity-model.md`). Price is not what settles it: a second
+ * menu when a rule offers one (`activity.md`). Price is not what settles it: a second
  * call would cost nothing in latency, the judgement only serving to show marks while the
  * answer is synthesised and played, and nothing in money either. What settles it is that a
  * well-structured prompt holds its boundaries -- so the boundaries are watched case by case

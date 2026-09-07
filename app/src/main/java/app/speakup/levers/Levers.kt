@@ -8,7 +8,7 @@ import app.speakup.sheets.Sheets
 /**
  * Every lever the app has, declared in one place.
  *
- * **This is what stays code** (`activity-model.md`). A definition is data and declares nothing
+ * **This is what stays code** (`activity.md`). A definition is data and declares nothing
  * new: it puts positions on these keys, weights on the sheet tree, free text, and rules made
  * of listed kinds. What a model is given so it can write a definition is this catalogue, never
  * the code.
@@ -119,7 +119,7 @@ object Levers {
     )
 
     /**
-     * Scrambled by default, and it is this position rather than a preference (`pixel-ui.md`).
+     * Scrambled by default, and it is this position rather than a preference (`ui.md`).
      * It falls between the plain text and *only who speaks*: the support left standing is one
      * aid fewer than the text and one more than nothing. A preference would hold everywhere
      * and no challenge could take it back.
@@ -256,7 +256,7 @@ object Levers {
      * The three positions of [CAPTURE], named once so nothing spells one out again.
      *
      * What separates them is **who opens the mic and whether the pause exists**, and not the
-     * gesture: all three open with a press (`activity-model.md`). [BY_HAND] is the only one
+     * gesture: all three open with a press (`activity.md`). [BY_HAND] is the only one
      * with a pause, which is exactly why its silences say nothing -- between two stretches
      * the blank measures the thumb.
      */

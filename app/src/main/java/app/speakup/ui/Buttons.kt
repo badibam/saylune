@@ -19,7 +19,7 @@ import app.speakup.ui.theme.Speakup
 
 /**
  * The bottom of the conversation: **three buttons on three grid rows**, above the scaffold's
- * one-row action bar (`pixel-ui.md`).
+ * one-row action bar (`ui.md`).
  *
  * **Each says one thing and one thing only, and disappears where it has no work.** That is what
  * replaces a single object changing meaning on the way -- `MY TURN` becoming the pause while one
@@ -37,7 +37,7 @@ import app.speakup.ui.theme.Speakup
  *   changes from one position to the next is what *arms* the mic, never what sends. It is absent
  *   where nothing records, there being no take to send.
  *
- * **Greyed says nothing more, and the status line carries the reason** (`pixel-ui.md`): what one
+ * **Greyed says nothing more, and the status line carries the reason** (`ui.md`): what one
  * *can* do is said by the greying, what one *must* do by the line at the top -- the door of the
  * moment, *reword it* or *say it again*, and the count left. A greyed `MY TURN` that displayed
  * something else would be the second personality this row exists to refuse, and on a screen
@@ -84,7 +84,7 @@ fun Buttons(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // The big one takes the larger share, which is what it had when there were two of them.
-        // How the three divide the width exactly is left to the bench (`pixel-ui.md`).
+        // How the three divide the width exactly is left to the bench (`ui.md`).
         Key(myTurn, enabled = mayOpen, modifier = Modifier.weight(BIG_SHARE), onClick = onOpen)
         pause?.let {
             Key(it, enabled = mayPause, modifier = Modifier.weight(1f), onClick = onPause)

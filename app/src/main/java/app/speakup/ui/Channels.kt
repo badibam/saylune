@@ -6,7 +6,7 @@ import app.speakup.R
 /**
  * The eight marks the learner can turn off, one channel each.
  *
- * **This menu is on the learner's side, and it is never a lever** (`pixel-ui.md`). The invariant
+ * **This menu is on the learner's side, and it is never a lever** (`ui.md`). The invariant
  * demands it: a mark whose presence depended on the setting of the day would carry nothing, its
  * absence being indistinguishable from approval. It is the exact opposite of the scrambling of
  * the AI's turn, which *is* a lever -- there it is an aid on what the AI says, here it is the

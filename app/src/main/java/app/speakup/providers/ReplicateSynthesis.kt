@@ -32,7 +32,7 @@ import java.io.File
  * and not the other.
  *
  * Two things chatterbox does that the app cannot switch off, written down because both touch
- * rules the project holds elsewhere (`docs/chatterbox-parameters.md`).
+ * rules the project holds elsewhere (`docs/providers.md`).
  *
  * The turbo normalises its loudness to -27 LUFS, and Replicate exposes no input to stop it.
  * That is a treatment on the model's side and on no other, which the doc forbids as a rule.

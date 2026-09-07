@@ -5,7 +5,7 @@ import app.speakup.judged.Word
 /**
  * The marked turn, laid out on the grid, with no screen anywhere in it.
  *
- * **The grid is horizontal** (`pixel-ui.md`), so laying a turn out is arithmetic on columns
+ * **The grid is horizontal** (`ui.md`), so laying a turn out is arithmetic on columns
  * rather than text measurement: in a pixel font at a whole scale every advance is the same
  * whole number of pixels, so a word starts at its column times the cell and a mark covers a
  * whole number of cells. That is what took a class of rounding out of the drawing, and it is
@@ -80,7 +80,7 @@ fun wrap(tokens: List<Token>, columns: Int): List<List<Placed>> {
  * What a span of the turn's text covers on one line: its columns, and whether the group's own
  * ends are on this line.
  *
- * **A group carries its identity, not its label** (`pixel-ui.md`). Two neighbouring groups can
+ * **A group carries its identity, not its label** (`ui.md`). Two neighbouring groups can
  * deserve the same label without being the same group, so a run of like-labelled words is not
  * a group; the span is. And **a group cut by a line break opens on one side and closes on the
  * other** rather than doubling into two complete enclosures, which is what [opens] and

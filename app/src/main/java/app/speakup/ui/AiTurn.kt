@@ -18,7 +18,7 @@ import app.speakup.ui.theme.Speakup
  * What the AI's turn shows, which is the position of `ai-turn.display` and never a preference.
  *
  * Four positions, from the most helped to the barest: the text, the **scrambled** text, only
- * who speaks, nothing. The scrambled one is the **default** (`pixel-ui.md`): the ear is the
+ * who speaks, nothing. The scrambled one is the **default** (`ui.md`): the ear is the
  * app's main channel and a legible text would preempt the listening, so what is left standing
  * is the support of the phrase without its content. It falls between the plain text and *only
  * who speaks* -- one aid fewer than the text and one more than nothing.

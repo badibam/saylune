@@ -264,7 +264,7 @@ class Engine(private val rules: List<Rule>) {
  * What a sitting's rules have made of it, at one instant.
  *
  * All of it is **derived**: recomputable at any moment from the settings, the rules and the
- * journal (`activity-model.md`). It is held as a value rather than recomputed on every read
+ * journal (`activity.md`). It is held as a value rather than recomputed on every read
  * because a wave has to see what the wave before it did.
  */
 data class State(

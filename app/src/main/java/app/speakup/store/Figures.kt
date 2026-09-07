@@ -5,7 +5,7 @@ import org.json.JSONObject
 /**
  * What an attempt made of each sheet, written out by path.
  *
- * **What is deduced from the audio is stored** (`docs/design/activity-model.md`): the purge
+ * **What is deduced from the audio is stored** (`docs/activity.md`): the purge
  * erases the recordings, so a measure that could no longer be recomputed afterwards has to
  * exist somewhere else. Two of the eleven sheets cannot be recomputed from anything the store
  * holds even before the purge -- the continuity, the longest silence and the pace are read off

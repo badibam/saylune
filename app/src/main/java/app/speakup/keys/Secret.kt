@@ -76,7 +76,7 @@ enum class Secret(
      * Whether the passage's notes are pushed between two passages.
      *
      * **What the mode decides is the letters; what the learner sets is whether the screen is
-     * pushed** (`pixel-ui.md`). Stored as the refusal rather than the wish, like the marks:
+     * pushed** (`ui.md`). Stored as the refusal rather than the wish, like the marks:
      * nothing stored is pushed, which is the default, and it stays the default for anyone who
      * has never opened the setting.
      */

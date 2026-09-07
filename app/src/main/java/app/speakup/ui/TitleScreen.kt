@@ -23,7 +23,7 @@ import app.speakup.ui.theme.Speakup
  * The root of everything: the four modes, and the doors that are not modes.
  *
  * **The app opens on a title screen presenting the four** -- Story, Challenges, Arcade, Free
- * (`pixel-ui.md`, settled 2026-09-06). Each is an **access layer**, a way of arriving at a
+ * (`ui.md`, settled 2026-09-06). Each is an **access layer**, a way of arriving at a
  * definition, and the same engine runs behind all of them. What each shows behind itself is
  * decided only for Free, which offers themes.
  *

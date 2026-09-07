@@ -25,7 +25,7 @@ import java.io.File
 /**
  * One turn of the learner's voice, in one or more stretches.
  *
- * **Everything opens with a press**, at all three capture positions (`activity-model.md`).
+ * **Everything opens with a press**, at all three capture positions (`activity.md`).
  * The first one used to be held at the finger, which made it differ from the other two by
  * the *gesture* rather than by what it measures -- and forced any button serving both
  * regimes to have two behaviours that nothing on screen announced. What separates the

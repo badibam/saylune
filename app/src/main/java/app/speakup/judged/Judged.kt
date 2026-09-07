@@ -5,7 +5,7 @@ package app.speakup.judged
  *
  * **Three markings come from the model** -- the language spans, from which the app draws
  * correctness and relevance; the stumbling, from which it draws filler and restarts; and the
- * following of what was said (`activity-model.md`). Everything else is calculated: a spread
+ * following of what was said (`activity.md`). Everything else is calculated: a spread
  * gap, a silence, a rate, a ratio.
  *
  * **The judge returns a notch, never a percentage.** "72% following" is checkable by nobody,

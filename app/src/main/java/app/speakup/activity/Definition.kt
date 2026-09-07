@@ -9,7 +9,7 @@ import app.speakup.rules.Rule
 
 /**
  * An activity written in advance, and **it is data and not code**. Replayed as often as one
- * likes (`docs/design/activity-model.md`).
+ * likes (`docs/activity.md`).
  *
  * Nothing a definition holds is logic: declared positions, weights on a declared tree, free
  * text, and rules made of enumerated kinds. What stays in the code is the **catalogue** -- the
@@ -45,7 +45,7 @@ data class Definition(
      * **Two readers, two budgets**: a tile takes half the width of a portrait screen, the
      * status line takes what is left once the lives, the score and the note are laid out on
      * its right. Declaring both lets the author choose what survives the cut rather than
-     * suffer a truncation (`pixel-ui.md`, "La charpente").
+     * suffer a truncation (`ui.md`, "La charpente").
      */
     val short: Text,
     /** What opens the sitting. Null in a free conversation, whose brief comes from the learner. */
@@ -137,7 +137,7 @@ value class Text(val byLanguage: Map<String, String>) {
  * Someone who speaks in a definition.
  *
  * **What this leaves owed is the voice.** A character carries one, and how it gets one is
- * written down (`activity-model.md`, "Le personnage") and outside this step's perimeter, where
+ * written down (`activity.md`, "Le personnage") and outside this step's perimeter, where
  * only the four generic voices exist. Declaring the field now with nothing reading it would be
  * a field nobody uses (`../../../../../../TODO.md`).
  */
@@ -148,7 +148,7 @@ data class Character(
      * The name the line that names the turn carries, truncated by the app in any case.
      *
      * **When a name overflows, the name is what gets cut and never the marks**: the marks
-     * carry a measure, the label carries an identity one already knows (`pixel-ui.md`).
+     * carry a measure, the label carries an identity one already knows (`ui.md`).
      */
     val short: Text,
 )

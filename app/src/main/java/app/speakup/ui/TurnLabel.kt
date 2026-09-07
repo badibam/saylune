@@ -21,7 +21,7 @@ import app.speakup.ui.theme.Speakup
 /**
  * The line that names a turn, and the two marks that judge the whole of it.
  *
- * **They sit at the right end of it, aligned** (`pixel-ui.md`): the following's pastille, then
+ * **They sit at the right end of it, aligned** (`ui.md`): the following's pastille, then
  * the pace. That takes no column from the text and adds no row, the label already existing and
  * its right half being empty. In exchange the line becomes **structural** -- it can no longer
  * leave the scaffold.
@@ -117,7 +117,7 @@ private val RING = intArrayOf(7, 7, 9, 11, 11, 11, 11, 11, 9, 7, 7)
  * What the following's notch is painted with.
  *
  * **Green for `implied`, neutral ink for `precise` and `on-point`, yellow for `on-topic` and
- * `vague`, red for `off-target`** (`activity-model.md`). The green marks the good end wherever
+ * `vague`, red for `off-target`** (`activity.md`). The green marks the good end wherever
  * it exists, and a correct following shows a neutral pastille rather than nothing -- the rule
  * of the dashboard, where a hole means unmeasured.
  */

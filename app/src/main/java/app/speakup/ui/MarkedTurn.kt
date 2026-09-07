@@ -127,7 +127,7 @@ fun MarkedTurn(
  * The vertical stack of one wrapped line, in drawing pixels from its own top.
  *
  * **A line of a marked turn is not a whole number of grid rows, and that is the point.** In
- * the vertical nothing is anchored (`pixel-ui.md`): the frames, the panels and the margins sit
+ * the vertical nothing is anchored (`ui.md`): the frames, the panels and the margins sit
  * on the cell, the height a line of text sits at does not. Rounding this up to five rows is
  * what ate the four pixels the interface doc had budgeted -- the curve's halo then ran into
  * the squiggle of the line above, and the enclosure had nothing between it and the band.

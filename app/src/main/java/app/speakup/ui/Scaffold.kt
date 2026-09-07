@@ -29,7 +29,7 @@ import kotlinx.coroutines.delay
  * The scaffold: **at the top what is true, at the bottom what one can do**.
  *
  * One rule settles the cases to come without their being argued again, and it puts the
- * gestures where the thumb is (`pixel-ui.md`, "La charpente").
+ * gestures where the thumb is (`ui.md`, "La charpente").
  *
  * **Two lines at the top.** The first is the **status line**: the short title on the left, and
  * on the right, aligned, the fields the mode uses. Each field is simply absent where the mode
@@ -67,7 +67,7 @@ fun Scaffold(
     /**
      * What pressing the line does, or null where it is only read.
      *
-     * **The sound's gate's notification gives the model to listen to** (`pixel-ui.md`), and it
+     * **The sound's gate's notification gives the model to listen to** (`ui.md`), and it
      * is a state rather than a receipt, so it lives in this line. Making the line itself the
      * target is what gives it the listening without adding a second object saying the same
      * thing: the remedy for a sound fault has never been a written instruction, it is hearing

@@ -118,7 +118,7 @@ value class Speaker(val key: String) {
  * One thing said: a text, a speaker, the audio, the analysis.
  *
  * **Everything said in the app is one of these** -- the answer of the model as much as the
- * learner's sentence (`docs/design/activity-model.md`). Most carry no analysis, and the
+ * learner's sentence (`docs/activity.md`). Most carry no analysis, and the
  * answers carry none at all; keeping one table for all of it is what gives the thread of the
  * conversation for free, as a plain ordered run.
  *
@@ -144,7 +144,7 @@ data class Utterance(
      * **Every turn carries its own**, because it is what says whether its silences mean
      * anything, and **nothing aggregates across positions**: adding a turn caught at the
      * thumb to one caught automatically gives a figure that looks like fluency without being
-     * it (`docs/design/activity-model.md`).
+     * it (`docs/activity.md`).
      */
     val capture: String? = null,
     /**

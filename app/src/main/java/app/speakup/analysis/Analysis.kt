@@ -74,7 +74,7 @@ sealed interface Readiness {
     /**
      * [version] names the engine that will produce every reading of this conversation.
      *
-     * **Everything stored carries the version of what produced it** (`activity-model.md`).
+     * **Everything stored carries the version of what produced it** (`activity.md`).
      * An analysis redone with a different model does not return the same numbers, and
      * without this stamp two eras of measurement add up in silence and the comparison is
      * wrong with nothing to say so. It is settled here rather than per reading because it

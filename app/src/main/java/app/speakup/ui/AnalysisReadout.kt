@@ -326,7 +326,7 @@ private fun Field(
 /**
  * A bar paved with the font's gauge blocks: the filled part in [colour], the rest in dimmed ink.
  *
- * **The empty part of a bar is a colour and not a shape** (`pixel-ui.md`), so the two are drawn
+ * **The empty part of a bar is a colour and not a shape** (`ui.md`), so the two are drawn
  * one on top of the other: the whole width in dimmed ink, and the filled part over it. The
  * quarter blocks give a cell four steps, and a partial cell over a dimmed full one reads as a
  * part-filled cell rather than as a gap.

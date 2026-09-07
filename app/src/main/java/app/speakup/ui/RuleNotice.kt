@@ -27,7 +27,7 @@ import app.speakup.ui.theme.Speakup
 /**
  * What a rule has just changed, shown as a **pop-up** and not as a state.
  *
- * The three notifications of the app are not one kind (`pixel-ui.md`). Two of them are **states**
+ * The three notifications of the app are not one kind (`ui.md`). Two of them are **states**
  * and live in the status line for as long as they are true -- the words' gate, which names every
  * aptitude in cause, and the sound's gate, which names nothing, being wired to elocution and
  * fluency alone so that what it named would be a constant. This one is a **receipt**: it says

@@ -123,7 +123,7 @@ private enum class Screen { Title, Conversations, Conversation, Notes, MarksMenu
 /**
  * The app, from its root down.
  *
- * **The root is the title screen** (`pixel-ui.md`, settled 2026-09-06): the four modes, and
+ * **The root is the title screen** (`ui.md`, settled 2026-09-06): the four modes, and
  * everything descends from there. Only *Free* has anything behind it, and behind it stands
  * the list of conversations -- which is where the theme tiles will go, a tile being a
  * definition and the list being what stands in for them until they are written.
@@ -299,7 +299,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
  * How many lives are left, or null where the sitting counts none.
  *
  * **The lives are a lever and their position is the number left** -- not an allowance set
- * beside a counter (`docs/design/activity-model.md`). So this reads the two levers the
+ * beside a counter (`docs/activity.md`). So this reads the two levers the
  * catalogue declares and nothing else: whether lives are counted at all, and where the count
  * stands. A free conversation counts none, so the field is simply absent from its status line.
  */

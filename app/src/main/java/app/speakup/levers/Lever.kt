@@ -6,7 +6,7 @@ import androidx.annotation.StringRes
 /**
  * What a lever is, and what one has to declare to be one.
  *
- * **A lever is a setting of the sitting, and it measures nothing** (`activity-model.md`). What
+ * **A lever is a setting of the sitting, and it measures nothing** (`activity.md`). What
  * makes something a lever is two things together: **declared, closed positions**, and **a hard
  * end**. Without the positions there is no phrase to show and no value to check; without the
  * hard end a notification cannot say *this tightens* or *this eases*.

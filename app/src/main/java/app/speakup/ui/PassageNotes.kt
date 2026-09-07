@@ -25,7 +25,7 @@ import kotlin.math.roundToInt
 
 /**
  * The passage's notes: **one screen with two doors**, pushed between two passages or opened on
- * demand from any passage of the thread (`pixel-ui.md`). One content to design, one reading to
+ * demand from any passage of the thread (`ui.md`). One content to design, one reading to
  * learn.
  *
  * It carries, **per aptitude, every sheet**: its raw measure, and its letter where the mode

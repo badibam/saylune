@@ -573,7 +573,7 @@ fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String
  * being no countdown otherwise -- at the first two positions the learner is the only one who
  * sends, so nothing is running out.
  *
- * **Where they belong exactly is not settled** (`pixel-ui.md` leaves it open, with the recording
+ * **Where they belong exactly is not settled** (`ui.md` leaves it open, with the recording
  * symbol): the status line is where they are until it is.
  */
 @Composable
