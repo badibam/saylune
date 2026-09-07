@@ -647,7 +647,13 @@ class TurnPipeline(
     suspend fun prepare() = writing.withLock {
         if (!opened) {
             opened = true
-            archive.latest()?.let { openLocked(it.activity().id) } ?: beginLocked()
+            // **A sitting whose definition the release no longer ships cannot be opened**, and
+            // this is the one call that meets one without anybody having asked for it: the
+            // tiles are the shipped files, so nothing else offers a way back to it. A fresh
+            // conversation is started instead rather than the launch failing -- which is what
+            // it did, the whole app going down on one retired scene.
+            val latest = archive.latest()?.activity()?.id
+            if (latest == null || !openLocked(latest)) beginLocked()
             // Once, here, and here only: at startup nothing is in flight and nothing has
             // been recorded, so a file the store does not name is one nothing will name.
             runCatching { Recordings.sweepOrphans(context, archive.recordings().toSet()) }
@@ -670,19 +676,34 @@ class TurnPipeline(
      */
     suspend fun open(id: String) = writing.withLock { openLocked(id) }
 
-    private suspend fun openLocked(id: String) {
-        val row = archive.activity(id) ?: return
+    /**
+     * Whether it opened. False says the sitting is **there and cannot be carried on**.
+     *
+     * The one way that happens is a release that no longer ships the definition it came from.
+     * Reading it under a substitute is refused -- that would be a sitting nobody can read back
+     * -- so the sitting stays in the store, readable, and simply does not reopen. What is
+     * missing is a screen that says so: the tiles are the shipped files, so there is no way
+     * back to it and nothing tells the learner why (`../../../../../../TODO.md`).
+     */
+    private suspend fun openLocked(id: String): Boolean {
+        val row = archive.activity(id) ?: return false
         val activity = row.activity()
+        val definition = activity.origin?.let { from ->
+            runCatching { Definitions.of(context, from.definition) }.getOrElse {
+                Trace.fail("conversation: its definition is not shipped any more",
+                           "activity" to id, "definition" to from.definition)
+                return false
+            }
+            // A sitting made before the free conversation was itself a definition has no
+            // origin, and there was no other kind of sitting then: reading `free` for it is a
+            // fact about that release, not a stand-in for something missing.
+        } ?: free
         opened = true
         val run = archive.utterances(activity.id).map { it.utterance() }
         _state.update {
             it.copy(
                 activity = activity,
-                // A sitting made before the free conversation was itself a definition has no
-                // origin, and there was no other kind of sitting then: reading `free` for it
-                // is a fact about that release, not a stand-in for something missing.
-                definition = activity.origin
-                    ?.let { from -> Definitions.of(context, from.definition) } ?: free,
+                definition = definition,
                 utterances = run,
                 // **From the declared positions, not from where the last sitting's rules left
                 // them**: replaying the journal to rebuild the effective state needs the facts
@@ -699,6 +720,7 @@ class TurnPipeline(
         }
         Trace.add("conversation: opened", "activity" to activity.id,
                   "utterances" to _state.value.utterances.size.toString())
+        return true
     }
 
     /**
