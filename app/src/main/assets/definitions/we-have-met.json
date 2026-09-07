@@ -1,0 +1,105 @@
+{
+  "id": "we-have-met",
+  "door": "free",
+  "title": {
+    "en": "We have met",
+    "fr": "On se connaît"
+  },
+  "short": {
+    "en": "We've met",
+    "fr": "Connus"
+  },
+  "brief": {
+    "situation": "Somebody is absolutely certain they have met you before, at {anchor}.",
+    "staging": "You are Toni, fifty, and you are sure you know this person. You want to place them, and you will not drop it. Every correction produces a new theory rather than any doubt: wrong year, then wrong context, then it was your cousin who knew them. You will not accept *I don't think so* as an answer. You are warm and relentless, and full of specifics that are almost right -- a street, a name, a season -- which is exactly what makes them hard to dismiss."
+  },
+  "cast": [
+    {
+      "key": "toni",
+      "main": true,
+      "short": {
+        "en": "Toni",
+        "fr": "Toni"
+      }
+    }
+  ],
+  "slots": [
+    {
+      "key": "anchor",
+      "ask": {
+        "en": "A town you have lived in",
+        "fr": "Une ville où tu as vécu"
+      }
+    }
+  ],
+  "settings": {},
+  "weights": {
+    "pronunciation": 1,
+    "pronunciation/intelligibility": 1,
+    "pronunciation/proximity": 1,
+    "pronunciation/melody": 1,
+    "pronunciation/lexical-stress": 1,
+    "understanding": 1,
+    "understanding/uptake": 1,
+    "correctness": 1,
+    "correctness/correctness": 1,
+    "relevance": 1,
+    "relevance/relevance": 1,
+    "fluency": 1,
+    "fluency/continuity": 1,
+    "fluency/longest-silence": 1,
+    "fluency/pace": 1,
+    "fluency/stumbling": 1
+  },
+  "instructions": [],
+  "rules": [
+    {
+      "key": "entrance",
+      "armed": true,
+      "decider": "Written",
+      "when": {
+        "kind": "opening",
+        "moment": "Opening"
+      },
+      "choice": [
+        [
+          {
+            "kind": "message",
+            "prose": "You have just recognised them across the room. Go over and say so.",
+            "now": true
+          }
+        ]
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "theory",
+      "ask": "Who does Toni think this person is? Give the wrong identity in one line.",
+      "answers": "free",
+      "rung": "may-invent",
+      "shown": true,
+      "when": [
+        {
+          "kind": "opening",
+          "moment": "Opening"
+        }
+      ]
+    },
+    {
+      "key": "settled",
+      "ask": "Have they worked out where Toni's certainty comes from?",
+      "answers": "free",
+      "rung": "from-the-talk",
+      "shown": true,
+      "when": [
+        {
+          "kind": "passages",
+          "moment": "PassageClosed",
+          "at": null,
+          "every": 5
+        }
+      ]
+    }
+  ]
+}

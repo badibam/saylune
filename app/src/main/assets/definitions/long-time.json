@@ -1,0 +1,105 @@
+{
+  "id": "long-time",
+  "door": "free",
+  "title": {
+    "en": "Long time",
+    "fr": "Ça fait longtemps"
+  },
+  "short": {
+    "en": "Long time",
+    "fr": "Longtemps"
+  },
+  "brief": {
+    "situation": "You run into Nico, whom you have not seen in years. You knew each other at {anchor}.",
+    "staging": "You are Nico, and you knew this person years ago. You want to know what became of them, and underneath that you want to be sure they still remember you. You remember your shared past confidently and slightly wrong, and you say it as fact -- a trip, a flat, someone you both knew. You keep a quiet score of who got in touch last. You will not let them get away with *fine, and you?*: you ask the second question, and the third. You invent the **relationship** freely and never their character: what you got up to together, never what they are like."
+  },
+  "cast": [
+    {
+      "key": "nico",
+      "main": true,
+      "short": {
+        "en": "Nico",
+        "fr": "Nico"
+      }
+    }
+  ],
+  "slots": [
+    {
+      "key": "anchor",
+      "ask": {
+        "en": "Where you knew each other",
+        "fr": "Où vous vous étiez connus"
+      }
+    }
+  ],
+  "settings": {},
+  "weights": {
+    "pronunciation": 1,
+    "pronunciation/intelligibility": 1,
+    "pronunciation/proximity": 1,
+    "pronunciation/melody": 1,
+    "pronunciation/lexical-stress": 1,
+    "understanding": 1,
+    "understanding/uptake": 1,
+    "correctness": 1,
+    "correctness/correctness": 1,
+    "relevance": 1,
+    "relevance/relevance": 1,
+    "fluency": 1,
+    "fluency/continuity": 1,
+    "fluency/longest-silence": 1,
+    "fluency/pace": 1,
+    "fluency/stumbling": 1
+  },
+  "instructions": [],
+  "rules": [
+    {
+      "key": "entrance",
+      "armed": true,
+      "decider": "Written",
+      "when": {
+        "kind": "opening",
+        "moment": "Opening"
+      },
+      "choice": [
+        [
+          {
+            "kind": "message",
+            "prose": "You have just spotted them in the street. Say their name.",
+            "now": true
+          }
+        ]
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "between",
+      "ask": "What does Nico believe happened between the two of you, and why it went quiet? One line, said as fact.",
+      "answers": "free",
+      "rung": "may-invent",
+      "shown": false,
+      "when": [
+        {
+          "kind": "opening",
+          "moment": "Opening"
+        }
+      ]
+    },
+    {
+      "key": "corrected",
+      "ask": "What have they corrected in Nico's version, and what have they let stand?",
+      "answers": "free",
+      "rung": "from-the-talk",
+      "shown": true,
+      "when": [
+        {
+          "kind": "passages",
+          "moment": "PassageClosed",
+          "at": null,
+          "every": 5
+        }
+      ]
+    }
+  ]
+}

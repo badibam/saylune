@@ -1,0 +1,105 @@
+{
+  "id": "teach-me",
+  "door": "free",
+  "title": {
+    "en": "Teach me",
+    "fr": "Apprends-moi"
+  },
+  "short": {
+    "en": "Teach me",
+    "fr": "Apprends"
+  },
+  "brief": {
+    "situation": "Kit wants to learn to {anchor}, and is treating you as the authority.",
+    "staging": "You are Kit, twenty-two, and you want to learn this properly and fast. You want to be good at it by the end of the week. You ask *why* one level deeper than they have gone, every time; you get ahead of the instructions; you try it wrong in front of them and report the result. You will not accept a vague step -- *you just sort of feel it* gets an immediate *feel what?*. You interrupt, and you repeat their instructions back slightly wrong, which is how they find out you misunderstood."
+  },
+  "cast": [
+    {
+      "key": "kit",
+      "main": true,
+      "short": {
+        "en": "Kit",
+        "fr": "Kit"
+      }
+    }
+  ],
+  "slots": [
+    {
+      "key": "anchor",
+      "ask": {
+        "en": "Something you know how to do",
+        "fr": "Quelque chose que tu sais faire"
+      }
+    }
+  ],
+  "settings": {},
+  "weights": {
+    "pronunciation": 1,
+    "pronunciation/intelligibility": 1,
+    "pronunciation/proximity": 1,
+    "pronunciation/melody": 1,
+    "pronunciation/lexical-stress": 1,
+    "understanding": 1,
+    "understanding/uptake": 1,
+    "correctness": 1,
+    "correctness/correctness": 1,
+    "relevance": 1,
+    "relevance/relevance": 1,
+    "fluency": 1,
+    "fluency/continuity": 1,
+    "fluency/longest-silence": 1,
+    "fluency/pace": 1,
+    "fluency/stumbling": 1
+  },
+  "instructions": [],
+  "rules": [
+    {
+      "key": "entrance",
+      "armed": true,
+      "decider": "Written",
+      "when": {
+        "kind": "opening",
+        "moment": "Opening"
+      },
+      "choice": [
+        [
+          {
+            "kind": "message",
+            "prose": "You have got them to agree to teach you. Ask for the first step.",
+            "now": true
+          }
+        ]
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "wrong",
+      "ask": "What has Kit already got wrong about this, before being told anything?",
+      "answers": "free",
+      "rung": "may-invent",
+      "shown": false,
+      "when": [
+        {
+          "kind": "opening",
+          "moment": "Opening"
+        }
+      ]
+    },
+    {
+      "key": "taught",
+      "ask": "What has Kit learnt so far, and what are they still getting wrong?",
+      "answers": "free",
+      "rung": "from-the-talk",
+      "shown": true,
+      "when": [
+        {
+          "kind": "passages",
+          "moment": "PassageClosed",
+          "at": null,
+          "every": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "id": "the-story",
+  "door": "free",
+  "title": {
+    "en": "The story",
+    "fr": "L'histoire"
+  },
+  "short": {
+    "en": "The story",
+    "fr": "Histoire"
+  },
+  "brief": {
+    "situation": "Marley has something to tell you about {anchor}, and tells it badly.",
+    "staging": "You are Marley, sixty-one, and you have a long story about this. You want to be heard properly, all of it, in the right order -- which is not the order you tell it in. You start in the middle, you double back, you spend two minutes on a detail that turns out not to matter, and you go quiet if they do not react. You will not get to the point on your own: without a question you drift, and without interest you stop. You speak in long unpunctuated runs and then in nothing at all."
+  },
+  "cast": [
+    {
+      "key": "marley",
+      "main": true,
+      "short": {
+        "en": "Marley",
+        "fr": "Marley"
+      }
+    }
+  ],
+  "slots": [
+    {
+      "key": "anchor",
+      "ask": {
+        "en": "A trade or a place that intrigues you",
+        "fr": "Un métier ou un lieu qui t'intrigue"
+      }
+    }
+  ],
+  "settings": {
+    "ai-turn.display": "scrambled"
+  },
+  "weights": {
+    "pronunciation": 1,
+    "pronunciation/intelligibility": 1,
+    "pronunciation/proximity": 1,
+    "pronunciation/melody": 1,
+    "pronunciation/lexical-stress": 1,
+    "understanding": 1,
+    "understanding/uptake": 1,
+    "correctness": 1,
+    "correctness/correctness": 1,
+    "relevance": 1,
+    "relevance/relevance": 1,
+    "fluency": 1,
+    "fluency/continuity": 1,
+    "fluency/longest-silence": 1,
+    "fluency/pace": 1,
+    "fluency/stumbling": 1
+  },
+  "instructions": [],
+  "rules": [
+    {
+      "key": "entrance",
+      "armed": true,
+      "decider": "Written",
+      "when": {
+        "kind": "opening",
+        "moment": "Opening"
+      },
+      "choice": [
+        [
+          {
+            "kind": "message",
+            "prose": "They have asked you about it. Start telling it -- in the middle.",
+            "now": true
+          }
+        ]
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "story",
+      "ask": "What is the story, in three lines? Something that happened once, with an ending they will only reach if asked.",
+      "answers": "free",
+      "rung": "may-invent",
+      "shown": false,
+      "when": [
+        {
+          "kind": "opening",
+          "moment": "Opening"
+        }
+      ]
+    },
+    {
+      "key": "reached",
+      "ask": "How far through the story has Marley got?",
+      "answers": "free",
+      "rung": "from-the-talk",
+      "shown": true,
+      "when": [
+        {
+          "kind": "passages",
+          "moment": "PassageClosed",
+          "at": null,
+          "every": 5
+        }
+      ]
+    }
+  ]
+}

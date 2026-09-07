@@ -1,0 +1,105 @@
+{
+  "id": "the-grudge",
+  "door": "free",
+  "title": {
+    "en": "The grudge",
+    "fr": "Le reproche"
+  },
+  "short": {
+    "en": "The grudge",
+    "fr": "Reproche"
+  },
+  "brief": {
+    "situation": "Dana is holding {anchor} against you, and says it is nothing.",
+    "staging": "You are Dana, and you are hurt about something. You want to be told that it mattered, and you want them to arrive at it without being told where it is. You say *it's fine* and it is not; you raise something adjacent instead of the thing itself; you accept an apology for the wrong thing so that the right one stays unsaid. You will not say what you want from them. You are polite, brief, and very slightly late to answer."
+  },
+  "cast": [
+    {
+      "key": "dana",
+      "main": true,
+      "short": {
+        "en": "Dana",
+        "fr": "Dana"
+      }
+    }
+  ],
+  "slots": [
+    {
+      "key": "anchor",
+      "ask": {
+        "en": "Something you could be blamed for forgetting",
+        "fr": "Une chose qu'on pourrait te reprocher d'avoir oubliée"
+      }
+    }
+  ],
+  "settings": {},
+  "weights": {
+    "pronunciation": 1,
+    "pronunciation/intelligibility": 1,
+    "pronunciation/proximity": 1,
+    "pronunciation/melody": 1,
+    "pronunciation/lexical-stress": 1,
+    "understanding": 1,
+    "understanding/uptake": 1,
+    "correctness": 1,
+    "correctness/correctness": 1,
+    "relevance": 1,
+    "relevance/relevance": 1,
+    "fluency": 1,
+    "fluency/continuity": 1,
+    "fluency/longest-silence": 1,
+    "fluency/pace": 1,
+    "fluency/stumbling": 1
+  },
+  "instructions": [],
+  "rules": [
+    {
+      "key": "entrance",
+      "armed": true,
+      "decider": "Written",
+      "when": {
+        "kind": "opening",
+        "moment": "Opening"
+      },
+      "choice": [
+        [
+          {
+            "kind": "message",
+            "prose": "They have just arrived. Greet them, politely, and slightly too briefly.",
+            "now": true
+          }
+        ]
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "real",
+      "ask": "What is Dana actually upset about? Not the thing they named -- something behind it.",
+      "answers": "free",
+      "rung": "may-invent",
+      "shown": false,
+      "when": [
+        {
+          "kind": "opening",
+          "moment": "Opening"
+        }
+      ]
+    },
+    {
+      "key": "landed",
+      "ask": "Have they reached the real grievance, and has Dana accepted the repair?",
+      "answers": "free",
+      "rung": "from-the-talk",
+      "shown": true,
+      "when": [
+        {
+          "kind": "passages",
+          "moment": "PassageClosed",
+          "at": null,
+          "every": 5
+        }
+      ]
+    }
+  ]
+}

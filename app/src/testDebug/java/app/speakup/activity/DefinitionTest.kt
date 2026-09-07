@@ -1,6 +1,7 @@
 package app.speakup.activity
 
 import app.speakup.conversation.Speaker
+import app.speakup.rules.Effect
 import app.speakup.rules.Trigger
 import app.speakup.sheets.Branch
 import app.speakup.sheets.Sheet
@@ -57,13 +58,20 @@ class DefinitionTest {
      *
      * The situation and the staging are written apart and would drift on the first run if two
      * answers filled them -- a talk on neurophysics and one on gender theory do not make the
-     * same speaker.
+     * same speaker. Written here rather than read off a shipped scene: none of them puts the
+     * hole on both sides today, and the property is the reader's and not any one file's.
      */
     @Test
     fun `an answer fills the same hole on both sides of the brief`() {
-        val talk = shipped("after-the-talk")
-        assertEquals(listOf("subject"), talk.slots.map { it.key })
-        val sitting = Activity.from(talk, mapOf("subject" to "quantum computing"))
+        val scene = Definitions.parse(
+            "some-scene", VERSION,
+            minimal(
+                """"brief": { "situation": "A talk on {subject} has just ended.",
+                              "staging": "You have just given a talk on {subject}." },
+                   "slots": [{ "key": "subject", "ask": { "en": "About what?" } }],""",
+            ),
+        )
+        val sitting = Activity.from(scene, mapOf("subject" to "quantum computing"))
         assertTrue(sitting.brief!!.situation.contains("A talk on quantum computing"))
         assertTrue(sitting.brief!!.staging.contains("a talk on quantum computing"))
         assertTrue("{subject}" !in sitting.brief!!.situation + sitting.brief!!.staging)
@@ -75,19 +83,62 @@ class DefinitionTest {
      */
     @Test
     fun `the main character takes the gender chosen, and one is drawn when none is`() {
-        val talk = shipped("after-the-talk")
-        assertEquals(true, talk.face?.main)
-        assertEquals(null, talk.face?.gender)
+        val scene = shipped("the-statement")
+        assertEquals(true, scene.face?.main)
+        assertEquals(null, scene.face?.gender)
 
-        val chosen = Activity.from(talk, gender = "woman")
+        val chosen = Activity.from(scene, gender = "woman")
         assertEquals("woman", chosen.cast.single { it.main }.gender)
         assertTrue(chosen.brief!!.staging.endsWith("You are a woman."))
         // The situation is what the learner reads and he has just answered it: nothing of the
         // gender goes there.
         assertTrue("woman" !in chosen.brief!!.situation)
 
-        val drawn = Activity.from(talk).cast.single { it.main }.gender
+        val drawn = Activity.from(scene).cast.single { it.main }.gender
         assertTrue(drawn in Activity.GENDERS)
+    }
+
+    /**
+     * **Nothing behind the Free door ever ends**, having no ending rule, so the coda never
+     * opens and a question waiting on the closing would never be put at all. It is the one
+     * trap of writing scenes for that door, so it is checked rather than remembered.
+     */
+    @Test
+    fun `no scene of the free door waits on a closing that never comes`() {
+        folder.listFiles { file -> file.extension == "json" }.orEmpty()
+            .map { shipped(it.nameWithoutExtension) }
+            .filter { it.door == Door.Free }
+            .forEach { scene ->
+                scene.questions.forEach { question ->
+                    assertTrue(
+                        "${scene.id}/${question.key} waits on the closing",
+                        question.moments.none { it == Trigger.Closing },
+                    )
+                }
+            }
+    }
+
+    /**
+     * A scene opens on a line of its character, which is what makes the opening call happen at
+     * all -- and so what lets a question of the opening be put before anybody has spoken.
+     */
+    @Test
+    fun `every scene but the plain one opens on a line of its own`() {
+        folder.listFiles { file -> file.extension == "json" }.orEmpty()
+            .map { shipped(it.nameWithoutExtension) }
+            .filter { it.id != Definitions.FREE_CONVERSATION }
+            .forEach { scene ->
+                val opens = scene.rules.filter { it.whenever == Trigger.Opening }
+                assertTrue("${scene.id} opens on nothing", opens.isNotEmpty())
+                assertTrue(
+                    "${scene.id} opens without asking for a turn",
+                    opens.any { rule ->
+                        rule.choice.any { pack ->
+                            pack.effects.any { it is Effect.Message && it.now }
+                        }
+                    },
+                )
+            }
     }
 
     /**

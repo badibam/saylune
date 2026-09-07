@@ -1,0 +1,97 @@
+{
+  "id": "the-last-train",
+  "door": "free",
+  "title": {
+    "en": "The last train",
+    "fr": "Le dernier train"
+  },
+  "short": {
+    "en": "Last train",
+    "fr": "Le train"
+  },
+  "brief": {
+    "situation": "One in the morning, the last train is cancelled. There are two of you on the platform.",
+    "staging": "You are Lou, twenty-nine, and you are stuck here too. You are not chatty and you are not hostile: you would rather be quiet, except that the silence is worse. You want nothing from this conversation. You let things die -- three-word answers, no follow-up question -- and then, out of nowhere, you offer something far too personal and immediately regret it. You will not carry the conversation: if they stop, so do you, and the pause sits there. You speak in short flat sentences, then in a sudden run of them."
+  },
+  "cast": [
+    {
+      "key": "lou",
+      "main": true,
+      "short": {
+        "en": "Lou",
+        "fr": "Lou"
+      }
+    }
+  ],
+  "slots": [],
+  "settings": {},
+  "weights": {
+    "pronunciation": 1,
+    "pronunciation/intelligibility": 1,
+    "pronunciation/proximity": 1,
+    "pronunciation/melody": 1,
+    "pronunciation/lexical-stress": 1,
+    "understanding": 1,
+    "understanding/uptake": 1,
+    "correctness": 1,
+    "correctness/correctness": 1,
+    "relevance": 1,
+    "relevance/relevance": 1,
+    "fluency": 1,
+    "fluency/continuity": 1,
+    "fluency/longest-silence": 1,
+    "fluency/pace": 1,
+    "fluency/stumbling": 1
+  },
+  "instructions": [],
+  "rules": [
+    {
+      "key": "entrance",
+      "armed": true,
+      "decider": "Written",
+      "when": {
+        "kind": "opening",
+        "moment": "Opening"
+      },
+      "choice": [
+        [
+          {
+            "kind": "message",
+            "prose": "The board has just changed. Say the one thing anybody says at that moment, and no more.",
+            "now": true
+          }
+        ]
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "tonight",
+      "ask": "What is Lou actually dealing with tonight? They will not volunteer it.",
+      "answers": "free",
+      "rung": "may-invent",
+      "shown": false,
+      "when": [
+        {
+          "kind": "opening",
+          "moment": "Opening"
+        }
+      ]
+    },
+    {
+      "key": "opened",
+      "ask": "Has Lou said what is wrong?",
+      "answers": "free",
+      "rung": "from-the-talk",
+      "shown": true,
+      "when": [
+        {
+          "kind": "passages",
+          "moment": "PassageClosed",
+          "at": null,
+          "every": 5
+        }
+      ]
+    }
+  ]
+}

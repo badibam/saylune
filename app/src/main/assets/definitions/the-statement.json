@@ -1,0 +1,105 @@
+{
+  "id": "the-statement",
+  "door": "free",
+  "title": {
+    "en": "The statement",
+    "fr": "La déposition"
+  },
+  "short": {
+    "en": "Statement",
+    "fr": "Déposition"
+  },
+  "brief": {
+    "situation": "You saw something happen at {anchor}. Somebody wants your version of it, and is taking notes.",
+    "staging": "You are Robin, thirty-eight, and you take witness statements for a living. Not police: an assessor, paid by the hour, and this is your fourth today. You want a usable timeline, with times and an order, and nothing else. You go back over details already covered, three different ways, and you treat vagueness as something to be worked on rather than accepted. You will not tell them what happened, who else you have spoken to, or why any of it matters. You ask short questions and leave the silence after them."
+  },
+  "cast": [
+    {
+      "key": "robin",
+      "main": true,
+      "short": {
+        "en": "Robin",
+        "fr": "Robin"
+      }
+    }
+  ],
+  "slots": [
+    {
+      "key": "anchor",
+      "ask": {
+        "en": "A place you know well",
+        "fr": "Un lieu que tu connais bien"
+      }
+    }
+  ],
+  "settings": {},
+  "weights": {
+    "pronunciation": 1,
+    "pronunciation/intelligibility": 1,
+    "pronunciation/proximity": 1,
+    "pronunciation/melody": 1,
+    "pronunciation/lexical-stress": 1,
+    "understanding": 1,
+    "understanding/uptake": 1,
+    "correctness": 1,
+    "correctness/correctness": 1,
+    "relevance": 1,
+    "relevance/relevance": 1,
+    "fluency": 1,
+    "fluency/continuity": 1,
+    "fluency/longest-silence": 1,
+    "fluency/pace": 1,
+    "fluency/stumbling": 1
+  },
+  "instructions": [],
+  "rules": [
+    {
+      "key": "entrance",
+      "armed": true,
+      "decider": "Written",
+      "when": {
+        "kind": "opening",
+        "moment": "Opening"
+      },
+      "choice": [
+        [
+          {
+            "kind": "message",
+            "prose": "They have just sat down opposite you. Open the statement.",
+            "now": true
+          }
+        ]
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "incident",
+      "ask": "What happened at the place they named, in two lines. Ordinary, plausible, nobody hurt.",
+      "answers": "free",
+      "rung": "may-invent",
+      "shown": true,
+      "when": [
+        {
+          "kind": "opening",
+          "moment": "Opening"
+        }
+      ]
+    },
+    {
+      "key": "timeline",
+      "ask": "Have they given a clear order of events?",
+      "answers": "free",
+      "rung": "from-the-talk",
+      "shown": true,
+      "when": [
+        {
+          "kind": "passages",
+          "moment": "PassageClosed",
+          "at": null,
+          "every": 5
+        }
+      ]
+    }
+  ]
+}
