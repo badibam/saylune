@@ -1,6 +1,7 @@
 package app.speakup.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +22,8 @@ import app.speakup.ui.theme.Speakup
 /**
  * The line that names a turn, and the two marks that judge the whole of it.
  *
- * **They sit at the right end of it, aligned** (`ui.md`): the following's pastille, then
- * the pace. That takes no column from the text and adds no row, the label already existing and
+ * **They sit at the right end of it, aligned** (`ui.md`): the triangle that plays it again
+ * where there is one, then the following's pastille, then the pace. That takes no column from the text and adds no row, the label already existing and
  * its right half being empty. In exchange the line becomes **structural** -- it can no longer
  * leave the scaffold.
  *
@@ -44,6 +45,14 @@ fun TurnLabel(
     pace: Float?,
     /** Which marks the learner has left on. */
     channels: Channels = Channels.All,
+    /**
+     * Play what was said again, or null where nothing may be played.
+     *
+     * **Only the AI's line has one**, and only while a replay is left: the learner's own turn is
+     * played from the row of commands under it, where the side and the speed live. Absent rather
+     * than greyed, an entry with no object being absent.
+     */
+    onPlay: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val grid = Speakup.grid
@@ -58,6 +67,15 @@ fun TurnLabel(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+        onPlay?.let { play ->
+            Spacer(Modifier.width(grid.cell))
+            Text(
+                Glyphs.PLAY.toString(),
+                modifier = Modifier.clickable(onClick = play),
+                style = type.text,
+                color = colors.ink,
+            )
+        }
         // **A channel that is off gives its slot up rather than emptying it.** These two live
         // on a line where an empty slot says *not measured*, so leaving one blank would make
         // the line lie. No slot, no channel; an empty slot, not measured.

@@ -66,7 +66,15 @@ enum class Display(val position: String) {
  *
  * The line carries **no pastille and no pace**: those two measure the learner's turn, and an
  * empty slot on this line would say *not measured*, which is exactly right -- nothing measures
- * what the AI said.
+ * what the AI said. What it does carry, at its right end, is the **triangle that plays the
+ * answer again** -- and it carries it only where a replay is left, an entry with no object
+ * being absent rather than greyed.
+ *
+ * **Hearing it twice is a lever and not a free gesture** (`replays`): a mode that means to train
+ * the ear gives none, and a free conversation gives as many as one likes. The triangle sits on
+ * the line rather than on the text because the text is what the display lever governs -- at
+ * *nothing* there is no text, and at *revealable* a tap on it uncovers it. Two gestures on one
+ * object would be one too many.
  */
 @Composable
 fun Heard(
@@ -75,6 +83,8 @@ fun Heard(
     speaker: String,
     display: Display,
     channels: Channels,
+    /** Play this answer again, or null where the lever leaves no replay. */
+    onReplay: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     if (display == Display.Nothing) return
@@ -85,7 +95,10 @@ fun Heard(
     // and bringing it back uncovered would make the position mean less than it says.
     var shown by remember(text) { mutableStateOf(false) }
     Column(modifier) {
-        TurnLabel(name = speaker, following = null, pace = null, channels = channels)
+        TurnLabel(
+            name = speaker, following = null, pace = null, channels = channels,
+            onPlay = onReplay,
+        )
         if (display == Display.Speaker) return@Column
         val covered = display.scrambles && !shown
         Text(

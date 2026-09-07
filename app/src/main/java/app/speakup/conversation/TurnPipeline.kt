@@ -38,6 +38,7 @@ import app.speakup.notes.Sheeting
 import app.speakup.sheets.Sheet
 import app.speakup.sheets.Sheets
 import app.speakup.levers.At
+import app.speakup.levers.Count
 import app.speakup.levers.Levers
 import app.speakup.levers.Positions
 import app.speakup.levers.severityOn
@@ -353,6 +354,15 @@ data class ConversationState(
      * learner cannot reconstruct, and the whole value of the mechanical phrase is that he can.
      */
     val notices: List<Notice> = emptyList(),
+    /**
+     * How many times each answer of the AI has been played again, by utterance.
+     *
+     * **In memory and never stored**, which is the same limit every effective position has: a
+     * sitting picked up again starts from its declared ones, so a reopened conversation has its
+     * replays back (`../../../../../../TODO.md`). Kept here rather than on the utterance
+     * because it is not a fact about what was said -- it is where a lever stands.
+     */
+    val replayed: Map<String, Int> = emptyMap(),
 ) {
 
     /**
@@ -1108,6 +1118,39 @@ class TurnPipeline(
                 blanks = Fluency.blanks(timed),
             ),
         )
+    }
+
+    /**
+     * Say an **answer of the AI's** again, and spend one of the replays.
+     *
+     * **The replays are a lever**, so hearing an answer twice is a setting and not a free
+     * gesture: a mode that means to train the ear gives none, and a free conversation gives as
+     * many as one likes. The synthesis is not asked again -- the cache is keyed by text and
+     * voice, so a replay costs nothing but the speaker.
+     *
+     * **What is spent is counted here and not stored**, which is a real limit and the one this
+     * lever shares with every effective position: a sitting picked up again starts from its
+     * declared ones, so a reopened conversation has its replays back
+     * (`../../../../../../TODO.md`).
+     */
+    suspend fun replay(of: String) = writing.withLock {
+        if (replaysLeft(of) == 0) return@withLock
+        val spoken = _state.value.utterances.firstOrNull { it.id == of } ?: return@withLock
+        if (spoken.speaker.isLearner) return@withLock
+        _state.update {
+            it.copy(
+                phase = Phase.Speaking,
+                replayed = it.replayed + (of to (it.replayed[of] ?: 0) + 1),
+            )
+        }
+        Playback.play(synthesis.speak(spoken.text, synthesis.voice()), _state.value.speed)
+        _state.update { it.copy(phase = Phase.Idle) }
+    }
+
+    /** How many replays the utterance [of] has left, or null where the lever bounds none. */
+    fun replaysLeft(of: String): Int? {
+        val allowed = (_state.value.positions.of(Levers.REPLAY.key) as? Count)?.n ?: return null
+        return (allowed - (_state.value.replayed[of] ?: 0)).coerceAtLeast(0)
     }
 
     /**

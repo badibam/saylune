@@ -251,7 +251,14 @@ fun ConversationScreen(
             // learner is looking. The run keeps the order; the screen keeps the grouping.
             if (spoken.repeats != null) return@forEach
             if (!spoken.speaker.isLearner) {
-                Heard(spoken.text, shortName(turn, spoken.speaker), display, channels)
+                Heard(
+                    spoken.text, shortName(turn, spoken.speaker), display, channels,
+                    // The lever, read per utterance: a replay spent on one answer is not spent
+                    // on the next, and an answer with none left simply has no triangle.
+                    onReplay = if (pipeline.replaysLeft(spoken.id) != 0) {
+                        { scope.launch { pipeline.replay(spoken.id) } }
+                    } else null,
+                )
                 return@forEach
             }
             val readings = turn.readings(spoken.id)
