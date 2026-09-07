@@ -6,6 +6,8 @@
 
 **Une seule tâche en bloque d'autres** : le téléchargement de L2-ARCTIC, jamais abouti, dont dépendent le choix du modèle acoustique et la suite de la sonde d'accent.
 
+**Un second axe s'ouvre le 2026-09-07 : la sortir du seul téléphone de son auteur.** Il ne recoupe presque pas le reste — ce qui manque là n'est pas de la mesure mais une porte d'entrée, et la section qui suit le porte en entier.
+
 Deux disciplines, qui sont la vraie parade au regret. **Une brique provisoire se note ici à l'instant où on l'écrit**, jamais après — écrite après coup, elle ne s'écrit pas. Et **l'usage réel est une source de questions, jamais de chiffres** : le banc reste le seul juge, un seuil ne se règle pas parce que l'écran en marque trop.
 
 ## Les dettes d'implémentation
@@ -84,8 +86,7 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 
 ### Les fournisseurs, les clés et les poids
 
-- **Le fini du BYOK** (pas prioritaire). La sonde est faite, et c'est la récupération du catalogue. Restent le **bouton « tester » par tâche**, qui valide à la demande plutôt qu'à l'ouverture — un fournisseur sans voix à lister, comme le modèle de langue, n'est aujourd'hui sondé par rien — et l'**écran guidé**, qui dit où l'on crée chaque clé et ce qu'elle coûte.
-- **Les poids arrivent par `adb push`** dans `/data/local/tmp/saylune-analysis` ; le téléchargement en opt-in de 359 Mo n'est pas écrit. Pas le dossier externe de l'app, et c'est mesuré : l'app ne peut pas lister un sous-dossier du sien quand le shell en a créé le contenu. Le jour du téléchargement, une seule fonction change (`EmbeddedAnalysis.home`).
+- **Le fini du BYOK**, dont l'ordre de priorité est remonté avec la publication. La sonde est faite, et c'est la récupération du catalogue. Restent le **bouton « tester » par tâche**, qui valide à la demande plutôt qu'à l'ouverture — un fournisseur sans voix à lister, comme le modèle de langue, n'est aujourd'hui sondé par rien — et l'**écran guidé**, qui dit où l'on crée chaque clé et ce qu'elle coûte.
 - **Le moteur reste au build debug** — l'ONNX Runtime en `debugImplementation`, pour qu'aucune release ne porte une dépendance native sur un pari. La release répond qu'elle n'embarque aucun moteur, et le dit.
 - **Le cache des synthèses n'a ni plafond ni éviction** — il grossit sans borne dans `cacheDir/renders/`. Et quand l'éviction viendra, **l'indisponibilité devra porter sa raison** : `store/Keeping.kt` rend aujourd'hui `null` sur un fichier absent, donc l'écoute du modèle échouerait en silence.
 - **La voix de l'apprenant n'est pas purgée, et c'est délibéré.** Le doc demande qu'elle le soit, et le raisonnement tient : passé son tour rien ne la consomme. Ce qu'il ne pesait pas, c'est que les mesures encore dues ne se font que sur des tours réels, et qu'un tour non gardé est un tour jamais mesuré. Donc **le build debug seul** garde (`Takes`, sous `Trace.on`) : c'est un instrument, pas un comportement de l'app. **Ça s'enlève quand les bancs ont leur matière**, sinon la purge devient une règle que le code contredit.
@@ -96,6 +97,31 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 ### Ce qui est resté hors périmètre
 
 Les modules autres que la conversation libre et les écrans qui tombent avec eux — l'avant-partie, le résultat, le custom, le score ; les **sons de l'app**, dont rien n'est décidé ; les **prescripteurs** conversation et progression, qui attendent le catalogue des activités ; le **lecteur d'écran**, hors v1 ; la **liste de ce qui doit être agrégeable** ; et le **fenêtrage de la passe d'analyse**, au chantier 1, qui tient le plafond de 30 s où il est.
+
+## Rendre l'app essayable par quelqu'un d'autre
+
+Écrit le 2026-09-07, quand l'app a pris son nom. Tout ici est **absent**, pas imparfait : rien de cette liste n'existe à moitié.
+
+**Ce qui bloque tout le reste : quel APK un tiers reçoit.** L'analyse est la colonne vertébrale, et elle est en `debugImplementation` — une release répond qu'elle n'embarque aucun moteur, et le dit. Donc une release ne fait pas de prononciation, et un debug n'est pas l'app : `applicationId` en `.debug`, rien de minifié, le panneau de debug ouvert, et `Trace.on` qui garde sur le disque toutes les prises de l'apprenant, ce que l'app ne fait pas. Trois issues, aucune écrite : **promouvoir le moteur** en `implementation`, ce qui pose du même coup la question F-Droid du runtime natif ; **livrer un debug en le disant** ; ou **livrer une release sans prononciation**, qui ne montre pas ce que l'app est. Rien d'autre de cette liste ne se décide avant.
+
+**Le téléchargement des poids, dans l'écran des clés.** Aujourd'hui trois fichiers arrivent par `adb push` et doivent se trouver côte à côte : `timit-ipa-int8.onnx` (358,5 Mo), `vocab.json` et `probe.json` (62 Ko). Les trois tables d'affinité, elles, sont dans les assets du build et ne se téléchargent pas. Ce qu'il faut écrire :
+
+- **Une adresse, qui n'existe nulle part** : le `.onnx` est notre artefact d'export, pas un fichier qu'un tiers héberge déjà. C'est la seule pièce qui ne soit pas du code — et le jour où le modèle acoustique change, elle change avec lui.
+- **Une empreinte vérifiée à l'arrivée**, et une **reprise** d'un téléchargement coupé : 358 Mo se coupent, et un fichier tronqué est exactement ce dont un moteur ne dit rien de bon.
+- **L'opt-in et son écrit** : ce qui se télécharge, ce que ça pèse, ce que ça débloque, jamais au premier lancement ni en silence (`docs/reference.md`). Et le chemin inverse — **effacer** ce qu'on a pris.
+- **La place** : `EmbeddedAnalysis.home` rend le dossier de l'app au lieu de `/data/local/tmp/saylune-analysis`, et rien d'autre dans l'analyse ne bouge. Le détour par le shell est mesuré et n'a qu'une cause : l'app ne peut pas lister un sous-dossier du sien dont le shell a créé le contenu.
+
+**L'écran des clés devient « Modèles et clés ».** Il porte deux sections — les clés, puis qui fait quoi — et en gagne une troisième : le modèle d'analyse, son état et son téléchargement. Une question tranche sa forme et se pose avant d'écrire : **ce qu'il montre quand rien n'est téléchargé.**
+
+**L'écran guidé du BYOK change de rang.** La dette existe déjà plus bas et n'était pas prioritaire ; elle est maintenant le mur d'entrée : un tiers doit ouvrir un compte chez trois fournisseurs et coller trois clés avant d'entendre un mot. Il faut lui dire où chaque clé se crée, ce qu'elle coûte, et **valider à la demande** plutôt qu'à l'ouverture de l'écran.
+
+**Ce que ça consomme n'est dit nulle part**, alors que `docs/reference.md` l'exige : l'utilisateur paie ses trois maillons et l'app doit pouvoir dire ce qu'elle en tire.
+
+**Le dépôt n'a pas de page.** Pas de `README.md` du tout. Ce qu'il doit tenir : ce que l'app fait, ce qu'elle exige avant de servir, comment on la construit, et **son état dit franchement** — un travail dont les mesures sont écrites et dont la moitié des chiffres est encore posée à la main.
+
+**L'app n'a pas d'icône** — `AndroidManifest.xml` ne déclare aucun `android:icon`, donc le lanceur affiche le robot par défaut. Elle relève du registre pixel, et `fdroid` en veut par ailleurs deux versions dans la fiche, `icon.png` et `featureGraphic.png`, qui n'y sont pas.
+
+**Aucun dépôt distant n'est configuré.** L'historique, lui, est propre : aucun fichier de secret n'y a jamais été suivi, et aucune clé ne se lit dans les diffs. Restent deux choses à décider — la visibilité, et ce qu'on fait de `bench/out/` (2 Go, gitignoré) dont la qualification a besoin pour se rejouer.
 
 ## Le banc de calibration — le matériau posé à la main
 
@@ -259,6 +285,5 @@ Conçu et largement écrit : `docs/ui.md` porte le registre, la police, les pale
 
 ## Reste
 
-- **Icône de l'app** — aucune pour l'instant. `fdroid` exige par ailleurs un `icon.png` et un `featureGraphic.png` dans la fiche. Elle relève du registre pixel.
 - **La suite du travail sur place** : le **zoom sur le mot**, et l'**extrait de la prise de l'apprenant au même endroit** à faire entendre juste après le modèle — les plages existent (`AnalysedSound.saidMs`), rien ne les joue.
 - **Un mode d'entraînement sur une séance passée** (pas prioritaire). Rouvrir une conversation terminée pour redire ses phrases autant qu'on veut, en écoutant le modèle et en relisant l'analyse à chaque prise. C'est la contrepartie de la règle qui arrête les tentatives à la clôture du passage : elle ferme cette porte dans le fil pour que rien ne se recalcule après coup, ce mode la rouvre ailleurs où elle ne coûte rien — **il n'écrit rien**. Pas d'appel au modèle, pas de passage à noter, aucune règle déclenchée. **Les prises ne se gardent pas** : les conserver rouvrirait des tentatives sous un passage clos. L'invariant « une tentative effacée est une mesure perdue » ne s'y applique pas, ayant été écrit pour les tentatives d'un passage, qui portent sa note. Reste à décider par où on y entre.
