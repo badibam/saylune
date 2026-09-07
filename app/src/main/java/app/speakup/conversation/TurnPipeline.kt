@@ -683,16 +683,9 @@ class TurnPipeline(
                 repeats = rewords,
                 attempt = rewords?.let { Attempt.Rewording },
             )
-            val answer = Utterance(
-                speaker = Speaker.Ai,
-                activity = _state.value.activity.id,
-                text = reply.spoken,
-                answers = said.id,
-            )
             _state.update {
                 it.copy(
-                    utterances = it.utterances + said + answer,
-                    phase = Phase.Speaking,
+                    utterances = it.utterances + said,
                     pending = null,
                     // Another attempt: what the gates said of the one before it is about to
                     // be replaced, and holding it until then would leave the screen saying
@@ -707,7 +700,6 @@ class TurnPipeline(
             take.spoken.delete()
 
             write(said.id)
-            write(answer.id)
 
             val marked = reply.judged.words()
             val groundless = marked.correctness.any { it.notch == Gates.UNSAYABLE }
@@ -725,6 +717,20 @@ class TurnPipeline(
             val echoing = closing != null && reply.echo != null &&
                 (_state.value.positions.of(Levers.ADVANCE_WORDS.key) as? At)?.name == "waits"
             val spoken = if (echoing) reply.echo!! else reply.spoken
+            // **The thread carries what was heard**, which is why the reply is made after the
+            // gate and not before it. Written before, it held the continuation while the echo
+            // was what played, so the screen ran ahead of the voice by a whole reply -- and
+            // the learner read an answer to a sentence he was being asked to say differently.
+            val answer = Utterance(
+                speaker = Speaker.Ai,
+                activity = _state.value.activity.id,
+                text = spoken,
+                answers = said.id,
+            )
+            _state.update {
+                it.copy(utterances = it.utterances + answer, phase = Phase.Speaking)
+            }
+            write(answer.id)
             if (echoing) {
                 Trace.add("turn: the echo is played, the continuation is held")
                 _state.update { it.copy(held = reply.spoken) }
@@ -899,6 +905,14 @@ class TurnPipeline(
             Trace.add("passage: the attempts ran out, the held continuation is played")
             _state.update { it.copy(phase = Phase.Speaking, held = null) }
             Playback.play(synthesis.speak(continuation, synthesis.voice()))
+            // The thread follows the voice here too: the echo was what was heard, and the
+            // continuation is what is heard now, so it is the reply that stands.
+            _state.value.open()?.last?.id?.let { attempt ->
+                _state.value.utterances.lastOrNull { it.answers == attempt }?.let { reply ->
+                    update(reply.id) { it.copy(text = continuation) }
+                    write(reply.id)
+                }
+            }
             _state.update { it.copy(phase = Phase.Idle) }
         }
         // The gates spoke about a passage that is over. What follows opens a fresh one, and
