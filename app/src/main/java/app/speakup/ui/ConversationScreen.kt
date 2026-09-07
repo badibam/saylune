@@ -95,7 +95,8 @@ fun ConversationScreen(
      * turned that off.
      *
      * **The same screen through the other door**: pushed rather than asked for, which is the
-     * learner's setting and not the mode's -- what the mode decides is the letters.
+     * learner's setting and not the mode's -- what the mode decides is the letters. It is
+     * called at the **send** of the next take, not at the close: see `closed` below.
      */
     onClosed: ((String) -> Unit)?,
     modifier: Modifier = Modifier,
@@ -121,6 +122,15 @@ fun ConversationScreen(
     val arms = position != Levers.BY_HAND
     val settings = Capture.of(turn.positions)
 
+    // The passage that closed when this turn was opened, waiting for the take to go.
+    //
+    // **The summary is pushed at the send and not at the close**, though the close is where the
+    // note becomes final. Pushed at the close it covered the screen at the instant the mic
+    // opened -- one is about to speak, and what is put in front of one is a page about the
+    // sentence before. At the send, the wait for the answer has just begun and there is nothing
+    // else to do with those seconds, which is the argument that made it pushed at all.
+    var closed by remember { mutableStateOf<String?>(null) }
+
     // **`SEND` exists at all three positions**, and what changes from one to the next is what
     // *arms* the mic, never what sends. So one lambda, called by the button and by the clock
     // alike, and the take goes wherever `repeating` says.
@@ -136,6 +146,11 @@ fun ConversationScreen(
             // nothing -- it is pipe B alone, on a text already settled.
             val rewording = turn.standing() == Standing.ToReword
             recorder.send()?.let { take ->
+                // The passage that closed goes up now, before the chain is launched: what it
+                // reports is settled, and the seconds it fills are the ones about to start.
+                // A retake closes nothing, so it pushes nothing.
+                if (said == null) closed?.let { onClosed?.invoke(it) }
+                closed = null
                 when {
                     said == null -> pipeline.submit(take, position, ending)
                     rewording -> pipeline.reword(said, take, position, ending)
@@ -326,12 +341,12 @@ fun ConversationScreen(
               // **It closes the previous passage and opens mine**, which is exactly what
               // happens: a turn of speech and not a next page.
               scope.launch {
-                  // Read before the close, which is what makes the passage stop being open.
-                  val closed = turn.open()?.last?.takeIf { it.measured.isNotEmpty() }
+                  // Read before the close, which is what makes the passage stop being open,
+                  // and held until the take goes rather than shown here.
+                  closed = turn.open()?.last?.takeIf { it.measured.isNotEmpty() }?.id
                   pipeline.close()
                   onRepeating(null)
                   recorder.open(scope, settings)
-                  closed?.let { last -> onClosed?.invoke(last.id) }
               }
           },
           onPause = {

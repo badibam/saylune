@@ -234,8 +234,8 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     channels = channels,
                     onNotes = { notesOf = it; stack.add(Screen.Notes) },
                     // **The other of the two doors**: the same screen, pushed rather than
-                    // asked for. It falls at the close, which is where a passage's note
-                    // becomes final and where the doc puts it -- between two passages.
+                    // asked for. It falls when the next take is sent -- the note is final at
+                    // the close before it, and the wait for the answer is the moment it fills.
                     onClosed = if (pushed) {
                         { notesOf = it; stack.add(Screen.Notes) }
                     } else null,
