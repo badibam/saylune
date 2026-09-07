@@ -33,6 +33,7 @@
     <string name="capture_press">Appuyer pour parler</string>
     <string name="passage_reword">Reformule-la — en cause : %1$s</string>
     <string name="passage_say_again">Écoute le modèle et redis-la</string>
+    <string name="sitting_over">Celle-ci est finie. Relis-la, ou lances-en une autre.</string>
     <string name="passage_no_matter">le tour n\'a pas de phrase à travailler</string>
     <string name="capture_turn_running">Ton tour — %1$s</string>
     <string name="capture_turn_paused">Ton tour, en pause — %1$s</string>

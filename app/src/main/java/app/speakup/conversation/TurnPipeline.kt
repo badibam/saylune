@@ -13,6 +13,7 @@ import app.speakup.activity.Activity
 import app.speakup.activity.Chosen
 import app.speakup.activity.Definition
 import app.speakup.activity.Definitions
+import app.speakup.activity.Status
 import app.speakup.capture.Ending
 import app.speakup.capture.Playback
 import app.speakup.capture.Take
@@ -27,10 +28,12 @@ import app.speakup.judged.Kept
 import app.speakup.judged.Marked
 import app.speakup.fluency.Fluency
 import app.speakup.notes.Measured
+import app.speakup.notes.noteOver
 import app.speakup.notes.Passage as Scored
 import app.speakup.rules.Engine
 import app.speakup.rules.Moment
 import app.speakup.rules.Notice
+import app.speakup.rules.Outcome
 import app.speakup.rules.State as RuleState
 import app.speakup.rules.Instructing
 import app.speakup.rules.Trigger
@@ -417,6 +420,15 @@ data class ConversationState(
         spoken.model ?: spoken.repeats?.let { id -> utterances.firstOrNull { it.id == id }?.model }
     }
 
+    /**
+     * Whether the sitting is over, which is a fact about the activity and not about the turn.
+     *
+     * **Nothing more is said in it once this is true**: no take is sent, no passage closes,
+     * the microphone does not arm. What is left is reading it back, which is what a finished
+     * sitting is for.
+     */
+    val over: Boolean get() = activity.status == Status.Finished
+
     /** Every passage of this run, oldest first. Derived, and never stored. */
     fun passages(): List<Passage> = Passage.of(utterances)
 
@@ -458,7 +470,7 @@ data class ConversationState(
      * challenge aiming only at pronunciation keeps its behaviour on the words' side whatever
      * happens, and with one lever neither of the two could be written.
      */
-    fun closes(): Boolean = when (standing()) {
+    fun closes(): Boolean = if (over) false else when (standing()) {
         Standing.ToReword -> !waits(Levers.ADVANCE_WORDS.key)
         Standing.ToSayAgain -> !waits(Levers.ADVANCE_SOUND.key)
         else -> true
@@ -720,6 +732,10 @@ class TurnPipeline(
     private suspend fun submitLocked(
         audio: Take?, capture: String?, ending: Ending?, rewords: String? = null,
     ) {
+        // **Nothing more is said in a sitting that is over.** The screen already refuses the
+        // gesture; refusing it here too is what makes that a property of the sitting rather
+        // than a convention of one screen.
+        if (_state.value.over) return
         val held = _state.value.pending
         val take = audio ?: held?.take ?: return
         // The turn as it was said, blanks and all: it is what is stored, what the analysis
@@ -1291,6 +1307,7 @@ class TurnPipeline(
     ) = writing.withLock { redoLocked(of, audio, capture, ending) }
 
     private suspend fun redoLocked(of: String, audio: Take, capture: String?, ending: Ending?) {
+        if (_state.value.over) return
         val spoken = _state.value.utterances.firstOrNull { it.id == of } ?: return
         val model = _state.value.modelOf(of) ?: return
         // Its own clock: this is pipe B alone, and timing it from the conversation turn it
@@ -1419,6 +1436,9 @@ class TurnPipeline(
     private suspend fun fire(moment: Moment, world: World) {
         val activity = _state.value.activity
         if (activity.rules.isEmpty()) return
+        // Whether it was already over when this moment began, which is what tells an ending
+        // that has just fallen from one this moment inherited.
+        val was = _state.value.standing.ended
         val out = Engine(activity.rules).resolve(moment, _state.value.standing, world)
         _state.update { it.copy(effective = out.state, notices = it.notices + out.notices) }
         // The messages are prose for the model, and they are held until the next call carries
@@ -1428,15 +1448,103 @@ class TurnPipeline(
         // thing a definition's opening wants -- and neither is written (`../../TODO.md`). What
         // is carried is what every message says either way.
         messages += out.messages.map { it.prose }
-        if (out.chosen.isEmpty()) return
+        if (out.chosen.isNotEmpty()) {
+            val at = System.currentTimeMillis()
+            val journal = activity.journal + out.chosen.map {
+                Chosen(it.rule, world.passage, it.pack, at)
+            }
+            _state.update { it.copy(activity = it.activity.copy(journal = journal)) }
+            runCatching { archive.update(_state.value.activity.row()) }.onFailure {
+                Trace.fail("archive: the journal was not written", "why" to it.message)
+            }
+        }
+        // **The ending falls in two moments and not in one instant.** What this moment settled
+        // is read here, after its own waves -- a rule that refilled the lives has already had
+        // its say -- and the coda runs then, never inside the moment that ended it.
+        val ended = out.state.ended
+        if (was == null && ended != null && moment != Moment.Closing) ending(ended)
+    }
+
+    /**
+     * The sitting is over: **the coda runs, then it is filed**.
+     *
+     * The coda is a moment of its own and not a wave of the one that ended it, and it is a
+     * coda and not a reprieve: the state already carries the outcome and nothing takes it
+     * back, so a rule firing here can add a last word and no more. Letting it un-finish would
+     * make *is it over?* undecided during its own wave.
+     *
+     * **A sitting the learner walked away from never gets here**, so it has no outcome -- and
+     * that is right: without an ending there is no issue, so there is nothing for a later
+     * scene to read.
+     */
+    private suspend fun ending(declared: Outcome) {
+        Trace.add("sitting: it is over", "declared" to declared.name)
+        fire(Moment.Closing, world())
+        val note = sittingNote()
+        // **The verdict is the one that actually fell**, never the declaration. *Let the note
+        // decide* is a thing an author writes and not an issue anybody can read back, so it is
+        // resolved here, against the one bar the project has. Where nothing measured there is
+        // no note to resolve it with, and the declaration is written down as it stands: that
+        // says *the note was to decide and there was none*, which is true, where a Passed or a
+        // Failed picked in its place would be invented.
+        val verdict = when (declared) {
+            Outcome.Passed, Outcome.Failed -> declared
+            Outcome.LetTheNoteDecide ->
+                note?.let { if (it.passes) Outcome.Passed else Outcome.Failed } ?: declared
+        }
         val at = System.currentTimeMillis()
-        val journal = activity.journal + out.chosen.map {
-            Chosen(it.rule, world.passage, it.pack, at)
+        _state.update {
+            it.copy(
+                activity = it.activity.copy(
+                    status = Status.Finished,
+                    endedAt = at,
+                    outcome = app.speakup.activity.Outcome(
+                        verdict = verdict.name,
+                        // **What settled it, and not who spoke.** A rule that declares an
+                        // issue is judged by nobody; a note is the whole chain's, and which
+                        // model produced each of its markings is not written down anywhere
+                        // (`../../../../../../TODO.md`), so naming one here would be a name
+                        // picked rather than read.
+                        judge = if (declared == Outcome.LetTheNoteDecide && note != null)
+                            JUDGED_BY_THE_NOTE else JUDGED_BY_A_RULE,
+                        at = at,
+                        says = "",
+                    ),
+                ),
+            )
         }
-        _state.update { it.copy(activity = it.activity.copy(journal = journal)) }
         runCatching { archive.update(_state.value.activity.row()) }.onFailure {
-            Trace.fail("archive: the journal was not written", "why" to it.message)
+            Trace.fail("archive: the outcome was not written", "why" to it.message)
         }
+        Trace.add("sitting: filed", "verdict" to verdict.name, "note" to note?.toString())
+    }
+
+    /**
+     * The sitting's note, over every passage it holds.
+     *
+     * **The same flat mean the whole project reads** (`notes/Aggregate.kt`): each passage
+     * hands in the figures of its **last** attempt, which is the note of a passage, and a
+     * sheet with no figure drops out of the sum rather than counting as a zero.
+     *
+     * The difficulty is null here, as everywhere the app writes a passage today, so the
+     * following drops out with it.
+     */
+    private fun sittingNote(): app.speakup.notes.Note? {
+        val weights = _state.value.activity.weights ?: return null
+        return noteOver(
+            _state.value.passages().map { passage ->
+                val last = passage.last
+                Scored(
+                    keptWords = last.judged?.words()?.kept?.size ?: 0,
+                    difficulty = null,
+                    measured = last.measured.mapNotNull { (path, figure) ->
+                        (Sheets.of(path) as? Sheet)?.let { Measured(it, figure) }
+                    },
+                )
+            },
+            weights,
+            ::sensitivityOf,
+        )
     }
 
     /**
@@ -1505,5 +1613,19 @@ class TurnPipeline(
         if (stamp == null) return
         update(of) { it.copy(take = stamp) }
         write(of)
+    }
+
+    companion object {
+        /**
+         * What settled an outcome, which is what its judge names.
+         *
+         * **What settled it and not who spoke.** A rule that declares an issue is judged by
+         * nobody, and a note is the whole chain's -- which model marked each of its passages
+         * is not written down anywhere, so any single name here would be picked rather than
+         * read (`../../../../../../TODO.md`). What these two do carry is the one thing that
+         * makes two outcomes comparable at all: whether either was judged.
+         */
+        const val JUDGED_BY_A_RULE = "rule"
+        const val JUDGED_BY_THE_NOTE = "note"
     }
 }

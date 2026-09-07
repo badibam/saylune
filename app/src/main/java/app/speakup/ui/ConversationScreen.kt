@@ -191,8 +191,8 @@ fun ConversationScreen(
     // nothing here reads them, so this stays false and nothing ever waits. Written down as
     // owed (`../../../../../../TODO.md`).
     val repairWaits = false
-    LaunchedEffect(arms, busyOf(turn.phase), repairWaits, turn.utterances.size) {
-        if (!arms || repairWaits || turn.phase != Phase.Idle) return@LaunchedEffect
+    LaunchedEffect(arms, busyOf(turn.phase), repairWaits, turn.over, turn.utterances.size) {
+        if (!arms || repairWaits || turn.over || turn.phase != Phase.Idle) return@LaunchedEffect
         if (capture.recording || capture.hasAudio) return@LaunchedEffect
         // The preparation: the time between the end of the AI's answer and the mic being
         // armed. It lives outside the turn, so it touches no measure.
@@ -347,6 +347,7 @@ fun ConversationScreen(
       Buttons(
           myTurn = stringResource(R.string.capture_my_turn),
           send = stringResource(R.string.capture_send),
+          // `closes` is false once the sitting is over, so nothing more opens either.
           mayOpen = !busy && !recordingSomething && turn.closes(),
           // **The pause exists at the first capture position and nowhere else**, the one
           // position that has a pause at all. Greyed at the other two rather than gone: what
@@ -584,6 +585,10 @@ private fun Said(
  */
 @Composable
 fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String?): String = when {
+    // **Before everything, because it outranks everything**: a sitting that is over takes no
+    // take, closes no passage and arms no microphone, so a line about what to press next
+    // would name a gesture the screen refuses.
+    turn.over -> stringResource(R.string.sitting_over)
     turn.phase == Phase.Hearing -> stringResource(R.string.phase_hearing)
     turn.phase == Phase.Thinking -> stringResource(R.string.phase_thinking)
     turn.phase == Phase.Speaking -> stringResource(R.string.phase_speaking)

@@ -182,6 +182,62 @@ class EngineTest {
         assertEquals(Outcome.Failed, out.state.ended)
     }
 
+    /**
+     * **What a rule declared wins over what the lives say**, and that is what settling it
+     * after the waves buys: landed inside one, the two endings would race and whichever
+     * happened to be read first would decide.
+     */
+    @Test
+    fun `a declared ending outranks the lives running out`() {
+        val engine = Engine(listOf(
+            Rule("A", Trigger.Passages(every = 1),
+                 listOf(Pack(listOf(Effect.Finish(Outcome.Passed))))),
+        ))
+        val out = engine.resolve(
+            Moment.PassageClosed,
+            start("A", at = Positions(mapOf(lives to Count(0)))),
+            AtPassage(1),
+        )
+        assertEquals(Outcome.Passed, out.state.ended)
+    }
+
+    // ── The two instants that bound the sitting ─────────────────────────────────────────
+
+    /** The opening tests nothing: reaching the moment is the whole of what it says. */
+    @Test
+    fun `the opening fires with nothing to test`() {
+        val engine = Engine(listOf(
+            Rule("entrance", Trigger.Opening,
+                 listOf(Pack(listOf(Effect.Message("greet him", now = true))))),
+        ))
+        val out = engine.resolve(Moment.Opening, start("entrance"), Quiet)
+        assertEquals(listOf("greet him"), out.messages.map { it.prose })
+    }
+
+    /**
+     * **The coda is not a reprieve.** The state already carries the outcome, so a rule of the
+     * closing moment that refills the lives changes a position and takes nothing back --
+     * letting it would make *is it over?* undecided during its own wave.
+     */
+    @Test
+    fun `the closing wave cannot take the ending back`() {
+        val engine = Engine(listOf(
+            Rule("goodbye", Trigger.Closing, listOf(Pack(listOf(
+                Effect.Message("take your leave", now = true),
+                Effect.Patch(positions = mapOf(lives to Count(3))),
+            )))),
+        ))
+        val out = engine.resolve(
+            Moment.Closing,
+            start("goodbye", at = Positions(mapOf(lives to Count(0))))
+                .copy(ended = Outcome.Failed),
+            Quiet,
+        )
+        assertEquals(Outcome.Failed, out.state.ended)
+        assertEquals(Count(3), out.state.positions.of(lives))
+        assertEquals(listOf("take your leave"), out.messages.map { it.prose })
+    }
+
     // ── A move that changed nothing ─────────────────────────────────────────────────────
 
     /**

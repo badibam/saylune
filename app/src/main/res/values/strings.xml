@@ -34,6 +34,7 @@
     <string name="capture_press">Press to speak</string>
     <string name="passage_reword">Say it differently — in cause: %1$s</string>
     <string name="passage_say_again">Hear the model and say it again</string>
+    <string name="sitting_over">This one is over. Read it back, or start another.</string>
     <string name="passage_no_matter">the turn has no sentence to work on</string>
     <string name="capture_turn_running">Your turn — %1$s</string>
     <string name="capture_turn_paused">Your turn, paused — %1$s</string>

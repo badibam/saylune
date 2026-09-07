@@ -161,7 +161,7 @@ data class Activity(
          * protects is a stored journal being replayable, and a journal only stops replaying
          * when what it says comes to mean something else.
          */
-        const val ENGINE = 1
+        const val ENGINE = 2
 
         /**
          * A sitting opened from [definition], which is **the only way one is made**.
@@ -277,7 +277,25 @@ enum class Prescriber {
  * without saying so. This is the smallest form, and it will grow.
  */
 data class Outcome(
+    /**
+     * The issue that actually fell: passed, or failed.
+     *
+     * **Never the declaration.** *Let the note decide* is a thing an author writes on a rule
+     * and not an issue anybody can read back, so it is resolved against the one bar the
+     * project has before it is written down. It survives here in one case only, where nothing
+     * measured and there was no note to resolve it with -- which says *the note was to decide
+     * and there was none*, true, where a passed or a failed picked in its place would be
+     * invented.
+     */
     val verdict: String,
+    /**
+     * What settled it -- a rule, or the note.
+     *
+     * **What settled it and not who spoke.** A rule that declares an issue is judged by
+     * nobody, and a note is the whole chain's: which model marked each of the sitting's
+     * passages is not written down anywhere, so a single name here would be picked rather
+     * than read (`../../../../../../TODO.md`).
+     */
     val judge: String,
     val at: Long,
     /**

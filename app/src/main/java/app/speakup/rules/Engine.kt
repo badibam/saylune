@@ -23,6 +23,12 @@ import app.speakup.levers.Positions
  * are finitely many rules, each goes at most once, so the cascade stops even if two rules set
  * each other off. A rule going twice in one instant would be a writing error anyway.
  *
+ * **The closing moment is a resolve of its own, and the caller runs it.** Once a moment has
+ * ended the sitting the state carries that outcome and cannot lose it, so what fires at
+ * [Moment.Closing] is a **coda**: it can add a last word and have the open questions answered,
+ * and it can no longer un-finish. Letting it would make *is it over?* undecided during its own
+ * wave.
+ *
  * **Inside a wave, order changes nothing**, so the order rules are declared in has no meaning
  * to carry. One case would bite: two patches of one wave on the same key. That is not a case
  * to arbitrate by priority, it is a **writing error** -- except where they lay the same
@@ -59,6 +65,9 @@ class Engine(private val rules: List<Rule>) {
         // the outside**: it is a change this module made, and the one place that knows a
         // change happened is the wave that made it.
         var justMoved = emptyList<Move>()
+        // What a rule of this moment asked to end, read once the waves are over like the
+        // lives are -- see the terminal check below.
+        var finishing: Outcome? = null
 
         // Who is listening, read once at the start of the moment and not again.
         //
@@ -107,12 +116,18 @@ class Engine(private val rules: List<Rule>) {
             notices += landed.notices
             messages += landed.messages
             justMoved = landed.moves
+            finishing = finishing ?: landed.finishing
         }
 
         // **The terminal check comes after the waves**, once, on the settled state and never
         // on the transition -- otherwise the ending would always win the race against the rule
         // that refills the lives, and the scripted death would be unwritable.
-        val over = now.ended ?: endingOf(now)
+        //
+        // **[Effect.Finish] is read here too, and that is the generalisation**: the ending by
+        // zero lives already behaved this way, and finishing by rule did not, so the app had
+        // two kinds of ending that did not behave alike. Both now settle on the stabilised
+        // state, and what a rule declared outright wins over what the lives say.
+        val over = now.ended ?: finishing ?: endingOf(now)
         return Resolution(now.copy(ended = over), notices, messages, chosen)
     }
 
@@ -143,7 +158,7 @@ class Engine(private val rules: List<Rule>) {
         var positions = state.positions
         var armed = state.armed
         var instructions = state.instructions
-        var ended = state.ended
+        var finishing: Outcome? = null
         val moves = mutableListOf<Move>()
         val notices = mutableListOf<Notice>()
         val messages = mutableListOf<Effect.Message>()
@@ -182,13 +197,17 @@ class Engine(private val rules: List<Rule>) {
                     // the mechanical ones ride on the moves that really happened.
                     effect.staging?.let { notices += Notice.Staged(it) }
                 }
-                is Effect.Finish -> ended = ended ?: effect.outcome
+                // Not landed on the state: it is read once the waves are over, with the
+                // lives, so the two kinds of ending behave alike. The first one declared
+                // wins, order inside a wave carrying no meaning anywhere else either.
+                is Effect.Finish -> finishing = finishing ?: effect.outcome
                 is Effect.Message -> messages += effect
             }
         }
         moves.forEach { notices += Notice.Moved(it) }
         return Landed(
-            State(positions, armed, instructions, ended), notices, messages, moves,
+            State(positions, armed, instructions, state.ended),
+            notices, messages, moves, finishing,
         )
     }
 
@@ -373,4 +392,6 @@ private data class Landed(
     val notices: List<Notice>,
     val messages: List<Effect.Message>,
     val moves: List<Move>,
+    /** What a rule of this wave asked to end, settled after every wave and not here. */
+    val finishing: Outcome?,
 )
