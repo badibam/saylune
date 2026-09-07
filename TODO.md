@@ -105,7 +105,7 @@ Les modules autres que la conversation libre et les écrans qui tombent avec eux
 
 **Ce qui bloquait tout le reste est levé** : la release porte l'analyse depuis le 2026-09-07, et un tiers reçoit donc l'app entière plutôt qu'un banc de mesure. Reste une chose que le bureau ne peut pas dire : **qu'une release minifiée analyse vraiment un tour**. Elle se compile, ses classes de moteur ne sont plus renommées, et personne n'a encore parlé dedans. C'est une installation et une phrase.
 
-**Le téléchargement des poids est écrit** (2026-09-07), et il ne lui manque qu'une adresse. Trois fichiers, vérifiés à l'empreinte et posés dans le dossier de l'app : `timit-ipa-int8.onnx` (358 518 235 o), `vocab.json` (486 o) et `probe.json` (62 613 o). Il reprend un téléchargement coupé, il tient sur un fil que l'app possède et non l'écran, et **un fichier peut s'apporter à la main**, ce qui marche déjà. Reste **à déposer les trois fichiers sur Hugging Face** et à remplir les deux constantes `Weights.REPOSITORY` et `Weights.REVISION` — la révision épinglée et jamais une branche, les empreintes ayant été prises sur ces octets-là. Sans elles, le bouton dit qu'il n'a pas d'adresse au lieu d'échouer.
+**Le téléchargement des poids est écrit** (2026-09-07), et il ne lui manque qu'une adresse. Trois fichiers, vérifiés à l'empreinte et posés dans le dossier de l'app : `timit-ipa-int8.onnx` (358 518 235 o), `vocab.json` (486 o) et `probe.json` (62 613 o). Il reprend un téléchargement coupé, il tient sur un fil que l'app possède et non l'écran, et **un fichier peut s'apporter à la main**, ce qui marche déjà. Ils se servent depuis une release de ce dépôt, sous un tag à eux (`weights-timit-ipa-1`) qui ne suit pas le rythme de l'app. Mesuré le 2026-09-07 : GitHub redirige vers un CDN avec une URL signée qui expire en une heure, et ce CDN rend bien du 206 sur une plage demandée — l'app redemandant l'URL d'origine à chaque reprise, une signature périmée ne se rencontre jamais. **Reste à y déposer les trois fichiers**, qui sont réunis dans `bench/out/onnx/`.
 
 **L'écran des clés s'appelle « Modèles et clés »** et porte la section du modèle, présente qu'il soit là ou non. Ce qui n'a jamais tourné : **rien de tout ça n'a été essayé sur le téléphone** — ni le téléchargement, ni la reprise, ni le fichier apporté, ni l'analyse lisant les poids depuis le dossier de l'app plutôt que depuis `/data/local/tmp`.
 
@@ -113,13 +113,11 @@ Les modules autres que la conversation libre et les écrans qui tombent avec eux
 
 **Ce que ça consomme n'est dit nulle part**, alors que `docs/reference.md` l'exige : l'utilisateur paie ses trois maillons et l'app doit pouvoir dire ce qu'elle en tire.
 
-**Le dépôt n'a pas de page.** Pas de `README.md` du tout. Ce qu'il doit tenir : ce que l'app fait, ce qu'elle exige avant de servir, comment on la construit, et **son état dit franchement** — un travail dont les mesures sont écrites et dont la moitié des chiffres est encore posée à la main.
-
 **La mise en règle F-Droid est faite pour ce qui tient dans le build** (2026-09-07) : l'état git n'entre plus dans l'APK, le bloc de métadonnées signé par Google non plus, et la signature de release est pilotée par Gradle depuis des variables d'environnement. Restent **un tag par release**, sur un arbre propre, et le fait que **personne n'a jamais construit deux fois pour comparer** — la reproductibilité est câblée, pas éprouvée.
 
 **L'app n'a pas d'icône** — `AndroidManifest.xml` ne déclare aucun `android:icon`, donc le lanceur affiche le robot par défaut. Elle relève du registre pixel, et `fdroid` en veut par ailleurs deux versions dans la fiche, `icon.png` et `featureGraphic.png`, qui n'y sont pas.
 
-**Aucun dépôt distant n'est configuré.** L'historique, lui, est propre : aucun fichier de secret n'y a jamais été suivi, et aucune clé ne se lit dans les diffs. Restent deux choses à décider — la visibilité, et ce qu'on fait de `bench/out/` (2 Go, gitignoré) dont la qualification a besoin pour se rejouer.
+**Le dépôt est en ligne et public** depuis le 2026-09-07 : `github.com/badibam/saylune`, avec son README. L'historique avait été balayé avant — aucun fichier de secret jamais suivi, aucune clé dans les diffs. Reste ouvert : ce qu'on fait de `bench/out/` (2 Go, gitignoré) dont la qualification a besoin pour se rejouer, et qui n'a donc aujourd'hui aucune copie qu'un tiers puisse atteindre.
 
 ## Le banc de calibration — le matériau posé à la main
 
