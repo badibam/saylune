@@ -46,6 +46,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `turn.py` | un tour analysé au format que l'écran de marquage consomme — le tuyau du banc vers l'app |
 | `review.py` | écouter ce qui a été marqué, modèle puis prise, et écrire si c'est une faute |
 | `divergence.py` | écouter là où deux modèles ne nomment pas le même son, et écrire lequel a raison |
+| `creature.py` | une voix de personnage fabriquée à partir d'une voix ordinaire, par traitement du signal seul — les balayages à un bouton disent où chacun cesse de sonner comme une bouche, les mélanges nommés disent si une distribution en sort. Se juge en écoutant, ne demande aucune clé, tourne hors ligne (`../docs/design/local-chain.md`) |
 | `pixel-ui.html` | l'écran complet dessiné à la résolution réelle d'un téléphone, police embarquée et palette réglable — le seul banc qui se juge en regardant, et la source des valeurs de `../docs/design/pixel-ui.md`. S'ouvre dans un navigateur, ne demande aucune clé. |
 
 Chaque brique s'utilise seule.
@@ -63,6 +64,19 @@ cd bench && python3 pull.py           # tire les poids et dit ce qu'ils valent
 ```
 
 `HF_HOME` est lu par `matrix.py`, qui échoue franchement s'il est absent. Le tokenizer d'un modèle n'est jamais chargé — il ne sert qu'à transformer du texte en phonèmes, seul sens que ce pipeline refuse de prendre, et l'appeler réclamerait `phonemizer` et `espeak-ng` pour rien.
+
+## Poser la voix de personnage
+
+`creature.py` ne partage rien avec ce qui précède — ni les poids acoustiques, ni `HF_HOME`, ni aucune clé. Il lui faut son propre moteur et sa propre voix :
+
+```
+tmp/venv/bin/pip install piper-tts praat-parselmouth
+mkdir -p tmp/piper && cd tmp/piper
+curl -LO https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx
+curl -LO https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx.json
+```
+
+`piper-tts` embarque `espeak-ng`, donc rien à poser côté système. `praat-parselmouth` est Praat appelé depuis Python : c'est lui qui déplace les formants sans toucher la note, le seul bouton qui ne se réécrit pas à la main. Le `.json` porte la table des 904 locuteurs et doit rester à côté du `.onnx`.
 
 ## Les lectures
 
