@@ -12,7 +12,6 @@ Les autres docs, à ouvrir au besoin. Ceux d'à côté portent **ce qui est vrai
 `design/` porte **ce qui est à faire et sera élagué une fois le code en place** :
 
 - `design/activity-model.md` — **ce qui reste du modèle d'activité à écrire** : la définition, l'exécution et le bloc, les réglages comme positions de leviers, les règles qui les font changer, les prescripteurs, la pression et ses leviers, la grille des mesures et l'arbre de poids qui en fait des notes A–E, le blocage, le personnage, la capture, l'audio en segments. Élagué le 2026-09-01 de ce qui est construit — l'énoncé, l'activité et ce qui se stocke sont ci-dessous et dans le code.
-- `design/implementation-plan.md` — **comment le chantier 0 s'écrit** : les étapes et l'ordre qui les commande, ce qui reste dehors, ce qui se prouve par des tests et ce qui se règle au banc de calibration, et ce qui se décide en session plutôt que seul.
 - `design/grammar-test-set.md` — les deux bancs du chantier 2, juge grammatical et fidélité du STT.
 - `../font/README.md` — **la police de l'app**, écrite et non empruntée : la boîte de 11 × 15, les scripts qui compilent les cartes de pixels en TTF, et la carte de la zone à usage privé — cadres, meubles, lettres brouillées.
 - `design/pixel-ui.md` — l'interface en pixel doux de console : le registre, la police et sa grille, la taille des lettres, les deux palettes prune et la règle qui les gouverne, les cadres, le dessin complet du tour marqué, le doigt, les images, le thème, et ce qui est écarté.
