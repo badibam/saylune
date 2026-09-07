@@ -11,6 +11,7 @@ Les autres docs, à ouvrir au besoin :
 - `qualification.md` — comment on la vérifie : la procédure, et le jeu d'essai étiqueté qu'elle déroule. Rejouable par un tiers.
 - `providers.md` — ce que les fournisseurs font et coûtent : la latence mesurée maillon par maillon, les paramètres de chatterbox, les plafonds du BYOK.
 - `added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
+- `tile-authoring.md` — **écrire une tuile de la porte Libre** : ce qu'une scène doit tenir pour valoir la peine, et pourquoi le schéma s'y lit dans le code au lieu de s'y recopier. Suivi tel quel par `./run tile`.
 - `../font/README.md` — **la police de l'app**, écrite et non empruntée : la boîte de 11 × 15, les scripts qui compilent les cartes de pixels en TTF, et la carte de la zone à usage privé.
 - `design/` (`design/grammar-test-set.md`, `design/local-chain.md`, `design/questions.md`, `design/tiles.md`, `design/harvest.md`) — le transitoire, qui s'élague quand il est consommé : les énoncés des deux bancs du chantier 2, qui n'ont jamais tourné ; le montage où la voix des personnages devient locale, avec les critères de ses mesures posés avant les chiffres ; ce que le modèle établit de la fiction, quand on le lui demande et où ça se relit ; les douze scènes de la porte Libre, rédigées avant d'être des fichiers ; et trois leçons d'établi qui attendent d'être poussées vers la sagesse.
 

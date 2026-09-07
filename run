@@ -109,6 +109,31 @@ def task_bench():
     )
 
 
+def task_tile():
+    """Open a Claude Code session on the tile authoring guide.
+
+    The guide is a file rather than a prompt held here, so that it stays readable
+    and versioned on its own, and so that nothing about the definition schema is
+    written twice: the session reads the parser and the catalogue itself.
+    """
+    guide = ROOT / "docs" / "tile-authoring.md"
+    if not guide.exists():
+        print(f"{guide} is missing.", file=sys.stderr)
+        return
+    if shutil.which("claude") is None:
+        print(
+            "claude not found in PATH. The guide is readable on its own:\n"
+            f"  {guide}",
+            file=sys.stderr,
+        )
+        return
+    subprocess.run(
+        ["claude", f"Lis @{guide.relative_to(ROOT)} et suis-le pour écrire une tuile."],
+        cwd=ROOT,
+        check=False,
+    )
+
+
 def task_devices():
     if shutil.which("adb") is None:
         print("adb not found in PATH.", file=sys.stderr)
@@ -137,6 +162,7 @@ ACTIONS = {
     "install": task_install,
     "logs": task_logs,
     "bench": task_bench,
+    "tile": task_tile,
     "devices": task_devices,
     "release": task_release,
     "clean": task_clean,
@@ -148,6 +174,7 @@ LABELS = {
     "logs": "logs       follow logcat, filtered on the app",
     "devices": "devices    list attached devices and their state",
     "bench": "bench      read the labelled set, fault by fault",
+    "tile": "tile       open a Claude session to write a Free-door tile",
     "release": "release    assemble the release APK",
     "clean": "clean      drop build outputs",
 }
@@ -178,6 +205,7 @@ def menu():
     choices += [Choice(LABELS[k], k) for k in ("build", "install", "logs", "devices")]
     choices += [Separator("Release"), Choice(LABELS["release"], "release")]
     choices += [Separator("Bench"), Choice(LABELS["bench"], "bench")]
+    choices += [Separator("Content"), Choice(LABELS["tile"], "tile")]
     choices += [Separator(""), Choice(LABELS["clean"], "clean")]
     choices += [Choice("quit", _QUIT)]
 
