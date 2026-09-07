@@ -48,7 +48,7 @@ import app.speakup.ui.ConversationScreen
 import app.speakup.ui.ConversationsScreen
 import app.speakup.ui.Glyphs
 import app.speakup.ui.MarkingPrototypeScreen
-import app.speakup.ui.MarksMenuScreen
+import app.speakup.ui.DisplaySettingsScreen
 import app.speakup.ui.UNPUSHED
 import app.speakup.ui.PassageNotes
 import app.speakup.ui.Scaffold
@@ -118,7 +118,7 @@ class MainActivity : ComponentActivity() {
  * buttons. Still no navigation library -- the `android` wisdom holds one off until a graph
  * needs one, and a list one pushes onto and pops off is not a graph.
  */
-private enum class Screen { Title, Conversations, Conversation, Notes, MarksMenu, Settings, Marks }
+private enum class Screen { Title, Conversations, Conversation, Notes, Display, Settings, Marks }
 
 /**
  * The app, from its root down.
@@ -223,7 +223,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     // Both are the conversation's own, and both are off with their reason:
                     // the marks menu comes with the redrawn turn, and no screen sets a lever
                     // yet, before a sitting or during one.
-                    Action(Glyphs.EYE) { stack.add(Screen.MarksMenu) },
+                    Action(Glyphs.EYE) { stack.add(Screen.Display) },
                     Action(Glyphs.LEVERS, reason = R.string.action_levers_unwritten),
                 ),
             ) {
@@ -265,13 +265,13 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                 }
             }
 
-            Screen.MarksMenu -> Scaffold(
-                title = stringResource(R.string.channels_what),
+            Screen.Display -> Scaffold(
+                title = stringResource(R.string.display_what),
                 lives = null,
-                status = stringResource(R.string.channels_measured),
+                status = stringResource(R.string.display_lead),
                 actions = listOf(back),
             ) {
-                MarksMenuScreen(store, hidden, pushed, modifier = Modifier.fillMaxSize())
+                DisplaySettingsScreen(store, hidden, pushed, modifier = Modifier.fillMaxSize())
             }
 
             Screen.Settings -> Scaffold(

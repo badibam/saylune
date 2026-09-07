@@ -70,7 +70,7 @@ enum class Secret(
      * mark shown, which is what the app does before anybody has asked for anything, and a
      * channel added later is on by default rather than silently missing.
      */
-    HiddenMarks("view.marks.hidden", R.string.channels_what, masked = false),
+    HiddenMarks("view.marks.hidden", R.string.display_marks, masked = false),
 
     /**
      * Whether the passage's notes are pushed between two passages.

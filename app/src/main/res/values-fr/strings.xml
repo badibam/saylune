@@ -214,7 +214,10 @@
     <string name="action_levers_unwritten">Aucun écran ne pose de levier, ni avant la séance ni pendant.</string>
     <string name="unreadable_turn_file">%1$s est là et ne se lit pas : %2$s</string>
     <!-- Le menu de conversation : quelles marques s'affichent. -->
-    <string name="channels_what">Quelles marques s\'affichent</string>
+    <string name="display_what">Paramètres d'affichage</string>
+    <string name="display_lead">Ce qui s'affiche et ce qui ne s'affiche pas</string>
+    <string name="display_marks">Marques à afficher</string>
+    <string name="display_other">Autres réglages</string>
     <string name="channel_tint">Les sons, sur les lettres</string>
     <string name="channel_stress">L\'accent, sous la syllabe</string>
     <string name="channel_melody">La mélodie, au-dessus de la ligne</string>
@@ -272,5 +275,5 @@
     <string name="notice_easier">Ça s’allège</string>
     <string name="notice_move">%1$s — %2$s</string>
     <string name="notice_of_sheet">%1$s — %2$s : %3$s</string>
-    <string name="notes_pushed">Montrer les notes du passage entre deux passages</string>
+    <string name="notes_pushed">Montrer le bilan du passage précédent lors de l&#8217;envoi d&#8217;un nouveau passage</string>
 </resources>

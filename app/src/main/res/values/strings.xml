@@ -72,6 +72,13 @@
     <string name="debug_brick">%1$s: %2$s</string>
     <string name="debug_open">%1$s (%2$d chars)</string>
     <string name="debug_dialog_close">Close</string>
+    <!-- Lower case on purpose: every other label of the command row is capitals. -->
+    <string name="debug_prompt">debug</string>
+    <string name="debug_prompt_title">what went out for passage %1$d</string>
+    <string name="debug_prompt_none">Nothing was sent for this passage in this run of the app. What is kept is what went out, and it lives in memory alone: a reopened sitting has none.</string>
+    <string name="debug_prompt_close">close</string>
+    <string name="debug_prompt_chars">%1$d chars, %2$d messages</string>
+    <string name="debug_prompt_raw">raw</string>
     <string name="analysis_engine_refused">Pronunciation marks are off for this session: the analysis engine could not be loaded.</string>
     <string name="analysis_unshipped">Pronunciation marks are off: this build carries no analysis engine.</string>
     <string name="setting_hear">Hear</string>
@@ -231,7 +238,10 @@
     <string name="action_levers_unwritten">No screen sets a lever yet, before a sitting or during one.</string>
     <string name="unreadable_turn_file">%1$s is there and cannot be read: %2$s</string>
     <!-- The conversation menu: which marks are shown. -->
-    <string name="channels_what">Which marks are shown</string>
+    <string name="display_what">Display settings</string>
+    <string name="display_lead">What shows, and what does not</string>
+    <string name="display_marks">Marks shown</string>
+    <string name="display_other">Other settings</string>
     <string name="channel_tint">Sounds, on the letters</string>
     <string name="channel_stress">Stress, under the syllable</string>
     <string name="channel_melody">Melody, above the line</string>
@@ -289,5 +299,5 @@
     <string name="notice_easier">Easier</string>
     <string name="notice_move">%1$s — %2$s</string>
     <string name="notice_of_sheet">%1$s — %2$s: %3$s</string>
-    <string name="notes_pushed">Show the passage&#8217;s notes between passages</string>
+    <string name="notes_pushed">Show the previous passage&#8217;s summary when a new one is sent</string>
 </resources>
