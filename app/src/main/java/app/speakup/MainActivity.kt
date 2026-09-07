@@ -288,6 +288,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                         SituationScreen(
                             theme = it,
                             started = sitting?.let { row -> Sitting.readBrief(row.brief.orEmpty()) },
+                            passages = counted[it.id] ?: 0,
                             onCarryOn = {
                                 sitting?.let { row ->
                                     scope.launch {

@@ -45,6 +45,22 @@ class ReadoutRowsTest {
         assertEquals(text, written(text, listOf(2..2, 3..3)))
     }
 
+    /**
+     * The space between two words is a row of its own, whatever sits against it: the screen
+     * draws a blank stretch as a blank row, and that is what tells one word from the next
+     * when the readout is read down its first column.
+     */
+    @Test
+    fun `a stretch nobody claims is cut at the space`() {
+        val text = "the cat"
+        // `th`, then nothing claims `e `, then `c`, `a`, `t`.
+        val rows = rows(text, listOf(0..1, 4..4, 5..5, 6..6))
+        assertEquals(text, written(text, listOf(0..1, 4..4, 5..5, 6..6)))
+        val unclaimed = rows.filter { it.of == null }
+            .map { text.substring(it.at.first, it.at.last + 1) }
+        assertEquals(listOf("e", " "), unclaimed)
+    }
+
     @Test
     fun `a text no sound claims at all is still written out`() {
         val text = "mm"

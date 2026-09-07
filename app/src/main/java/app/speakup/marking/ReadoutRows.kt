@@ -24,6 +24,12 @@ data class ReadoutRow<T>(val at: IntRange, val of: T?)
  * Sounds arrive in grid order, which is text order: the join walks the words in order and
  * never goes back inside one, so no sorting is needed and none is done -- sorting here would
  * quietly paper over a join that had gone out of order.
+ *
+ * **A stretch nobody claims is cut at the space**, so the blank between two words is always a
+ * row of its own. Left whole, a stretch like `"e "` -- a silent letter and the space after it --
+ * drew one row of letters and swallowed the break, so the next word's first sound came directly
+ * under it and the phrase read as one long word down the column. The screen draws a blank row
+ * for a blank stretch, and it can only do that if the blank is a stretch.
  */
 fun <T> readoutRows(text: String, sounds: List<T>, at: (T) -> IntRange): List<ReadoutRow<T>> {
     val rows = mutableListOf<ReadoutRow<T>>()
@@ -34,10 +40,22 @@ fun <T> readoutRows(text: String, sounds: List<T>, at: (T) -> IntRange): List<Re
             rows.add(ReadoutRow(cursor until cursor, sound))
             continue
         }
-        if (span.first > cursor) rows.add(ReadoutRow(cursor until span.first, null))
+        if (span.first > cursor) rows.unclaimed(text, cursor, span.first)
         rows.add(ReadoutRow(span.first..span.last, sound))
         cursor = span.last + 1
     }
-    if (cursor < text.length) rows.add(ReadoutRow(cursor until text.length, null))
+    if (cursor < text.length) rows.unclaimed(text, cursor, text.length)
     return rows
+}
+
+/** The text between two sounds, cut into its runs of blank and of ink. */
+private fun <T> MutableList<ReadoutRow<T>>.unclaimed(text: String, from: Int, to: Int) {
+    var start = from
+    while (start < to) {
+        val blank = text[start].isWhitespace()
+        var end = start
+        while (end < to && text[end].isWhitespace() == blank) end++
+        add(ReadoutRow(start until end, null))
+        start = end
+    }
 }

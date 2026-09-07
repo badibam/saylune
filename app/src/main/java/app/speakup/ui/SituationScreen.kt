@@ -58,6 +58,16 @@ fun SituationScreen(
     theme: Definition,
     /** The situation as it stands on the sitting, or null where none was ever opened. */
     started: Brief?,
+    /**
+     * How many passages that sitting holds.
+     *
+     * **What one carries on is something said, not a row in a table.** A sitting is written the
+     * moment the situation is settled, so a theme opened and left before a word was spoken has
+     * one -- and *carry on* on a conversation with nothing in it says the wrong thing. The word
+     * is *begin* until a passage exists; what pressing does is unchanged, and it opens that
+     * empty sitting rather than piling a second one on top of it.
+     */
+    passages: Int,
     onCarryOn: () -> Unit,
     onStart: (answers: Map<String, String>, gender: String?) -> Unit,
     modifier: Modifier = Modifier,
@@ -135,7 +145,7 @@ fun SituationScreen(
             } else {
                 Way(
                     stringResource(
-                        if (started == null) R.string.situation_begin else R.string.situation_carry_on
+                        if (passages == 0) R.string.situation_begin else R.string.situation_carry_on
                     ),
                     Modifier.weight(1f),
                 ) {
