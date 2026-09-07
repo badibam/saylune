@@ -228,6 +228,26 @@ apprenant : -3   ->   dix demi-tons d'écart
 
 Autonome : elle ne lit même pas la matrice, ne dépend d'aucune autre brique, et son code existe déjà (`tmp/bench/audio_probe.py`, numpy seul). C'est la brique la plus mûre du lot et la seule envisageable indépendamment du reste.
 
+**Le repli d'octave écrase les intonations larges** (mesuré le 2026-09-01). `Pitch.semitones` replie par octaves toute syllabe à plus de `OCTAVE_BAND` (= 2, soit 12 demi-tons) de la médiane du tour, au motif que doubler est ce que fait un accrochage harmonique. Il ne sait pas distinguer un accrochage d'une montée réelle de plus d'un octave — et sur deux prises de la même phrase dite de la même façon, l'une est passée juste sous la barre et l'autre juste au-dessus, la seconde voyant sa dernière syllabe rendue à 0,37 au lieu de ~12,4. **Plus l'intonation est large, plus le repli la ramène vers le milieu.**
+
+**Deux hypothèses écartées par la mesure, notées pour ne pas les refaire.** Le **bruit stationnaire** de la pièce : deux prises, ventilateur éteint puis allumé, rendent des courbes quasi identiques et aucune n'est plate — le détecteur lit bien la voix. Et le **plafond du détecteur** : la fréquence maximale lue est exactement `F0_MAX`, 400 Hz, ce qui ressemblait à un écrêtage, mais monter le plafond à 800 Hz ne libère rien et empire tout — la prise passe de 16,3 % à 20,7 % de trames au décalage le plus court. **Être au décalage le plus court ne veut donc pas dire que la voix dépasse le plafond** : l'autocorrélation normalisée est naturellement forte aux décalages très courts, où un signal ressemble toujours à lui-même, et `VOICED = 0,30` ne filtre pas ça. Corollaire noté et non compris : **16 % des trames d'un tour ordinaire sont rendues au décalage plancher sans qu'on sache ce qu'elles valent.**
+
+**Où le repli travaille, compté par fenêtres glissantes de 200 ms**, hors bande :
+
+| prise | médiane | x2,0 (en service) | x2,5 | x3,0 |
+|---|---|---|---|---|
+| 21 question montante | 138 Hz | 0/159 | 0 | 0 |
+| 22 aplatissement | 122 Hz | 0/151 | 0 | 0 |
+| 24 calque témoin | 122 Hz | 1/117 | 0 | 0 |
+| 26 calque témoin | 114 Hz | 5/148 | 0 | 0 |
+| prise d'app | 183 Hz | 28/278 | 0 | 0 |
+| 23 spontané | 296 Hz | 93/185 | 52 | 0 |
+| 25 spontané | 269 Hz | 109/272 | 21 | 0 |
+
+Sur les quatre prises de voix grave le repli ne fait **rien** au niveau où il tourne. Le seul travail substantiel est côté **bas**, sur les deux voix aiguës, et il n'est **pas compris** — la part de trames sous la moitié de la médiane y reste à 40-45 % quel que soit le plafond. Raison de ne pas y toucher. D'où la proposition, qui reste à trancher (`../TODO.md`) : **élargir la barre haute à x2,5 et laisser la barre basse à x2,0**, asymétrique parce que le problème et le travail utile ne sont pas du même côté.
+
+**Une direction abandonnée, notée pour ne pas la reprendre** : juger un accrochage à son écart aux voisines. Une reprise de souffle après une fin basse est une discontinuité légitime, et la syllabe repliée du cas observé est **la dernière**, donc sans voisine de droite pour la juger.
+
 ### 11. Le contrôle — décodage libre de l'apprenant
 
 Le geste de la brique 3 appliqué à l'autre matrice, et les deux suites comparées.
@@ -576,6 +596,61 @@ Réparable, et réparé. Trois variantes mesurées au même jeu :
 La dernière retrouve la lecture qualifiée, verdict pour verdict, pour 39 Mo de plus. L'échelle par canal compte parce qu'une seule échelle pour toute une matrice est fixée par sa plus grosse colonne, et toutes les autres la paient.
 
 Ce que ça dit au-delà du chiffre : **une mesure d'arrondi ne vaut que pour l'arrondisseur qui l'a faite.** Celle qui a fondé la décision 8 bits ne se transportait pas.
+
+## Qualifier l'étalon — ce qui est mesuré, et ce que la référence permet
+
+Le modèle est cru aveuglément, et c'est le maillon le moins vérifié de la chaîne : aucune voix n'est qualifiée, la synthèse n'est pas reproductible, et les voix divergent entre elles. Ce qui a été mesuré, et ce que ces chiffres ne disent pas.
+
+**Le rendu dit-il ce qu'il devrait ?** `recognition.py --source l2` confronte la grille décodée de chaque rendu du modèle aux phonèmes qu'un corpus note attendus — des phonèmes **attendus** et jamais produits, ce qui les disqualifie pour juger un apprenant et les qualifie ici, un rendu étant une synthèse censée dire le canonique. Sur 2 500 rendus d'`azure-us-jenny` : **20,5 %** de sons faux, contre 6,7 % pour le même réseau sur de la parole lue.
+
+**Ce chiffre ne dit pas ce qu'on voulait lui faire dire — la référence est mauvaise.** Deux défauts mesurés sur 1 869 mots distincts. Le **lexique est non-rhotique, donc britannique**, alors que la voix est américaine — `CAR = K AA0`, `GARDEN = G AA0 D N` — et **7,9 %** des mots distincts portent un R d'orthographe sans `R` ni `ER` dans leurs phonèmes, donc un désaccord garanti quel que soit le rendu. Et des **transcriptions franchement fausses** : `KATE = K EH0 T`, `ZERO = Z IH AH1 OW0`, les accents à `0` presque partout, **6 %** des mots de plus de trois lettres n'ayant `AH` pour seule voyelle. S'y ajoute ce qu'un dictionnaire ignore et qu'une bouche fait : le battement et la réduction des mots outils — les mots les plus touchés sont `TO`, `THE`, `AND`, `NOT`, `A`, et **54 %** des substitutions voyelle→voyelle tombent dans un mot outil.
+
+**Les deux voix confrontées**, mêmes 200 prises, mêmes 3 779 sons attendus, seule la voix change :
+
+| | PER | substitutions | omissions | insertions |
+|---|---|---|---|---|
+| `azure-gb-sonia` | 15,0 % | 10,5 % | 3,8 % | 0,8 % |
+| `azure-us-jenny` | 20,0 % | 13,2 % | 5,6 % | 1,2 % |
+
+Cinq points d'écart, **mais pas là où on l'attendait** : la famille rhotique bouge à peine, donc le désaccord de dialecte n'était pas le moteur principal. Ce qui baisse est le battement (39 cas côté us, absent côté gb — le britannique ne bat pas), les omissions de consonnes et le croisement voyelle/consonne. Et la confrontation montre en plus que **le lexique est incohérent avec lui-même sur la rhoticité** : `CAR = K AA0` est non-rhotique et `SHIRT = SH ER0 T` emploie un `ER` r-coloré, donc aucune voix ne peut satisfaire les deux.
+
+**Le bornage le moins contestable qu'on ait** : sur la voix britannique, où ni le battement ni la coloration américaine ne polluent, le croisement voyelle/consonne — ce qu'aucune variante de réalisation ne produit — vaut **0,4 %** des sons attendus. C'est un plafond pour ce qu'aucune variante n'explique, pas une mesure du taux de ratés.
+
+**Ce qui est établi et ne dépend pas de la référence : les erreurs ne se concentrent pas.** Médiane de 4 opérations par rendu, maximum 11, les dix pires ne portant que 11 % du total — et ce sont les phrases les plus longues. Il n'y a pas de famille de rendus cassés.
+
+**Un cas franc existe et est documenté** : sur `test-1723`, le réseau lit `m ɪ l` là où sa propre voix dit `k n oʊ`, et la prise dit `k` — la marque accuse l'apprenant d'une erreur de la machine. C'est le risque que `reference.md` nomme, pour la première fois observé et borné. Ce que ça ne dit pas : combien de marques cela produit.
+
+**La divergence d'une voix aux autres** est le seul critère extérieur à la voix : **11,5 %** des sons pour `eleven-us-sarah`, 13 % pour `azure-us-jenny`, **18 %** pour `eleven-gb-daniel` (`tmp/voices.py`). La voix modèle étant la source de vérité, son idiosyncrasie devient la norme imitée, donc un étalon devrait être une voix ordinaire. **Portée du chiffre** : il dit à quel point le réseau acoustique lit cette voix comme atypique, **pas** à quel point un humain peine à la suivre.
+
+**Et la fidélité ne se juge pas à l'étiquette.** `divergence.py` a été écrit pour faire trancher à l'oreille les endroits où deux modèles ne nomment pas le même son ; neuf des dix désaccords des rendus sont des **voyelles voisines d'un même continuum** (`ɪ`/`i`, `ə`/`ɪ`, `ɝ`/`ə`), donc deux pics posés à deux endroits d'une même pente. Or l'étiquette est précisément ce dont la conception dit qu'elle ne dépend pas. **À l'aveugle, l'oreille ne sépare pas les deux modèles** : 5 pour le sortant, 5 pour le candidat. Trois mesures accompagnent ce décompte et n'en sont pas des conséquences — **3 verdicts sur 10 ont basculé** entre deux passes de la même oreille sur le même audio ; **l'oreille a choisi la seconde ligne 8 fois sur 10**, quel que soit le modèle qui s'y trouvait, et c'est le tirage qui annule ce penchant ; et **la marge ne prédit pas le verdict**, la lecture la plus décidée l'emportant 6 fois sur 10.
+
+**Le filtre annoncé n'a rien à couper**, mesuré. L'idée était d'écarter les cas où seul le maximum a basculé alors que les deux répartitions sont quasi identiques ; sur les dix cas la Jensen-Shannon va de 0,04 à 0,94, et un seul passe sous la bande de bruit. Deux réseaux différents rendent des répartitions différentes partout, pas seulement là où l'étiquette bascule : cette distance mesure l'idiosyncrasie d'un modèle, pas le basculement. Ce que l'intuition visait est **par lecture** — une lecture qui met 0,49 sur un symbole et 0,45 sur l'autre n'en revendique aucun — et cette marge est désormais écrite dans chaque verdict.
+
+**Les rendus du modèle ne sont pas régénérables.** La synthèse n'est pas reproductible : le même texte par la même voix rend un fichier différent d'un appel à l'autre, et tout chiffre du banc bouge avec lui. Mesuré en réparant le cache — sur seize rendus de calibration, neuf n'avaient plus la durée de la matrice qu'on lisait pour eux, et quatre décodaient une autre grille ; sur les rendus refaits, `timit-ipa` voit 7 fautes sur 7 là où le jeu en enregistrait 6.
+
+## Ce que le seuil de marquage donne sur un corpus d'apprenants
+
+Mesuré avant l'abandon de SpeechOcean762 : 2 500 prises, 125 locuteurs, 13 232 mots lus, 454 prises écartées par la brique 11, voix `azure-us-jenny`, lecture `timit-ipa`. Le corpus est abandonné et ces chiffres n'auront pas de suite sur lui ; ils restent lisibles comme ils sont écrits.
+
+Part des mots marqués, par verdict du corpus :
+
+| seuil | propre | entre | fautif |
+|---|---|---|---|
+| 0,02 | 68,2 % | 83,7 % | 98,0 % |
+| 0,05 | 61,3 % | 79,3 % | 95,8 % |
+| 0,20 | 49,9 % | 71,1 % | 94,6 % |
+
+Médianes de l'écart par mot : 0,198 / 0,757 / 0,982. **Le seuil ne déplace presque rien** — un facteur dix ne fait bouger les propres que de 68,2 à 49,9 %. Sur le jeu maison, les témoins plafonnent à 2,2 points et la plus faible faute vaut 25 : le seuil s'y posait dans un vide franc. Ici le milieu est peuplé, et le seuil devient un arbitrage au lieu d'un endroit vide.
+
+**Par locuteur** : sur les 121 locuteurs à 20 mots propres ou plus, la médiane s'étale sans trou de 0,015 à 0,877 (quartiles 0,104 / 0,242 / 0,507), et le plus calme a encore 40 % de ses mots propres marqués. Pas deux populations, un continuum.
+
+**Son par son**, le mot mis de côté : la médiane d'un son de mot propre est à **0,004** — le plancher des témoins du jeu maison — contre 0,016 pour « entre » et 0,336 pour « fautif ». 32,0 % des sons des mots propres dépassent 0,05, contre 57,9 % des fautifs.
+
+**La forme dans le mot** : le plus grand écart d'un mot vaut **13,9 fois** la médiane de ses sons quand le mot est propre et **2,1 fois** quand il est fautif — un mot propre marqué est calme avec un pic, un mot fautif est haut partout. **Le maximum efface donc la forme qui distingue les deux**, ce qui était donné pour nul et ne l'est pas ; ce fait ne dépend pas du corpus et survit à son abandon. Et la part du mot couverte par la marque ne sépare pas : 50 / 50 / 60 % aux trois verdicts.
+
+**Ce que l'oreille en dit, sur dix cas.** Mots propres à pic isolé, jugés à l'écoute avec le modèle puis la prise : **9 vraies différences, 1 raté de la machine**. Un seul auditeur, dix cas, la bande la plus facile — c'est un indice, pas une mesure du taux.
+
+**Ce qui n'est pas tranché.** Le corpus note « propre » ce dont le phonème reste reconnaissable, accent toléré ; le projet a acté que l'écart d'accent est à marquer. Les deux répondent à des questions différentes, et rien ne dit quelle part des 61 % relève de l'une ou de l'autre.
 
 ## Ce qui reste à mesurer
 
