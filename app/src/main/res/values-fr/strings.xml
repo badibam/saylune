@@ -336,4 +336,5 @@
     <string name="situation_no">Non</string>
     <string name="situation_yes">Oui</string>
     <string name="situation_over_warns">Recommencer laisse derrière ce qui a été dit : on n\'y revient pas.</string>
+    <string name="display_drop_words">Retirer les marques des mots d\'un passage une fois qu\'il est passé</string>
 </resources>

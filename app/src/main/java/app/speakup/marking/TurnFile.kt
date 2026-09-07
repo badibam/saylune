@@ -12,8 +12,18 @@ import java.io.File
  * it into the APK is what makes the screen worth looking at: a new take is one push away,
  * where an asset would cost a rebuild for every sentence.
  *
- * Stress and melody arrive empty and will until bricks 7 and 8 exist, so a turn from here
- * carries phoneme marks alone.
+ * **Two writers, one shape.** `bench/turn.py` writes it from the bench's own takes, and the
+ * app writes the same fields into the file it keeps beside every turn it analysed
+ * (`conversation/Takes.kt`) -- so a turn recorded on the phone is pushed back and read here
+ * exactly like one of the bench's. What kept the two from drifting was nothing at all, which is
+ * how the app came to require a channel the phone's own files did not carry;
+ * `TurnFileTest` reads one file of each kind now, and a field that moves fails it.
+ *
+ * **The contract, and why the absent channels are not a silent fallback.** The phrase and its
+ * phoneme marks are required: a file without them is not a turn, and it says so by failing. The
+ * other four channels are **optional and absent means empty** -- a file written before a channel
+ * existed is the ordinary case here, these files being kept for months and read back by a build
+ * that has moved on, and a channel with nothing in it is exactly what it draws.
  */
 object TurnFile {
 
@@ -31,7 +41,12 @@ object TurnFile {
     fun read(context: Context): Turn? {
         val file = path(context) ?: return null
         if (!file.isFile) return null
-        val json = JSONObject(file.readText())
+        return parse(file.readText())
+    }
+
+    /** The same reading, off the text alone, so a test can hold two real files to it. */
+    fun parse(text: String): Turn {
+        val json = JSONObject(text)
 
         val phonemes = json.getJSONArray("phonemes").let { array ->
             (0 until array.length()).map { index ->
@@ -43,9 +58,9 @@ object TurnFile {
                 )
             }
         }
-        val syllables = json.getJSONArray("syllables").let { array ->
-            (0 until array.length()).map { index ->
-                val entry = array.getJSONObject(index)
+        val syllables = json.optJSONArray("syllables").let { array ->
+            (0 until (array?.length() ?: 0)).map { index ->
+                val entry = array!!.getJSONObject(index)
                 Syllable(
                     start = entry.getInt("start"),
                     end = entry.getInt("end"),
@@ -57,15 +72,15 @@ object TurnFile {
                 )
             }
         }
-        val words = json.getJSONArray("words").let { array ->
-            (0 until array.length()).map { index ->
-                val entry = array.getJSONObject(index)
+        val words = json.optJSONArray("words").let { array ->
+            (0 until (array?.length() ?: 0)).map { index ->
+                val entry = array!!.getJSONObject(index)
                 WordFault(start = entry.getInt("start"), end = entry.getInt("end"))
             }
         }
-        val added = json.getJSONArray("added").let { array ->
-            (0 until array.length()).map { index ->
-                val entry = array.getJSONObject(index)
+        val added = json.optJSONArray("added").let { array ->
+            (0 until (array?.length() ?: 0)).map { index ->
+                val entry = array!!.getJSONObject(index)
                 AddedSound(
                     symbol = entry.getString("symbol"),
                     after = entry.getInt("after"),

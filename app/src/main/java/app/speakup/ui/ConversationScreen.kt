@@ -90,6 +90,15 @@ fun ConversationScreen(
     onRepeating: (String?) -> Unit,
     /** Which marks the conversation menu has left on. */
     channels: Channels,
+    /**
+     * Whether the word marks come off a passage the words' gate has let through.
+     *
+     * **A drawing and never a measure**: the marks are stored, the note is what it was, and
+     * turning the setting off shows them again. What it settles is how long a mark stays on
+     * screen -- they are kept while the gate is holding the passage back, which is the moment
+     * they say what to change, and they go once there is nothing left to do about them.
+     */
+    dropWordMarks: Boolean,
     /** Open the summary of the passage whose last attempt is this one. */
     onNotes: (String) -> Unit,
     /** Open what went out to the model for this passage, named by the utterance that opened it. */
@@ -268,7 +277,10 @@ fun ConversationScreen(
             Said(
                 spoken = spoken,
                 speaker = shortName(turn, spoken.speaker),
-                channels = channels,
+                channels = if (
+                    dropWordMarks &&
+                    !(spoken.id == open?.opener?.id && standing == Standing.ToReword)
+                ) channels.without(Channel.Squiggle, Channel.Brackets) else channels,
                 readings = readings,
                 open = spoken.id == open?.opener?.id && retakes,
                 busy = turn.phase != Phase.Idle,
@@ -480,6 +492,7 @@ private fun Said(
                 judged,
                 channels = channels,
                 sounds = sounds.orEmpty(),
+                recorded = reading?.recorded,
                 modifier = Modifier.fillMaxWidth(),
                 // A tap anywhere in a word plays that word, on whichever side the selector
                 // points at. Its bounds are read off the sounds it covers rather than

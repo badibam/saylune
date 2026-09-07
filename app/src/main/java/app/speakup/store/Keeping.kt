@@ -71,6 +71,7 @@ internal fun Utterance.row(rank: Int) = UtteranceRow(
     text = text,
     said = said?.path,
     capture = capture,
+    recorded = recorded,
     ending = ending?.name,
     marking = marking?.let { Marks.write(it) },
     sounds = marking?.let { Marks.writeSounds(sounds) },
@@ -102,6 +103,7 @@ internal fun UtteranceRow.utterance() = Utterance(
     text = text,
     said = said?.let { File(it) }?.takeIf { it.isFile },
     capture = capture,
+    recorded = recorded,
     // By name and never by ordinal, like every other enum that travels through here.
     ending = ending?.let { Ending.valueOf(it) },
     marking = marking?.let { Marks.read(it) },

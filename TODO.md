@@ -66,8 +66,6 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 
 ### L'écran
 
-- **Le silence final ne se dessine pas** : c'est l'écart entre le dernier son et la fin de l'enregistrement, et un énoncé ne porte pas combien de temps il a été enregistré.
-- **Le neuvième réglage du menu manque** — retirer les marques des mots une fois la porte passée.
 - **La colonne de lettres du bilan n'a jamais rien montré.** La place existe et le calcul aussi — une lettre par aptitude, plus celle du passage, à la seconde taille à droite du titre — mais ce qui la remplit est les poids du mode, et Libre n'en déclare aucun. Donc la mise en page est écrite et **la seule chose qui s'en soit vue est la version vide**.
 - **La source du micro n'est plus dite nulle part.** `docs/reference.md` demande que la capture dise laquelle des deux sources elle a obtenue ; la ligne qui le disait a été retirée du fil, où elle n'avait pas sa place. Une piste : ne le dire **que dans le cas dégradé**, la source de reconnaissance faute d'une source sans traitement, dans la ligne d'état qui est l'endroit où une chose indisponible porte sa raison. Reste que cette ligne est déjà le narrateur du cycle.
 - **Trois choses du bas n'ont pas de place décidée** : le bouton qui jette une prise, les deux décomptes et le symbole d'enregistrement. Une seule question, qui se répondra pour les trois d'un coup. **Le partage en largeur des boutons** est du matériau au même titre.
@@ -77,7 +75,6 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 - **Le score et la note n'ont pas de champ** dans la ligne d'état : le score et son écran sont hors périmètre, et la note est une lettre, que la couche d'accès coupe.
 - **Les nombres de l'écran-titre sont du matériau**, posés à l'œil sur un seul téléphone, et **la raison d'une entrée éteinte s'efface au bout de quatre secondes**, un délai posé à la main.
 - **L'écran du prompt n'a jamais rendu de corps.** Le bouton `debug` de la ligne d'un passage ouvre ce qui est parti au modèle, et seul le cas vide a été vu sur le téléphone, sur une séance rouverte : la marche qui déplie les messages, ouvre le tour d'IA et bascule en brut compile sans avoir été essayée. Ça se lève en parlant une fois.
-- **Le banc et l'app ne s'accordent plus sur la forme de `turn.json`**, et personne ne le tient à jour. Un fichier que l'app ne sait plus lire ne tue plus l'app — l'écran du prototype porte la raison — mais le désaccord reste.
 
 ### La police, le thème et les palettes
 

@@ -37,6 +37,8 @@ fun DisplaySettingsScreen(
     hidden: Set<Channel>,
     /** Whether the passage's summary is pushed when the next take is sent. */
     pushed: Boolean,
+    /** Whether the word marks come off a passage the words' gate has let through. */
+    dropped: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val grid = Speakup.grid
@@ -86,8 +88,18 @@ fun DisplaySettingsScreen(
         Pick(on = pushed, says = stringResource(R.string.notes_pushed)) {
             scope.launch { store.write(Secret.NotesUnpushed, if (pushed) UNPUSHED else "") }
         }
+        // The ninth, and it is not a mark either: what it settles is how long a mark stays,
+        // never whether it was made. A passage that passes still carries its marks -- the gate
+        // reads a note and not the absence of one -- and here one says whether to keep looking
+        // at them once there is nothing left to do about them.
+        Pick(on = dropped, says = stringResource(R.string.display_drop_words)) {
+            scope.launch { store.write(Secret.MarksDropped, if (dropped) "" else DROPPED) }
+        }
     }
 }
 
 /** What the store holds when the notes are **not** pushed: the refusal, so nothing is the default. */
 const val UNPUSHED = "unpushed"
+
+/** What it holds when the word marks come off a passed passage: the wish, keeping being the default. */
+const val DROPPED = "dropped"

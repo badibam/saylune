@@ -112,6 +112,14 @@ data class UtteranceRow(
     val said: String?,
     /** Which capture position was in force. Null on anything that was not recorded. */
     val capture: String?,
+    /**
+     * How long the recording ran, in milliseconds. Null where nothing analysed it.
+     *
+     * It is what the **closing silence** is read against -- the stretch between the last sound
+     * and the end of the recording -- and it could not be recomputed from the marks, which say
+     * where each sound was and never where the tape stopped.
+     */
+    val recorded: Int?,
     /** Which clock closed the turn, or null when a hand sent it. */
     val ending: String?,
     /** The marks, as the screen shows them. Null when nothing read this. */
@@ -186,7 +194,7 @@ interface ArchiveDao {
     fun passages(learner: String = "learner"): Flow<List<PassageCount>>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 11)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 12)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -593,6 +601,21 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * How long each turn was recorded for, on its line.
+         *
+         * The closing silence -- between the last sound and the end of the recording -- could
+         * not be drawn without it, and nothing else holds it: the marks say where each sound
+         * was, never where the tape stopped. Null on every existing row, which is right: those
+         * turns were recorded before anything kept the figure, and their closing silence is
+         * simply not known.
+         */
+        private val RECORDING_LENGTH = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `utterances` ADD COLUMN `recorded` INTEGER")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
@@ -600,7 +623,7 @@ abstract class Archive : RoomDatabase() {
                 context.applicationContext, Archive::class.java, "archive",
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
                     SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH, CAST_ON_THE_LINE,
-                    NAMED_BY_ITS_DEFINITION, FIGURES_ON_THE_LINE)
+                    NAMED_BY_ITS_DEFINITION, FIGURES_ON_THE_LINE, RECORDING_LENGTH)
                 .build().also { instance = it }
         }
     }

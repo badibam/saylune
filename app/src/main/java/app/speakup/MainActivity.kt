@@ -54,6 +54,7 @@ import app.speakup.ui.PromptScreen
 import app.speakup.ui.Glyphs
 import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.DisplaySettingsScreen
+import app.speakup.ui.DROPPED
 import app.speakup.ui.UNPUSHED
 import app.speakup.ui.PassageNotes
 import app.speakup.ui.Scaffold
@@ -211,6 +212,9 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
     // and never a lever: an activity may take an aid away, none hides a mark.
     val hidden = remember(stored) { Channel.hidden(stored[Secret.HiddenMarks]) }
     val channels = remember(hidden) { Channels(hidden) }
+    // The ninth setting of the display menu: it says how long a word mark stays, never
+    // whether it was made.
+    val dropped = stored[Secret.MarksDropped] == DROPPED
     // **Pushed by default**, because a passage's note is ready exactly when the wait begins and
     // filling those seconds beats watching them go by. Stored as the refusal, so nothing stored
     // is pushed.
@@ -333,6 +337,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     repeating = repeating,
                     onRepeating = { repeating = it },
                     channels = channels,
+                    dropWordMarks = dropped,
                     onNotes = { notesOf = it; stack.add(Screen.Notes) },
                     // **The other of the two doors**: the same screen, pushed rather than
                     // asked for. It falls when the next take is sent -- the note is final at
@@ -394,7 +399,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                 status = stringResource(R.string.display_lead),
                 actions = listOf(back),
             ) {
-                DisplaySettingsScreen(store, hidden, pushed, modifier = Modifier.fillMaxSize())
+                DisplaySettingsScreen(store, hidden, pushed, dropped, Modifier.fillMaxSize())
             }
 
             Screen.Preferences -> Scaffold(

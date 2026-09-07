@@ -167,6 +167,15 @@ data class Utterance(
     val marking: TurnMarking? = null,
     val sounds: List<AnalysedSound> = emptyList(),
     /**
+     * How long the recording ran, in milliseconds. Null where nothing analysed it.
+     *
+     * **It comes from the analysis pass and not from the file**, so it is on the same clock as
+     * the sounds' own times: what it is read for is the stretch between the last sound and the
+     * end of the recording, and a duration measured elsewhere would make that stretch a
+     * subtraction between two clocks.
+     */
+    val recorded: Int? = null,
+    /**
      * What this attempt made of each sheet, by path. Empty where nothing measured it.
      *
      * **Kept rather than recomputed**, which is the project's own criterion: one stores what
@@ -1015,7 +1024,7 @@ class TurnPipeline(
             val analysed = analysis.examine(said, model, text, kept)
             update(of) {
                 it.copy(marking = analysed.marking, sounds = analysed.sounds, model = model,
-                        engine = readiness.version)
+                        recorded = analysed.recorded, engine = readiness.version)
             }
             write(of)
             soundGate(of, analysed, stumbling)
@@ -1311,6 +1320,7 @@ class TurnPipeline(
                 ending = ending,
                 marking = analysed.marking,
                 sounds = analysed.sounds,
+                recorded = analysed.recorded,
                 take = stamp,
                 engine = (_state.value.analysis as? Readiness.On)?.version,
                 repeats = spoken.id,

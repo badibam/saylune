@@ -72,13 +72,15 @@ C'est l'écran le plus dense de l'app et le seul dont chaque pixel porte une mes
 
 **Aucune couleur sur les points de pause.** Ce qui fait qu'une pause est trop longue dépend du réglage, et aucun réglage ne touche une marque. Teinter *le plus long* serait pire : la même pause de 2 s serait teintée dans un tour calme et grise dans un tour où traîne un blanc de 3 s, donc la même faute ne produirait plus la même marque. Et ce sont des **points médians** : trois points bas veulent dire *du texte a été retiré*, ce que disent déjà les crochets gris du remplissage.
 
+**Le silence de fin est une pause comme les autres**, au même titre que celui du début : c'est l'écart entre le dernier son et la fin de l'enregistrement, compté aux mêmes crans et posé dans le blanc qui suit le dernier mot. Rendre la parole est un acte, et le tarder est une chose vraie du tour — ce que les feuilles de fluidité comptent déjà aux deux bords. Il se lit contre la durée d'enregistrement, que la passe d'analyse rend sur la même horloge que les sons et que l'énoncé garde depuis le 2026-09-07 ; un tour enregistré avant n'en a pas, et il n'a alors pas de pause finale plutôt qu'une pause de rien.
+
 **Une pause tient dans le blanc qui existe déjà**, jamais dans une colonne de plus : la courbe de mélodie est ancrée aux caractères et ne doit pas être décalée. À une frontière de groupe, la colonne laisse les deux bras des crochets tenir dans le même blanc, donc leur écart horizontal est fixé au pixel et n'est pas un réglage.
 
 **Un groupe porte son identité, pas son étiquette.** Deux groupes voisins peuvent mériter la même étiquette sans être le même groupe, et un groupe coupé par un retour à la ligne **ouvre d'un côté et ferme de l'autre**, au lieu de se dédoubler en deux enceintes complètes.
 
 **Les marques n'arrivent pas d'un coup, et ce n'est pas un choix** : les marquages jugés tombent au retour de l'appel, les marques du son à la fin de l'analyse, deux à trois secondes plus tard. La révélation est donc canal par canal par construction — et ça tombe bien, les jugées étant à l'écran avant que l'IA parle.
 
-**Les marques des mots restent une fois la porte des mots passée, et c'est le défaut.** Un passage qui passe porte quand même des marques, la porte lisant une note et non l'absence de marque. La ligne devient dense quand les marques du son arrivent par-dessus, et c'est le prix accepté — un `plat` sur un passage qui passe reste une chose vraie qu'on a le droit de voir. Les retirer est une préférence d'affichage, jamais de mesure.
+**Les marques des mots restent une fois la porte des mots passée, et c'est le défaut** — le neuvième réglage du menu d'affichage les retire pour qui les veut hors de vue, et il ne les retire que là : elles restent tant que la porte retient le passage, qui est le moment où elles disent quoi changer. Un passage qui passe porte quand même des marques, la porte lisant une note et non l'absence de marque. La ligne devient dense quand les marques du son arrivent par-dessus, et c'est le prix accepté — un `plat` sur un passage qui passe reste une chose vraie qu'on a le droit de voir. Les retirer est une préférence d'affichage, jamais de mesure.
 
 ## La porte « Libre » : des tuiles, une par thème
 

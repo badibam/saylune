@@ -62,6 +62,16 @@ enum class Channel(val key: String, @param:StringRes val says: Int) {
 value class Channels(private val hidden: Set<Channel>) {
     operator fun contains(channel: Channel): Boolean = channel !in hidden
 
+    /**
+     * The same set with [channel] taken out for this turn alone.
+     *
+     * **A drawing and never a measure**: what this serves is the learner's ninth setting, which
+     * takes the word marks off a passage the words' gate has let through. Nothing of the turn
+     * changes -- the marks are stored, the note is what it was, and turning the setting off
+     * shows them again.
+     */
+    fun without(vararg channel: Channel): Channels = Channels(hidden + channel)
+
     companion object {
         /** Every mark, which is what the app shows until the learner says otherwise. */
         val All = Channels(emptySet())

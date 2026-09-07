@@ -70,6 +70,8 @@ fun MarkedTurn(
     channels: Channels = Channels.All,
     /** Where each sound was said, which is what the pauses are read off. */
     sounds: List<AnalysedSound> = emptyList(),
+    /** How long the recording ran, which is what the closing silence is measured against. */
+    recorded: Int? = null,
     modifier: Modifier = Modifier,
     onTapCharacter: ((Int) -> Unit)? = null,
 ) {
@@ -85,7 +87,9 @@ fun MarkedTurn(
         val cell = grid.painted(Grid.CELL).toInt()
         val columns = (widthPx / cell).coerceAtLeast(1)
 
-        val pauses = remember(marking, sounds) { pausesOf(marking.text, sounds) }
+        val pauses = remember(marking, sounds, recorded) {
+            pausesOf(marking.text, sounds, recorded)
+        }
         val laid = remember(marking, judged, columns) {
             val stumbling = judged?.words()?.stumbling ?: kept(marking.text)
             wrap(tokensOf(marking.text, stumbling), columns)
@@ -547,6 +551,10 @@ private fun DrawScope.points(
             if (pause.after < 0) (line.firstOrNull()?.column ?: return@forEach) - 1
             else columnOf(line, pause.after)?.plus(1) ?: return@forEach
         if (column < 0) return@forEach
+        // The blank a pause sits in has to exist: a turn whose last word ends the line has no
+        // column after it, and the closing silence makes that the ordinary case rather than a
+        // corner one. Painted anyway, it would be a half point at the edge of the canvas.
+        if ((column + 1) * Grid.CELL * scale > size.width) return@forEach
         AT[pause.notches - 1].forEach { row ->
             drawRect(
                 colors.ink,

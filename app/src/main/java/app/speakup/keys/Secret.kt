@@ -99,6 +99,16 @@ enum class Secret(
      * has never opened the setting.
      */
     NotesUnpushed("view.notes.unpushed", R.string.notes_pushed, masked = false),
+
+    /**
+     * Whether the word marks come off a passage the words' gate has let through.
+     *
+     * Stored as the wish and not as the refusal, unlike its two neighbours: **keeping them is
+     * the default** (`ui.md`) -- a passage that passes still carries marks, the gate reading
+     * a note and not the absence of one -- so nothing stored has to mean *kept*, and the
+     * learner who wants the line quieter once he can no longer act on it says so.
+     */
+    MarksDropped("view.marks.dropped", R.string.display_drop_words, masked = false),
     SynthesisProvider("task.tts.provider", R.string.task_synthesis, masked = false),
     SynthesisModel("task.tts.model", R.string.setting_model, masked = false),
 

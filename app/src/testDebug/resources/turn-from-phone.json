@@ -1,0 +1,1088 @@
+{
+  "at": "20260830-150528",
+  "turn": "20260830-150519",
+  "attempt": 2,
+  "text": "I'm trying to learn English.",
+  "heard": "",
+  "faulty": false,
+  "analysed": true,
+  "redo": true,
+  "phonemes": [
+    {
+      "start": 4,
+      "end": 5,
+      "points": 0.3869369
+    },
+    {
+      "start": 5,
+      "end": 6,
+      "points": 0.021947924
+    },
+    {
+      "start": 6,
+      "end": 8,
+      "points": 0.12534708
+    },
+    {
+      "start": 8,
+      "end": 10,
+      "points": 0.58209306
+    },
+    {
+      "start": 11,
+      "end": 12,
+      "points": 0.09075646
+    },
+    {
+      "start": 12,
+      "end": 13,
+      "points": 74.530685
+    },
+    {
+      "start": 14,
+      "end": 16,
+      "points": 0.069363445
+    },
+    {
+      "start": 16,
+      "end": 18,
+      "points": 26.213764
+    },
+    {
+      "start": 18,
+      "end": 19,
+      "points": 0.031525914
+    },
+    {
+      "start": 20,
+      "end": 21,
+      "points": 0.117165156
+    },
+    {
+      "start": 21,
+      "end": 22,
+      "points": 0.14167692
+    },
+    {
+      "start": 22,
+      "end": 23,
+      "points": 0.057823822
+    },
+    {
+      "start": 23,
+      "end": 24,
+      "points": 0.58286583
+    },
+    {
+      "start": 24,
+      "end": 25,
+      "points": 3.3372946
+    },
+    {
+      "start": 25,
+      "end": 27,
+      "points": 0.0024200538
+    }
+  ],
+  "gutters": [
+    {
+      "symbol": "ɑ",
+      "after": -1,
+      "points": 32.002407
+    },
+    {
+      "symbol": "n",
+      "after": -1,
+      "points": 0.021541622
+    }
+  ],
+  "words": [],
+  "added": [
+    {
+      "symbol": "n",
+      "after": 2,
+      "afterSound": -1
+    }
+  ],
+  "freely": [
+    {
+      "symbol": "ə",
+      "at": [
+        282,
+        303
+      ]
+    },
+    {
+      "symbol": "n",
+      "at": [
+        323,
+        363
+      ]
+    },
+    {
+      "symbol": "t",
+      "at": [
+        505,
+        525
+      ]
+    },
+    {
+      "symbol": "ɹ",
+      "at": [
+        585,
+        626
+      ]
+    },
+    {
+      "symbol": "aɪ",
+      "at": [
+        747,
+        767
+      ]
+    },
+    {
+      "symbol": "i",
+      "at": [
+        868,
+        888
+      ]
+    },
+    {
+      "symbol": "ŋ",
+      "at": [
+        909,
+        929
+      ]
+    },
+    {
+      "symbol": "t",
+      "at": [
+        1070,
+        1090
+      ]
+    },
+    {
+      "symbol": "ʊ",
+      "at": [
+        1252,
+        1272
+      ]
+    },
+    {
+      "symbol": "l",
+      "at": [
+        1313,
+        1353
+      ]
+    },
+    {
+      "symbol": "ɝ",
+      "at": [
+        1414,
+        1434
+      ]
+    },
+    {
+      "symbol": "n",
+      "at": [
+        1474,
+        1515
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "at": [
+        1656,
+        1676
+      ]
+    },
+    {
+      "symbol": "ŋ",
+      "at": [
+        1676,
+        1696
+      ]
+    },
+    {
+      "symbol": "g",
+      "at": [
+        1717,
+        1737
+      ]
+    },
+    {
+      "symbol": "l",
+      "at": [
+        1777,
+        1797
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "at": [
+        1838,
+        1858
+      ]
+    },
+    {
+      "symbol": "ʃ",
+      "at": [
+        1939,
+        1959
+      ]
+    }
+  ],
+  "dropped": 0,
+  "sounds": [
+    {
+      "symbol": "ɑ",
+      "points": 32.002407,
+      "letters": "",
+      "borrowed": false,
+      "modelMs": [
+        121,
+        161
+      ],
+      "saidMs": [
+        282,
+        323
+      ],
+      "model": [
+        {
+          "symbol": "ɑ",
+          "part": 0.52008426
+        },
+        {
+          "symbol": "ə",
+          "part": 0.45801014
+        },
+        {
+          "symbol": "aɪ",
+          "part": 0.0064030197
+        },
+        {
+          "symbol": "ɝ",
+          "part": 0.0019642764
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ə",
+          "part": 0.88338447
+        },
+        {
+          "symbol": "ɛ",
+          "part": 0.042937644
+        },
+        {
+          "symbol": "ɪ",
+          "part": 0.04277842
+        },
+        {
+          "symbol": "ɑ",
+          "part": 0.008468197
+        }
+      ]
+    },
+    {
+      "symbol": "n",
+      "points": 0.021541622,
+      "letters": "",
+      "borrowed": false,
+      "modelMs": [
+        141,
+        202
+      ],
+      "saidMs": [
+        303,
+        444
+      ],
+      "model": [
+        {
+          "symbol": "n",
+          "part": 0.9972781
+        },
+        {
+          "symbol": "m",
+          "part": 0.001121419
+        },
+        {
+          "symbol": "ŋ",
+          "part": 0.00044268317
+        },
+        {
+          "symbol": "ɹ",
+          "part": 8.949189e-05
+        }
+      ],
+      "said": [
+        {
+          "symbol": "n",
+          "part": 0.9967011
+        },
+        {
+          "symbol": "ŋ",
+          "part": 0.00055450195
+        },
+        {
+          "symbol": "m",
+          "part": 0.0005533144
+        },
+        {
+          "symbol": "ɪ",
+          "part": 0.00024014953
+        }
+      ]
+    },
+    {
+      "symbol": "t",
+      "points": 0.3869369,
+      "letters": "t",
+      "borrowed": false,
+      "modelMs": [
+        202,
+        262
+      ],
+      "saidMs": [
+        424,
+        565
+      ],
+      "model": [
+        {
+          "symbol": "t",
+          "part": 0.9927942
+        },
+        {
+          "symbol": "d",
+          "part": 0.0034386634
+        },
+        {
+          "symbol": "ʧ",
+          "part": 0.0010920913
+        },
+        {
+          "symbol": "p",
+          "part": 0.00032795078
+        }
+      ],
+      "said": [
+        {
+          "symbol": "t",
+          "part": 0.97789425
+        },
+        {
+          "symbol": "d",
+          "part": 0.016385442
+        },
+        {
+          "symbol": "p",
+          "part": 0.0015108059
+        },
+        {
+          "symbol": "k",
+          "part": 0.00069507374
+        }
+      ]
+    },
+    {
+      "symbol": "ɹ",
+      "points": 0.021947924,
+      "letters": "r",
+      "borrowed": false,
+      "modelMs": [
+        262,
+        343
+      ],
+      "saidMs": [
+        545,
+        686
+      ],
+      "model": [
+        {
+          "symbol": "ɹ",
+          "part": 0.9984322
+        },
+        {
+          "symbol": "ɝ",
+          "part": 0.0003012419
+        },
+        {
+          "symbol": "ɑ",
+          "part": 0.00014392678
+        },
+        {
+          "symbol": "w",
+          "part": 0.00010481536
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ɹ",
+          "part": 0.99709034
+        },
+        {
+          "symbol": "ɑ",
+          "part": 0.00039605022
+        },
+        {
+          "symbol": "ɝ",
+          "part": 0.0003392445
+        },
+        {
+          "symbol": "l",
+          "part": 0.00021976883
+        }
+      ]
+    },
+    {
+      "symbol": "aɪ",
+      "points": 0.12534708,
+      "letters": "yi",
+      "borrowed": false,
+      "modelMs": [
+        343,
+        424
+      ],
+      "saidMs": [
+        686,
+        848
+      ],
+      "model": [
+        {
+          "symbol": "aɪ",
+          "part": 0.99097514
+        },
+        {
+          "symbol": "ɑ",
+          "part": 0.0046024583
+        },
+        {
+          "symbol": "ɔɪ",
+          "part": 0.00069155975
+        },
+        {
+          "symbol": "ə",
+          "part": 0.00032995347
+        }
+      ],
+      "said": [
+        {
+          "symbol": "aɪ",
+          "part": 0.99311435
+        },
+        {
+          "symbol": "eɪ",
+          "part": 0.0014846076
+        },
+        {
+          "symbol": "ɑ",
+          "part": 0.001244308
+        },
+        {
+          "symbol": "ɔɪ",
+          "part": 0.0007038307
+        }
+      ]
+    },
+    {
+      "symbol": "ŋ",
+      "points": 0.58209306,
+      "letters": "ng",
+      "borrowed": false,
+      "modelMs": [
+        404,
+        505
+      ],
+      "saidMs": [
+        828,
+        1010
+      ],
+      "model": [
+        {
+          "symbol": "ŋ",
+          "part": 0.9550786
+        },
+        {
+          "symbol": "n",
+          "part": 0.027540362
+        },
+        {
+          "symbol": "ɪ",
+          "part": 0.004821545
+        },
+        {
+          "symbol": "i",
+          "part": 0.0027000103
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ŋ",
+          "part": 0.9822252
+        },
+        {
+          "symbol": "n",
+          "part": 0.012131152
+        },
+        {
+          "symbol": "m",
+          "part": 0.0013607095
+        },
+        {
+          "symbol": "i",
+          "part": 0.00040518682
+        }
+      ]
+    },
+    {
+      "symbol": "t",
+      "points": 0.09075646,
+      "letters": "t",
+      "borrowed": false,
+      "modelMs": [
+        505,
+        565
+      ],
+      "saidMs": [
+        989,
+        1171
+      ],
+      "model": [
+        {
+          "symbol": "t",
+          "part": 0.99532044
+        },
+        {
+          "symbol": "d",
+          "part": 0.0011001017
+        },
+        {
+          "symbol": "ʧ",
+          "part": 0.00058833463
+        },
+        {
+          "symbol": "k",
+          "part": 0.00044221885
+        }
+      ],
+      "said": [
+        {
+          "symbol": "t",
+          "part": 0.99314857
+        },
+        {
+          "symbol": "ʧ",
+          "part": 0.003326894
+        },
+        {
+          "symbol": "d",
+          "part": 0.0006148565
+        },
+        {
+          "symbol": "p",
+          "part": 0.0002926652
+        }
+      ]
+    },
+    {
+      "symbol": "ə",
+      "points": 74.530685,
+      "letters": "o",
+      "borrowed": false,
+      "modelMs": [
+        565,
+        626
+      ],
+      "saidMs": [
+        1171,
+        1292
+      ],
+      "model": [
+        {
+          "symbol": "ə",
+          "part": 0.8423942
+        },
+        {
+          "symbol": "ɪ",
+          "part": 0.13404162
+        },
+        {
+          "symbol": "ʊ",
+          "part": 0.016861787
+        },
+        {
+          "symbol": "ɛ",
+          "part": 0.0009254797
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ʊ",
+          "part": 0.7296595
+        },
+        {
+          "symbol": "u",
+          "part": 0.16987027
+        },
+        {
+          "symbol": "ə",
+          "part": 0.042738833
+        },
+        {
+          "symbol": "ɪ",
+          "part": 0.033077545
+        }
+      ]
+    },
+    {
+      "symbol": "l",
+      "points": 0.069363445,
+      "letters": "le",
+      "borrowed": false,
+      "modelMs": [
+        606,
+        707
+      ],
+      "saidMs": [
+        1292,
+        1393
+      ],
+      "model": [
+        {
+          "symbol": "l",
+          "part": 0.9989787
+        },
+        {
+          "symbol": "ə",
+          "part": 8.2704755e-05
+        },
+        {
+          "symbol": "oʊ",
+          "part": 7.338311e-05
+        },
+        {
+          "symbol": "w",
+          "part": 5.6950168e-05
+        }
+      ],
+      "said": [
+        {
+          "symbol": "l",
+          "part": 0.99622583
+        },
+        {
+          "symbol": "ɾ",
+          "part": 0.00039496858
+        },
+        {
+          "symbol": "ɹ",
+          "part": 0.0003321335
+        },
+        {
+          "symbol": "oʊ",
+          "part": 0.0002591608
+        }
+      ]
+    },
+    {
+      "symbol": "ɝ",
+      "points": 26.213764,
+      "letters": "ar",
+      "borrowed": false,
+      "modelMs": [
+        707,
+        808
+      ],
+      "saidMs": [
+        1373,
+        1454
+      ],
+      "model": [
+        {
+          "symbol": "ɝ",
+          "part": 0.7455108
+        },
+        {
+          "symbol": "ʊ",
+          "part": 0.12264138
+        },
+        {
+          "symbol": "ə",
+          "part": 0.0486821
+        },
+        {
+          "symbol": "ɛ",
+          "part": 0.018738193
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ɝ",
+          "part": 0.48861462
+        },
+        {
+          "symbol": "ɑ",
+          "part": 0.45618075
+        },
+        {
+          "symbol": "ə",
+          "part": 0.025922935
+        },
+        {
+          "symbol": "ʊ",
+          "part": 0.0078086425
+        }
+      ]
+    },
+    {
+      "symbol": "n",
+      "points": 0.031525914,
+      "letters": "n",
+      "borrowed": false,
+      "modelMs": [
+        787,
+        929
+      ],
+      "saidMs": [
+        1454,
+        1595
+      ],
+      "model": [
+        {
+          "symbol": "n",
+          "part": 0.9974355
+        },
+        {
+          "symbol": "ŋ",
+          "part": 0.0010179062
+        },
+        {
+          "symbol": "m",
+          "part": 0.0002623823
+        },
+        {
+          "symbol": "ɾ",
+          "part": 8.695016e-05
+        }
+      ],
+      "said": [
+        {
+          "symbol": "n",
+          "part": 0.9969348
+        },
+        {
+          "symbol": "ŋ",
+          "part": 0.00042745206
+        },
+        {
+          "symbol": "m",
+          "part": 0.0003586456
+        },
+        {
+          "symbol": "ɪ",
+          "part": 0.00034108985
+        }
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "points": 0.117165156,
+      "letters": "E",
+      "borrowed": false,
+      "modelMs": [
+        909,
+        1030
+      ],
+      "saidMs": [
+        1575,
+        1676
+      ],
+      "model": [
+        {
+          "symbol": "ɪ",
+          "part": 0.70426226
+        },
+        {
+          "symbol": "i",
+          "part": 0.2893436
+        },
+        {
+          "symbol": "ə",
+          "part": 0.0013237479
+        },
+        {
+          "symbol": "ɛ",
+          "part": 0.0012167927
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ɪ",
+          "part": 0.724275
+        },
+        {
+          "symbol": "i",
+          "part": 0.26652455
+        },
+        {
+          "symbol": "ə",
+          "part": 0.0037486195
+        },
+        {
+          "symbol": "u",
+          "part": 0.0008272031
+        }
+      ]
+    },
+    {
+      "symbol": "ŋ",
+      "points": 0.14167692,
+      "letters": "n",
+      "borrowed": false,
+      "modelMs": [
+        1030,
+        1090
+      ],
+      "saidMs": [
+        1676,
+        1717
+      ],
+      "model": [
+        {
+          "symbol": "ŋ",
+          "part": 0.9811587
+        },
+        {
+          "symbol": "n",
+          "part": 0.012758141
+        },
+        {
+          "symbol": "m",
+          "part": 0.000752539
+        },
+        {
+          "symbol": "ɔɪ",
+          "part": 0.0003073535
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ŋ",
+          "part": 0.97048354
+        },
+        {
+          "symbol": "n",
+          "part": 0.024189372
+        },
+        {
+          "symbol": "m",
+          "part": 0.0010857757
+        },
+        {
+          "symbol": "s",
+          "part": 0.00021222106
+        }
+      ]
+    },
+    {
+      "symbol": "g",
+      "points": 0.057823822,
+      "letters": "g",
+      "borrowed": false,
+      "modelMs": [
+        1090,
+        1151
+      ],
+      "saidMs": [
+        1696,
+        1757
+      ],
+      "model": [
+        {
+          "symbol": "g",
+          "part": 0.9946354
+        },
+        {
+          "symbol": "b",
+          "part": 0.00080359273
+        },
+        {
+          "symbol": "k",
+          "part": 0.00072978303
+        },
+        {
+          "symbol": "l",
+          "part": 0.00038554744
+        }
+      ],
+      "said": [
+        {
+          "symbol": "g",
+          "part": 0.9905959
+        },
+        {
+          "symbol": "k",
+          "part": 0.0014098695
+        },
+        {
+          "symbol": "b",
+          "part": 0.0006739691
+        },
+        {
+          "symbol": "l",
+          "part": 0.0006162615
+        }
+      ]
+    },
+    {
+      "symbol": "l",
+      "points": 0.58286583,
+      "letters": "l",
+      "borrowed": false,
+      "modelMs": [
+        1151,
+        1232
+      ],
+      "saidMs": [
+        1757,
+        1818
+      ],
+      "model": [
+        {
+          "symbol": "l",
+          "part": 0.98482347
+        },
+        {
+          "symbol": "w",
+          "part": 0.011675972
+        },
+        {
+          "symbol": "ɔɪ",
+          "part": 0.0005104402
+        },
+        {
+          "symbol": "ɹ",
+          "part": 0.00039917557
+        }
+      ],
+      "said": [
+        {
+          "symbol": "l",
+          "part": 0.99757403
+        },
+        {
+          "symbol": "ɾ",
+          "part": 0.00030641552
+        },
+        {
+          "symbol": "ɹ",
+          "part": 0.00030102243
+        },
+        {
+          "symbol": "ɔɪ",
+          "part": 0.00015373826
+        }
+      ]
+    },
+    {
+      "symbol": "ɪ",
+      "points": 3.3372946,
+      "letters": "i",
+      "borrowed": false,
+      "modelMs": [
+        1232,
+        1373
+      ],
+      "saidMs": [
+        1818,
+        1898
+      ],
+      "model": [
+        {
+          "symbol": "ɪ",
+          "part": 0.8236564
+        },
+        {
+          "symbol": "i",
+          "part": 0.169545
+        },
+        {
+          "symbol": "ə",
+          "part": 0.0018950537
+        },
+        {
+          "symbol": "ɛ",
+          "part": 0.0011959946
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ɪ",
+          "part": 0.95396596
+        },
+        {
+          "symbol": "i",
+          "part": 0.04221672
+        },
+        {
+          "symbol": "ə",
+          "part": 0.00097163004
+        },
+        {
+          "symbol": "ɛ",
+          "part": 0.0007696477
+        }
+      ]
+    },
+    {
+      "symbol": "ʃ",
+      "points": 0.0024200538,
+      "letters": "sh",
+      "borrowed": false,
+      "modelMs": [
+        1353,
+        1454
+      ],
+      "saidMs": [
+        1898,
+        1959
+      ],
+      "model": [
+        {
+          "symbol": "ʃ",
+          "part": 0.99603194
+        },
+        {
+          "symbol": "s",
+          "part": 0.0009402595
+        },
+        {
+          "symbol": "ʧ",
+          "part": 0.0004976781
+        },
+        {
+          "symbol": "z",
+          "part": 0.0002498709
+        }
+      ],
+      "said": [
+        {
+          "symbol": "ʃ",
+          "part": 0.9961958
+        },
+        {
+          "symbol": "s",
+          "part": 0.0008519357
+        },
+        {
+          "symbol": "ʧ",
+          "part": 0.00042796653
+        },
+        {
+          "symbol": "ʤ",
+          "part": 0.00025751034
+        }
+      ]
+    }
+  ]
+}

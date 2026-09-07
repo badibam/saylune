@@ -333,4 +333,5 @@
     <string name="situation_no">No</string>
     <string name="situation_yes">Yes</string>
     <string name="situation_over_warns">Starting over leaves what you have said behind: there is no way back to it.</string>
+    <string name="display_drop_words">Take the word marks off a passage once it has gone through</string>
 </resources>

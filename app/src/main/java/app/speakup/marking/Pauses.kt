@@ -25,11 +25,15 @@ data class Pause(val after: Int, val notches: Int)
  * five-second one, which is the whole trade of the longest silence. Past three points the image
  * saturates, the same renunciation the ramp makes and at the same place.
  *
- * **The closing silence is not here**, and that is a gap and not a decision: it is the stretch
- * between the last sound and the end of the recording, and an utterance does not carry how long
- * it was recorded for (`../../../../../../TODO.md`).
+ * **The closing silence is one of them**, on the same footing as the opening one: it is the
+ * stretch between the last sound and the end of the recording, and it is counted in the same
+ * notches. What it says is a real thing about a turn -- handing the floor back is an act, and
+ * being slow to do it is what the fluency sheets already count at both edges (`Fluency`). It
+ * needs [recorded], which the analysis pass reads on the same clock as the sounds; a turn
+ * recorded before that figure was kept has none, and then the turn simply has no closing pause
+ * rather than one of nothing.
  */
-fun pausesOf(text: String, sounds: List<AnalysedSound>): List<Pause> {
+fun pausesOf(text: String, sounds: List<AnalysedSound>, recorded: Int? = null): List<Pause> {
     if (sounds.isEmpty()) return emptyList()
     val spoken = app.speakup.judged.words(text).mapNotNull { word ->
         val inside = sounds.filter { sound -> sound.at.any { it in word } }
@@ -43,6 +47,11 @@ fun pausesOf(text: String, sounds: List<AnalysedSound>): List<Pause> {
         val silence = after.second.first - before.second.last
         notchesOf(silence).takeIf { it > 0 }
             ?.let { out += Pause(before.first.last, it) }
+    }
+    recorded?.let { end ->
+        val last = spoken.last()
+        notchesOf(end - last.second.last).takeIf { it > 0 }
+            ?.let { out += Pause(last.first.last, it) }
     }
     return out
 }
