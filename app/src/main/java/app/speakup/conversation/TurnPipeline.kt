@@ -825,6 +825,15 @@ class TurnPipeline(
                     "in cause" to (closing as? Closing.Aptitudes)?.names?.joinToString(),
                     "said" to reply.judged.intended,
                 )
+                // **And it is read all the same, on the one channel it has.** The sound
+                // analysis does not run, but what the judge marked is exactly what has to be
+                // seen -- it is the reason the passage is being sent back, and a turn shown
+                // as plain text leaves the learner told to say it differently with nothing on
+                // screen saying what was wrong. So a marking with the text and no sound in
+                // it, which is the truth about this turn; and it is what makes the passage's
+                // row of commands appear, a reading being what the run is walked for.
+                update(said.id) { it.copy(marking = TurnMarking.wordsOnly(reply.judged.intended)) }
+                write(said.id)
                 // Kept even so, and especially so: a turn like this is a real learner fault
                 // the recognition could not have guessed, which is what the fidelity bench
                 // is short of.

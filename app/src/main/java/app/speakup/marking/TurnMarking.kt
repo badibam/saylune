@@ -33,6 +33,26 @@ data class TurnMarking(
     /** False across a syllable whose pitch the harmonic-lock filter threw away. */
     fun learnerPitchKnownAt(offset: Int): Boolean =
         syllables.none { offset in it.start until it.end && it.learnerPitch == null }
+
+    companion object {
+        /**
+         * A turn read on the word channel alone: its text, and nothing measured on the sound.
+         *
+         * **This is what a refused turn carries.** The sound analysis does not run on a phrase
+         * about to be reworded, or on one holding a word that does not exist -- but the turn
+         * was read, by the judge, and what the judge marked is the reason it is being sent
+         * back. Empty lists here are the truth about it and not a placeholder: nothing
+         * measured the sounds, so there is nothing to draw on them.
+         */
+        fun wordsOnly(text: String) = TurnMarking(
+            text = text,
+            syllables = emptyList(),
+            phonemes = emptyList(),
+            words = emptyList(),
+            added = emptyList(),
+            gutters = emptyList(),
+        )
+    }
 }
 
 /**
