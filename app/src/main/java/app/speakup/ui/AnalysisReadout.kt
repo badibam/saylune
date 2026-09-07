@@ -1,75 +1,106 @@
 package app.speakup.ui
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import app.speakup.R
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Share
 import app.speakup.conversation.Side
 import app.speakup.marking.AddedSound
 import app.speakup.marking.readoutRows
-import java.util.Locale
+import app.speakup.ui.theme.Speakup
+import kotlin.math.roundToInt
 
 /**
- * What the analysis found, sound by sound, laid out rather than written out.
+ * What the analysis found, **one sound per line**, so the phrase reads down the column.
  *
- * The first shape of this was a monospace block, and it wrapped: a table wide enough to be
- * complete is wider than a phone, and no choice of column widths makes that safe. Laid out,
- * the two halves are each a weight of the row, so they face each other whatever the width --
- * which is the whole point, since what has to be compared is two spreads side by side.
+ * Every character of the turn is here, sound or no sound. A letter no sound carries -- a silent
+ * one, a space, punctuation -- gets a line of its own with a dash where the verdict would be.
+ * Without them this is a list of sounds and not a sentence, and there is no way to tell where
+ * in the phrase a line sits. A sound the learner **added** gets a line too, in its place, with a
+ * dash on the model's side: there was nothing there to compare it to, which is exactly what it
+ * says. No points and no bar on that line -- an insertion has no model side, so it has no
+ * degree, and inventing one would put it on a scale it does not belong to.
  *
- * Every character of the turn is here, sound or no sound. A letter no sound carries -- a
- * silent one, a space, punctuation -- gets a line of its own with a dash where the verdict
- * would be. Without them this is a list of sounds and not a sentence, and there is no way to
- * tell where in the phrase a line sits; with them the phrase reads down the column.
+ * **The row has one target and one only: opening.** It carried three -- hear the model, hear
+ * oneself, unfold -- and three buttons inside the eleven pixels of a line are missed. **The two
+ * listenings go down into the open block**, where the room exists. What is lost is a gesture,
+ * two presses instead of one to hear a sound; what is kept is the point of the screen, since at
+ * three lines a sound one sees ten of them and the phrase disappears. By the time one wants to
+ * listen, one has stopped on a line anyway.
  *
- * A sound the learner **added** gets a line too, in its place, with a dash on the model's
- * side: there was nothing there to compare it to, which is exactly what it says. No points
- * and no bar on that line -- an insertion has no model side, so it has no degree.
+ * **The block opens in the list and is never a pop-up.** One row open at a time: tapping it
+ * again closes it, tapping elsewhere moves the opening, so there is no dismissing gesture to
+ * invent and nothing covers the phrase one is reading. **And the list scrolls the opened row to
+ * the top** -- otherwise twenty lines unfold under a row near the bottom and nobody sees them.
  *
- * No times here. They are in logcat, where width costs nothing, together with the widened
- * durations that are how a degenerate alignment gives itself away.
+ * **Two natures of listening live in the block, and the frame separates them.** Framed, `MODEL`
+ * and `YOU` play **this recording**, at this place in the phrase, and the whole button is the
+ * target rather than the arrow alone. Bare, the symbols of the two spreads play the **reference
+ * sound**, recorded once and for all: what that sound *is*, not what was made of it here.
+ * Without the visible difference one believes that touching `d` replays his own `d`. The frame
+ * passes the rule that governs it, too -- one can say what one does with it: press, and it
+ * plays.
+ *
+ * **The three listening gestures of the app do not overlap**: touching a word of the marked turn
+ * plays that word, the row of commands plays the whole phrase, and here one goes down to the
+ * sound.
  */
 @Composable
 fun AnalysisReadout(
     text: String,
     sounds: List<AnalysedSound>,
     added: List<AddedSound>,
+    /**
+     * The scroll the readout is laid in, so an opened row can be brought to the top.
+     *
+     * Handed in rather than owned: the readout sits inside the thread's own scroll, and a second
+     * scroll nested in the first would fight it for every drag.
+     */
+    scroll: ScrollState,
     /** One sound of this turn, in one of the two recordings, at its place in the phrase. */
     onHearSound: (AnalysedSound, Side) -> Unit = { _, _ -> },
     /**
-     * A symbol on its own, from the pre-recorded set -- what `ʃ` means, not how this turn
-     * said it. The spread names sounds nobody produced here: they are the runners-up of a
-     * distribution, so there is no stretch of either recording to point at, and a recording
-     * of the sound itself is the only thing that can answer.
+     * A symbol on its own, from the pre-recorded set -- what `ʃ` means, not how this turn said
+     * it. The spread names sounds nobody produced here: they are the runners-up of a
+     * distribution, so there is no stretch of either recording to point at, and a recording of
+     * the sound itself is the only thing that can answer.
      */
     onHearSymbol: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     if (sounds.isEmpty()) return
     var open by remember { mutableStateOf<Int?>(null) }
+    // Where the readout starts inside the scroll, so a row's own offset can be turned into a
+    // scroll position. Read off the layout rather than counted in rows: a row's height is the
+    // grid's business and counting it here would be a second arithmetic to keep in step.
+    var top by remember { mutableStateOf(0f) }
+    var rowTop by remember { mutableStateOf(0f) }
+    LaunchedEffect(open) {
+        if (open != null) scroll.animateScrollTo((scroll.value + rowTop - top).roundToInt())
+    }
     val rows = remember(text, sounds, added) {
         readoutRows(text, interleaved(sounds, added)) { entry ->
             when (entry) {
@@ -81,20 +112,26 @@ fun AnalysisReadout(
         }
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { top = it.positionInRoot().y },
+    ) {
         rows.forEachIndexed { index, row ->
             when (val entry = row.of) {
                 null -> Unheard(text.substring(row.at.first, row.at.last + 1))
-                is Entry.Added -> Inserted(entry.sound, text)
+                is Entry.Added -> Inserted(entry.sound)
                 is Entry.Heard -> {
-                    Line(
-                        entry.sound,
-                        marked = entry.sound.points > NOISE_BAND,
-                        onHear = { side -> onHearSound(entry.sound, side) },
-                    ) {
+                    // The row hands its own top up as it is tapped, rather than the parent
+                    // reading it after the fact: read afterwards it would be whatever the last
+                    // layout pass left, which is a race with the block that has just opened.
+                    Line(entry.sound) { y ->
                         open = if (open == index) null else index
+                        rowTop = y
                     }
-                    if (open == index) Spreads(entry.sound, onHearSymbol)
+                    if (open == index) {
+                        Opened(entry.sound, onHearSound, onHearSymbol)
+                    }
                 }
             }
         }
@@ -110,14 +147,10 @@ private sealed interface Entry {
 /**
  * The two kinds of line in one list, in the order of the phrase.
  *
- * Both are placed from the same number, the offset of the character they come after, which
- * is the one the wedge under the phrase is drawn from too. A mark goes immediately before
- * the first sound that claims a character past it; a sound holding none is transparent to
- * that test and keeps its own place, so the table can show it without moving anything.
- *
- * It used to be merged on a line number carried beside the offset, and the two drifted --
- * the number was counted over the sounds that hold letters while the table draws a row for
- * every sound. One position, read twice, cannot disagree with itself.
+ * Both are placed from the same number, the offset of the character they come after, which is
+ * the one the wedge over the phrase is drawn from too. A mark goes immediately before the first
+ * sound that claims a character past it; a sound holding none is transparent to that test and
+ * keeps its own place, so the table can show it without moving anything.
  */
 private fun interleaved(sounds: List<AnalysedSound>, added: List<AddedSound>): List<Entry> {
     val out = mutableListOf<Entry>()
@@ -136,205 +169,229 @@ private fun interleaved(sounds: List<AnalysedSound>, added: List<AddedSound>): L
 }
 
 /**
- * A stretch the learner said that belongs to no word.
+ * One sound: its letters, the two symbols, its points, and a bar.
  *
- * A wedge where a letter would be and a dash where the model's symbol would be, because
- * there was neither -- that is the whole content of the line. No points and no bar: every other reading is two spreads
- * compared, and this one has a single side, so there is no degree to report and inventing
- * one would put it on a scale it does not belong to.
+ * Twenty-seven of the twenty-eight columns the worst screen gives: six for the letters, eight
+ * for `model → you`, five for the points, six for the bar, and two of separation.
  */
 @Composable
-private fun Inserted(added: AddedSound, text: String) {
+private fun Line(sound: AnalysedSound, onTap: (Float) -> Unit) {
+    val colors = markingColors()
+    var top by remember { mutableStateOf(0f) }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+        Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { top = it.positionInRoot().y }
+            .clickable { onTap(top) },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            "\u25b2",
-            modifier = Modifier.weight(1.1f),
-            style = mono,
-            color = markingColors().added,
+        Field(sound.letters.ifEmpty { "·" } + if (sound.borrowed) "*" else "",
+              LETTER_COLUMNS, colors.dim)
+        // A hint and never a verdict: the app depends on no symbol here, only on the gap
+        // between the two whole shapes.
+        Field(
+            "${spelt(sound.symbol)} ${Glyphs.ARROW_RIGHT} " +
+                spelt(sound.said.firstOrNull()?.symbol ?: "?"),
+            SYMBOL_COLUMNS, colors.ink,
         )
-        Text(
-            "-\u2192${added.symbol}",
-            modifier = Modifier.weight(1.2f),
-            style = mono,
-            color = markingColors().added,
-        )
-        Text(
-            "add",
-            modifier = Modifier.weight(2.2f),
-            style = mono,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Field("%.0f".format(sound.points), POINTS_COLUMNS, phonemeColor(sound.points, colors),
+              align = TextAlign.End)
+        Gauge(
+            (sound.points / SATURATES).coerceIn(0f, 1f),
+            phonemeColor(sound.points, colors),
+            BAR_COLUMNS,
         )
     }
 }
 
 /**
- * A stretch of the turn no sound claims. Its letters, and a dash: there is nothing to say
- * about it, and the line exists so that nothing is missing from the phrase.
+ * What the open row holds: the two recordings, then the two spreads.
  *
- * Not tappable, and no bar. A dash is not a good score -- it is the absence of a reading --
- * and drawing an empty bar for it would put it on the same scale as a sound that came
- * through clean.
+ * A score of lines, and it costs nothing: the height is only precious at the folded level,
+ * where one wants the whole phrase.
+ */
+@Composable
+private fun Opened(
+    sound: AnalysedSound,
+    onHearSound: (AnalysedSound, Side) -> Unit,
+    onHearSymbol: (String) -> Unit,
+) {
+    val grid = Speakup.grid
+    Row(
+        Modifier.fillMaxWidth().height(grid.cell * FRAME_ROWS),
+        horizontalArrangement = Arrangement.spacedBy(grid.cell),
+    ) {
+        Play(stringResource(R.string.readout_model), Modifier.weight(1f)) {
+            onHearSound(sound, Side.Model)
+        }
+        Play(stringResource(R.string.readout_you), Modifier.weight(1f)) {
+            onHearSound(sound, Side.Learner)
+        }
+    }
+    Row(Modifier.fillMaxWidth()) {
+        Spread(sound.model, Modifier.weight(1f), onHearSymbol)
+        Spread(sound.said, Modifier.weight(1f), onHearSymbol)
+    }
+}
+
+/** One of the two framed listenings: the whole button is the target, not the arrow alone. */
+@Composable
+private fun Play(label: String, modifier: Modifier, onClick: () -> Unit) {
+    val palette = Speakup.palette
+    Framed(modifier.fillMaxSize().clickable(onClick = onClick)) {
+        Row(
+            Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = Speakup.type.text, color = palette.ink.srgb, maxLines = 1)
+            Text(Glyphs.PLAY.toString(), style = Speakup.type.text, color = palette.ink.srgb)
+        }
+    }
+}
+
+/**
+ * One side's spread: the sounds it resembles, most first.
  *
- * Quoted, because such a stretch is often nothing but the space between two words, and an
- * unquoted space is an empty line that looks like a bug.
+ * The symbols are **bare**, which is what says they play the reference recording and not this
+ * turn, and each takes the three rows everything touchable does.
+ */
+@Composable
+private fun Spread(shares: List<Share>, modifier: Modifier, onHearSymbol: (String) -> Unit) {
+    val grid = Speakup.grid
+    val colors = markingColors()
+    Column(modifier) {
+        shares.forEach { share ->
+            Row(
+                Modifier
+                    .height(grid.cell * TOUCH_ROWS)
+                    .clickable { onHearSymbol(share.symbol) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Field(spelt(share.symbol), SYMBOL_FIELD, colors.ink)
+                Field("%.0f".format(share.part * PER_CENT), SHARE_COLUMNS, colors.dim,
+                      align = TextAlign.End)
+            }
+        }
+    }
+}
+
+/**
+ * A stretch of the turn no sound claims. Its letters, and a dash: there is nothing to say about
+ * it, and the line exists so that nothing is missing from the phrase.
+ *
+ * Not tappable, and no bar. A dash is not a good score -- it is the absence of a reading -- and
+ * drawing an empty bar for it would put it on the same scale as a sound that came through
+ * clean. Quoted, because such a stretch is often nothing but the space between two words, and
+ * an unquoted space is an empty line that looks like a bug.
  */
 @Composable
 private fun Unheard(letters: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    val colors = markingColors()
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Field("\"$letters\"", LETTER_COLUMNS, colors.dim)
+        Field("-", SYMBOL_COLUMNS, colors.dim)
+    }
+}
+
+/** A sound the learner made that the model did not: a wedge, and a dash where the model was. */
+@Composable
+private fun Inserted(added: AddedSound) {
+    val colors = markingColors()
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Field(Glyphs.ARROW_UP.toString(), LETTER_COLUMNS, colors.added)
+        Field("- ${Glyphs.ARROW_RIGHT} ${spelt(added.symbol)}", SYMBOL_COLUMNS, colors.added)
+    }
+}
+
+/** One field of a row, a whole number of cells wide so the columns line up down the list. */
+@Composable
+private fun Field(
+    text: String,
+    columns: Int,
+    colour: Color,
+    align: TextAlign = TextAlign.Start,
+) {
+    val grid = Speakup.grid
+    Text(
+        text,
+        modifier = Modifier.width(grid.cell * columns),
+        style = Speakup.type.text,
+        color = colour,
+        textAlign = align,
+        maxLines = 1,
+    )
+}
+
+/**
+ * A bar paved with the font's gauge blocks: the filled part in [colour], the rest in dimmed ink.
+ *
+ * **The empty part of a bar is a colour and not a shape** (`pixel-ui.md`), so the two are drawn
+ * one on top of the other: the whole width in dimmed ink, and the filled part over it. The
+ * quarter blocks give a cell four steps, and a partial cell over a dimmed full one reads as a
+ * part-filled cell rather than as a gap.
+ */
+@Composable
+private fun Gauge(part: Float, colour: Color, columns: Int) {
+    val grid = Speakup.grid
+    val colors = markingColors()
+    val quarters = (part * columns * QUARTERS).roundToInt()
+    Box(Modifier.width(grid.cell * columns)) {
         Text(
-            "\"$letters\"",
-            modifier = Modifier.weight(1.1f),
-            style = mono,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Glyphs.GAUGE_FULL.toString().repeat(columns),
+            style = Speakup.type.text, color = colors.dim, maxLines = 1,
         )
         Text(
-            "-",
-            modifier = Modifier.weight(3.4f),
-            style = mono,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Glyphs.GAUGE_FULL.toString().repeat(quarters / QUARTERS) +
+                when (quarters % QUARTERS) {
+                    1 -> Glyphs.GAUGE_QUARTER.toString()
+                    2 -> Glyphs.GAUGE_HALF.toString()
+                    3 -> Glyphs.GAUGE_THREE_QUARTERS.toString()
+                    else -> ""
+                },
+            style = Speakup.type.text, color = colour, maxLines = 1,
         )
     }
 }
 
 /**
- * One sound: its letters, the two peaks, its points, and a bar.
+ * How a symbol is **written**, which is not always how it is stored.
  *
- * The model's symbol is its own target and the row is another: tapping the symbol plays that
- * sound of the model, tapping anywhere else opens the two spreads. A symbol printed with no
- * way to hear it is a name for something the reader has never heard, which is most of what
- * IPA is to most people.
+ * **The two affricate ligatures are deliberately absent from the font.** In a fixed-width font
+ * a ligature has to fit one cell anyway, so crushing a `d` and a `ʒ` at a two-pixel stroke into
+ * one is strictly worse than taking two. The screen writes `dʒ` and `tʃ`, which is just as
+ * standard an IPA and the commonest notation of the dictionaries, and the diphthongs already
+ * take two cells, so this list is of variable-width symbols either way.
+ *
+ * **It is a correspondence at display and nothing else**: the data keeps `ʤ` and `ʧ`, which the
+ * model emits and which every turn on the disk carries.
  */
-@Composable
-private fun Line(
-    sound: AnalysedSound,
-    marked: Boolean,
-    onHear: (Side) -> Unit,
-    onTap: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onTap).padding(vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            sound.letters.ifEmpty { "·" } + if (sound.borrowed) "*" else "",
-            modifier = Modifier.weight(1.1f),
-            style = mono,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        // A hint and never a verdict: the app depends on no symbol here, only on the gap
-        // between the two whole shapes.
-        // Two targets facing each other: the model's sound at this place, and the
-        // learner's at the same place. Which is which is written rather than selected --
-        // they sit side by side, so a selector could only contradict the finger.
-        Row(modifier = Modifier.weight(1.2f), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                sound.symbol,
-                modifier = Modifier
-                    .clickable { onHear(Side.Model) }
-                    .padding(horizontal = 2.dp),
-                style = mono,
-                fontWeight = FontWeight.Bold,
-            )
-            Text("→", style = mono)
-            Text(
-                sound.said.firstOrNull()?.symbol ?: "?",
-                modifier = Modifier
-                    .clickable { onHear(Side.Learner) }
-                    .padding(horizontal = 2.dp),
-                style = mono,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Text(
-            "%.1f".format(Locale.ROOT, sound.points),
-            modifier = Modifier.weight(0.8f),
-            style = mono,
-            textAlign = TextAlign.End,
-            fontWeight = if (marked) FontWeight.Bold else FontWeight.Normal,
-        )
-        Bar(
-            part = (sound.points / SATURATES).coerceIn(0f, 1f),
-            modifier = Modifier.weight(1.4f).padding(start = 6.dp),
-        )
-    }
+private fun spelt(symbol: String): String = when (symbol) {
+    "ʤ" -> "dʒ"
+    "ʧ" -> "tʃ"
+    else -> symbol
 }
 
-/** The two spreads, each half a weight of the row, so they cannot drift out of line. */
-@Composable
-private fun Spreads(sound: AnalysedSound, onHearSymbol: (String) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(6.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Half("model", sound.model, Modifier.weight(1f), onHearSymbol)
-        VerticalDivider(modifier = Modifier.height(100.dp).padding(horizontal = 4.dp))
-        Half("you", sound.said, Modifier.weight(1f), onHearSymbol)
-    }
-    HorizontalDivider()
-}
+/** Six of the twenty-eight columns, which is what the letters of one sound take. */
+private const val LETTER_COLUMNS = 6
 
-@Composable
-private fun Half(
-    title: String,
-    shares: List<Share>,
-    modifier: Modifier,
-    onHearSymbol: (String) -> Unit,
-) {
-    Column(modifier = modifier) {
-        Text(title, style = mono, fontWeight = FontWeight.Bold)
-        shares.forEach { share ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    share.symbol,
-                    modifier = Modifier
-                        .width(34.dp)
-                        .clickable { onHearSymbol(share.symbol) },
-                    style = mono,
-                )
-                Bar(share.part, Modifier.weight(1f))
-                Text(
-                    "%.2f".format(Locale.ROOT, share.part),
-                    modifier = Modifier.width(44.dp),
-                    style = mono,
-                    textAlign = TextAlign.End,
-                )
-            }
-        }
-        // What the kept shares leave out, so the column is honest about being a top few.
-        val rest = (1f - shares.sumOf { it.part.toDouble() }).coerceAtLeast(0.0)
-        Text(
-            "rest %.2f".format(Locale.ROOT, rest),
-            style = mono,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
+/** `model → you`: two cells a symbol, the arrow, and the air around it. */
+private const val SYMBOL_COLUMNS = 8
 
-@Composable
-private fun Bar(part: Float, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.height(6.dp)) {
-        Box(
-            Modifier
-                .fillMaxWidth(part)
-                .height(6.dp)
-                .background(phonemeColor(part * SATURATES, markingColors()))
-        )
-    }
-}
+private const val POINTS_COLUMNS = 5
+private const val BAR_COLUMNS = 6
 
-// 11 sp fitted the widest row on the narrowest phone and was unreadable doing it. The row
-// is laid out by weights rather than by columns of characters, so it reflows instead of
-// wrapping, and the size is free to be chosen for the eye. The fixed widths below follow it.
-private val mono = androidx.compose.ui.text.TextStyle(
-    fontFamily = FontFamily.Monospace,
-    fontSize = 14.sp,
-)
+/** Inside the open block, where the two spreads share the width. */
+private const val SYMBOL_FIELD = 4
+private const val SHARE_COLUMNS = 4
+
+/** A frame is two rows at the least: four pixels of border, the box, four pixels of border. */
+private const val FRAME_ROWS = 2
+
+/** What every touchable entry of the app is tall. */
+private const val TOUCH_ROWS = 3
+
+/** How many steps a gauge cell has, which is what the four blocks give it. */
+private const val QUARTERS = 4
+
+private const val PER_CENT = 100

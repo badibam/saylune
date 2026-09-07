@@ -268,4 +268,7 @@
     <string name="side_short_model">IA</string>
     <string name="side_short_learner">MOI</string>
     <string name="capture_my_turn">MON TOUR</string>
+    <!-- The readout: the two framed listenings, which play this very recording. -->
+    <string name="readout_model">MODÈLE</string>
+    <string name="readout_you">TOI</string>
 </resources>

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -162,11 +163,12 @@ fun ConversationScreen(
     // **The thread scrolls, the bottom does not.** The bottom is four grid rows -- three of
     // buttons here, and the scaffold's action bar under them -- and what it commands is
     // whatever records, so it has to be reachable while the thread is anywhere.
+    val thread = rememberScrollState()
     Column(modifier) {
       Column(
         modifier = Modifier
             .weight(1f)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(thread)
             .padding(vertical = grid.cell),
         verticalArrangement = Arrangement.spacedBy(grid.cell),
       ) {
@@ -250,6 +252,7 @@ fun ConversationScreen(
                     recorder.open(scope, settings)
                 },
                 onNotes = onNotes,
+                thread = thread,
             )
         }
 
@@ -385,6 +388,8 @@ private fun Said(
     onHearSound: (String, AnalysedSound, Side) -> Unit,
     onOpenRepeat: () -> Unit,
     onNotes: (String) -> Unit,
+    /** The thread's own scroll, which the readout brings an opened row to the top of. */
+    thread: ScrollState,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // The last, and only the last: saying it again is done to improve on the one before,
@@ -462,7 +467,7 @@ private fun Said(
             // the inventory sound by sound, where the row above plays the whole phrase.
             if (reading && sounds != null) {
                 AnalysisReadout(
-                    spoken.text, sounds, marking?.added.orEmpty(),
+                    spoken.text, sounds, marking?.added.orEmpty(), thread,
                     onHearSound = { sound, which -> onHearSound(where, sound, which) },
                     // The pre-recorded set, played whole: a symbol on its own is already
                     // one sound and there is nothing in it to cut.
