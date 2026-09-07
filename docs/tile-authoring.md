@@ -30,6 +30,7 @@ Un guide qui recopierait le schéma serait une seconde source qui dérive du par
 - **La situation situe l'apprenant à la deuxième personne**, se lit à l'écran, dans sa langue. **La mise en scène situe le personnage**, ne s'affiche jamais, s'écrit en anglais. Jamais l'une dans l'autre.
 - **Aucun genre fixé, donc un nom non genré**, et plutôt un nom qui porte un âge qu'un nom à la mode.
 - **Aucune horloge.** Un levier qui décrit la personne rencontrée — sa voix, son débit, à quel point elle est dure à suivre — est de plein droit. Un levier qui met l'apprenant sous une horloge — armement automatique, plafond de tour, seuil de silence, budget de tentatives — ne l'est pas : rien en Libre ne l'annonce, la tuile ne montrant qu'un nom et un titre. C'est une règle éditoriale sur les fiches livrées, pas une contrainte du moteur.
+- **`"door": "free"`**, toujours. C'est ce qui dit par quelle porte la définition est offerte, donc quelle grille l'affiche ; le dossier des définitions porte les quatre portes mêlées. Le guide ne couvre que celle-ci.
 - **Aucun enjeu** : pas de vies, pas de règle de fin, pas d'issue. Donc **aucune question à la fermeture**, la vague de clôture ne s'ouvrant jamais en Libre — les questions se posent tous les cinq passages.
 
 ## Combien, et avec qui
@@ -45,6 +46,7 @@ La règle est celle du projet : on interprète comme le ferait un collègue atte
 **Se demande, et on s'arrête** — tout ce qui déplace le cadre :
 
 - une scène qui n'est pas dans `design/tiles.md` ;
+- une définition qui ne serait pas de la porte Libre — ce guide ne l'écrit pas ;
 - une scène dont le moteur fait double emploi avec une déjà écrite ;
 - une règle éditoriale qu'il faudrait enfreindre — une horloge, un genre fixé, deux trous, une question à la fermeture ;
 - un champ que le parseur ne lit pas ;
