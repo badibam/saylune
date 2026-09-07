@@ -129,8 +129,13 @@ private fun followingColour(notch: String, colors: MarkingColors): Color = when 
 }
 
 /**
- * The pace, in characters: the points closing in for a word squeezed, opening out for one
- * stretched.
+ * The pace, in characters: the points opening out for speech that runs, closing in for speech
+ * that drags.
+ *
+ * **They were the other way round and read backwards.** The old reading was of the *word* --
+ * squeezed by a fast mouth, stretched by a slow one -- and on screen nobody reads a word, they
+ * read an arrow: `<->` is going somewhere and `><` is stuck. The mark is four characters at the
+ * end of a line and it gets one reading, so it is the immediate one.
  *
  * **The form carries the side, so the colour carries only the distance.** `=` is not a
  * compliment: it says the measure took place and found nothing, which is what the dashboard
@@ -145,8 +150,8 @@ private fun paceOf(gap: Float): String {
     val far = kotlin.math.abs(gap)
     return when {
         far <= INSIDE -> "="
-        far <= FAR -> if (gap > 0) "><" else "<->"
-        else -> if (gap > 0) ">><<" else "<-->"
+        far <= FAR -> if (gap > 0) "<->" else "><"
+        else -> if (gap > 0) "<-->" else ">><<"
     }
 }
 

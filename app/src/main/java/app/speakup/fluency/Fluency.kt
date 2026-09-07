@@ -135,8 +135,8 @@ object Fluency {
      *
      * The figure [rate] renders is symmetric by construction, so it cannot say this and is not
      * meant to: what it measures is the distance. But the side does not get lost -- the mark
-     * reads it, the chevrons closing in on a word squeezed and opening out on one stretched,
-     * and a challenge's condition distinguishes *never more than 20% slower than the model*
+     * reads it, the chevrons opening out on speech that runs and closing in on speech that
+     * drags, and a challenge's condition distinguishes *never more than 20% slower than the model*
      * from *never faster*. So it is a fact of its own, beside the distance and never inside it.
      */
     fun slower(turn: Turn): Boolean? {
