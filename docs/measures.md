@@ -82,9 +82,7 @@ Le juge marque **par groupe de mots**, une seule fois pour les deux aptitudes, e
 
 Trois crans, `ok` / `mal formé` / `ne se dit pas`, dans cette précédence à l'envers.
 
-**C'est un jugement absolu, donc elle ne prend aucune consigne.** Une consigne est toujours une exigence de situation : *« parle au passé »* ne fait pas de *I'll go there* une phrase mal formée, c'est de l'anglais irréprochable qui ne convient pas ici.
-
-**Mais « absolu » ne veut pas dire indépendant de toute norme.** Rien n'est correct dans l'abstrait — *I ain't got none* est fautif en anglais standard et bien formé dans plusieurs dialectes, *Going out later?* n'a ni sujet ni auxiliaire et c'est de l'oral normal, et *I'm doing good* a déjà été laissé passer par le juge *au motif que c'est familier*. Ce qui est vrai, et qui est ce dont le projet a besoin, c'est que **la norme est fixée par l'app et identique pour toutes les activités** : aucune consigne, aucune scène, aucun défi ne la déplace. C'est cette invariance-là — et pas une indépendance à toute norme — qui la rend **vérifiable au banc sur des phrases isolées**. **Cette norme n'est écrite nulle part aujourd'hui** : elle est celle que le modèle se donne seul, et deux choses au moins s'y trancheront — la **variété** et le fait que **l'oral n'est pas de l'écrit** (`../TODO.md`).
+Qu'elle soit un jugement absolu, qu'elle ne prenne donc aucune consigne, et que la norme soit fixée par l'app plutôt qu'absolue dans le vide, est dans `sheets/Sheets.kt`. Ce qui n'y est pas : **cette norme n'est écrite nulle part**, elle est celle que le modèle se donne seul — d'où *I'm doing good* laissé passer *au motif que c'est familier*. Deux choses au moins s'y trancheront, la **variété** et le fait que **l'oral n'est pas de l'écrit** (`../TODO.md`).
 
 **Pas de cran au-dessus d'`ok`.** *Une construction difficile montée juste* — *« If I'd known, I would have told you »* contre *« I didn't know, so I didn't tell you »* — est une notion réelle et n'a **aucune norme fixe** : difficile dépend de qui parle, et l'app n'a pas de niveau d'apprenant. L'étiquette casserait donc la propriété qui fait exister cette aptitude. Une construction ambitieuse et réussie se fait marquer `juste`, du côté de la pertinence, où le critère est situationnel par construction.
 
@@ -139,13 +137,11 @@ Deux cas de bord. Un passage **sans tour de l'IA devant lui** n'a rien à avoir 
 
 ## Fluidité — quatre feuilles
 
-**Rien n'y est compté deux fois** : `continuité` possède tout le silence **entre les mots**, `le plus long silence` possède le blocage, le `débit` ne lit que le temps où la bouche articule, `le remplissage et les reprises` possède les hésitations.
+Qu'aucune des quatre ne compte ce qu'une autre compte, et pourquoi la continuité se lit en différence et non en rapport, est dans `sheets/Sheets.kt`.
 
 ### La continuité
 
-**Comparer au modèle fait un vrai travail** : ce qui reste chez lui n'est pas rien, ce sont les **pauses prosodiques légitimes**, à la virgule, en fin de proposition. Le modèle s'arrête là, l'apprenant a le droit aussi. Et l'écart s'écrit en **différence** et non en rapport : la part silencieuse du modèle peut tomber à un ou deux pour cent sur une phrase courte, où un rapport devient hypersensible — le même apprenant à 20 % donnerait un rapport de 10 ou de 40 selon le dénominateur.
-
-**Se taire moins que le modèle n'est pas une faute**, et rien n'a besoin d'être écrêté : un écart négatif tombe au-dessus de la borne A, dans la même bande que zéro. C'est une asymétrie voulue avec le débit, où les deux côtés comptent — ne pas faire la pause de la virgule est une affaire de prosodie, pas de fluidité.
+**Comparer au modèle fait un vrai travail** : ce qui reste chez lui n'est pas rien, ce sont les **pauses prosodiques légitimes**, à la virgule, en fin de proposition. Le modèle s'arrête là, l'apprenant a le droit aussi. Ne pas faire la pause de la virgule est d'ailleurs une affaire de prosodie et pas de fluidité, d'où l'asymétrie voulue avec le débit, où les deux côtés comptent.
 
 **Une pause est un silence entre deux mots qui dure au moins 200 ms**, et chaque condition fait son travail. La frontière des mots écarte ce qui se passe **à l'intérieur** d'un mot — une occlusion, une tenue, un bégaiement tenu ne sont pas des pauses. Le seuil écarte les micro-blancs entre les mots : le /t/ de *to stop* ferme la bouche 50 à 150 ms, et sans seuil une phrase riche en /p t k/ paraîtrait moins continue qu'une phrase pleine de voyelles — **pour son texte, pas pour son locuteur**, et comme cette feuille se lit dans l'absolu, ce biais ne s'annulerait nulle part. **Ce que la frontière écarte ne se perd pas** : un silence mi-mot reste dans le temps de parole, donc dans le débit. Le seuil est partagé avec lui : il exclut exactement ce qu'elle compte.
 
@@ -157,15 +153,13 @@ Deux cas de bord. Un passage **sans tour de l'IA devant lui** n'a rien à avoir 
 
 Le test d'inversion la sépare de la continuité, et il passe : **A** passe 40 % du tour en silence mais jamais plus de 0,8 s d'affilée ; **B** en passe 25 % dont un blanc de 5 s d'un seul tenant. La continuité met A derrière, le plus long silence met B derrière — *« ne laisse pas de trous »* contre *« ne reste jamais bloqué »*. Le doc affirmait que ces deux-là allaient dans le même sens ; c'était trop vite dit.
 
-Deux formes écartées. **Moyenner les silences comme éléments** laisse un tour sans aucun silence sans élément, donc sans feuille : le tour le plus fluide possible ne serait pas noté. Et **une part du temps passée dans un blanc** serait diluée par la longueur du tour — le même blanc de 5 s ferait 50 % dans un tour de 10 s et 17 % dans un de 30 s, pour le même comportement. Le pire silence, lui, ne dépend que de lui-même.
-
-Ce qu'elle ignore, assumé : deux blancs de 5 s valent un seul. C'est la continuité qui porte l'accumulation.
+Les deux formes écartées — moyenner les silences, ou lire une part du temps passé dans un blanc — sont dans `sheets/Sheets.kt`. Ce qu'elle ignore, assumé : deux blancs de 5 s valent un seul. C'est la continuité qui porte l'accumulation.
 
 ### Le débit
 
 **Comparé au modèle et non dans l'absolu**, ce qui le remet sous la règle générale du projet — *le modèle est la vérité, s'en écarter se marque* — à laquelle il n'avait aucune raison d'échapper. Le texte étant le même des deux côtés, il n'y a **rien à compter**, ni mots ni syllabes : l'unité s'annule, et la question « combien de mots par seconde parle un bon apprenant », qui n'a pas de réponse indépendante du texte, disparaît.
 
-**Symétrique par construction** : deux fois plus lent et deux fois plus rapide donnent tous deux 100 %. Savoir de quel côté on s'écarte ne se perd pas pour autant — la **marque** le lit, et une **condition** distingue *« jamais plus de 20 % plus lentement »* de *« pas plus vite »*. **Hypothèse à vérifier** : que les deux côtés soient également gênants. La lenteur est le défaut du francophone, l'excès de vitesse est rare ; si la mesure dit qu'ils ne se valent pas, la série devient deux listes au lieu d'une — une extension, pas une refonte.
+**Symétrique par construction**, et savoir de quel côté on s'écarte ne se perd pas pour autant : la **marque** le lit, et une **condition** distingue *« jamais plus de 20 % plus lentement »* de *« pas plus vite »*.
 
 **Le temps de parole exclut les silences des deux côtés**, donc le silence n'est jamais compté deux fois. **Détacher ses mots au lieu de les lier** — le défaut francophone que le doc voulait voir ici — se fait donc voir par la **continuité**, sous forme de petites pauses, ce qui est plus juste : détacher ses mots, c'est littéralement en fabriquer. Le débit garde ce qu'il est seul à voir : **articuler lentement à l'intérieur des mots**, voyelles étirées et consonnes sur-prononcées, tenues fermées comprises.
 
@@ -177,7 +171,7 @@ Ce qu'elle ignore, assumé : deux blancs de 5 s valent un seul. C'est la continu
 
 **Répéter et repartir sont un seul cran** : répéter, c'est repartir avec les mêmes mots. Les séparer demanderait de dire à partir de quel mot changé on quitte l'un pour l'autre, et aucun défi ne veut peser cette différence-là.
 
-**C'est jugé et jamais calculé sur une liste de mots.** *euh* et *um* n'ont pas d'autre emploi, mais *I mean*, *like*, *well*, *actually* sont de vrais mots — *« I mean what I say »* et *« it was, I mean, hard »* ne diffèrent que par l'emploi, et seul le juge le voit. La feuille prend par là une **consigne**, ce qu'une feuille calculée ne peut pas prendre. Un cran par phrase, « il bafouille beaucoup », est écarté pour la raison habituelle : personne ne peut le vérifier, là où « ces quatre mots-là » se regarde.
+**Elle est jugée et jamais calculée sur une liste de mots** (`sheets/Sheets.kt`), et elle prend par là une **consigne**, ce qu'une feuille calculée ne peut pas prendre. Un cran par phrase, « il bafouille beaucoup », est écarté pour la raison habituelle : personne ne peut le vérifier, là où « ces quatre mots-là » se regarde.
 
 **La voix modèle ne dit que les mots retenus** : lui faire dire les hésitations est exclu, le modèle étant ce qu'on donne à imiter. **L'apprenant, lui, s'aligne sur tout ce qu'il a dit** — sans les hésitations dans le texte, ces bouts d'audio n'auraient aucune lettre en face et deviendraient des sons en trop, donc des gros ratés par nature : hésiter coûterait une note de prononciation. **On aligne sur les quatorze, on compare sur les huit.** Découper l'audio de l'apprenant pour n'en garder que les huit mots est refusé par un invariant déjà écrit : rien ne se fait à un seul des deux audios.
 
@@ -185,14 +179,11 @@ Ce qu'elle ignore, assumé : deux blancs de 5 s valent un seul. C'est la continu
 
 **Le bafouillage ne coupe pas l'analyse du son.** Ce qui la coupe est que la phrase va être *réécrite* : les mots changent, donc l'analyse porterait sur du texte mort. Ici les mots retenus sont les bons, ils ont seulement été dits en trébuchant.
 
-**Ces crans ne survivent qu'à une reconnaissance verbatim.** Un moteur qui nettoie les *euh* les rend muets sans le dire, et la fluidité paraîtra excellente ; et depuis qu'on aligne l'apprenant sur tout ce qu'il a dit, un nettoyage silencieux fait aussi rater le placement des sons dans un audio qui, lui, contient les hésitations. Le critère de fidélité verbatim du banc ne pesait jusqu'ici que sur la grammaire ; il pèse maintenant sur la mesure des sons (`../TODO.md`).
+**Ces crans ne survivent qu'à une reconnaissance verbatim**, et depuis qu'on aligne l'apprenant sur tout ce qu'il a dit, un nettoyage silencieux fait aussi rater le placement des sons. Le critère de fidélité verbatim du banc ne pesait jusqu'ici que sur la grammaire ; il pèse maintenant sur la mesure des sons (`../TODO.md`).
 
 ## Ce qui ne donne pas de note
 
-Certaines feuilles se calculent et n'entrent dans aucune note : elles existent pour les **conditions**. Ni sensibilité, ni poids — deux champs qui n'ont pas d'objet, plutôt que d'être déclarés inertes.
-
-- **Le tour interrompu** — un seul élément, vrai ou faux. Deux causes et une seule feuille : le silence de plus de x en troisième position de capture, et le plafond de durée, qui existe aux trois. Un chiffre à deux valeurs ferait un mauvais membre de moyenne — tout ou rien, aucune gradation — et son poids ferait basculer l'aptitude entière d'un coup.
-- **Les comptes** — les redites, les reformulations, le nombre d'écoutes. Des entiers, qui ne se normalisent pas, et surtout qui **montent à chaque tentative** : pesés dans une aptitude qui fait refaire, la note ne peut plus repasser la barre et l'apprenant brûle ses tentatives sans issue.
+Le tour interrompu et les trois comptes se calculent et n'entrent dans aucune note : ils existent pour les **conditions**, qui les lisent comme n'importe quelle feuille. Pourquoi chacun ne peut pas en donner est dans `sheets/Sheets.kt`.
 
 **La part des tours interrompus d'une séance n'est pas la feuille**, c'est ce qu'une lecture en fait : une feuille se calcule toujours sur un passage, et confondre les deux plans se paie vite.
 
