@@ -31,22 +31,28 @@ import kotlinx.coroutines.delay
  * One rule settles the cases to come without their being argued again, and it puts the
  * gestures where the thumb is (`ui.md`, "La charpente").
  *
- * **Two lines at the top.** The first is the **status line**: the short title on the left, and
- * on the right, aligned, the fields the mode uses. Each field is simply absent where the mode
- * does not use one, in a fixed order so that nothing moves when a value changes. No buttons:
- * four entry points there would take 192 dp of the screen's 360, and they would be far from
- * the thumb. The second is the **turn's status line**, in its own frame, **always full and up
- * to date** -- not an alert box but the narrator of the cycle, and the place `docs/reference.md`
- * asks for everywhere: the one where a thing that is unavailable carries its reason.
+ * **Two lines at the top.** The first is the **title line**: the short title on the left, the
+ * fields the mode uses in the middle, and **the entry points at the right end, framed**. Each
+ * field is simply absent where the mode does not use one, in a fixed order so that nothing
+ * moves when a value changes. The second is the **turn's status line**, in its own frame,
+ * **always full and up to date** -- not an alert box but the narrator of the cycle, and the
+ * place `docs/reference.md` asks for everywhere: the one where a thing that is unavailable
+ * carries its reason.
  *
- * **At the bottom, the action bar**, one line, in glyphs. It carries the **entry points**,
- * which are constant for a screen; what carries the action of the moment is above it, and
- * changes from one instant to the next. Mixing the two would move an entry from place to place
- * according to the state of the passage.
+ * **The entry points are at the top, and that reverses what this file used to argue.** The old
+ * reading was that four of them up there would take 192 dp of the screen's 360 and sit far from
+ * the thumb, so they went to a bare row at the bottom. Read on the phone, it failed on the first
+ * half of its own premise: a glyph drawn at the ordinary size is eleven pixels of ink, and no
+ * amount of invisible margin around it makes it look like a button one may press. Drawn at the
+ * register's second size and framed, an entry costs four columns; three of them cost fourteen
+ * of the twenty-six a padded worst screen gives, which the title line had spare and the bottom
+ * row does not. So they take the width nobody was using, and **the bottom is left to what
+ * commands the moment** -- which is the split this scaffold wanted all along: what is true at
+ * the top, what one does now at the bottom.
  *
- * **A fine drawing does not force a fine target.** The bar is drawn on one line and its
- * touchable area runs three rows up; a one-column glyph gets the same invisible margin. That
- * is what reconciles the 48 dp recommendation with a scaffold that spends one row on ink.
+ * **Air is structural here.** A cell separates the title line from the status line and the
+ * status line from the content, and one separates the content from whatever the screen puts at
+ * its foot. Without them the thread runs into the buttons and the two read as one object.
  *
  * ## What is not here, and why
  *
@@ -96,7 +102,11 @@ fun Scaffold(
 
     Column(modifier.fillMaxSize()) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = grid.cell),
+            Modifier
+                .fillMaxWidth()
+                .height(grid.cell * ENTRY_ROWS)
+                .padding(horizontal = grid.cell),
+            horizontalArrangement = Arrangement.spacedBy(grid.cell),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -110,6 +120,7 @@ fun Scaffold(
             lives?.let {
                 Text(hearts(it), style = type.text, color = palette.ramp.last().srgb, maxLines = 1)
             }
+            actions.forEach { action -> Entry(action, onReason = { reason = it }) }
         }
         Framed(
             Modifier
@@ -126,8 +137,12 @@ fun Scaffold(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Box(Modifier.fillMaxWidth().weight(1f)) { content() }
-        ActionBar(actions, onReason = { reason = it })
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(top = grid.cell)
+        ) { content() }
     }
 }
 
@@ -139,34 +154,31 @@ data class Action(
     val press: () -> Unit = {},
 )
 
+/**
+ * One entry point: its glyph at the register's second size, in a frame.
+ *
+ * **The frame is what makes it a button**, and it is what the passage's own row of commands
+ * uses for the same reason: framed says *object*, and one can say what one does with it -- press,
+ * and it opens. The glyph at the ordinary size, bare, was a drawing with nothing around it.
+ */
 @Composable
-private fun ActionBar(actions: List<Action>, onReason: (Int) -> Unit) {
+private fun Entry(action: Action, onReason: (Int) -> Unit) {
     val grid = Speakup.grid
     val palette = Speakup.palette
-    val type = Speakup.type
-    Row(
-        Modifier.fillMaxWidth().height(grid.cell * TOUCH_ROWS).padding(horizontal = grid.cell),
-        horizontalArrangement = Arrangement.spacedBy(grid.cell),
+    Framed(
+        Modifier
+            .width(grid.cell * ENTRY_COLUMNS)
+            .height(grid.cell * ENTRY_ROWS)
+            .clickable { action.reason?.let(onReason) ?: action.press() },
     ) {
-        actions.forEach { action ->
-            Box(
-                Modifier
-                    .width(grid.cell * TOUCH_COLUMNS)
-                    .fillMaxSize()
-                    .clickable {
-                        action.reason?.let(onReason) ?: action.press()
-                    },
-                contentAlignment = Alignment.BottomCenter,
-            ) {
-                Text(
-                    action.glyph.toString(),
-                    style = type.text,
-                    // Off is dimmed and still there: greying says what one can do, and an
-                    // entry that vanished would change the bar's shape with the state.
-                    color = if (action.reason == null) palette.ink.srgb else palette.dim.srgb,
-                )
-            }
-        }
+        Text(
+            action.glyph.toString(),
+            modifier = Modifier.align(Alignment.Center),
+            style = Speakup.type.big,
+            // Off is dimmed and still there: greying says what one can do, and an entry that
+            // vanished would change the line's shape with the state.
+            color = if (action.reason == null) palette.ink.srgb else palette.dim.srgb,
+        )
     }
 }
 
@@ -188,6 +200,11 @@ private const val LIVES_MOST = 99
 /** How long a reason stands in the status line before the narrator has it back. */
 private const val REASON_MS = 4_000L
 
-/** The touchable area of one entry, in grid rows and columns. The ink is on the bottom row. */
-private const val TOUCH_ROWS = 3
-private const val TOUCH_COLUMNS = 3
+/**
+ * One entry's frame, in grid cells: a glyph at the second size is two cells across and its box
+ * two lines tall, and a frame costs a cell of border each way.
+ *
+ * Four rows is also what the title line is tall, the two being the same line.
+ */
+private const val ENTRY_COLUMNS = 4
+private const val ENTRY_ROWS = 4
