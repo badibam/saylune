@@ -287,6 +287,7 @@
     <string name="passage_notes_what">What this passage measured. No letters: nothing is at stake in a free conversation.</string>
     <string name="passage_notes_whole">This passage</string>
     <string name="passage_notes_none">Nothing has measured this passage yet.</string>
+    <string name="passage_notes_close">Press the screen to close it</string>
     <!-- The command row: two columns each, so the row's geometry never depends on the state. -->
     <string name="side_short_model">AI</string>
     <string name="side_short_learner">ME</string>

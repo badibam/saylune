@@ -1,16 +1,22 @@
 package app.speakup.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import app.speakup.R
 import androidx.compose.foundation.layout.height
@@ -30,6 +36,53 @@ import app.speakup.ui.theme.Speakup
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
+
+/**
+ * The notes with their way out: **pressing anywhere closes them**, and the bottom line says it.
+ *
+ * A check in the action bar was one small target for a screen that offers no other gesture --
+ * every row here is read and none is pressed, so the target may as well be the whole of it. The
+ * line is what makes that discoverable, and it takes the place the action bar was holding.
+ *
+ * **No ripple**: the register paints its own surfaces, and a Material splash over the whole
+ * screen would be the one thing on it that is not of the register.
+ *
+ * The tap does not fight the content's scroll -- a scroll consumes drags and leaves taps alone
+ * -- and it stands whether or not there is an attempt to draw, so a passage the state no longer
+ * holds is still a screen one can leave.
+ */
+@Composable
+fun PassageNotesScreen(
+    /** The attempt to read, or null where the state no longer holds it. */
+    attempt: Utterance?,
+    weights: Weights?,
+    severity: (Sheet) -> Int,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val grid = Speakup.grid
+    Column(
+        modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClose,
+            )
+    ) {
+        Box(Modifier.fillMaxWidth().weight(1f)) {
+            attempt?.let { PassageNotes(it, weights, severity, Modifier.fillMaxSize()) }
+        }
+        Text(
+            stringResource(R.string.passage_notes_close),
+            modifier = Modifier.fillMaxWidth().padding(top = grid.cell),
+            style = Speakup.type.thin,
+            color = Speakup.palette.dim.srgb,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+        )
+    }
+}
 
 /**
  * The passage's notes: **one screen with two doors**, pushed between two passages or opened on
@@ -58,8 +111,8 @@ import kotlin.math.roundToInt
  * under rules that have no reason to be the same, and a note is never read without the
  * combination that produced it. It shows one take, the passage's last, like the thread.
  *
- * Its `OK` is the action bar's, which is why it stays visible whatever the scroll: sixteen rows
- * of content do not fit a short screen, and a button in the flow would scroll away with them.
+ * **The whole screen is the way out** ([PassageNotesScreen]): there is nothing here to press,
+ * so anywhere is a good place to press, and the last line says so.
  */
 @Composable
 fun PassageNotes(

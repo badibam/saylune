@@ -57,7 +57,7 @@ import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.DisplaySettingsScreen
 import app.speakup.ui.DROPPED
 import app.speakup.ui.UNPUSHED
-import app.speakup.ui.PassageNotes
+import app.speakup.ui.PassageNotesScreen
 import app.speakup.ui.Scaffold
 import app.speakup.ui.SettingsScreen
 import app.speakup.ui.Tile
@@ -358,9 +358,8 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
             // passage of the thread. The first -- pushed between two passages -- is the same
             // content, and what settles which is the learner's own setting.
             //
-            // Its `OK` is the action bar's own check, which is why it stays visible whatever
-            // the scroll: sixteen rows of content do not fit a short screen, and a button in
-            // the flow would scroll away with them.
+            // **Pressing anywhere closes it**, the bottom line saying so: the screen offers no
+            // other gesture, so the way out is all of it rather than one glyph in the bar.
             Screen.Notes -> {
                 val attempt = turn.utterances.firstOrNull { it.id == notesOf }
                 val passage = turn.passages().indexOfFirst { spoken ->
@@ -370,18 +369,17 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     title = stringResource(R.string.passage_notes, passage + 1),
                     lives = null,
                     status = stringResource(R.string.passage_notes_what),
-                    actions = listOf(Action(Glyphs.CHECK) { stack.removeAt(stack.lastIndex) }),
+                    actions = emptyList(),
                 ) {
-                    attempt?.let {
-                        PassageNotes(
-                            it,
-                            // **What the mode weighs is what decides a letter is drawn**, and a
-                            // free conversation declares nothing, so its slots stay empty.
-                            weights = turn.activity.weights,
-                            severity = turn.positions::severityOn,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
+                    PassageNotesScreen(
+                        attempt,
+                        // **What the mode weighs is what decides a letter is drawn**, and a
+                        // free conversation declares nothing, so its slots stay empty.
+                        weights = turn.activity.weights,
+                        severity = turn.positions::severityOn,
+                        onClose = { stack.removeAt(stack.lastIndex) },
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 }
             }
 
