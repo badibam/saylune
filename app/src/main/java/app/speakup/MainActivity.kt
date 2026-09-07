@@ -35,6 +35,7 @@ import app.speakup.levers.At
 import app.speakup.levers.Count
 import app.speakup.levers.Levers
 import app.speakup.levers.Positions
+import app.speakup.levers.severityOn
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.store.Archive
@@ -261,7 +262,16 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     status = stringResource(R.string.passage_notes_what),
                     actions = listOf(Action(Glyphs.CHECK) { stack.removeAt(stack.lastIndex) }),
                 ) {
-                    attempt?.let { PassageNotes(it, modifier = Modifier.fillMaxSize()) }
+                    attempt?.let {
+                        PassageNotes(
+                            it,
+                            // **What the mode weighs is what decides a letter is drawn**, and a
+                            // free conversation declares nothing, so its slots stay empty.
+                            weights = turn.activity.weights,
+                            severity = turn.positions::severityOn,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                 }
             }
 

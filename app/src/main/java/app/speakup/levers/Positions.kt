@@ -1,5 +1,8 @@
 package app.speakup.levers
 
+import app.speakup.sheets.Sheet
+import app.speakup.sheets.Sheets
+
 /**
  * Where every lever of one sitting sits.
  *
@@ -123,4 +126,24 @@ private fun Lever.hold(position: Position): Position = when (this) {
     is Numeric -> clamp(
         position as? Count ?: error("$key: a numeric lever was given $position"),
     )
+}
+
+/**
+ * How severe these positions are on [sheet], as a rank of its sensitivity lever.
+ *
+ * **The sensitivity is a lever attached to a sheet**, and it is the one place the settings touch
+ * a note: going towards severe tightens, always and for everybody, where a weight's direction
+ * depends on the learner.
+ *
+ * A key this sitting says nothing about answers with the catalogue's declared default, which is
+ * the middle position -- and one the catalogue does not declare **fails outright**, which is what
+ * makes the sensitivities levers rather than a value read off the line beside them.
+ *
+ * It lives here, beside the positions, because two things read it: the gates, which turn a figure
+ * into a letter to decide whether a passage may be left, and the passage's own summary, which
+ * shows that letter. Read in two places it would be two severities to keep in step.
+ */
+fun Positions.severityOn(sheet: Sheet): Int {
+    val key = Levers.sensitivityOf(Sheets.pathOf(sheet))
+    return (Levers.of(key) as Stepped).rank((of(key) as At).name)
 }

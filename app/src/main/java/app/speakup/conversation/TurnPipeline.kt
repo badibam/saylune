@@ -40,6 +40,7 @@ import app.speakup.sheets.Sheets
 import app.speakup.levers.At
 import app.speakup.levers.Levers
 import app.speakup.levers.Positions
+import app.speakup.levers.severityOn
 import app.speakup.levers.Stepped
 import app.speakup.marking.AddedSound
 import app.speakup.marking.TurnMarking
@@ -952,10 +953,7 @@ class TurnPipeline(
      * outright**, which is what makes the sensitivities levers rather than a value read off
      * the line beside them.
      */
-    private fun sensitivityOf(sheet: Sheet): Int {
-        val key = Levers.sensitivityOf(Sheets.pathOf(sheet))
-        return (Levers.of(key) as Stepped).rank((_state.value.positions.of(key) as At).name)
-    }
+    private fun sensitivityOf(sheet: Sheet): Int = _state.value.positions.severityOn(sheet)
 
     /**
      * What the learner did differently from the model, on the turn just spoken.

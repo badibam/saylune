@@ -13,8 +13,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import app.speakup.R
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Alignment
 import app.speakup.conversation.Utterance
+import app.speakup.notes.Measured
+import app.speakup.notes.Note
+import app.speakup.notes.Passage as Scored
+import app.speakup.notes.Weights
+import app.speakup.notes.noteOver
 import app.speakup.providers.words
+import app.speakup.sheets.Node
 import app.speakup.sheets.Branch
 import app.speakup.sheets.Sheet
 import app.speakup.sheets.Sheets
@@ -28,12 +36,19 @@ import kotlin.math.roundToInt
  * demand from any passage of the thread (`ui.md`). One content to design, one reading to
  * learn.
  *
- * It carries, **per aptitude, every sheet**: its raw measure, and its letter where the mode
- * uses notes. **What the access layer cuts is the letters, never the measures** -- so in a free
+ * It carries, **per aptitude, every sheet**: its raw measure, and above them the aptitude's own
+ * letter. **What the access layer cuts is the letters, never the measures** -- so in a free
  * conversation the screen exists and carries *2.3 semitones*, *47 sounds out of 50*, *22%
  * slower*, facts about what was just said that depend on no setting and that one wants even
- * with nothing at stake. Free is the only door written, so no letter is drawn here yet; the
- * column is what a mode with notes turns on (`../../../../../../TODO.md`).
+ * with nothing at stake.
+ *
+ * **The letters are the aptitudes' and the passage's, never the sheets', and they are the one
+ * thing here drawn at the second size.** A letter says where to look; a sheet's figure is what
+ * one goes down to once it has said so, and doubling it too would flatten the two levels into
+ * one. What decides a letter is drawn is the mode's **weights**: a mode that declares none has
+ * no note to give, which is a free conversation. The slot stays either way, so the screen has
+ * the same shape in both -- and its height is exactly the air the aptitudes needed between
+ * them, so nothing was spent to get it.
  *
  * **A row with no measure says *not measured***, and it is drawn rather than dropped: the list
  * of sheets is fixed, so a missing row could not be told from a sheet nobody drew. A passage
@@ -50,6 +65,17 @@ import kotlin.math.roundToInt
 fun PassageNotes(
     /** The attempt being read, which is the passage's last -- what one knows how to say now. */
     attempt: Utterance,
+    /**
+     * What the mode weighs each sheet at, or null where it scores nothing.
+     *
+     * **This is what decides whether a letter is drawn**, and it decides it by existing: a mode
+     * that declares no weights has no note to give, which is a free conversation. The slot is
+     * kept either way -- an aptitude's line is as tall with a letter as without -- so the screen
+     * does not change shape between one mode and the next.
+     */
+    weights: Weights?,
+    /** How severe the sitting is on a sheet, which is what turns a figure into a letter. */
+    severity: (Sheet) -> Int,
     modifier: Modifier = Modifier,
 ) {
     val grid = Speakup.grid
@@ -70,19 +96,100 @@ fun PassageNotes(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = grid.cell),
     ) {
+        // The passage's own letter, over every sheet at once: the same formula as an
+        // aptitude's, restricted to nothing rather than to a branch.
+        Heading(
+            stringResource(R.string.passage_notes_whole),
+            noteOf(Sheets.tree.sheets(), attempt, weights, severity),
+        )
         Sheets.tree.children.filterIsInstance<Branch>().forEach { aptitude ->
-            Text(
+            val sheets = aptitude.sheets()
+            Heading(
                 stringResource(nameOfAptitude(aptitude.name)),
-                modifier = Modifier.padding(top = grid.cell),
-                style = type.text,
-                color = palette.ink.srgb,
-                maxLines = 1,
+                noteOf(sheets, attempt, weights, severity),
             )
-            aptitude.children.filterIsInstance<Sheet>().forEach { sheet ->
+            sheets.forEach { sheet ->
                 SheetRow(Sheets.pathOf(sheet), sheet, attempt, colors)
             }
         }
     }
+}
+
+/**
+ * An aptitude's line, or the passage's own: **the name on the left, the letter on the right, at
+ * the register's second size**.
+ *
+ * **The letter is the one thing on this screen that has to be read across the room**, and it is
+ * the aptitude's and not the sheet's: a sheet's figure is what one goes down to when the letter
+ * has said where to look. So the letters are doubled and the figures are not, which is also
+ * what makes the two levels tell each other apart without a rule between them.
+ *
+ * **The line is as tall as the letter whether or not there is one.** That height is exactly the
+ * air the screen needed between two aptitudes, so nothing was spent to get it -- and a mode that
+ * scores nothing shows the same screen with the slots empty, rather than a screen of another
+ * shape.
+ */
+@Composable
+private fun Heading(name: String, note: Note?) {
+    val grid = Speakup.grid
+    val palette = Speakup.palette
+    Row(
+        Modifier.fillMaxWidth().height(grid.cell * HEADING_ROWS),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        Text(
+            name,
+            modifier = Modifier.weight(1f),
+            style = Speakup.type.text,
+            color = palette.ink.srgb,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            note?.letter?.name.orEmpty(),
+            style = Speakup.type.big,
+            color = palette.ink.srgb,
+            maxLines = 1,
+        )
+    }
+}
+
+/**
+ * The letter [sheets] make on this attempt, or null where the mode scores nothing.
+ *
+ * **The same formula as the sitting's note, restricted to a sub-tree** (`notes/Aggregate.kt`):
+ * an aptitude's letter is a *reading* of it and never a step of the calculation, so it is the
+ * flat weighted mean over the sheets actually measured, exactly as the whole is.
+ *
+ * The difficulty is null here, as it is everywhere the app writes a passage today, so the
+ * following drops out of the sum rather than being weighed by a number nobody produced.
+ */
+private fun noteOf(
+    sheets: List<Sheet>,
+    attempt: Utterance,
+    weights: Weights?,
+    severity: (Sheet) -> Int,
+): Note? {
+    if (weights == null) return null
+    val kept = attempt.judged?.words()?.kept?.size ?: return null
+    return noteOver(
+        listOf(
+            Scored(
+                keptWords = kept,
+                difficulty = null,
+                measured = sheets.map { Measured(it, attempt.measured[Sheets.pathOf(it)]) },
+            )
+        ),
+        weights,
+        severity,
+    )
+}
+
+/** Every sheet under this node, at any depth. */
+private fun Node.sheets(): List<Sheet> = when (this) {
+    is Sheet -> listOf(this)
+    is Branch -> children.flatMap { it.sheets() }
+    else -> emptyList()
 }
 
 /**
@@ -275,6 +382,12 @@ private fun one(value: Float): String = String.format(Locale.getDefault(), "%.1f
 private fun signed(value: Float): String =
     (if (value < 0f) "-" else "+") + abs(value).roundToInt()
 
+
+/**
+ * How tall a heading is, in grid cells: a letter at the second size is two lines, and the row
+ * that holds one is what separates two aptitudes.
+ */
+private const val HEADING_ROWS = 4
 
 /** How wide a notch bar is, in cells. Five columns of the twenty-eight the worst screen gives. */
 private const val BAR_CELLS = 5

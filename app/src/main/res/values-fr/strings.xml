@@ -263,6 +263,7 @@
     <!-- The screen itself. -->
     <string name="passage_notes">Passage %1$d</string>
     <string name="passage_notes_what">Ce que ce passage a mesuré. Pas de lettres : rien n’est en jeu dans une conversation libre.</string>
+    <string name="passage_notes_whole">Ce passage</string>
     <string name="passage_notes_none">Rien n’a encore mesuré ce passage.</string>
     <!-- The command row: two columns each, so the row's geometry never depends on the state. -->
     <string name="side_short_model">IA</string>
