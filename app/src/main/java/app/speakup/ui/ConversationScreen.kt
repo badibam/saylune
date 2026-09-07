@@ -148,7 +148,10 @@ fun ConversationScreen(
     // *arms* the mic, never what sends. So one lambda, called by the button and by the clock
     // alike, and the take goes wherever `repeating` says.
     val send: () -> Unit = {
-        scope.launch {
+        // **The pipeline's scope and not this screen's.** Sending a take pushes the passage's
+        // notes over this screen, so launched here the turn would be cancelled by the very
+        // gesture that started it -- measured, and it left the phase on *hearing* for good.
+        pipeline.turns.launch {
             val said = repeating
             // Read before `send` clears the state: the two facts belong to the take, and
             // the take is about to stop existing as a recording in progress.
@@ -329,7 +332,7 @@ fun ConversationScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
             )
-            Button(onClick = { scope.launch { pipeline.submit() } }) {
+            Button(onClick = { pipeline.turns.launch { pipeline.submit() } }) {
                 Text(stringResource(R.string.turn_retry))
             }
         }
@@ -368,12 +371,16 @@ fun ConversationScreen(
           onOpen = {
               // **It closes the previous passage and opens mine**, which is exactly what
               // happens: a turn of speech and not a next page.
-              scope.launch {
+              // The pipeline's scope: closing a passage runs the rules of the moment, and
+              // can play a held continuation and a turn the scene provoked.
+              pipeline.turns.launch {
                   // Read before the close, which is what makes the passage stop being open,
                   // and held until the take goes rather than shown here.
                   closed = turn.open()?.last?.takeIf { it.measured.isNotEmpty() }?.id
                   pipeline.close()
                   onRepeating(null)
+                  // The recorder keeps the screen's scope: its clocks are the screen's
+                  // business and stopping them on the way out is what one wants.
                   recorder.open(scope, settings)
               }
           },

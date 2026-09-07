@@ -59,10 +59,14 @@ import app.speakup.store.Recordings
 import app.speakup.store.activity
 import app.speakup.store.row
 import app.speakup.store.utterance
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
@@ -613,6 +617,21 @@ class TurnPipeline(
     val state: StateFlow<ConversationState> = _state.asStateFlow()
 
     /**
+     * Where a turn runs. **A turn outlives the screen that started it.**
+     *
+     * Measured on the phone: the chain was launched from the conversation screen's own scope,
+     * and sending a take pushes the passage's notes over that screen -- so the screen left the
+     * composition, its scope was cancelled, and the turn died at its first resumption, just
+     * after the recognition. The phase stayed on *hearing* for good, with nothing running and
+     * nothing said. The first turn of a sitting escaped it, having no earlier passage to show.
+     *
+     * A turn belongs to the sitting and not to what is on screen: it keeps an audio file, it
+     * spends money at three providers, and it writes to the store. Whoever is looking at what
+     * while it runs is none of its business.
+     */
+    val turns = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    /**
      * One writer at a time, over every entry that changes the run.
      *
      * Each of those entries reads the state, works across a suspension -- a recognition, a
@@ -768,7 +787,11 @@ class TurnPipeline(
         // does it here: a rule on the opening trigger lays its staging line and, where it asks
         // for one, the character's first turn -- said before anybody has spoken to it.
         fire(Moment.Opening, world())
-        provokeIfAsked()
+        // **Scheduled and not awaited.** The opening turn is a call and a playback, and the
+        // screen has to be there while they happen rather than after them: awaited, pressing
+        // *start* sat on the previous screen until the character had finished speaking. It
+        // takes the lock this still holds, so it begins the instant the opening is settled.
+        turns.launch { writing.withLock { provokeIfAsked() } }
     }
 
     /** Every conversation, most recent first, for the tiles to find their sittings in. */
