@@ -24,6 +24,8 @@ import app.speakup.debug.Trace
 import app.speakup.judged.Judgement
 import app.speakup.judged.Kept
 import app.speakup.judged.Marked
+import app.speakup.fluency.Fluency
+import app.speakup.notes.Measured
 import app.speakup.notes.Sheeting
 import app.speakup.sheets.Sheet
 import app.speakup.sheets.Sheets
@@ -153,6 +155,31 @@ data class Utterance(
      */
     val marking: TurnMarking? = null,
     val sounds: List<AnalysedSound> = emptyList(),
+    /**
+     * What this attempt made of each sheet, by path. Empty where nothing measured it.
+     *
+     * **Kept rather than recomputed**, which is the project's own criterion: one stores what
+     * depends on something that will not be found again. Three of the eleven sheets are in that
+     * case even before the purge -- the continuity, the longest silence and the pace are read
+     * off timings the analysis pass produced and nothing else holds -- and the purge puts the
+     * rest there too by erasing the recordings.
+     *
+     * It fills in **two goes**, at the two moments the doc names: the judged sheets when the
+     * call returns, the sound's when the analysis ends. A passage whose words' gate closed
+     * therefore carries the first set and not the second, which is the truth about it: a sheet
+     * absent from here never counts as a zero.
+     */
+    val measured: Map<String, Float> = emptyMap(),
+    /**
+     * Which side of the model the pace fell on: **true for slower**, null where it was not
+     * measured.
+     *
+     * A fact beside the figure and never inside it. The pace's figure is a **distance**,
+     * symmetric by construction so that twice as slow and twice as fast weigh the same in the
+     * note; the side is what the chevrons read on the line that names the turn, and what tells
+     * a condition *never more than 20% slower* from *never faster*.
+     */
+    val slower: Boolean? = null,
     /**
      * The synthesis of this very text, kept to be heard again.
      *
@@ -786,6 +813,9 @@ class TurnPipeline(
             truncated = said.ending != null,
             keptWords = marked.kept.size,
         )
+        // The figures the gate read, kept on the line rather than dropped with it. The gate
+        // hands on a verdict; what a passage is read back from later is the numbers.
+        note(said.id, measured)
         _state.update { it.copy(wordsGate = closing) }
         return closing
     }
@@ -900,6 +930,11 @@ class TurnPipeline(
             weights = weights,
             sensitivity = ::sensitivityOf,
         )
+        // The second of the two goes: the sound's sheets join the judged ones already on the
+        // line, rather than replacing them. The pace's side rides with them, being the one
+        // thing its symmetric figure cannot say.
+        note(of, measured)
+        update(of) { it.copy(slower = Fluency.slower(timed)) }
         _state.update { it.copy(soundGate = closing) }
         if (closing != null) {
             // **The notification does not name anything**, and that is not an inconsistency.
@@ -1061,6 +1096,22 @@ class TurnPipeline(
             // the learner the conversation -- but it says so rather than passing for kept.
             Trace.fail("archive: not written", "why" to it.message)
         }
+    }
+
+    /**
+     * Write on the utterance [of] what [measured] made of each sheet.
+     *
+     * **Merged and never replaced**, because the figures arrive in two goes at the two moments
+     * the doc names: a sheet the first pass could not read comes back absent from the second's
+     * list too, and overwriting would lose the ones it did read. A sheet with no figure is
+     * simply not put down -- absent is what it is, and never a zero.
+     */
+    private fun note(of: String, measured: List<Measured>) {
+        val figures = measured.mapNotNull { one ->
+            one.figure?.let { Sheets.pathOf(one.sheet) to it }
+        }.toMap()
+        if (figures.isEmpty()) return
+        update(of) { it.copy(measured = it.measured + figures) }
     }
 
     /** Replace the utterance [of] with what [change] makes of it. */

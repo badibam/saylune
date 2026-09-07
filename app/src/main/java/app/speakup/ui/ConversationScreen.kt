@@ -616,10 +616,15 @@ private fun Said(
         TurnLabel(
             name = speaker,
             following = shown?.judged?.following,
-            // Not measured: what the pace reads is a sheet's figure, and no sheet's figure is
-            // kept on an utterance. The empty slot is the right shape for that
-            // (`../../../../../../TODO.md`).
-            pace = null,
+            // The distance and the side, which are two facts and are kept as two: the figure
+            // is symmetric so that twice as slow and twice as fast weigh the same in the note,
+            // and the chevrons are the one place the side is read. An attempt that measured
+            // neither leaves the slot empty, which says *not measured*.
+            pace = shown?.let { attempt ->
+                attempt.measured[PACE]?.let { far ->
+                    attempt.slower?.let { if (it) -far else far }
+                }
+            },
             channels = channels,
         )
         // The earlier takes stay in the base for the measures and for a bench, and no screen
@@ -748,6 +753,9 @@ fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String
     turn.standing() == Standing.ToSayAgain -> stringResource(R.string.passage_say_again)
     else -> stringResource(R.string.capture_press)
 }
+
+/** The pace's path in the sheet tree, which is how a figure is addressed on an utterance. */
+private const val PACE = "fluency/pace"
 
 private fun seconds(ms: Int): String = "%.1f s".format(ms / 1000f)
 

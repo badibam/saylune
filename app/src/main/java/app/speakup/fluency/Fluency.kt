@@ -130,6 +130,22 @@ object Fluency {
         return (maxOf(v, 1f / v) - 1f) * 100f
     }
 
+    /**
+     * Which side of the model the learner fell on: **true for slower**, null where [rate] is.
+     *
+     * The figure [rate] renders is symmetric by construction, so it cannot say this and is not
+     * meant to: what it measures is the distance. But the side does not get lost -- the mark
+     * reads it, the chevrons closing in on a word squeezed and opening out on one stretched,
+     * and a challenge's condition distinguishes *never more than 20% slower than the model*
+     * from *never faster*. So it is a fact of its own, beside the distance and never inside it.
+     */
+    fun slower(turn: Turn): Boolean? {
+        val said = turn.kept.sumOf { it.said.length }.toFloat()
+        val model = turn.kept.mapNotNull { it.model }.sumOf { it.length }.toFloat()
+        if (said <= 0f || model <= 0f) return null
+        return said > model
+    }
+
     /** The silences this turn actually held, longest first -- what a condition reads, raw. */
     fun blanks(turn: Turn): List<Float> =
         silences(turn.spoken.map { it.said }, turn.recorded, grace = false)

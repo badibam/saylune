@@ -114,6 +114,10 @@ data class UtteranceRow(
     /** The marks, as the screen shows them. Null when nothing read this. */
     val marking: String?,
     val sounds: String?,
+    /** What each sheet made of it, by path. Null where nothing measured it. */
+    val measured: String?,
+    /** Which side of the model the pace fell on -- true for slower. Null where unmeasured. */
+    val slower: Boolean?,
     val model: String?,
     /** What the language model marked, as it came. Null when nothing judged this. */
     val judged: String?,
@@ -166,7 +170,7 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 10)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 11)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -550,6 +554,29 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * What each attempt measured, kept on its line.
+         *
+         * The figures were computed at the two gate moments and dropped: the gate kept its
+         * verdict and nothing kept the numbers behind it. That made a passage unreadable after
+         * the fact -- three of the eleven sheets are read off timings the analysis pass
+         * produced and nothing else holds, so they could not be recomputed from the store even
+         * with the audio still there.
+         *
+         * The pace's side comes with them, in its own column: its figure is a distance,
+         * symmetric so that twice as slow and twice as fast weigh the same, so the side is a
+         * fact beside it and never inside it.
+         *
+         * Null on every existing row, which is exactly right: those sittings measured before
+         * anything kept the figures, and inventing them would be inventing measures.
+         */
+        private val FIGURES_ON_THE_LINE = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `utterances` ADD COLUMN `measured` TEXT")
+                db.execSQL("ALTER TABLE `utterances` ADD COLUMN `slower` INTEGER")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
@@ -557,7 +584,7 @@ abstract class Archive : RoomDatabase() {
                 context.applicationContext, Archive::class.java, "archive",
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
                     SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH, CAST_ON_THE_LINE,
-                    NAMED_BY_ITS_DEFINITION)
+                    NAMED_BY_ITS_DEFINITION, FIGURES_ON_THE_LINE)
                 .build().also { instance = it }
         }
     }
