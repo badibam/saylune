@@ -52,6 +52,16 @@ data class Definition(
     val brief: Brief? = null,
     /** Who speaks, besides the learner. */
     val cast: List<Character> = emptyList(),
+    /**
+     * The holes the learner fills before it starts.
+     *
+     * **The same hole appears on both sides of the [brief] and one answer fills them
+     * together** (`activity.md`): written apart, the situation and the staging drift on the
+     * first run -- a conference on neurophysics and one on gender theory do not make the same
+     * speaker. The answer is substituted at creation and copied onto the line, so a sitting
+     * reads on its own afterwards.
+     */
+    val slots: List<Slot> = emptyList(),
     val settings: Positions = Positions(),
     val weights: Weights,
     val instructions: List<Instructing> = emptyList(),
@@ -80,8 +90,20 @@ data class Definition(
     val opening: Pack? = null,
 ) {
 
+    /**
+     * The one the tile shows, or null where nobody stands out.
+     *
+     * **The main one is flagged where the character is, not named from outside.** A key held
+     * at the top of the file would be a second place to keep right, and a file that renamed a
+     * character and forgot it would point at nobody -- silently, since a tile with no name is
+     * exactly what a definition with no cast has. The flag cannot dangle.
+     */
+    val face: Character? get() = cast.firstOrNull { it.main }
+
     init {
         require(id.isNotBlank()) { "a definition with no id" }
+        require(cast.count { it.main } <= 1) { "$id: two characters called the main one" }
+        require(slots.map { it.key }.toSet().size == slots.size) { "$id: two slots, one key" }
         require(cast.none { it.key == Speaker.LEARNER }) {
             "${Speaker.LEARNER} is the learner's own key and a character may not take it"
         }
@@ -151,7 +173,37 @@ data class Character(
      * carry a measure, the label carries an identity one already knows (`ui.md`).
      */
     val short: Text,
+    /**
+     * Whether this is the one the theme is met as: the name its tile carries.
+     *
+     * **One meets a character rather than launching a theme** (`../NOTES.md`), and a tile that
+     * named only its situation left the person out of the one place the learner chooses from.
+     * At most one character carries it; a definition whose cast is a crowd of equals carries
+     * none, and its tile is its title alone.
+     */
+    val main: Boolean = false,
+    /**
+     * Which gender the file settles for this character, or null where it lets it be asked.
+     *
+     * **What says who decides is the presence of the field** (`activity.md`): a definition
+     * that declares one imposes it, a definition that declares none has it asked at the launch
+     * screen, *no matter* by default -- which is not a third gender but the absence of a
+     * constraint, and draws. So there is no *asked* flag to write, and a file that wants
+     * either answer to work writes names that do not carry a gender.
+     */
+    val gender: String? = null,
 )
+
+/**
+ * A hole a definition leaves for the learner, filled once at the launch screen.
+ *
+ * [ask] is in the learner's language, because what matters is that he describes what interests
+ * him rather than what he can write in English; the answer travels into the English brief as it
+ * was typed. Two or three words, and the screen says so rather than the type.
+ */
+data class Slot(val key: String, val ask: Text) {
+    init { require(key.isNotBlank()) { "a slot with no key" } }
+}
 
 /**
  * Something the model answers at the end of the sitting.

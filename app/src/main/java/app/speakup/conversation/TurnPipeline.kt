@@ -636,16 +636,32 @@ class TurnPipeline(
      * calling the old one finished would be the app deciding it is over on no evidence -- it
      * stays there to be carried on with.
      */
-    suspend fun begin() = writing.withLock { beginLocked() }
+    /**
+     * Open a sitting of [definition], with the holes it declares filled.
+     *
+     * The definition is a parameter and no longer the free conversation alone: what stands
+     * behind the free door is one tile per definition the app ships, and starting one is this
+     * call with that file. [answers] are what the learner typed into its slots, [gender] what
+     * he chose for its main character where the file left it open.
+     */
+    suspend fun begin(
+        definition: Definition = free,
+        answers: Map<String, String> = emptyMap(),
+        gender: String? = null,
+    ) = writing.withLock { beginLocked(definition, answers, gender) }
 
-    private suspend fun beginLocked() {
-        val fresh = Activity.from(free)
+    private suspend fun beginLocked(
+        definition: Definition = free,
+        answers: Map<String, String> = emptyMap(),
+        gender: String? = null,
+    ) {
+        val fresh = Activity.from(definition, answers, gender)
         opened = true
         archive.put(fresh.row())
         _state.update {
             it.copy(
                 activity = fresh,
-                definition = free,
+                definition = definition,
                 utterances = emptyList(),
                 effective = null,
                 notices = emptyList(),
@@ -656,8 +672,11 @@ class TurnPipeline(
         Trace.add("conversation: begun", "activity" to fresh.id)
     }
 
-    /** Every conversation, most recent first, for the list to draw. */
+    /** Every conversation, most recent first, for the tiles to find their sittings in. */
     fun conversations() = archive.conversations()
+
+    /** How many passages each sitting holds, by sitting: what a tile shows of itself. */
+    fun passages() = archive.passages(Speaker.LEARNER)
 
     /**
      * Run [audio] through the chain, or run again what a previous failure left pending.

@@ -17,12 +17,18 @@ import java.util.Locale
  * French opens a French app with no preference written anywhere, and *system* as a stored value
  * would be the same state said twice.
  *
- * **It overrides the context rather than the activity.** The platform's own per-app language
+ * **It overrides the resources rather than the activity.** The platform's own per-app language
  * lands in `LocaleManager`, which is API 33 and this app runs from 26, and the compatibility
  * route through `AppCompatDelegate` costs the whole of `appcompat` for one preference -- a
- * dependency the `android` facet asks not to take without a need. Handing the composition a
- * context configured for the language does the same work: everything under it resolves its
- * strings in that language, and changing the preference redraws rather than restarts.
+ * dependency the `android` facet asks not to take without a need. Handing the composition the
+ * resources of a context configured for the language does the same work: every `stringResource`
+ * under it reads that language, and changing the preference redraws rather than restarts.
+ *
+ * **What is deliberately left alone is `LocalContext`.** Providing the configured context there
+ * works for strings and breaks everything that looks for the activity through it: the
+ * permission launcher of the conversation screen resolves its registry by walking the context
+ * up to the activity, and a configuration context is not one -- it threw on the way into a
+ * conversation, which is the only screen that asks for a permission.
  *
  * The default locale is moved with it. Nothing in a resource file reads it, but the definitions
  * do -- their titles are a table of language to text, read with `Locale.getDefault()`, and a
@@ -43,7 +49,6 @@ fun InLanguage(tag: String, content: @Composable () -> Unit) {
         context.createConfigurationContext(configuration)
     }
     CompositionLocalProvider(
-        LocalContext provides localised,
         LocalConfiguration provides configuration,
         LocalResources provides localised.resources,
         content = content,

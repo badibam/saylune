@@ -76,6 +76,8 @@ internal object Sitting {
         of.forEach { character ->
             put(JSONObject()
                 .put("key", character.key)
+                .put("main", character.main)
+                .put("gender", character.gender)
                 .put("short", JSONObject().apply {
                     character.short.byLanguage.forEach { (language, text) -> put(language, text) }
                 }))
@@ -87,6 +89,10 @@ internal object Sitting {
         Character(
             key = json.getString("key"),
             short = Text(short.keys().asSequence().associateWith { short.getString(it) }),
+            main = json.optBoolean("main"),
+            // Written since the launch screen existed; a sitting older than it has none, and
+            // an absent gender is exactly what *no matter* left behind anyway.
+            gender = json.optString("gender").takeIf { it.isNotEmpty() },
         )
     }
 

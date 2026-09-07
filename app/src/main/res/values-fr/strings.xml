@@ -208,7 +208,6 @@
     <string name="mode_free">Libre</string>
     <string name="mode_unwritten">rien derrière pour l\'instant</string>
     <!-- La charpente : ce que dit le narrateur sur un écran qui n'a pas de tour à raconter. -->
-    <string name="conversations_pick">Reprends une conversation, ou lances-en une autre.</string>
     <string name="settings_what">Fournisseurs, clés et préférences.</string>
     <string name="marks_what">Le marquage, sur des tours mesurés et sur des tours inventés.</string>
     <!-- La barre d'actions : pourquoi une entrée est éteinte. -->
@@ -279,9 +278,6 @@
     <string name="notice_of_sheet">%1$s — %2$s : %3$s</string>
     <string name="notes_pushed">Montrer le bilan du passage précédent lors de l&#8217;envoi d&#8217;un nouveau passage</string>
     <!-- La liste des conversations. -->
-    <string name="conversations_new">Nouvelle conversation</string>
-    <string name="conversations_none">Aucune conversation pour l\'instant.</string>
-    <string name="conversation_unnamed">Sans titre</string>
     <!-- Le cache des voix. -->
     <string name="setting_cache_title">Cache des voix</string>
     <string name="setting_cache_cap">Cache des voix, en Mo</string>
@@ -322,4 +318,22 @@
     <string name="register_night">Nuit</string>
     <string name="register_pale">Jour</string>
     <string name="setting_cache_default">%1$s Mo</string>
+    <!-- La porte Libre : les tuiles de thème, et ce qu\'une tuile ouvre. -->
+    <string name="themes_pick">Choisis un thème, ou apporte le tien.</string>
+    <plurals name="theme_passages">
+        <item quantity="one">%1$d passage</item>
+        <item quantity="other">%1$d passages</item>
+    </plurals>
+    <string name="situation_what">Ce dans quoi tu arrives.</string>
+    <string name="situation_words">deux ou trois mots</string>
+    <string name="situation_gender">Qui tu rencontres</string>
+    <string name="gender_any">Peu importe</string>
+    <string name="gender_man">Un homme</string>
+    <string name="gender_woman">Une femme</string>
+    <string name="situation_begin">Commencer</string>
+    <string name="situation_carry_on">Poursuivre</string>
+    <string name="situation_over">Recommencer</string>
+    <string name="situation_no">Non</string>
+    <string name="situation_yes">Oui</string>
+    <string name="situation_over_warns">Recommencer laisse derrière ce qui a été dit : on n\'y revient pas.</string>
 </resources>

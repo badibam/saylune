@@ -324,6 +324,8 @@ Rencontrer quelqu'un plutôt que choisir un thème. La version la plus bête est
 
 **La persona ne doit jamais atteindre la reconstruction d'`intended`.** Si le personnage déteint, la phrase de l'apprenant ressort en dialecte et c'est l'étalon de toute la mesure qui bouge. Même famille de fuite que celle déjà mesurée, où le modèle réparait la grammaire.
 
+**Un seul personnage porte la tuile, et il se déclare là où il est.** Une fiche marque un membre de sa distribution comme le principal ; c'est son nom court que la tuile affiche sous le titre, parce qu'on rencontre quelqu'un plutôt qu'on lance un sujet. Le drapeau est **sur le personnage** et jamais une clé posée en tête de fichier : une clé pointe dans le vide le jour où on renomme un personnage, et elle le fait en silence — une tuile sans nom est exactement ce qu'une définition sans distribution donne. Une distribution d'égaux n'en marque aucun, et sa tuile est son titre seul.
+
 **Un personnage jetable ne coûte rien, un personnage qu'on retrouve coûte le stockage.** Fabriqué à la volée, il ne fait que remplir les champs d'une activité. Revoir Vera trois séances plus tard exige de la garder : c'est le jour où la séparation définition/exécution revient en base. La porte reste ouverte, elle n'est pas franchie.
 
 ### La voix

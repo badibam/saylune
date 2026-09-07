@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -25,6 +26,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import app.speakup.activity.Definitions
 import app.speakup.analysis.Analyses
 import app.speakup.capture.TurnRecorder
 import app.speakup.conversation.TurnPipeline
@@ -40,6 +42,7 @@ import app.speakup.debug.Trace
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.store.Archive
+import app.speakup.store.Sitting
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -47,7 +50,6 @@ import app.speakup.ui.Action
 import app.speakup.ui.Channel
 import app.speakup.ui.Channels
 import app.speakup.ui.ConversationScreen
-import app.speakup.ui.ConversationsScreen
 import app.speakup.ui.PromptScreen
 import app.speakup.ui.Glyphs
 import app.speakup.ui.MarkingPrototypeScreen
@@ -64,6 +66,8 @@ import app.speakup.ui.NIGHT
 import app.speakup.ui.PALE
 import app.speakup.ui.SMALLER
 import app.speakup.ui.THIN
+import app.speakup.ui.SituationScreen
+import app.speakup.ui.ThemesScreen
 import app.speakup.ui.TitleScreen
 import app.speakup.ui.theme.Speakup
 import app.speakup.ui.theme.SpeakupTheme
@@ -128,7 +132,7 @@ class MainActivity : ComponentActivity() {
                         contentColor = Speakup.palette.ink.srgb,
                     ) {
                         InLanguage(stored[Secret.Language].orEmpty()) {
-                            Root(store, recorder, pipeline, stored)
+                            Root(store, recorder, pipeline)
                         }
                     }
                 }
@@ -146,28 +150,23 @@ class MainActivity : ComponentActivity() {
  * needs one, and a list one pushes onto and pops off is not a graph.
  */
 private enum class Screen {
-    Title, Conversations, Conversation, Notes, Prompt, Display, Preferences, Settings, Marks
+    Title, Themes, Situation, Conversation, Notes, Prompt, Display, Preferences, Settings, Marks
 }
 
 /**
  * The app, from its root down.
  *
  * **The root is the title screen** (`ui.md`, settled 2026-09-06): the four modes, and
- * everything descends from there. Only *Free* has anything behind it, and behind it stands
- * the list of conversations -- which is where the theme tiles will go, a tile being a
- * definition and the list being what stands in for them until they are written.
+ * everything descends from there. Only *Free* has anything behind it, and behind it stand the
+ * **theme tiles**, one per definition the app ships; a tile opens the situation screen, and the
+ * situation screen opens the conversation.
  *
  * Everything below the root wears the **scaffold**: what is true at the top, what one can do
  * at the bottom. The title screen does not -- it is the root, so back has nowhere to go, and
  * its eight tiles are meant to take the height.
  */
 @Composable
-private fun Root(
-    store: SecretStore,
-    recorder: TurnRecorder,
-    pipeline: TurnPipeline,
-    stored: Map<Secret, String>,
-) {
+private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipeline) {
     val stack = rememberSaveable(
         saver = listSaver<SnapshotStateList<Screen>, String>(
             save = { it.map(Screen::name) },
@@ -179,6 +178,30 @@ private fun Root(
     // analysis can run at all is a fact about the device, and an app that discovered it
     // had no engine after somebody had spoken would be finding out too late.
     LaunchedEffect(Unit) { pipeline.prepare() }
+
+    val context = LocalContext.current
+    // What the app ships, read once: the tiles are the files, so their number is decided at
+    // the release and cannot change while the app is up.
+    val themes = remember(context) { Definitions.all(context) }
+    val rows by pipeline.conversations().collectAsState(initial = emptyList())
+    val counts by pipeline.passages().collectAsState(initial = emptyList())
+    // **The sitting of a theme is the most recent one opened from it**, and the list is
+    // already sorted newest first. The older ones stay in the base and are out of reach,
+    // which is what starting over means until a history screen exists (`docs/ui.md`).
+    val sittings = remember(rows) {
+        rows.mapNotNull { row ->
+            row.origin?.let { runCatching { Sitting.readOrigin(it).definition }.getOrNull() to row }
+        }.mapNotNull { (definition, row) -> definition?.let { it to row } }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (_, opened) -> opened.first() }
+    }
+    val counted = remember(sittings, counts) {
+        val byActivity = counts.associate { it.activity to it.n }
+        sittings.mapValues { (_, row) -> byActivity[row.id] ?: 0 }
+    }
+    // Which tile the situation screen is standing on. Held with the stack, that screen being
+    // pushed onto it.
+    var opening by rememberSaveable { mutableStateOf<String?>(null) }
 
     val here = stack.last()
     BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
@@ -225,7 +248,7 @@ private fun Root(
                     Tile(R.string.mode_story, reason = R.string.mode_unwritten),
                     Tile(R.string.mode_challenges, reason = R.string.mode_unwritten),
                     Tile(R.string.mode_arcade, reason = R.string.mode_unwritten),
-                    Tile(R.string.mode_free) { stack.add(Screen.Conversations) },
+                    Tile(R.string.mode_free) { stack.add(Screen.Themes) },
                 ),
                 doors = listOf(
                     // The app's own settings first: it is the door one comes back to, where
@@ -237,19 +260,52 @@ private fun Root(
                 modifier = Modifier.fillMaxSize(),
             )
 
-            Screen.Conversations -> Scaffold(
+            Screen.Themes -> Scaffold(
                 title = stringResource(R.string.mode_free),
                 lives = null,
-                status = stringResource(R.string.conversations_pick),
+                status = stringResource(R.string.themes_pick),
                 actions = listOf(back),
             ) {
-                ConversationsScreen(
-                    pipeline,
-                    // Opening one puts the learner in it. Staying on the list after choosing
-                    // would make the choice look like it had not registered.
-                    onOpened = { stack.add(Screen.Conversation) },
+                ThemesScreen(
+                    themes = themes,
+                    passages = counted,
+                    onOpen = { theme -> opening = theme.id; stack.add(Screen.Situation) },
                     modifier = Modifier.fillMaxSize(),
                 )
+            }
+
+            // What a tile opens, and the only screen between a theme and speaking it.
+            Screen.Situation -> {
+                val theme = themes.firstOrNull { it.id == opening }
+                val sitting = theme?.let { sittings[it.id] }
+                Scaffold(
+                    title = theme?.short?.inLanguage(Locale.getDefault().language).orEmpty(),
+                    lives = null,
+                    status = stringResource(R.string.situation_what),
+                    actions = listOf(back),
+                ) {
+                    theme?.let {
+                        SituationScreen(
+                            theme = it,
+                            started = sitting?.let { row -> Sitting.readBrief(row.brief.orEmpty()) },
+                            onCarryOn = {
+                                sitting?.let { row ->
+                                    scope.launch {
+                                        pipeline.open(row.id)
+                                        stack.add(Screen.Conversation)
+                                    }
+                                }
+                            },
+                            onStart = { answers, gender ->
+                                scope.launch {
+                                    pipeline.begin(it, answers, gender)
+                                    stack.add(Screen.Conversation)
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
             }
 
             Screen.Conversation -> Scaffold(

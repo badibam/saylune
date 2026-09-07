@@ -70,7 +70,15 @@ object Definitions {
             short = text(file.getJSONObject("short")),
             brief = file.optJSONObject("brief")?.let { Sitting.readBrief(it.toString()) },
             cast = file.optJSONArray("cast").objects().map {
-                Character(it.getString("key"), text(it.getJSONObject("short")))
+                Character(
+                    key = it.getString("key"),
+                    short = text(it.getJSONObject("short")),
+                    main = it.optBoolean("main"),
+                    gender = it.optString("gender").takeIf { said -> said.isNotEmpty() },
+                )
+            },
+            slots = file.optJSONArray("slots").objects().map {
+                Slot(it.getString("key"), text(it.getJSONObject("ask")))
             },
             settings = Sitting.readPositions(file.optJSONObject("settings")?.toString() ?: "{}"),
             weights = Sitting.readWeights(file.getJSONObject("weights").toString()),

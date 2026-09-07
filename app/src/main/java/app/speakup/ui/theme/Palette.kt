@@ -155,6 +155,20 @@ class Palette(private val register: Register) {
     /** Where the stress belonged. Never shown on a correct turn, so it marks a destination. */
     val accent = Lch(register.rampLightness - 0.10f * up, 0.09f, register.goodHue)
 
+    /** The one calm colour of the register, which two things use and neither of them judges. */
+    private val calm =
+        Lch(register.inkLightness + 0.08f * up, register.melodyChroma, register.melodyHue)
+
+    /**
+     * What the learner brought himself, where a screen shows his words inside the app's.
+     *
+     * **The calm blue and never the ramp**: the ramp is the alarm, and its amber on a word
+     * somebody just typed would be the marking's colour saying something the marking never
+     * said. It is the melody model's blue, which is the register's other named colour and
+     * carries no verdict.
+     */
+    val own = calm
+
     // ── The melody ──────────────────────────────────────────────────────────────────────
 
     /**
@@ -163,8 +177,7 @@ class Palette(private val register: Register) {
      * makes the colour disappear** rather than change it, and the amount of red showing is the
      * amount of the gap. Melody has no colour of its own: it borrows the common ramp.
      */
-    val melodyModel =
-        Lch(register.inkLightness + 0.08f * up, register.melodyChroma, register.melodyHue)
+    val melodyModel = calm
 
     /** The learner's contour, on the red end of the ramp. */
     val melodyLearner = Lch(register.rampLightness, register.rampChroma, register.rampEndHue)

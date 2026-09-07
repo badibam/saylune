@@ -67,6 +67,9 @@ data class ActivityRow(
     val prescriber: String,
 )
 
+/** One sitting and how many passages it holds. */
+data class PassageCount(val activity: String, val n: Int)
+
 /** How it went. Null throughout while nothing has judged it. */
 data class OutcomeRow(
     val verdict: String?,
@@ -168,6 +171,19 @@ interface ArchiveDao {
 
     @Query("SELECT * FROM utterances WHERE activity = :activity ORDER BY rank ASC")
     suspend fun utterances(activity: String): List<UtteranceRow>
+
+    /**
+     * How many passages each sitting holds, which is what a tile shows.
+     *
+     * **A count of rows and nothing stored** (`docs/ui.md`): a passage is a turn of the
+     * learner that opens one, so the attempts under it -- a rewording, a repeat -- are what
+     * `attempt` names and are not counted again.
+     */
+    @Query(
+        "SELECT activity, COUNT(*) AS n FROM utterances " +
+            "WHERE speaker = :learner AND attempt IS NULL GROUP BY activity"
+    )
+    fun passages(learner: String = "learner"): Flow<List<PassageCount>>
 }
 
 @Database(entities = [ActivityRow::class, UtteranceRow::class], version = 11)

@@ -57,9 +57,6 @@
     <string name="phase_measuring">Measuring your turn…</string>
     <string name="turn_retry">Try again</string>
     <string name="turn_failed">The chain gave way: %1$s. Your turn is kept — nothing to say again.</string>
-    <string name="conversations_new">New conversation</string>
-    <string name="conversations_none">No conversation yet.</string>
-    <string name="conversation_unnamed">Untitled</string>
     <string name="setting_cache_cap">Voice cache, in MB</string>
     <string name="setting_cache_cap_help">Rendered model sentences kept for replay. Over this, the least recently used go first. Blank uses %1$s MB.</string>
     <string name="setting_cache_title">Voice cache</string>
@@ -233,7 +230,6 @@
     <string name="mode_free">Free</string>
     <string name="mode_unwritten">nothing behind it yet</string>
     <!-- The scaffold: what the narrator says on a screen that has no turn to narrate. -->
-    <string name="conversations_pick">Pick up a conversation, or start another.</string>
     <string name="settings_what">Providers, keys and preferences.</string>
     <string name="marks_what">The marking, on measured turns and on invented ones.</string>
     <!-- The action bar: why an entry is off. -->
@@ -319,4 +315,22 @@
     <string name="register_night">Night</string>
     <string name="register_pale">Pale</string>
     <string name="setting_cache_default">%1$s MB</string>
+    <!-- The free door: the theme tiles, and what a tile opens. -->
+    <string name="themes_pick">Pick a theme, or bring your own.</string>
+    <plurals name="theme_passages">
+        <item quantity="one">%1$d passage</item>
+        <item quantity="other">%1$d passages</item>
+    </plurals>
+    <string name="situation_what">What you are walking into.</string>
+    <string name="situation_words">two or three words</string>
+    <string name="situation_gender">Who you meet</string>
+    <string name="gender_any">No matter</string>
+    <string name="gender_man">A man</string>
+    <string name="gender_woman">A woman</string>
+    <string name="situation_begin">Begin</string>
+    <string name="situation_carry_on">Carry on</string>
+    <string name="situation_over">Start over</string>
+    <string name="situation_no">No</string>
+    <string name="situation_yes">Yes</string>
+    <string name="situation_over_warns">Starting over leaves what you have said behind: there is no way back to it.</string>
 </resources>

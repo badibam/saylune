@@ -41,10 +41,52 @@ class DefinitionTest {
         val free = shipped(Definitions.FREE_CONVERSATION)
         assertEquals(emptyMap<String, Any>(), free.settings.all())
         // The two halves of the brief come from two places here: the file declares who the
-        // character is, the learner writes what to talk about.
+        // character is, the learner writes what to talk about -- and its situation is that
+        // hole and nothing else, so leaving it blank gives back the themeless conversation.
         assertTrue(free.brief!!.staging.isNotBlank())
-        assertEquals("", free.brief!!.situation)
+        assertEquals(listOf("about"), free.slots.map { it.key })
+        assertEquals("{about}", free.brief!!.situation)
         assertEquals(listOf(Speaker.SPEAKUP), free.cast.map { it.key })
+        // Nobody is met in a free conversation: the tile is identified by its place.
+        assertEquals(null, free.face)
+    }
+
+    /**
+     * What a hole is worth: **one answer, both sides of the brief**.
+     *
+     * The situation and the staging are written apart and would drift on the first run if two
+     * answers filled them -- a talk on neurophysics and one on gender theory do not make the
+     * same speaker.
+     */
+    @Test
+    fun `an answer fills the same hole on both sides of the brief`() {
+        val talk = shipped("after-the-talk")
+        assertEquals(listOf("subject"), talk.slots.map { it.key })
+        val sitting = Activity.from(talk, mapOf("subject" to "quantum computing"))
+        assertTrue(sitting.brief!!.situation.contains("A talk on quantum computing"))
+        assertTrue(sitting.brief!!.staging.contains("a talk on quantum computing"))
+        assertTrue("{subject}" !in sitting.brief!!.situation + sitting.brief!!.staging)
+    }
+
+    /**
+     * The gender: chosen where the file leaves it open, drawn where nobody chose, and told to
+     * the character rather than to the learner.
+     */
+    @Test
+    fun `the main character takes the gender chosen, and one is drawn when none is`() {
+        val talk = shipped("after-the-talk")
+        assertEquals(true, talk.face?.main)
+        assertEquals(null, talk.face?.gender)
+
+        val chosen = Activity.from(talk, gender = "woman")
+        assertEquals("woman", chosen.cast.single { it.main }.gender)
+        assertTrue(chosen.brief!!.staging.endsWith("You are a woman."))
+        // The situation is what the learner reads and he has just answered it: nothing of the
+        // gender goes there.
+        assertTrue("woman" !in chosen.brief!!.situation)
+
+        val drawn = Activity.from(talk).cast.single { it.main }.gender
+        assertTrue(drawn in Activity.GENDERS)
     }
 
     /**

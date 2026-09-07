@@ -33,9 +33,10 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 
 ### Les écrans qui n'existent pas
 
-- **L'écran-titre et les thèmes ne sont pas écrits.** Manquent l'écran-titre à quatre portes, quelques thèmes en fichiers — qui ne coûtent rien, un thème étant une définition — et la seule pièce neuve, les **emplacements** qu'une définition déclare et que l'apprenant remplit au lancement. Le **genre** s'y ajoute sans rien déclarer, et `Character` gagne le champ le jour où cet écran existe.
-- **L'écran des tuiles remplace la liste des conversations.** `ui/ConversationsScreen.kt` liste les séances, ce qui est le catalogue hérité de la PoC — au registre maintenant, ce qui ne le rend pas moins provisoire. Rien ne s'efface — une séance qu'on recommence sort de la vue et reste en base, ce qui fait d'un écran d'historique un ajout pur le jour où il vient.
-- **Deux portes de l'écran-titre sont provisoires** : la liste des conversations tient la place des tuiles de thème, et l'écran de prototype du marquage est un banc que l'UI cible ne porte pas. Deux emplacements sur quatre restent vides.
+- **Il n'y a qu'un thème livré, et c'est un exemple.** `after-the-talk.json` existe pour voir les tuiles remplies ; les thèmes eux-mêmes restent à écrire, et ils ne coûtent rien, un thème étant une définition.
+- **Le genre est demandé, tiré et copié sur la ligne — et rien ne le lit qu'un prompt.** Il part dans la mise en scène, en une phrase disant au personnage qui il est ; ce que le doc lui destine est la **voix**, qui n'existe pas (les quatre génériques ne sont pas écrites). Le tirage n'entre pas au journal non plus, celui-ci ne portant que des choix de règle.
+- **La situation qu'un thème affiche est en anglais**, `Brief` étant deux chaînes nues là où le titre et les questions des emplacements portent leur table de langues. C'est lisible pour qui apprend l'anglais et ce n'est pas un choix écrit.
+- **Une porte de l'écran-titre reste provisoire** : l'écran de prototype du marquage est un banc que l'UI cible ne porte pas. Un emplacement sur quatre reste vide.
 - **La distribution n'a pas d'écran**, et **un personnage ne déclare pas sa voix** : `Character` porte sa clé et son nom court, une seule voix remplit l'identité du locuteur.
 - **La barre d'actions ne porte que le retour hors de la conversation**, ce que `ui.md` rattache à la pile de navigation.
 

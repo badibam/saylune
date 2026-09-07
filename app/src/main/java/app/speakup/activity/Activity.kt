@@ -182,11 +182,25 @@ data class Activity(
          */
         fun from(
             definition: Definition,
+            /** What the learner typed into the definition's holes, by slot key. */
+            answers: Map<String, String> = emptyMap(),
+            /**
+             * Which gender the main character takes, when the definition left it open.
+             *
+             * Null is *no matter*, which is not a third gender but the absence of a
+             * constraint, so it **draws** (`activity.md`): replaying a theme does not give
+             * back the same person, which is what serves the meeting. What the draw settles is
+             * copied onto the line, so the sitting reads back as the definite person it was.
+             */
+            gender: String? = null,
             by: Prescriber = Prescriber.Learner,
             now: Long = System.currentTimeMillis(),
         ) = Activity(
-            brief = definition.brief,
-            cast = definition.cast,
+            brief = definition.brief?.let { fill(it, answers, settled(definition, gender)) },
+            cast = definition.cast.map { character ->
+                if (character.main) character.copy(gender = settled(definition, gender))
+                else character
+            },
             settings = definition.settings,
             weights = definition.weights,
             instructions = definition.instructions,
@@ -197,6 +211,36 @@ data class Activity(
             startedAt = now,
             by = by,
         )
+
+        /**
+         * Which gender the character actually has: the one the file declares, else the one
+         * chosen, else one drawn.
+         */
+        private fun settled(definition: Definition, chosen: String?): String? =
+            definition.face?.let { it.gender ?: chosen ?: GENDERS.random() }
+
+        /**
+         * The brief with the holes filled, on **both sides at once**.
+         *
+         * The gender is not one of the holes: a definition declares nothing for it, so there
+         * is nowhere in the prose for an answer to go. It is said to the character instead, in
+         * the staging, which is the half that situates him -- and never in the situation,
+         * which the learner reads and which he has just answered.
+         */
+        private fun fill(brief: Brief, answers: Map<String, String>, gender: String?) = Brief(
+            situation = fill(brief.situation, answers),
+            staging = fill(brief.staging, answers) + (gender?.let { " You are a $it." } ?: ""),
+        )
+
+        private fun fill(text: String, answers: Map<String, String>): String =
+            answers.entries.fold(text) { said, (key, answer) -> said.replace("{$key}", answer) }
+
+        /**
+         * What a gender can be, which is what the generic voices come in: two of a man, two of
+         * a woman (`activity.md`). It is the voice that reads this and no voice is written
+         * yet -- what it does today is tell the character who he is, in his staging.
+         */
+        val GENDERS = listOf("man", "woman")
     }
 }
 

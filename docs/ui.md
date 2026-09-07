@@ -76,21 +76,21 @@ C'est l'écran le plus dense de l'app et le seul dont chaque pixel porte une mes
 
 **Les marques des mots restent une fois la porte des mots passée, et c'est le défaut.** Un passage qui passe porte quand même des marques, la porte lisant une note et non l'absence de marque. La ligne devient dense quand les marques du son arrivent par-dessus, et c'est le prix accepté — un `plat` sur un passage qui passe reste une chose vraie qu'on a le droit de voir. Les retirer est une préférence d'affichage, jamais de mesure.
 
-## Les écrans qui n'existent pas encore
+## La porte « Libre » : des tuiles, une par thème
 
-### La porte « Libre » : des tuiles, une par thème
+Écrit le 2026-09-07, et ce qui suit est ce qui est à l'écran.
 
-**Deux colonnes de tuiles en portrait** : la première est la conversation sans thème, les suivantes sont les thèmes livrés. Une tuile ne montre que le **nombre de passages** qu'elle contient — un compte de lignes, donc rien de stocké. Les tuiles ne bougent pas de place, sauf que celles qui sont commencées passent devant, la première restant la première.
+**Deux colonnes de tuiles en portrait, sauf la première qui prend toute la largeur.** La première est la conversation sans thème ; elle est toujours affichée en tête et n'est pas un thème parmi d'autres — c'est le seul endroit où l'apprenant apporte la situation lui-même —, donc elle a la largeur plutôt qu'un rang. Les suivantes sont les thèmes livrés, deux par ligne.
 
-**La surface est de taille fixe, et c'est ce qui la sépare d'un catalogue** : les tuiles sont les définitions livrées, donc leur nombre est décidé par l'app et jamais par l'usage. On garde plusieurs conversations vivantes sans avoir de liste à administrer.
+**Une tuile porte un nom, un visage et un compte.** Le nom est le thème, déclaré dans son fichier ; le visage est le **personnage principal** que le fichier marque (`activity.md`) ; le compte est le nombre de passages de la séance derrière elle — un compte de lignes, donc rien de stocké. Une tuile que personne n'a ouverte ne montre **pas** de compte plutôt qu'un zéro : ce qu'elle dirait est *pas commencée*, et un zéro dit *commencée et vide*.
 
-**Et rien n'a besoin d'être nommé.** Une tuile est identifiée par son thème, déclaré dans son fichier ; celle qui n'en a pas est identifiée par sa place. C'est ce qui retire le nom écrit par le modèle, et avec lui le champ de contrat et la règle qui l'empêchait de renommer.
+**La surface est de taille fixe, et c'est ce qui la sépare d'un catalogue** : les tuiles sont les définitions livrées, donc leur nombre est décidé par l'app et jamais par l'usage. La liste d'une ligne par séance, qui grandissait sans fin, est partie avec la PoC dont elle venait. Les tuiles ne bougent pas de place, sauf que celles qui sont commencées passent devant, la première restant la première.
 
-**Toucher une tuile ouvre l'écran de situation, un seul écran à deux états.** Rempli, il montre la situation complétée, **le texte du champ court en couleur** pour qu'on voie d'un coup ce qu'on a apporté soi-même — ça ne coûte rien, la substitution sachant où était le trou. Vide, il montre la situation, sa question, et le choix du **genre**, *peu importe* par défaut. Deux boutons dans les deux cas : **poursuivre** et **recommencer**. La première tuile a le même écran, avec une question facultative qu'on peut laisser vide.
+**Toucher une tuile ouvre l'écran de situation, un seul écran à deux états.** Rempli, il montre la situation complétée, **ce que l'apprenant a apporté en couleur** — le bleu calme et jamais la rampe, qui est l'alarme : la teinte du marquage sur un mot qu'on vient de taper dirait ce que le marquage n'a pas dit. Ça ne coûte rien : le gabarit est dans le fichier et le texte fini est sur la ligne, donc où était le trou se relit en posant l'un sur l'autre. Vide, il montre la situation avec ses trous, une question par trou, et le choix du **genre** là où le fichier le laisse ouvert — *peu importe* par défaut, qui n'est pas un troisième genre mais l'absence de contrainte, et tire au sort. **Les trous se remplissent à la frappe**, dans la couleur qu'ils garderont : ce dans quoi on va arriver se lit avant d'appuyer, pas après.
 
-**« Recommencer » demande confirmation, défaut sur non.** C'est la seule chose qui rende une séance inatteignable : l'ancienne reste en base, mais tant qu'aucun écran d'historique n'existe, hors d'atteinte vaut perdue à l'usage. La règle d'`universel` sur les actions lourdes s'applique, et elle est dans le registre — un jeu demande avant d'écraser une sauvegarde.
+**Deux sorties, dont une qui demande.** *Poursuivre* prend la séance telle qu'elle est, et s'appelle *commencer* tant qu'il n'y a rien à poursuivre — le seul écart à ce que ce doc disait, deux boutons aux mots figés en laissant un mentir sur une tuile que personne n'a ouverte. *Recommencer* est la seule chose de l'app qui rende une séance inatteignable : l'ancienne reste en base, et tant qu'aucun écran d'historique n'existe, hors d'atteinte vaut perdue à l'usage. Elle demande donc, défaut sur non, **dans le registre plutôt que dans une boîte de dialogue** : les deux boutons deviennent la question, et la réponse est là où la main est déjà.
 
-### Les images
+## Les images
 
 Le registre ne les interdit pas, il exige qu'elles soient sur la grille — et il n'en a besoin d'aucune pour exister. Leur place est l'écran-titre, les portraits, les icônes d'activités et de résultats, l'icône de l'app et la fiche F-Droid. Leur non-place est le fil et le tour marqué, où la couleur et la forme portent une mesure.
 
