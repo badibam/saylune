@@ -31,7 +31,23 @@ class Typography(private val grid: Grid, private val density: Density) {
     /** The lighter of the two weights, a one-pixel stroke against the Regular's two. */
     val thin: TextStyle = style(FontWeight.Thin)
 
-    private fun style(weight: FontWeight) = TextStyle(
+    /**
+     * **The second size of the register: the same font at twice the factor.**
+     *
+     * A whole multiple of a whole factor is still whole, so the one hard rule holds -- every
+     * drawing pixel comes out `2 * scale` screen pixels, none of them three wide and none four.
+     * That is the whole reason there can be a second size at all and no third between the two.
+     *
+     * It is for what has to be **read rather than scanned**: a note, which is one letter and the
+     * point of the screen it sits on, and the glyph of a button, whose ink at the ordinary size
+     * is a drawing eleven pixels across at the end of an arm.
+     *
+     * A character of it is **two cells across and two lines tall**, so a layout takes it in
+     * whole cells like everything else -- what changes is how many.
+     */
+    val big: TextStyle = style(FontWeight.Normal, DOUBLE)
+
+    private fun style(weight: FontWeight, times: Int = 1) = TextStyle(
         fontFamily = SpeakupTile,
         fontWeight = weight,
         // The em is EM_PIXELS drawing pixels, so this is the size at which one drawing pixel
@@ -40,11 +56,14 @@ class Typography(private val grid: Grid, private val density: Density) {
         // not land here: at 1.3 it would put a drawing pixel on 3.9 screen pixels and the
         // whole-factor rule -- the one hard constraint of the register -- would be broken.
         // Enlarging, when it comes, moves the scale by whole steps instead.
-        fontSize = with(density) { grid.painted(EM_PIXELS).toSp() },
-        lineHeight = with(density) { grid.painted(TEXT_STEP).toSp() },
+        fontSize = with(density) { grid.painted(EM_PIXELS * times).toSp() },
+        lineHeight = with(density) { grid.painted(TEXT_STEP * times).toSp() },
     )
 
     companion object {
+
+        /** What [big] multiplies the factor by. Two, and there is no room for a third size. */
+        const val DOUBLE = 2
         /** How many drawing pixels the em box is: 1024 units at 64 per pixel (`font/README.md`). */
         const val EM_PIXELS = 16
 
