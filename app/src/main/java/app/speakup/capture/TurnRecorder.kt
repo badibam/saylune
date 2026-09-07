@@ -5,6 +5,10 @@ import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
 import app.speakup.debug.Trace
+import app.speakup.levers.At
+import app.speakup.levers.Count
+import app.speakup.levers.Levers
+import app.speakup.levers.Positions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -256,7 +260,39 @@ data class Take(val whole: File, val spoken: File)
 data class Capture(
     val ceilingMs: Int = TurnRecorder.CEILING_MS,
     val sendsAfterMs: Int? = null,
-)
+) {
+    companion object {
+
+        /**
+         * What this sitting's levers set the two clocks to.
+         *
+         * Read in one place and never at each site that wants a clock: the buttons, the status
+         * line and the recorder all want the same two numbers, and three derivations of one
+         * setting are three chances of disagreeing about when a turn ends.
+         */
+        fun of(positions: Positions): Capture = Capture(
+            ceilingMs = seconds(positions, Levers.TURN_LENGTH.key, TurnRecorder.CEILING_MS),
+            // Null wherever the silence does not send, which is the first two positions:
+            // there the learner is the only one who sends. Not zero -- zero would send at once.
+            sendsAfterMs =
+                if ((positions.of(Levers.CAPTURE.key) as? At)?.name == Levers.ARMED_AND_SENDING)
+                    seconds(positions, Levers.SILENCE_THRESHOLD.key, DEFAULT_SILENCE_MS)
+                else null,
+        )
+
+        /**
+         * A numeric lever read in milliseconds, or [fallback] where it carries no number.
+         *
+         * A lever with no number is one whose position is *no maximum* -- the shape the
+         * catalogue gives a ceiling that does not exist. The clocks want a number either way,
+         * so the caller says what standing for *no limit* means to it.
+         */
+        private fun seconds(positions: Positions, key: String, fallback: Int): Int =
+            (positions.of(key) as? Count)?.n?.times(1000) ?: fallback
+
+        private const val DEFAULT_SILENCE_MS = 5_000
+    }
+}
 
 /**
  * How a turn stopped recording, when something other than a hand stopped it.

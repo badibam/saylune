@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import app.speakup.R
 import app.speakup.capture.TurnRecorder
@@ -42,7 +39,6 @@ import app.speakup.conversation.Closing
 import app.speakup.conversation.Speaker
 import app.speakup.conversation.Standing
 import app.speakup.conversation.Utterance
-import app.speakup.providers.words
 import app.speakup.conversation.Phase
 import androidx.compose.runtime.saveable.rememberSaveable
 import app.speakup.analysis.AnalysedSound
@@ -114,15 +110,7 @@ fun ConversationScreen(
     // asking the catalogue itself, so no two of them can disagree about the position.
     val position = (turn.positions.of(Levers.CAPTURE.key) as? At)?.name ?: Levers.BY_HAND
     val arms = position != Levers.BY_HAND
-    val settings = Capture(
-        ceilingMs = seconds(turn.positions, Levers.TURN_LENGTH.key, TurnRecorder.CEILING_MS),
-        // Null wherever the silence does not send, which is the first two positions: there
-        // the learner is the only one who sends. Not zero -- zero would send at once.
-        sendsAfterMs =
-            if (position == Levers.ARMED_AND_SENDING)
-                seconds(turn.positions, Levers.SILENCE_THRESHOLD.key, 5_000)
-            else null,
-    )
+    val settings = Capture.of(turn.positions)
 
     // **`SEND` exists at all three positions**, and what changes from one to the next is what
     // *arms* the mic, never what sends. So one lambda, called by the button and by the clock
@@ -164,17 +152,24 @@ fun ConversationScreen(
         if (capture.recording || capture.hasAudio) return@LaunchedEffect
         // The preparation: the time between the end of the AI's answer and the mic being
         // armed. It lives outside the turn, so it touches no measure.
-        val wait = seconds(turn.positions, Levers.PREPARATION.key, 0)
+        val wait = (turn.positions.of(Levers.PREPARATION.key) as? Count)?.n?.times(1000) ?: 0
         if (wait > 0) kotlinx.coroutines.delay(wait.toLong())
         onRepeating(null)
         recorder.open(scope, settings)
     }
 
-    Column(
-        modifier = modifier.verticalScroll(rememberScrollState()).padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    val grid = Speakup.grid
+    // **The thread scrolls, the bottom does not.** The bottom is four grid rows -- three of
+    // buttons here, and the scaffold's action bar under them -- and what it commands is
+    // whatever records, so it has to be reachable while the thread is anywhere.
+    Column(modifier) {
+      Column(
+        modifier = Modifier
+            .weight(1f)
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = grid.cell),
+        verticalArrangement = Arrangement.spacedBy(grid.cell),
+      ) {
         if (!granted) {
             Text(
                 stringResource(R.string.capture_permission),
@@ -280,99 +275,6 @@ fun ConversationScreen(
             }
         }
 
-        val busy = turn.phase != Phase.Idle
-        // **The big button says a turn of speech and not a next page**: it opens one of the
-        // learner's own. It is greyed while anything records, whoever started it -- one does
-        // not begin a new turn while speaking -- rather than turning into the pause, which
-        // would be a second personality on one button.
-        val recordingSomething = capture.recording || capture.hasAudio
-        Surface(
-            shape = CircleShape,
-            color = when {
-                busy || recordingSomething -> MaterialTheme.colorScheme.surfaceVariant
-                else -> MaterialTheme.colorScheme.primary
-            },
-            modifier = Modifier
-                .size(150.dp)
-                .clickable(enabled = !busy && !recordingSomething && turn.closes()) {
-                    // **It closes the previous passage and opens mine**, which is exactly what
-                    // happens: a turn of speech and not a next page.
-                    scope.launch {
-                        pipeline.close()
-                        onRepeating(null)
-                        recorder.open(scope, settings)
-                    }
-                },
-        ) {}
-
-        // **The two countdowns, visible at all times** -- the turn's time and the silence
-        // running now. Two times running out, shown the same way. The silence one only shows
-        // where a silence sends, there being no countdown otherwise.
-        if (capture.recording) {
-            Text(
-                if (settings.sendsAfterMs != null) stringResource(
-                    R.string.capture_clocks,
-                    seconds(capture.elapsedMs), seconds(settings.ceilingMs),
-                    seconds(capture.silenceMs), seconds(settings.sendsAfterMs),
-                ) else stringResource(
-                    R.string.capture_clock,
-                    seconds(capture.elapsedMs), seconds(settings.ceilingMs),
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-        }
-
-        // **The bottom commands everything that records, whichever button started it.** The
-        // big one opens a new turn, a passage's small one opens a repeat, and in both cases
-        // these are what follow. Doubling them into the row under each passage would fit,
-        // and it is not the room that rules it out: it would be two `SEND`s doing the same
-        // work in two places, the one to press depending on what was started.
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            // **`PAUSE` exists at the first capture position and nowhere else** -- the one
-            // position that has a pause at all. Its absence is the right shape on screen,
-            // and the lever's phrase is the right shape at the moment one chooses.
-            if ((turn.positions.of(Levers.CAPTURE.key) as? At)?.name == Levers.BY_HAND) {
-                OutlinedButton(
-                    enabled = capture.recording || (capture.hasAudio && !busy),
-                    onClick = {
-                        // With the sitting's clocks, like every other opening: carrying on
-                        // resumes the same turn, and a turn does not change how long it may
-                        // run because the thumb stopped it once.
-                        if (capture.recording) recorder.pause()
-                        else recorder.open(scope, settings)
-                    },
-                ) {
-                    Text(
-                        stringResource(
-                            if (capture.recording) R.string.capture_pause
-                            else R.string.capture_resume
-                        )
-                    )
-                }
-            }
-            // Absent and not greyed when nothing records: there is no take to send.
-            if (capture.hasAudio && !busy) {
-                // **Throwing a take away is a lever**, `jeter-la-prise`. Offered freely it
-                // walks around the attempt counters -- a challenge granting one attempt could
-                // be restarted ten times -- so a challenge has to be able to close it. It has
-                // **no object at the third position**, where a clock sends too: the silence
-                // one hesitates through is what sends the take, so the button would be a race
-                // against the pendulum, lost by whoever thinks.
-                val mayDiscard = turn.positions.live(Levers.DISCARD_TAKE.key) &&
-                    (turn.positions.of(Levers.DISCARD_TAKE.key) as? At)?.name == "allowed"
-                if (mayDiscard) {
-                    OutlinedButton(onClick = { recorder.discard(); onRepeating(null) }) {
-                        Text(stringResource(R.string.capture_redo))
-                    }
-                }
-                Button(onClick = send) {
-                    Text(stringResource(R.string.capture_send))
-                }
-            }
-        }
-
         Text(
             stringResource(R.string.capture_source, stringResource(recorder.source.label)),
             style = MaterialTheme.typography.bodySmall,
@@ -381,6 +283,47 @@ fun ConversationScreen(
         )
 
         DebugPanel()
+      }
+
+      val busy = turn.phase != Phase.Idle
+      val recordingSomething = capture.recording || capture.hasAudio
+      Buttons(
+          myTurn = stringResource(R.string.capture_my_turn),
+          // **`PAUSE` exists at the first capture position and nowhere else**, the one position
+          // that has a pause at all. Elsewhere it is absent rather than greyed: absence is for
+          // what has no object, greying for what cannot be done at this instant.
+          pause = if (position == Levers.BY_HAND) stringResource(
+              if (capture.recording) R.string.capture_pause else R.string.capture_resume
+          ) else null,
+          // Absent where nothing records: there is no take to send.
+          send = if (capture.hasAudio && !busy) stringResource(R.string.capture_send) else null,
+          mayOpen = !busy && !recordingSomething && turn.closes(),
+          mayPause = capture.recording || (capture.hasAudio && !busy),
+          // **Throwing a take away is a lever.** Offered freely it walks around the attempt
+          // counters -- a challenge granting one attempt could be restarted ten times -- so a
+          // challenge has to be able to close it. It has **no object at the third position**,
+          // where a clock sends too: the silence one hesitates through is what sends the take,
+          // so the button would be a race against the pendulum, lost by whoever thinks.
+          mayDiscard = turn.positions.live(Levers.DISCARD_TAKE.key) &&
+              (turn.positions.of(Levers.DISCARD_TAKE.key) as? At)?.name == "allowed",
+          onOpen = {
+              // **It closes the previous passage and opens mine**, which is exactly what
+              // happens: a turn of speech and not a next page.
+              scope.launch {
+                  pipeline.close()
+                  onRepeating(null)
+                  recorder.open(scope, settings)
+              }
+          },
+          onPause = {
+              // With the sitting's clocks, like every other opening: carrying on resumes the
+              // same turn, and a turn does not change how long it may run because the thumb
+              // stopped it once.
+              if (capture.recording) recorder.pause() else recorder.open(scope, settings)
+          },
+          onSend = send,
+          onDiscard = { recorder.discard(); onRepeating(null) },
+      )
     }
 }
 
@@ -546,16 +489,6 @@ private fun Said(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        // The spans are marked and this only says that something was: drawing them on the
-        // letters is the redrawn marked turn, further down the plan. Until then the line
-        // says as much as the boolean it replaced, off data that says far more.
-        if (spoken.judged?.words()?.correctness?.any { it.notch != "ok" } == true) {
-            Text(
-                stringResource(R.string.turn_grammar_marked),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.tertiary,
-            )
-        }
     }
 }
 
@@ -580,13 +513,13 @@ fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String
     turn.phase == Phase.Speaking -> stringResource(R.string.phase_speaking)
     turn.phase == Phase.Measuring -> stringResource(R.string.phase_measuring)
     capture.recording && repeating != null ->
-        stringResource(R.string.capture_repeat_running, seconds(capture.elapsedMs))
+        stringResource(R.string.capture_repeat_running, clocks(turn, capture))
     capture.recording ->
-        stringResource(R.string.capture_turn_running, seconds(capture.elapsedMs))
+        stringResource(R.string.capture_turn_running, clocks(turn, capture))
     capture.hasAudio && repeating != null ->
-        stringResource(R.string.capture_repeat_paused, seconds(capture.elapsedMs))
+        stringResource(R.string.capture_repeat_paused, clocks(turn, capture))
     capture.hasAudio ->
-        stringResource(R.string.capture_turn_paused, seconds(capture.elapsedMs))
+        stringResource(R.string.capture_turn_paused, clocks(turn, capture))
     turn.standing() == Standing.ToReword -> stringResource(
         R.string.passage_reword,
         (turn.wordsGate as? Closing.Aptitudes)?.names?.joinToString(", ")
@@ -599,21 +532,37 @@ fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String
 /** The pace's path in the sheet tree, which is how a figure is addressed on an utterance. */
 private const val PACE = "fluency/pace"
 
+/**
+ * **The two countdowns, and they are visible at all times** -- the time the turn has run and
+ * the silence running now. Two times running out, shown the same way.
+ *
+ * They live in the status line, which is the one place that is always full and up to date, and
+ * they are read off `Capture.of` like everything else that wants a clock, so no two readers can
+ * disagree about when a turn ends. The silence one shows only where a silence sends, there
+ * being no countdown otherwise -- at the first two positions the learner is the only one who
+ * sends, so nothing is running out.
+ *
+ * **Where they belong exactly is not settled** (`pixel-ui.md` leaves it open, with the recording
+ * symbol): the status line is where they are until it is.
+ */
+@Composable
+private fun clocks(turn: ConversationState, capture: CaptureState): String {
+    val settings = Capture.of(turn.positions)
+    return settings.sendsAfterMs?.let {
+        stringResource(
+            R.string.capture_clocks,
+            seconds(capture.elapsedMs), seconds(settings.ceilingMs),
+            seconds(capture.silenceMs), seconds(it),
+        )
+    } ?: stringResource(
+        R.string.capture_clock, seconds(capture.elapsedMs), seconds(settings.ceilingMs),
+    )
+}
+
 private fun seconds(ms: Int): String = "%.1f s".format(ms / 1000f)
 
 /** Whether the chain holds the screen. Named so an effect can key on it. */
 private fun busyOf(phase: Phase): Boolean = phase != Phase.Idle
-
-/**
- * A numeric lever read in milliseconds, or [fallback] when it carries no number.
- *
- * A lever with no number is one whose position is *no maximum* -- the shape the catalogue
- * gives to a ceiling that does not exist. The clocks want a number either way, so the caller
- * says what standing for *no limit* means to it.
- */
-private fun seconds(positions: Positions, key: String, fallback: Int): Int =
-    (positions.of(key) as? Count)?.n?.times(1000) ?: fallback
-
 
 /**
  * The short name of [who], as the line that names a turn carries it.

@@ -64,7 +64,6 @@
     <string name="speaker_ai">Speakup</string>
     <string name="analysis_engine_refused">Les marques de prononciation sont éteintes pour cette séance : le moteur d\'analyse n\'a pas pu être chargé.</string>
     <string name="analysis_unshipped">Les marques de prononciation sont éteintes : cette version ne contient pas de moteur d\'analyse.</string>
-    <string name="turn_grammar_marked">Quelque chose ici n\'est pas tout à fait anglais — les marques de son attendent que ce soit redit.</string>
     <string name="debug_steps">Debug — %1$d étape(s)</string>
     <string name="debug_clear">Vider</string>
     <string name="debug_nothing">Rien d\'enregistré pour l\'instant.</string>
@@ -268,4 +267,5 @@
     <!-- The command row: two columns each, so the row's geometry never depends on the state. -->
     <string name="side_short_model">IA</string>
     <string name="side_short_learner">MOI</string>
+    <string name="capture_my_turn">MON TOUR</string>
 </resources>
