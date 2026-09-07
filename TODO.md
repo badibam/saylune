@@ -8,6 +8,8 @@
 
 **Un second axe s'ouvre le 2026-09-07 : la sortir du seul téléphone de son auteur.** Il ne recoupe presque pas le reste — ce qui manque là n'est pas de la mesure mais une porte d'entrée, et la section qui suit le porte en entier.
 
+**Et il vise F-Droid dès maintenant, décidé le 2026-09-07.** Pas « un jour, si ça se trouve » : chaque exigence du dépôt se paie beaucoup plus cher découverte à la fin, et deux d'entre elles — la licence et l'absence de clé dans le build — se décident au premier commit et ont déjà été payées. Ce qui en découle est que **le build est tenu conforme au fil de l'eau** plutôt que mis en règle à la soumission, et qu'une décision qui rendrait l'app impubliable se refuse quand elle se présente. GitHub reste la sortie proche ; F-Droid est la direction, et c'est elle qui arbitre quand les deux divergent.
+
 Deux disciplines, qui sont la vraie parade au regret. **Une brique provisoire se note ici à l'instant où on l'écrit**, jamais après — écrite après coup, elle ne s'écrit pas. Et **l'usage réel est une source de questions, jamais de chiffres** : le banc reste le seul juge, un seuil ne se règle pas parce que l'écran en marque trop.
 
 ## Les dettes d'implémentation
