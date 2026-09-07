@@ -95,6 +95,54 @@ object Trace {
         _steps.value = emptyList()
     }
 
+    /**
+     * How many passages' prompts are kept. Bounded like [KEPT] and for a sharper reason:
+     * every prompt holds the whole history, so keeping all of them grows as the square of
+     * the sitting.
+     */
+    private const val PROMPTS = 40
+
+    private val prompts = LinkedHashMap<String, String>()
+
+    /** The last body handed to a language model, waiting for a passage to be named. */
+    @Volatile
+    private var pending: String? = null
+
+    /**
+     * What a conversation provider is about to send, whole, kept until [askedFor] names the
+     * passage it is for.
+     *
+     * **What is kept is what was sent, and nothing is rebuilt.** The prompt is a function of
+     * the sitting -- the brief, the cast, the run, the levers -- so it could be made again
+     * from what the base holds, and that would be a different thing: a rebuilt prompt says
+     * what *would* go out now, and reading it as what did go out is the mix of the measured
+     * and the deduced the project refuses. The price is that this lives in memory alone -- a
+     * reopened sitting, and everything before the last start of the process, has none.
+     */
+    fun asking(body: String) {
+        if (on) pending = body
+    }
+
+    /**
+     * Called once the turn is written, naming the passage that call was for.
+     *
+     * **The passage and not the attempt.** A rewording makes a call of its own and replaces
+     * the passage's prompt with the newer one, which is the one that produced what stands;
+     * a repeat makes no call at all, and keyed by attempt it would open on nothing.
+     */
+    @Synchronized
+    fun askedFor(passage: String) {
+        val body = pending ?: return
+        pending = null
+        prompts.remove(passage)
+        prompts[passage] = body
+        while (prompts.size > PROMPTS) prompts.remove(prompts.keys.first())
+    }
+
+    /** What went out for [passage], or null where this process never sent it. */
+    @Synchronized
+    fun asked(passage: String): String? = prompts[passage]
+
     /** A body to record, cut to [BODY_CEILING] and saying so when it was. */
     fun cut(body: String): String =
         if (body.length <= BODY_CEILING) body

@@ -60,6 +60,11 @@ internal class ReplicateConversation(
             // thinking is what the learner waits for.
             .put("reasoning_effort", "low")
 
+        // What goes out, whole, for the passage's own screen. It is this shape and not the
+        // chat one: what a provider takes is its own, and showing a body it never sent would
+        // be showing a rebuild.
+        Trace.asking(input.toString())
+
         val prediction = client.predict(model, input)
         val content = joined(prediction.opt("output"))
         if (content.isBlank()) {

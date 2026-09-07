@@ -761,6 +761,10 @@ class TurnPipeline(
                 repeats = rewords,
                 attempt = rewords?.let { Attempt.Rewording },
             )
+            // The call that has just answered belongs to the passage this attempt is in, and
+            // the passage is named by the utterance that opened it: a rewording is an attempt
+            // at the one it points back at.
+            Trace.askedFor(rewords ?: said.id)
             _state.update {
                 it.copy(
                     utterances = it.utterances + said,

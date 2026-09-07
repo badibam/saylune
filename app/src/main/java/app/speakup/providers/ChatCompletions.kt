@@ -60,6 +60,9 @@ internal object ChatCompletions {
             .put("response_format", JSONObject().put("type", "json_object"))
             .apply(extra)
             .toString()
+        // Whole and uncut, for the passage's own screen: the trace cuts a body at its ceiling
+        // and the point here is to read the instruction entire.
+        Trace.asking(body)
 
         val answer = Http.post(
             url = "${base.trimEnd('/')}/chat/completions",
