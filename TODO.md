@@ -226,7 +226,15 @@ Ce qu'on sait déjà de la forme : un invariant s'écrit **après** avoir mesur�
 
 **Mesurer sur un second appareil.** Tout est mesuré sur un seul téléphone, arm64 avec instructions de produit scalaire. Rien ne dit ce que fait un appareil à 4 Go, ni un jeu d'instructions plus pauvre — et le seuil de marquage dépendant de la lecture de l'appareil, c'est une question de conception autant que de compatibilité.
 
-**Le runtime natif chez F-Droid est le seul point non instruit.** `onnxruntime-android` est distribué en archive déjà compilée, ce que F-Droid n'accepte pas. Rien n'est fermé — ONNX Runtime est en MIT et son build Android est documenté — mais aucun précédent d'application qui le compile dans sa recette n'a été trouvé. Trois issues : **le compiler dans la recette**, propre mais gros build, avec la reproductibilité qui impose d'épingler la version exacte du NDK ; **le faire entrer comme bibliothèque partagée**, compilée une fois chez eux, mécanisme qui existe et se négocie ; ou **un build minimal réduit aux seuls opérateurs de notre modèle**, l'issue la plus prometteuse puisqu'on ne fait tourner qu'un seul modèle — le `.onnx` exporté est ce dont ONNX Runtime tire la liste, et `libonnxruntime.so` pèse 17,5 Mo pour arm64 seul.
+**Le runtime natif chez F-Droid n'est plus l'obstacle qu'on croyait** (instruit le 2026-09-07). Ce doc affirmait que F-Droid refuse `onnxruntime-android` parce qu'il arrive déjà compilé. C'est faux, et l'erreur était de confondre deux choses que leur politique sépare : **un binaire posé dans le dépôt** — un `.aar` dans `libs/`, un `.so` versionné — est refusé ; **une dépendance tirée d'un dépôt Maven de confiance** est explicitement admise, et la liste nomme Maven Central, où Microsoft publie le nôtre sous MIT. Notre dépôt ne porte aucun binaire.
+
+**Et le précédent existe, alors que ce doc disait n'en avoir trouvé aucun** : *WhisperType Keyboard* est publié chez F-Droid, fait sa reconnaissance sur l'appareil par `sherpa-onnx` — qui embarque ONNX Runtime — tiré d'une coordonnée Maven, et **télécharge son modèle à la demande**, à une révision Hugging Face épinglée et vérifiée avant installation. C'est notre montage, déjà accepté.
+
+Ce qui reste vrai et se vérifie à la soumission : F-Droid exige que le binaire soit **réellement libre**, être sur Maven Central ne suffisant pas — leur propre billet de 2022 dit qu'ils y ont trouvé des sources vides et des dépendances fermées. C'est un jugement qu'ils rendent, pas une case à cocher.
+
+**Ce que ça retire** : les trois issues qui étaient listées ici — compiler dans la recette, la bibliothèque partagée, le build minimal — n'ont plus à être tranchées. Et c'est heureux pour la dernière, qui avait un défaut que personne n'avait vu : **un build minimal ne porte que les opérations du modèle qu'on lui déclare**, donc il aurait rendu le moteur dépendant du modèle, exactement le lien que le reste du montage tient séparé.
+
+Deux choses à reprendre de ce précédent, qui ne se devinent pas. Il déclare **`NonFreeNet` pour le téléchargement du modèle lui-même**, pas seulement pour des services fermés. Et il offre **une entrée hors ligne à côté du téléchargement** — un fichier qu'on apporte —, ce qui sert aussi bien qui a déjà le fichier que qui paie sa connexion.
 
 ### Le reste du chantier 1
 
