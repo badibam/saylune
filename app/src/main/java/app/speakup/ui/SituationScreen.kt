@@ -53,12 +53,13 @@ import java.util.Locale
  * register rather than in a dialogue box: the two buttons become the question, and the answer
  * is where the hand already is.
  *
- * **Saying yes empties the screen and starts nothing.** The situation comes back with its
- * holes, and the sitting is opened by the press on *begin* that follows, like on a theme
- * nobody had touched -- so the questions are asked before a word is spoken, and a scene whose
- * character speaks first does not start talking over an empty situation. What that costs is
- * that the old sitting only goes out of reach when the new one opens: leaving the screen
- * between the two puts it back within reach, which is the harmless half of the mistake.
+ * **Saying yes puts the old sitting out of reach and starts nothing.** The situation comes
+ * back with its holes, and the new sitting is opened by the press on *begin* that follows,
+ * like on a theme nobody had touched -- so the questions are asked before a word is spoken,
+ * and a scene whose character speaks first does not start talking over an empty situation.
+ * What makes the form stay is that the answer is **written down** rather than held here: this
+ * screen has no memory of its own between two visits, and a flag held on it let the old
+ * sitting stand again on the way back in.
  */
 @Composable
 fun SituationScreen(
@@ -76,6 +77,13 @@ fun SituationScreen(
      */
     passages: Int,
     onCarryOn: () -> Unit,
+    /**
+     * Put the sitting out of reach, and open none.
+     *
+     * The screen empties because the sitting it was standing on stops being offered, not
+     * because anything here remembers the answer.
+     */
+    onStartOver: () -> Unit,
     onStart: (answers: Map<String, String>, gender: String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -86,21 +94,15 @@ fun SituationScreen(
     val answers = remember(theme.id) { mutableStateMapOf<String, String>() }
     var gender by rememberSaveable(theme.id) { mutableStateOf("") }
     var asking by rememberSaveable(theme.id) { mutableStateOf(false) }
-    // Whether the learner has said yes to starting over. It hides the sitting rather than
-    // ending it: everything below reads [standing] and [spoken], so the screen is exactly the
-    // one a theme nobody had opened shows.
-    var over by rememberSaveable(theme.id) { mutableStateOf(false) }
-    val standing = started.takeIf { !over }
-    val spoken = if (over) 0 else passages
 
     Column(modifier.fillMaxSize().padding(horizontal = grid.cell)) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(grid.cell),
         ) {
-            if (standing != null) {
+            if (started != null) {
                 Text(
-                    said(theme.brief?.situation.orEmpty(), standing.situation, palette.own.srgb),
+                    said(theme.brief?.situation.orEmpty(), started.situation, palette.own.srgb),
                     style = type.text,
                     color = palette.ink.srgb,
                 )
@@ -153,16 +155,16 @@ fun SituationScreen(
                 Way(stringResource(R.string.situation_no), Modifier.weight(1f)) { asking = false }
                 Way(stringResource(R.string.situation_yes), Modifier.weight(1f)) {
                     asking = false
-                    over = true
+                    onStartOver()
                 }
             } else {
                 Way(
                     stringResource(
-                        if (spoken == 0) R.string.situation_begin else R.string.situation_carry_on
+                        if (passages == 0) R.string.situation_begin else R.string.situation_carry_on
                     ),
                     Modifier.weight(1f),
                 ) {
-                    if (standing == null) onStart(answers.toMap(), gender.takeIf { it.isNotEmpty() })
+                    if (started == null) onStart(answers.toMap(), gender.takeIf { it.isNotEmpty() })
                     else onCarryOn()
                 }
                 Way(
@@ -170,7 +172,7 @@ fun SituationScreen(
                     Modifier.weight(1f),
                     // Nothing to start over before something has started, and an entry that is
                     // off is dimmed and still there rather than absent.
-                    enabled = standing != null,
+                    enabled = started != null,
                 ) { asking = true }
             }
         }

@@ -173,8 +173,13 @@ interface ArchiveDao {
     @Query("SELECT * FROM activities ORDER BY createdAt DESC")
     fun conversations(): Flow<List<ActivityRow>>
 
-    /** The most recent one, to reopen at launch. Null the very first time. */
-    @Query("SELECT * FROM activities ORDER BY createdAt DESC LIMIT 1")
+    /**
+     * The most recent one, to reopen at launch. Null the very first time.
+     *
+     * **Abandoned is out**: it is the status *start over* writes, and a sitting put out of
+     * reach that the launch reopened would be reachable again by the one door nobody chose.
+     */
+    @Query("SELECT * FROM activities WHERE status != 'Abandoned' ORDER BY createdAt DESC LIMIT 1")
     suspend fun latest(): ActivityRow?
 
     @Query("SELECT * FROM activities WHERE id = :id")

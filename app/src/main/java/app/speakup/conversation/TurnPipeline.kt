@@ -794,6 +794,29 @@ class TurnPipeline(
         turns.launch { writing.withLock { provokeIfAsked() } }
     }
 
+    /**
+     * Put the sitting [id] out of reach: it stays in the store, and no screen offers it again.
+     *
+     * **This is what *start over* answers yes to** (`docs/ui.md`), and it is written down
+     * rather than held on the screen it was answered on. Held there, it came back the moment
+     * one left the situation screen and opened it again: the old sitting stood as if nothing
+     * had been said, the form was gone, and it could be started over a second time.
+     *
+     * Abandoned is the status the project already had for it, and it is the honest one: the
+     * sitting did not finish, nobody judged it, and it is not coming back.
+     */
+    suspend fun abandon(id: String) = writing.withLock {
+        val row = archive.activity(id) ?: return@withLock
+        val ended = row.activity()
+            .copy(status = Status.Abandoned, endedAt = System.currentTimeMillis())
+        archive.update(ended.row())
+        // **The one in hand may be it**: the launch reopens the most recent sitting, which is
+        // the one the tile is standing on. Left running in the state, the next thing to write
+        // the activity down would put it back.
+        if (_state.value.activity.id == id) _state.update { it.copy(activity = ended) }
+        Trace.add("sitting: put out of reach", "activity" to id)
+    }
+
     /** Every conversation, most recent first, for the tiles to find their sittings in. */
     fun conversations() = archive.conversations()
 

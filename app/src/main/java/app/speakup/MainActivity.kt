@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.speakup.activity.Definitions
 import app.speakup.activity.Door
+import app.speakup.activity.Status
 import app.speakup.analysis.Analyses
 import app.speakup.capture.TurnRecorder
 import app.speakup.conversation.TurnPipeline
@@ -192,9 +193,13 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
     val counts by pipeline.passages().collectAsState(initial = emptyList())
     // **The sitting of a theme is the most recent one opened from it**, and the list is
     // already sorted newest first. The older ones stay in the base and are out of reach,
-    // which is what starting over means until a history screen exists (`docs/ui.md`).
+    // which is all out of reach can mean until a history screen exists (`docs/ui.md`).
     val sittings = remember(rows) {
-        rows.mapNotNull { row ->
+        // **Abandoned is out.** That is the status *start over* writes, and it is what makes
+        // the answer hold: recency alone put the old sitting out of reach only once a new one
+        // had been opened, so the situation screen showed it again to anyone who left and
+        // came back before speaking.
+        rows.filter { it.status != Status.Abandoned.name }.mapNotNull { row ->
             row.origin?.let { runCatching { Sitting.readOrigin(it).definition }.getOrNull() to row }
         }.mapNotNull { (definition, row) -> definition?.let { it to row } }
             .groupBy({ it.first }, { it.second })
@@ -297,6 +302,9 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                             theme = it,
                             started = sitting?.let { row -> Sitting.readBrief(row.brief.orEmpty()) },
                             passages = counted[it.id] ?: 0,
+                            onStartOver = {
+                                sitting?.let { row -> scope.launch { pipeline.abandon(row.id) } }
+                            },
                             onCarryOn = {
                                 sitting?.let { row ->
                                     scope.launch {
