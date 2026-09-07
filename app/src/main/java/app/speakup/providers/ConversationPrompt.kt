@@ -296,16 +296,22 @@ internal object ConversationPrompt {
     /**
      * The turn nobody prompted, said to the model in the app's own voice.
      *
-     * It names **what is missing** rather than asking for a shorter answer: the fields of part
-     * 1 all hang off a learner turn, so with none there is nothing for them to attach to, and
-     * a model told that works out the rest. The echo goes with them -- it picks up a slip, and
+     * It names **what is missing** rather than asking for a shorter answer: those fields all
+     * hang off a learner turn, so with none there is nothing for them to attach to, and a
+     * model told that works out the rest. The echo goes with them -- it picks up a slip, and
      * there is no slip where there is no sentence.
+     *
+     * **What it must not do is say *`spoken` alone*.** It did, and that took the questions of
+     * the opening down with it: the questions are put in part 4 and this is the last message,
+     * so this is what the model follows, and it answered without the field it had just been
+     * asked for. What has nothing to attach to is named; nothing else is forbidden.
      */
     val PROVOKED = """
         Nobody has spoken to you this turn. You are taking it of your own accord, on the
         instruction you have just been given. There is no learner turn to read, so
         "intended", "spans", "stumbling", "following", "difficulty" and "echo" have nothing
-        to attach to. Answer with a JSON object holding "spoken" alone.
+        to attach to: leave those six out. Answer with "spoken", and with "established" as
+        well if the instruction for this turn lists questions to settle.
     """.trimIndent()
 
     /**

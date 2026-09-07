@@ -833,12 +833,18 @@ class TurnPipeline(
             it.copy(phase = Phase.Hearing, failure = null,
                     pending = Pending(take, position, closedBy))
         }
+        // **Taken before the call and put back if the call gives way.** What the front door
+        // carries is a rule's message and the questions of the moment just past, and the call
+        // is what delivers them: dropped on a link that gave way, a question the app chose to
+        // put would simply never be asked, and nothing would say so.
+        val door = frontDoor()
         try {
             // **No silence goes to the network**: the recognition is given the speech
             // alone, which is what it has any use for and what it charges for.
             val heard = recognition.transcribe(take.spoken)
             if (heard.isEmpty()) {
                 Trace.add("turn: nothing was said, dropped")
+                putBack(door)
                 // Holding the button by accident is not a failure and must not read as one.
                 _state.update { it.copy(phase = Phase.Idle, pending = null) }
                 return
@@ -853,7 +859,7 @@ class TurnPipeline(
                 ),
                 // What governs this turn: the levers the model holds, and how the recording
                 // stopped -- which the app knows and does not leave it to guess.
-                present = frontDoor().let { (standing, laid, put) ->
+                present = door.let {
                     Present(
                         _state.value.positions, closedBy,
                         // A rewording is another attempt at the passage that is already open;
@@ -861,9 +867,9 @@ class TurnPipeline(
                         // run, like the passages themselves, so it cannot fall out of step
                         // with it.
                         passage = _state.value.passages().size + if (rewords == null) 1 else 0,
-                        instructions = standing,
-                        said = laid,
-                        asking = put,
+                        instructions = it.instructions,
+                        said = it.prose,
+                        asking = it.asked,
                     )
                 },
             )
@@ -1001,6 +1007,7 @@ class TurnPipeline(
             _state.update { it.copy(phase = Phase.Idle) }
         } catch (failure: ChainFailure) {
             Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
+            putBack(door)
             _state.update {
                 it.copy(
                     phase = Phase.Idle,
@@ -1685,13 +1692,38 @@ class TurnPipeline(
                 question.moments.any { it.moment == moment && facts.holds(it, state, moved) }
         }
 
-    /** The instructions standing, what a rule has just said, and the questions being put. */
-    private fun frontDoor(): Triple<List<Instructing>, List<String>, List<Question>> {
-        val laid = messages.map { it.prose }
-        val put = asking.toList()
+    /**
+     * The instructions standing, what a rule has just said, and the questions being put --
+     * **taken off the queue**, the call being what delivers them.
+     */
+    private fun frontDoor(): FrontDoor {
+        val door = FrontDoor(
+            _state.value.standing.instructions, messages.toList(), asking.toList(),
+        )
         messages = mutableListOf()
         asking = mutableListOf()
-        return Triple(_state.value.standing.instructions, laid, put)
+        return door
+    }
+
+    /**
+     * Put back what a call that never went was carrying, in front of anything since.
+     *
+     * **A question goes back as it was, and that breaks nothing**: a call that gave way wrote
+     * no utterance at all -- the learner's turn is written after the reply, and there is no AI
+     * turn -- so the fiction is where it was and the passage number has not moved. It rides on
+     * the retry of the same take. The one place it slides is the opening, where the character
+     * said nothing, the learner speaks first, and the fact is settled alongside that first
+     * reply: one of the three ways of opening, not a break.
+     *
+     * **A message goes back without its flag.** The prose is not wrong and an author wrote it,
+     * so it enters by the front door on the next turn like any other message. Its *now* is
+     * wrong: that flag means this instant, and the instant has gone. Kept, the next passage's
+     * close would see it and have the character speak out of time -- *"ah, there you are"*
+     * after two exchanges, which is the one thing here that cannot be caught up.
+     */
+    private fun putBack(door: FrontDoor) {
+        messages = (door.laid.map { it.copy(now = false) } + messages).toMutableList()
+        asking = (door.asked + asking).toMutableList()
     }
 
     /**
@@ -1720,7 +1752,7 @@ class TurnPipeline(
      */
     private suspend fun provokeIfAsked(sweeping: Boolean = false) {
         if (messages.none { it.now } && !(sweeping && asking.isNotEmpty())) return
-        val (standing, laid, put) = frontDoor()
+        val door = frontDoor()
         _state.update { it.copy(phase = Phase.Thinking) }
         try {
             val reply = conversation.reply(
@@ -1735,10 +1767,10 @@ class TurnPipeline(
                     // The one being spoken into, which is the one nobody has opened yet: a
                     // provoked turn falls between passages, never inside one.
                     passage = _state.value.passages().size + 1,
-                    instructions = standing,
-                    said = laid,
+                    instructions = door.instructions,
+                    said = door.prose,
                     provoked = true,
-                    asking = put,
+                    asking = door.asked,
                 ),
             )
             val answer = Utterance(
@@ -1761,6 +1793,7 @@ class TurnPipeline(
         } catch (failure: ChainFailure) {
             Trace.fail("turn: the character had a turn to take and the link gave way",
                        "why" to failure.message)
+            putBack(door)
             _state.update { it.copy(failure = failure.message) }
         }
         _state.update { it.copy(phase = Phase.Idle) }
@@ -1816,6 +1849,21 @@ class TurnPipeline(
         if (stamp == null) return
         update(of) { it.copy(take = stamp) }
         write(of)
+    }
+
+    /**
+     * What the call about to go carries from the front door.
+     *
+     * [laid] keeps the messages whole rather than their prose alone, so a call that never went
+     * can hand them back with the flag that says one of them asked for a turn.
+     */
+    private data class FrontDoor(
+        val instructions: List<Instructing>,
+        val laid: List<Effect.Message>,
+        val asked: List<Question>,
+    ) {
+        /** What goes into the prompt: the prose, the flag having done its work already. */
+        val prose: List<String> get() = laid.map { it.prose }
     }
 
     companion object {
