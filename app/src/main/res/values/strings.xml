@@ -76,17 +76,12 @@
     <string name="debug_brick">%1$s: %2$s</string>
     <string name="debug_open">%1$s (%2$d chars)</string>
     <string name="debug_dialog_close">Close</string>
-    <string name="readout_show">Analysis — %1$d of %2$d sounds marked</string>
-    <string name="readout_hide">Hide the analysis</string>
     <string name="turn_grammar_marked">Something here is not quite English — sound marks are held back until it is redone.</string>
     <string name="analysis_engine_refused">Pronunciation marks are off for this session: the analysis engine could not be loaded.</string>
     <string name="analysis_unshipped">Pronunciation marks are off: this build carries no analysis engine.</string>
     <string name="setting_hear">Hear</string>
     <string name="setting_hearing">Playing…</string>
     <string name="setting_sample">The car park is rather far from the water.</string>
-    <string name="side_model">model</string>
-    <string name="side_learner">you</string>
-    <string name="speed_times">×%1$s</string>
     <string name="credits_sounds">Sound recordings</string>
     <string name="credits_sounds_why">One recording per phoneme, used under the licences below. Tap a line to open the original.</string>
     <string name="credits_by">%1$s — %2$s</string>
@@ -251,4 +246,43 @@
     <string name="channel_following">Following, at the end of the label</string>
     <string name="channel_pace">Pace, beside it</string>
     <string name="channels_measured">Turning one off hides it and never unmeasures it: the note does not move, and opening it again shows what was there.</string>
+    <!-- The passage's notes: the aptitude titles that head the groups. -->
+    <string name="aptitude_pronunciation">Pronunciation</string>
+    <string name="aptitude_understanding">Understanding</string>
+    <string name="aptitude_correctness">Grammar</string>
+    <string name="aptitude_relevance">Relevance</string>
+    <string name="aptitude_fluency">Fluency</string>
+    <!-- One short name per sheet. What a screen shows is never the sheet's key. -->
+    <string name="sheet_intelligibility">Clarity</string>
+    <string name="sheet_proximity">Precision</string>
+    <string name="sheet_melody">Melody</string>
+    <string name="sheet_lexical_stress">Stress</string>
+    <string name="sheet_correctness">Form</string>
+    <string name="sheet_relevance">Choice</string>
+    <string name="sheet_uptake">Reply</string>
+    <string name="sheet_continuity">Continuity</string>
+    <string name="sheet_longest_silence">Longest gap</string>
+    <string name="sheet_pace">Pace</string>
+    <string name="sheet_stumbling">Hesitations</string>
+    <!-- The following's six notches, which are what the reply's row prints. -->
+    <string name="notch_implied">between the lines</string>
+    <string name="notch_precise">precise</string>
+    <string name="notch_on_point">on point</string>
+    <string name="notch_on_topic">on topic</string>
+    <string name="notch_vague">vague</string>
+    <string name="notch_off_target">off target</string>
+    <!-- The units. A fraction where the sheet counts elements, a sign where it is a gap. -->
+    <string name="measure_fraction">%1$d/%2$d</string>
+    <string name="measure_plain">%1$d</string>
+    <string name="measure_semitones">%1$s ½t</string>
+    <string name="measure_points">%1$s pts</string>
+    <string name="measure_seconds">%1$s s</string>
+    <string name="measure_percent">%1$s %%</string>
+    <!-- The screen itself. -->
+    <string name="passage_notes">Passage %1$d</string>
+    <string name="passage_notes_what">What this passage measured. No letters: nothing is at stake in a free conversation.</string>
+    <string name="passage_notes_none">Nothing has measured this passage yet.</string>
+    <!-- The command row: two columns each, so the row's geometry never depends on the state. -->
+    <string name="side_short_model">AI</string>
+    <string name="side_short_learner">ME</string>
 </resources>

@@ -47,6 +47,7 @@ import app.speakup.ui.ConversationsScreen
 import app.speakup.ui.Glyphs
 import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.MarksMenuScreen
+import app.speakup.ui.PassageNotes
 import app.speakup.ui.Scaffold
 import app.speakup.ui.SettingsScreen
 import app.speakup.ui.Tile
@@ -114,7 +115,7 @@ class MainActivity : ComponentActivity() {
  * buttons. Still no navigation library -- the `android` wisdom holds one off until a graph
  * needs one, and a list one pushes onto and pops off is not a graph.
  */
-private enum class Screen { Title, Conversations, Conversation, MarksMenu, Settings, Marks }
+private enum class Screen { Title, Conversations, Conversation, Notes, MarksMenu, Settings, Marks }
 
 /**
  * The app, from its root down.
@@ -159,6 +160,10 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
     // makes `PAUSE` and `SEND` unambiguous at the bottom. Saveable, so a rotation does not
     // turn a repeat into a new turn.
     var repeating by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Which attempt the passage's notes are open on. Held here, with the stack, because the
+    // screen is pushed onto it: the conversation says which passage, the stack says where.
+    var notesOf by rememberSaveable { mutableStateOf<String?>(null) }
 
     val back = Action(Glyphs.BACK) { if (stack.size > 1) stack.removeAt(stack.lastIndex) }
 
@@ -213,8 +218,31 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     repeating = repeating,
                     onRepeating = { repeating = it },
                     channels = channels,
+                    onNotes = { notesOf = it; stack.add(Screen.Notes) },
                     modifier = Modifier.fillMaxSize(),
                 )
+            }
+
+            // **One screen with two doors**, and this is the second: opened on demand from any
+            // passage of the thread. The first -- pushed between two passages -- is the same
+            // content, and what settles which is the learner's own setting.
+            //
+            // Its `OK` is the action bar's own check, which is why it stays visible whatever
+            // the scroll: sixteen rows of content do not fit a short screen, and a button in
+            // the flow would scroll away with them.
+            Screen.Notes -> {
+                val attempt = turn.utterances.firstOrNull { it.id == notesOf }
+                val passage = turn.passages().indexOfFirst { spoken ->
+                    spoken.attempts.any { it.id == notesOf }
+                }
+                Scaffold(
+                    title = stringResource(R.string.passage_notes, passage + 1),
+                    lives = null,
+                    status = stringResource(R.string.passage_notes_what),
+                    actions = listOf(Action(Glyphs.CHECK) { stack.removeAt(stack.lastIndex) }),
+                ) {
+                    attempt?.let { PassageNotes(it, modifier = Modifier.fillMaxSize()) }
+                }
             }
 
             Screen.MarksMenu -> Scaffold(

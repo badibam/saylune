@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,11 +30,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -48,11 +44,9 @@ import app.speakup.conversation.Standing
 import app.speakup.conversation.Utterance
 import app.speakup.providers.words
 import app.speakup.conversation.Phase
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.saveable.rememberSaveable
 import app.speakup.analysis.AnalysedSound
 import app.speakup.analysis.Readiness
-import app.speakup.debug.Trace
 import app.speakup.capture.Capture
 import app.speakup.capture.CaptureState
 import app.speakup.capture.Ending
@@ -66,6 +60,7 @@ import app.speakup.capture.Playback
 import app.speakup.capture.Reference
 import app.speakup.conversation.Side
 import app.speakup.marking.TurnMarking
+import app.speakup.ui.theme.Speakup
 import kotlinx.coroutines.launch
 
 /**
@@ -96,6 +91,8 @@ fun ConversationScreen(
     onRepeating: (String?) -> Unit,
     /** Which marks the conversation menu has left on. */
     channels: Channels,
+    /** Open the summary of the passage whose last attempt is this one. */
+    onNotes: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -257,6 +254,7 @@ fun ConversationScreen(
                     onRepeating(spoken.id)
                     recorder.open(scope, settings)
                 },
+                onNotes = onNotes,
             )
         }
 
@@ -387,63 +385,6 @@ fun ConversationScreen(
 }
 
 /**
- * Which recording the play button and a tap on a word reach.
- *
- * Two words rather than an icon: "model" and "you" are the two things being compared
- * everywhere else on this screen, and a glyph for either would have to be learnt.
- */
-@Composable
-private fun SideChoice(side: Side, onSide: (Side) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Side.entries.forEach { option ->
-            val picked = option == side
-            Text(
-                stringResource(
-                    if (option == Side.Model) R.string.side_model else R.string.side_learner
-                ),
-                modifier = Modifier
-                    .clickable { onSide(option) }
-                    .padding(horizontal = 6.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = if (picked) FontWeight.Bold else FontWeight.Normal,
-                color = if (picked) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-/**
- * How fast anything played by hand is played, cycling through the three.
- *
- * Slower keeps the pitch: the stretch is a time stretch and not a resampling, which would
- * take the formants down with the rate and turn one vowel into another. A third of speed is
- * where a fast reduction stops being a blur and starts being a sequence of sounds.
- */
-@Composable
-private fun SpeedChoice(speed: Float, onSpeed: (Float) -> Unit) {
-    val next = SPEEDS[(SPEEDS.indexOfFirst { it == speed }.coerceAtLeast(0) + 1) % SPEEDS.size]
-    Text(
-        stringResource(R.string.speed_times, label(speed)),
-        modifier = Modifier
-            .clickable { onSpeed(next) }
-            .padding(horizontal = 6.dp, vertical = 4.dp),
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = if (speed != 1f) FontWeight.Bold else FontWeight.Normal,
-        color = if (speed != 1f) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-private val SPEEDS = listOf(1f, 0.5f, 0.33f)
-
-private fun label(speed: Float) = when (speed) {
-    1f -> "1"
-    0.5f -> "0.5"
-    else -> "0.33"
-}
-
-/**
  * The word [offset] falls in, as a range of the text -- or null between two words.
  *
  * Whitespace decides, which is the same cut the join makes when it hands the sounds out to
@@ -477,114 +418,6 @@ private fun heard(
     return inside.minOf { it.first } to inside.maxOf { it.last }
 }
 
-/**
- * Hear the model, and say it again -- the two halves of the remedy, on the turn itself.
- *
- * Drawn rather than lettered: a glyph borrowed to stand for a control is the decoration
- * `dev_base` refuses, and an icon pack is a dependency to rebuild offline for a control that
- * is a triangle and a circle.
- *
- * **The small button behaves like the big one**: a press opens, it shows itself running, and
- * what follows -- the pause, the send -- is at the bottom. One behaviour to learn for both,
- * which is the whole point of having put the three capture positions on the same gesture.
- *
- * **It is a mic, framed, and it says nothing of which door is open** (settled 2026-09-06). The
- * frame is what tells it from a row where everything else listens or sets: it is the only one
- * that opens the mic. And a label saying the door would make the row's width depend on the
- * state -- three columns in one language, nine in another -- so the five other entries would
- * shift every time a gate closed. **What one can do is said by the greying, what one must do
- * by the status line**, which carries the door of the moment and the count left.
- *
- * **Only the open passage carries it**, [open] saying so. Every passage keeps what listens
- * -- the triangle, the side, the speed -- because they read what is already measured; only
- * saying it again adds an attempt, and an attempt added to a closed passage would move a
- * note that the closing rules have already read.
- */
-@Composable
-private fun Redo(
-    open: Boolean,
-    busy: Boolean,
-    /** Whether the recording that is running, if any, is this passage's. */
-    mine: Boolean,
-    /** Whether anything at all is recording, whoever started it. */
-    running: Boolean,
-    side: Side,
-    speed: Float,
-    onSide: (Side) -> Unit,
-    onSpeed: (Float) -> Unit,
-    onHear: () -> Unit,
-    onOpen: () -> Unit,
-) {
-
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.size(34.dp).clickable(enabled = !busy, onClick = onHear),
-        ) {
-            Canvas(Modifier.fillMaxSize()) {
-                val h = size.minDimension * 0.34f
-                val x = size.width * 0.40f
-                drawPath(
-                    Path().apply {
-                        moveTo(x - h * 0.4f, size.height / 2 - h)
-                        lineTo(x + h, size.height / 2)
-                        lineTo(x - h * 0.4f, size.height / 2 + h)
-                        close()
-                    },
-                    color = Color.White,
-                )
-            }
-        }
-        if (open) {
-            Surface(
-                shape = CircleShape,
-                color = when {
-                    mine -> MaterialTheme.colorScheme.error
-                    busy || running -> MaterialTheme.colorScheme.surfaceVariant
-                    else -> MaterialTheme.colorScheme.primary
-                },
-                modifier = Modifier
-                    .size(34.dp)
-                    .clickable(enabled = !busy && !running, onClick = onOpen),
-            ) {
-                // The mic, drawn rather than lettered: a capsule on its stand. The font
-                // carries one and the row will take it at the framing step; here it is the
-                // same two shapes, so the gesture is learnt once either way.
-                Canvas(Modifier.fillMaxSize()) {
-                    val w = size.minDimension
-                    drawRoundRect(
-                        color = Color.White,
-                        topLeft = androidx.compose.ui.geometry.Offset(w * 0.38f, w * 0.22f),
-                        size = androidx.compose.ui.geometry.Size(w * 0.24f, w * 0.34f),
-                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.12f),
-                    )
-                    drawLine(
-                        color = Color.White,
-                        start = androidx.compose.ui.geometry.Offset(w * 0.5f, w * 0.60f),
-                        end = androidx.compose.ui.geometry.Offset(w * 0.5f, w * 0.76f),
-                        strokeWidth = w * 0.08f,
-                    )
-                    drawLine(
-                        color = Color.White,
-                        start = androidx.compose.ui.geometry.Offset(w * 0.34f, w * 0.76f),
-                        end = androidx.compose.ui.geometry.Offset(w * 0.66f, w * 0.76f),
-                        strokeWidth = w * 0.08f,
-                    )
-                }
-            }
-        }
-        // Beside the play button, because their scope is it: the selector says which
-        // recording it reaches, the speed says how fast. Both also govern a tap on a word,
-        // which is the same gesture one notch finer.
-        SideChoice(side, onSide)
-        SpeedChoice(speed, onSpeed)
-    }
-}
-
 @Composable
 private fun Said(
     spoken: Utterance,
@@ -608,6 +441,7 @@ private fun Said(
     onHearSpan: (String, Int, Int) -> Unit,
     onHearSound: (String, AnalysedSound, Side) -> Unit,
     onOpenRepeat: () -> Unit,
+    onNotes: (String) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // The last, and only the last: saying it again is done to improve on the one before,
@@ -655,27 +489,35 @@ private fun Said(
                     }
                 },
             )
-        } else Text(spoken.text, style = MaterialTheme.typography.bodyMedium)
+        } else Text(
+            spoken.text,
+            style = Speakup.type.text,
+            color = Speakup.palette.ink.srgb,
+        )
         // Every passage that carries a recording gets the row -- listening back is what a
         // measured turn is for. What the row holds depends on whether the passage is open.
         if (where != null) {
-            Redo(open, busy, mine, running, side, speed, onSide, onSpeed,
-                 { onHear(where) }, onOpenRepeat)
-        }
-        if (where != null && sounds != null && Trace.on) {
             val context = LocalContext.current
-            var open by rememberSaveable { mutableStateOf(false) }
-            TextButton(onClick = { open = !open }) {
-                Text(
-                    stringResource(
-                        if (open) R.string.readout_hide else R.string.readout_show,
-                        sounds.count { it.points > NOISE_BAND },
-                        sounds.size,
-                    ),
-                    style = MaterialTheme.typography.titleSmall,
-                )
-            }
-            if (open) {
+            var reading by rememberSaveable { mutableStateOf(false) }
+            Commands(
+                open = open,
+                busy = busy,
+                mine = mine,
+                running = running,
+                side = side,
+                speed = speed,
+                sounds = !sounds.isNullOrEmpty(),
+                onSide = onSide,
+                onSpeed = onSpeed,
+                onHear = { onHear(where) },
+                onNotes = { onNotes(where) },
+                onRead = { reading = !reading },
+                onOpen = onOpenRepeat,
+            )
+            // **The readout is a piece of the app now** and no longer something the trace
+            // gated: it is what the magnifier of the row opens, one notch below the marks --
+            // the inventory sound by sound, where the row above plays the whole phrase.
+            if (reading && sounds != null) {
                 AnalysisReadout(
                     spoken.text, sounds, marking?.added.orEmpty(),
                     onHearSound = { sound, which -> onHearSound(where, sound, which) },

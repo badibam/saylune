@@ -65,8 +65,6 @@
     <string name="analysis_engine_refused">Les marques de prononciation sont éteintes pour cette séance : le moteur d\'analyse n\'a pas pu être chargé.</string>
     <string name="analysis_unshipped">Les marques de prononciation sont éteintes : cette version ne contient pas de moteur d\'analyse.</string>
     <string name="turn_grammar_marked">Quelque chose ici n\'est pas tout à fait anglais — les marques de son attendent que ce soit redit.</string>
-    <string name="readout_show">Analyse — %1$d sons marqués sur %2$d</string>
-    <string name="readout_hide">Masquer l\'analyse</string>
     <string name="debug_steps">Debug — %1$d étape(s)</string>
     <string name="debug_clear">Vider</string>
     <string name="debug_nothing">Rien d\'enregistré pour l\'instant.</string>
@@ -77,9 +75,6 @@
     <string name="setting_hear">Écouter</string>
     <string name="setting_hearing">Lecture…</string>
     <string name="setting_sample">The car park is rather far from the water.</string>
-    <string name="side_model">modèle</string>
-    <string name="side_learner">vous</string>
-    <string name="speed_times">×%1$s</string>
     <string name="credits_sounds">Enregistrements des sons</string>
     <string name="credits_sounds_why">Un enregistrement par phonème, utilisé sous les licences ci-dessous. Touchez une ligne pour ouvrir l\'original.</string>
     <string name="credits_by">%1$s — %2$s</string>
@@ -234,4 +229,43 @@
     <string name="channel_following">Le suivi, au bout de l\'étiquette</string>
     <string name="channel_pace">Le débit, à côté</string>
     <string name="channels_measured">En éteindre une la cache et ne la démesure pas : la note ne bouge pas, et la rouvrir remontre ce qui était là.</string>
+    <!-- The passage's notes: the aptitude titles that head the groups. -->
+    <string name="aptitude_pronunciation">Prononciation</string>
+    <string name="aptitude_understanding">Compréhension</string>
+    <string name="aptitude_correctness">Grammaire</string>
+    <string name="aptitude_relevance">Pertinence</string>
+    <string name="aptitude_fluency">Fluidité</string>
+    <!-- One short name per sheet. What a screen shows is never the sheet's key. -->
+    <string name="sheet_intelligibility">Clarté</string>
+    <string name="sheet_proximity">Précision</string>
+    <string name="sheet_melody">Mélodie</string>
+    <string name="sheet_lexical_stress">Accentuation</string>
+    <string name="sheet_correctness">Forme</string>
+    <string name="sheet_relevance">Choix</string>
+    <string name="sheet_uptake">Réponse</string>
+    <string name="sheet_continuity">Continuité</string>
+    <string name="sheet_longest_silence">Silence max</string>
+    <string name="sheet_pace">Débit</string>
+    <string name="sheet_stumbling">Hésitations</string>
+    <!-- The following's six notches, which are what the reply's row prints. -->
+    <string name="notch_implied">entre les lignes</string>
+    <string name="notch_precise">précis</string>
+    <string name="notch_on_point">en rapport</string>
+    <string name="notch_on_topic">sur le sujet</string>
+    <string name="notch_vague">vague</string>
+    <string name="notch_off_target">à côté</string>
+    <!-- The units. A fraction where the sheet counts elements, a sign where it is a gap. -->
+    <string name="measure_fraction">%1$d/%2$d</string>
+    <string name="measure_plain">%1$d</string>
+    <string name="measure_semitones">%1$s ½t</string>
+    <string name="measure_points">%1$s pts</string>
+    <string name="measure_seconds">%1$s s</string>
+    <string name="measure_percent">%1$s %%</string>
+    <!-- The screen itself. -->
+    <string name="passage_notes">Passage %1$d</string>
+    <string name="passage_notes_what">Ce que ce passage a mesuré. Pas de lettres : rien n’est en jeu dans une conversation libre.</string>
+    <string name="passage_notes_none">Rien n’a encore mesuré ce passage.</string>
+    <!-- The command row: two columns each, so the row's geometry never depends on the state. -->
+    <string name="side_short_model">IA</string>
+    <string name="side_short_learner">MOI</string>
 </resources>
