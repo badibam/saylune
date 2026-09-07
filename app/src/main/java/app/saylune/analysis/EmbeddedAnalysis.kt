@@ -396,8 +396,9 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
      */
     private fun home(): File = Weights.home(context)
 
+    /** The network [Weights] names, and never whatever `.onnx` happens to be lying there. */
     private fun weights(): File? =
-        home().listFiles { file -> file.name.endsWith(".onnx") }?.firstOrNull()
+        File(home(), Weights.NETWORK.name).takeIf { it.isFile }
 
     private companion object {
         /** Enough of the weights to tell two trained files apart, beside their size. */

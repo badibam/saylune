@@ -84,11 +84,22 @@ object Weights {
      * The network is the 8-bit export: `bench/export.py` writes it beside the float one, and
      * it is the one a phone runs.
      */
+    /**
+     * The network, named rather than looked for.
+     *
+     * [EmbeddedAnalysis] used to take whatever `.onnx` it found in the directory, which is
+     * one idea of the file, while this is another: seen on the phone, a network pushed there
+     * by hand under a different name was loaded by the analysis while the screen said nothing
+     * was there. Two seams disagreeing in silence about the same file, which is the shape of
+     * defect this project has met before. One name, read from here by both.
+     */
+    val NETWORK = Piece(
+        "timit-ipa-int8.onnx", 358_518_235,
+        "ec2208f4fd224b04502ece9259fbcfc211657e721910cfba212162592c5128da",
+    )
+
     val PIECES = listOf(
-        Piece(
-            "timit-ipa-int8.onnx", 358_518_235,
-            "ec2208f4fd224b04502ece9259fbcfc211657e721910cfba212162592c5128da",
-        ),
+        NETWORK,
         Piece(
             "vocab.json", 486,
             "12b7de6be6a1bd3132ffdef8d8fe191c8e98f2d70639666e35d9cf6c9d2af77a",
@@ -219,7 +230,14 @@ object Weights {
         runCatching {
             var done = PIECES.sumOf { if (target(context, it).isFile) it.bytes else 0L }
             PIECES.forEach { piece ->
-                if (target(context, piece).isFile) return@forEach
+                if (target(context, piece).isFile) {
+                    // A piece can become whole by another road than this one -- brought by
+                    // hand, or put there by the bench -- and its half-arrived copy would
+                    // then sit there for good, owed to nobody. Measured on the phone: 45 MB
+                    // of an abandoned download survived the file arriving over the cable.
+                    partial(context, piece).delete()
+                    return@forEach
+                }
                 val part = partial(context, piece)
                 done -= part.length()
                 pull(piece, part) { got -> onProgress(done + got, total) }
