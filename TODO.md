@@ -51,6 +51,7 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 
 ### La capture et l'audio
 
+- **L'armement ne sait pas qu'une reprise attend.** `Standing` porte les quatre états du passage et rien ne les lit dans `ui/ConversationScreen.kt`, où `repairWaits` est écrit en dur à faux : rien n'attend donc jamais, et le micro s'arme sans l'ambiguïté que la suspension existe pour lever.
 - **Les deux positions armées n'ont jamais tourné.** L'armement automatique, les deux décomptes et les deux horloges qui ferment un tour ne se jugent qu'à la main, et compilent sans avoir été essayés. La première position, elle, a tourné sur le téléphone.
 - **Le seuil de niveau du retrait des plages vides est posé à la main** (`capture/Silence.kt`) et **dû au banc**, qui n'a pas de tours spontanés hésitants pour le lire : c'est le sol d'une pièce, un souffle et une voyelle tenue qui séparent une valeur qui marche d'une qui coupe la parole. Le seuil de durée, lui, est sûr.
 - **Le tour entier est stocké, pas les segments** : `Segments` rogne à l'envoi, le réseau ne reçoit que la parole, et ce qui est gardé sur le disque est le tour reconstruit. L'économie de disque appartient à la purge.

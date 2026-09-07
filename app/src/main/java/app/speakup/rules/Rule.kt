@@ -10,11 +10,10 @@ import app.speakup.levers.Position
  * the written data. Both are settled by pulling apart three things the word *ramp* held
  * together -- **when**, **what**, and **who chooses** (`activity.md`).
  *
- * **The types are here and the engine is not** (step 12 of the plan). What this file owes the
+ * **The types are here and the resolution is in [Engine]** -- by waves, against one snapshot,
+ * once per rule per moment -- because that is written where it runs. What this file owes the
  * activity is a field that persists: the rules are what a definition declares, so a sitting
- * whose settings were moved by a rule cannot recompute its own state without them. How they
- * are resolved -- by waves, against one snapshot, once per rule per moment -- is written where
- * it runs.
+ * whose settings were moved by a rule cannot recompute its own state without them.
  *
  * **Nothing here is a mini-language of conditions**, and that is deliberate: the kinds of
  * trigger are a closed, short list, declared like a lever's positions. The slope is to slip a

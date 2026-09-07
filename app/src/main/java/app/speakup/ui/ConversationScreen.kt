@@ -159,9 +159,9 @@ fun ConversationScreen(
 
     // **The mic never arms before the AI has finished answering**, and it never arms on its
     // own while a passage waits for a repair -- which is what recreates the press a passage
-    // closes on. The second half has nothing to read yet: the passage's four states arrive
-    // with step 13, and until then nothing ever waits, so this reads false and is written
-    // down as owed (`../../../../../../TODO.md`).
+    // closes on. **The second half is not wired**: `Standing` carries the four states, and
+    // nothing here reads them, so this stays false and nothing ever waits. Written down as
+    // owed (`../../../../../../TODO.md`).
     val repairWaits = false
     LaunchedEffect(arms, busyOf(turn.phase), repairWaits, turn.utterances.size) {
         if (!arms || repairWaits || turn.phase != Phase.Idle) return@LaunchedEffect

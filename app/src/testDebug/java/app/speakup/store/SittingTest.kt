@@ -27,7 +27,7 @@ import org.junit.Test
 /**
  * What a sitting keeps of itself, written down and read back.
  *
- * The properties here are the ones step 11 of the plan says it proves: the positions are
+ * The properties proved here: the positions are
  * always **on the line**, the origin only ever groups, and a change of rules engine takes the
  * resumption away.
  */

@@ -430,7 +430,7 @@ object Levers {
      *
      * **This is the one lever family whose phrase does not stand on its own**, and it is said
      * here rather than papered over: there are eleven of it, so the phrase says the level and
-     * the screen supplies which sheet it judges, from the sheet-name resources step 17 owns.
+     * the screen supplies which sheet it judges, from the sheet-name resources.
      * Writing fifty-five strings instead would say the same five things eleven times.
      */
     private val SENSITIVITY_STEPS = listOf(
