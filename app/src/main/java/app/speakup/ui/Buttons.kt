@@ -151,7 +151,7 @@ private fun Key(
 ) = Key(modifier, enabled, onClick) {
     Text(
         glyph.toString(),
-        style = Speakup.type.big,
+        style = Speakup.type.furniture,
         color = if (enabled) Speakup.palette.ink.srgb else Speakup.palette.dim.srgb,
     )
 }

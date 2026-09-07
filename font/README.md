@@ -12,20 +12,21 @@ Un pixel de dessin vaut 64 unités, le cadratin 1024, l'avance 704.
 - `descenders.py` — redessine `g j p q y` avec leur queue sous la ligne de base.
 - `accents.py` — compose les 44 lettres accentuées, dérive les deux tirets du trait d'union, et pose les glyphes de `drawn.py`.
 - `build.py` — compile les cartes en TTF, et refuse un glyphe qui déborde de la boîte.
-- `check.py` — prouve que tout ce qu'on n'a pas touché rend au pixel près comme Mono10.
+- `check.py` — prouve que tout ce qu'on n'a pas touché rend au pixel près comme Mono10, **et que l'app porte bien cette police-ci** : les copies de `app/src/main/res/font/` sont comparées octet à octet à `ttf/`. Une copie que personne ne vérifie vieillit en silence — celle de l'app s'est arrêtée à U+E01C longtemps après que les meubles suivants aient été dessinés, et un caractère absent ne rend rien du tout.
 - `plank.py` — dessine une planche PNG pour juger en regardant.
 
 - `frames.py` — découpe les seize pièces de cadre depuis la formule du banc.
+- `big.py` — **les meubles une seconde fois, dans une boîte de 22 × 22**, pour la seconde taille du registre. Chaque glyphe y est écrit comme les formes dont il est fait — disque, segment, anneau, polygone — avec l'épaisseur de trait en paramètre : 4 pixels en Regular, 2 en Thin, comme la petite fonte amincit ce qui est un trait. Ils portent **les mêmes codets** que les meubles ordinaires, dans une **famille à part** (`Speakup Tile Big`) : l'app demande le même caractère et choisit la famille selon ce qu'elle dessine, un bouton ou une ligne de texte.
 - `furniture.py` — les vingt-cinq meubles de la zone privée. Ce qui est un symbole plein — le disque, le triangle, la jauge, le cœur, le micro, la loupe, l'œil, le cadenas, l'histogramme, les points — est identique dans les deux graisses ; ce qui est un trait — les flèches, la coche, la croix, les curseurs, le retour, la flèche circulaire — s'amincit avec le reste.
 - `phonemes.py` — les quatorze phonèmes de l'API que l'analyse affiche. Trois sont une lettre tournée ou en miroir, sept une lettre plus une barre ou un crochet — donc les deux graisses tombent seules —, quatre sont dessinés par graisse.
 - `scramble.py` — couvre chaque lettre de carrés, pour le tour de l'IA qu'on voit sans le lire.
 
-Les TTF compilés sont dans `ttf/`. Les poser dans `app/src/main/res/font/` est le geste de l'app, pas celui d'ici.
+Les TTF compilés sont dans `ttf/` — quatre, les deux graisses de chaque famille. Les poser dans `app/src/main/res/font/` est le geste de l'app, pas celui d'ici ; `check.py` dit quand la copie est en retard.
 
 ## La zone privée
 
 - `U+E000`–`U+E00F` — les cadres : huit pièces en couche claire, les mêmes en couche sombre.
-- `U+E010`–`U+E028` — les meubles : triangle, disque d'enregistrement, quatre blocs de jauge, quatre flèches, coche, croix, cœur, pause, arrêt, micro, loupe, œil, curseurs, retour, flèche circulaire, cadenas, histogramme, point plein, point creux.
+- `U+E010`–`U+E028` — les meubles : triangle, disque d'enregistrement, quatre blocs de jauge, quatre flèches, coche, croix, cœur, pause, arrêt, micro, loupe, œil, curseurs, retour, flèche circulaire, cadenas, histogramme, point plein, point creux. **Les mêmes codets dans la famille `Big`**, où ils sont dessinés pour la seconde taille.
 - `U+E100` + le codet de la lettre — sa version brouillée. La table de l'app est donc une addition : un caractère se brouille si son codet décalé existe dans la police. `U+E100` nu est la jumelle générique, sur laquelle tombe une lettre qui n'a pas la sienne ; la ponctuation, elle, n'en a pas et reste claire.
 
 Ajouter un caractère : écrire son bloc `@nom U+XXXX` dans les deux cartes, relancer `build.py`.

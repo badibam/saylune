@@ -171,7 +171,7 @@ private fun Glyph(glyph: Char, dimmed: Boolean = false) {
 
 @Composable
 private fun Glyph(glyph: Char, colour: Color) {
-    Text(glyph.toString(), style = Speakup.type.big, color = colour)
+    Text(glyph.toString(), style = Speakup.type.furniture, color = colour)
 }
 
 /**

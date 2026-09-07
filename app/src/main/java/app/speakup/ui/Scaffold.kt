@@ -179,7 +179,7 @@ private fun Entry(action: Action, onReason: (Int) -> Unit) {
         Text(
             action.glyph.toString(),
             modifier = Modifier.align(Alignment.Center),
-            style = Speakup.type.big,
+            style = Speakup.type.furniture,
             // Off is dimmed and still there: greying says what one can do, and an entry that
             // vanished would change the line's shape with the state.
             color = if (action.reason == null) palette.ink.srgb else palette.dim.srgb,

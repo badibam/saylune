@@ -47,6 +47,30 @@ class Typography(private val grid: Grid, private val density: Density) {
      */
     val big: TextStyle = style(FontWeight.Normal, DOUBLE)
 
+    /**
+     * **The furniture at the second size, drawn for it rather than doubled.**
+     *
+     * [big] takes the same drawing and paints each of its pixels four times over, which is what
+     * the register says and what a letter has no choice but to do -- there is one alphabet and
+     * it is drawn once. A glyph that stands for a button has a choice: `font/big.py` draws the
+     * furniture again in a box of 22 by 22, so the shape has four times the pixels to be made
+     * of and each of them is **the size of the text's own**. Same place on the grid, same room
+     * in a frame, same character asked for -- only the family differs.
+     *
+     * What it costs is that the two sizes of the register no longer have one pixel between
+     * them: a note letter at [big] beside a button at this style shows two pixel sizes on one
+     * screen, which is what `ui.md` refuses of an illustration. It is bought knowingly, and the
+     * doc carries it.
+     */
+    val furniture: TextStyle = TextStyle(
+        fontFamily = SpeakupBig,
+        fontWeight = FontWeight.Normal,
+        // The em is EM_PIXELS pixels of the same size as the text's, so this is the ordinary
+        // size and not the doubled one: what makes the glyph twice as big is its own box.
+        fontSize = with(density) { grid.painted(EM_PIXELS).toSp() },
+        lineHeight = with(density) { grid.painted(BIG_BOX).toSp() },
+    )
+
     private fun style(weight: FontWeight, times: Int = 1) = TextStyle(
         fontFamily = SpeakupTile,
         fontWeight = weight,
@@ -85,6 +109,9 @@ class Typography(private val grid: Grid, private val density: Density) {
 
         /** From the box's top to the baseline: the accents and the capitals, twelve rows. */
         const val ASCENT = 12
+
+        /** The furniture's own box: two cells each way, all of it above the baseline. */
+        const val BIG_BOX = 2 * Grid.CELL
     }
 }
 
@@ -98,4 +125,17 @@ class Typography(private val grid: Grid, private val density: Density) {
 val SpeakupTile = FontFamily(
     Font(R.font.speakup_tile_thin, FontWeight.Thin),
     Font(R.font.speakup_tile_regular, FontWeight.Normal),
+)
+
+/**
+ * The furniture, in its own box of 22 by 22 and on the same codepoints.
+ *
+ * A second family rather than a second block of the first: a glyph of two cells inside a font
+ * whose every other glyph is one cell would make the box a lie, and `check.py` proves the
+ * letters did not move by measuring exactly that box. Two weights, because what is a stroke
+ * thins with the rest here as it does there.
+ */
+val SpeakupBig = FontFamily(
+    Font(R.font.speakup_big_thin, FontWeight.Thin),
+    Font(R.font.speakup_big_regular, FontWeight.Normal),
 )
