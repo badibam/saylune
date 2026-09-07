@@ -26,7 +26,13 @@ import org.json.JSONObject
  */
 internal object ReplyReader {
 
-    fun read(content: String, transcript: String): Reply {
+    /**
+     * [provoked] says there was **no learner turn**, so there is nothing to judge: the model
+     * was asked for what it says and nothing else, and asking for the rest back would be
+     * asking it to invent a sentence nobody spoke. Everything the reader checks is a field
+     * about that turn, so on this path only `spoken` is required.
+     */
+    fun read(content: String, transcript: String, provoked: Boolean = false): Reply {
         val parsed = runCatching { JSONObject(content) }.getOrElse {
             // The raw answer goes in the trace: a model that breaks its format is only
             // fixable by someone who can read what it actually wrote.
@@ -38,6 +44,14 @@ internal object ReplyReader {
         if (spoken.isBlank()) {
             Trace.fail("conversation: nothing to say", "content" to content)
             throw ChainFailure("the model returned nothing to say")
+        }
+
+        val choice = parsed.optString("choice").trim().ifBlank { null }
+
+        if (provoked) {
+            Trace.add("conversation: spoke of its own accord", "spoken" to spoken,
+                      "picked from the menu" to choice)
+            return Reply(judged = null, spoken = spoken, echo = null, choice = choice)
         }
 
         val intended = parsed.optString("intended").ifBlank { transcript }
@@ -77,7 +91,6 @@ internal object ReplyReader {
         }
 
         val echo = parsed.optString("echo").trim().ifBlank { null }
-        val choice = parsed.optString("choice").trim().ifBlank { null }
 
         Trace.add(
             "conversation: answered",

@@ -1,5 +1,7 @@
 package app.speakup.providers
 
+import app.speakup.chain.Reply
+import app.speakup.judged.Judgement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -25,12 +27,28 @@ class ReplyReaderTest {
          "following": $following, "spoken": "Ah, yesterday!", "difficulty": $difficulty$extra}
     """.trimIndent()
 
+    /**
+     * What was judged, on a path where there is a judgement.
+     *
+     * It is null only on a provoked turn, which has nothing to judge; every case below sends
+     * a learner turn in, so a null here would be the reader breaking its own contract.
+     */
+    private val Reply.marked: Judgement get() = judged ?: error("nothing was judged")
+
+    @Test fun `a turn nobody prompted comes back with nothing judged`() {
+        val reply = ReplyReader.read("""{"spoken": "Ah, there you are."}""", "", provoked = true)
+        assertEquals("Ah, there you are.", reply.spoken)
+        // Not "nothing was marked" -- there was nothing to mark, nobody having spoken.
+        assertNull(reply.judged)
+        assertNull(reply.echo)
+    }
+
     @Test fun `a clean answer reads back whole`() {
         val reply = ReplyReader.read(answer(), "i go there yesterday")
         assertEquals("Ah, yesterday!", reply.spoken)
-        assertEquals("I go there yesterday", reply.judged.intended)
-        assertEquals("precise", reply.judged.following)
-        assertEquals("medium", reply.judged.difficulty)
+        assertEquals("I go there yesterday", reply.marked.intended)
+        assertEquals("precise", reply.marked.following)
+        assertEquals("medium", reply.marked.difficulty)
         // Absent is the ordinary answer for both, and means "there is none".
         assertNull(reply.echo)
         assertNull(reply.choice)
@@ -42,9 +60,9 @@ class ReplyReaderTest {
             "i go there yesterday",
         )
         assertEquals(listOf("malformed", "malformed", "ok", "ok"),
-                     reply.judged.words().correctness.map { it.notch })
+                     reply.marked.words().correctness.map { it.notch })
         // The two scales cover the same words, so one span carries both notches.
-        assertTrue(reply.judged.words().relevance.all { it.notch == "ok" })
+        assertTrue(reply.marked.words().relevance.all { it.notch == "ok" })
     }
 
     @Test fun `the kept words are what the stumbling leaves alone`() {
@@ -53,7 +71,7 @@ class ReplyReaderTest {
                    stumbling = """[{"from":7,"to":9,"notch":"filler"}]"""),
             "it was um nice",
         )
-        val words = reply.judged.words()
+        val words = reply.marked.words()
         assertEquals(listOf("kept", "kept", "filler", "kept"),
                      words.stumbling.map { it.notch })
         assertEquals(listOf(0..1, 3..5, 10..13), words.kept)
@@ -63,7 +81,7 @@ class ReplyReaderTest {
         // The one documented fallback: the analysis then measures against exactly what was
         // heard, which is harmless.
         val reply = ReplyReader.read(answer(intended = ""), "i go there yesterday")
-        assertEquals("i go there yesterday", reply.judged.intended)
+        assertEquals("i go there yesterday", reply.marked.intended)
 
         // A missing notch is the contract broken, and it says so.
         assertTrue(runCatching {
@@ -104,7 +122,7 @@ class ReplyReaderTest {
             "i go there yesterday",
         )
         assertEquals(listOf("malformed", "malformed", "ok", "ok"),
-                     reply.judged.words().correctness.map { it.notch })
+                     reply.marked.words().correctness.map { it.notch })
     }
 
     @Test fun `an echo comes back only when something was marked`() {

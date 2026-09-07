@@ -30,6 +30,7 @@ import app.speakup.fluency.Fluency
 import app.speakup.notes.Measured
 import app.speakup.notes.noteOver
 import app.speakup.notes.Passage as Scored
+import app.speakup.rules.Effect
 import app.speakup.rules.Engine
 import app.speakup.rules.Moment
 import app.speakup.rules.Notice
@@ -499,21 +500,35 @@ data class ConversationState(
      * owned: it will not pick up a fault that keeps coming back of its own accord, and a rule
      * is what that takes.
      */
-    fun history(): List<Exchange> = passages().flatMap { passage ->
-        val said = passage.last
+    fun history(): List<Exchange> {
+        val passages = passages()
+        val out = mutableListOf<Exchange>()
+        var next = 0
+        utterances.forEach { one ->
+            // **A provoked turn answers nobody and belongs to no passage**, so what says when
+            // it was said is its place in the run and nothing else. It falls between passages
+            // by construction -- at the opening, or at a passage's close -- so putting each
+            // passage out whole at its opener keeps the two in the order they happened.
+            if (!one.speaker.isLearner && one.answers == null) {
+                out += Exchange(fromLearner = false, text = one.text)
+            } else if (one.id == passages.getOrNull(next)?.opener?.id) {
+                out += exchangesOf(passages[next])
+                next++
+            }
+        }
+        return out
+    }
+
+    private fun exchangesOf(passage: Passage): List<Exchange> = listOfNotNull(
+        Exchange(fromLearner = true, text = passage.last.text),
         // The last reply of the **passage**, and not the one answering the last attempt: a
         // repeat is never answered at all -- it is pipe B alone, on a text already settled --
         // so looking it up by the last attempt would lose the reply the moment the learner
         // said the sentence again. A rewording, which does make a fresh call, is the case
         // where the two coincide.
-        val answered = utterances.lastOrNull { reply ->
-            passage.attempts.any { reply.answers == it.id }
-        }
-        listOfNotNull(
-            Exchange(fromLearner = true, text = said.text),
-            answered?.let { Exchange(fromLearner = false, text = it.text) },
-        )
-    }
+        utterances.lastOrNull { reply -> passage.attempts.any { reply.answers == it.id } }
+            ?.let { Exchange(fromLearner = false, text = it.text) },
+    )
 }
 
 /**
@@ -691,6 +706,11 @@ class TurnPipeline(
             )
         }
         Trace.add("conversation: begun", "activity" to fresh.id)
+        // **The opening, which is a moment like any other.** A scene that opens with anything
+        // does it here: a rule on the opening trigger lays its staging line and, where it asks
+        // for one, the character's first turn -- said before anybody has spoken to it.
+        fire(Moment.Opening, world())
+        provokeIfAsked()
     }
 
     /** Every conversation, most recent first, for the tiles to find their sittings in. */
@@ -789,17 +809,24 @@ class TurnPipeline(
                 },
             )
 
+            // **A turn nobody prompted has nothing to judge, and this is not one.** The
+            // reader hands back a judgement on every path but the provoked one, so this can
+            // only be a provider that broke its contract -- which is a failure like any
+            // other, and the recording is kept for another go at it.
+            val judged = reply.judged
+                ?: throw ChainFailure("the model judged nothing of what was said")
+
             // The two utterances are held by identity from here on. Their place in the run is
             // where they happen to sit, and it is not what addresses them: everything that
             // follows -- the take, the marks, the analysis -- names them by their id.
             val said = Utterance(
                 speaker = Speaker.Learner,
                 activity = _state.value.activity.id,
-                text = reply.judged.intended,
+                text = judged.intended,
                 said = turn,
                 capture = position,
                 ending = closedBy,
-                judged = reply.judged,
+                judged = judged,
                 // A rewording is an attempt at the passage it points back at; a turn that
                 // rewords nothing opens one of its own.
                 repeats = rewords,
@@ -827,11 +854,11 @@ class TurnPipeline(
 
             write(said.id)
 
-            val marked = reply.judged.words()
+            val marked = judged.words()
             val groundless = marked.correctness.any { it.notch == Gates.UNSAYABLE }
             // **The words' gate is read here, and it is the first of the two moments** -- and
             // before anything is played, because what is played depends on it.
-            val closing = wordsGate(said, reply, groundless)
+            val closing = wordsGate(said, judged, groundless)
 
             // **The call returned the continuation and the echo together, and the app plays
             // one.** So nothing is ever contradicted inside an attempt: it is literally *the
@@ -883,7 +910,7 @@ class TurnPipeline(
                     "why" to if (groundless) "a word does not exist in the language"
                              else "the words' gate closed",
                     "in cause" to (closing as? Closing.Aptitudes)?.names?.joinToString(),
-                    "said" to reply.judged.intended,
+                    "said" to judged.intended,
                 )
                 // **And it is read all the same, on the one channel it has.** The sound
                 // analysis does not run, but what the judge marked is exactly what has to be
@@ -892,21 +919,21 @@ class TurnPipeline(
                 // screen saying what was wrong. So a marking with the text and no sound in
                 // it, which is the truth about this turn; and it is what makes the passage's
                 // row of commands appear, a reading being what the run is walked for.
-                update(said.id) { it.copy(marking = TurnMarking.wordsOnly(reply.judged.intended)) }
+                update(said.id) { it.copy(marking = TurnMarking.wordsOnly(judged.intended)) }
                 write(said.id)
                 // Kept even so, and especially so: a turn like this is a real learner fault
                 // the recognition could not have guessed, which is what the fidelity bench
                 // is short of.
-                keep(said.id, Takes.keep(context, turn, null, heard, reply.judged.intended, true,
-                                         null, stumbling = reply.judged.stumbling,
+                keep(said.id, Takes.keep(context, turn, null, heard, judged.intended, true,
+                                         null, stumbling = judged.stumbling,
                                          turn = turnOf(said.id),
                                          attempt = attemptOf(said.id)))
             } else {
                 examine(
                     of = said.id, said = turn, heard = heard,
-                    text = reply.judged.intended,
-                    kept = Kept.of(reply.judged.intended, reply.judged.stumbling),
-                    stumbling = reply.judged.stumbling,
+                    text = judged.intended,
+                    kept = Kept.of(judged.intended, judged.stumbling),
+                    stumbling = judged.stumbling,
                 )
             }
             _state.update { it.copy(phase = Phase.Idle) }
@@ -932,10 +959,12 @@ class TurnPipeline(
      * **Nothing judged goes out when it closes.** Every judged sheet computes, since they are
      * what decide whether it closes; putting them out by their own decision would be circular.
      */
-    private suspend fun wordsGate(said: Utterance, reply: Reply, groundless: Boolean): Closing? {
+    private suspend fun wordsGate(
+        said: Utterance, judged: Judgement, groundless: Boolean,
+    ): Closing? {
         val activity = _state.value.activity
-        val marked = reply.judged.words()
-        val measured = Sheeting.of(reply.judged, analysed = null, timed = null)
+        val marked = judged.words()
+        val measured = Sheeting.of(judged, analysed = null, timed = null)
         val scored = Scored(
             keptWords = marked.kept.size, difficulty = null, measured = measured,
         )
@@ -1114,6 +1143,9 @@ class TurnPipeline(
             if (it.standing.instructions.isEmpty()) it
             else it.copy(effective = Engine(it.activity.rules).aged(it.standing))
         }
+        // A rule of the close may have asked the character to speak. It falls here, between
+        // two passages, which is the only place it can: nothing cuts off somebody recording.
+        provokeIfAsked()
     }
 
     /**
@@ -1441,13 +1473,11 @@ class TurnPipeline(
         val was = _state.value.standing.ended
         val out = Engine(activity.rules).resolve(moment, _state.value.standing, world)
         _state.update { it.copy(effective = out.state, notices = it.notices + out.notices) }
-        // The messages are prose for the model, and they are held until the next call carries
-        // them: the front door opens on the turn that follows, not on the one just read.
-        // **The prose only, and the flag not yet.** A message that declares it provokes a
-        // turn at once wants an AI turn with no learner turn in front of it, which is the same
-        // thing a definition's opening wants -- and neither is written (`../../TODO.md`). What
-        // is carried is what every message says either way.
-        messages += out.messages.map { it.prose }
+        // The messages are prose for the model, and they are held until a call carries them:
+        // the front door opens on the turn that follows, not on the one just read. **The flag
+        // rides with them**, since a message that declares it provokes a turn is what decides
+        // there is a turn at all.
+        messages += out.messages
         if (out.chosen.isNotEmpty()) {
             val at = System.currentTimeMillis()
             val journal = activity.journal + out.chosen.map {
@@ -1480,6 +1510,10 @@ class TurnPipeline(
     private suspend fun ending(declared: Outcome) {
         Trace.add("sitting: it is over", "declared" to declared.name)
         fire(Moment.Closing, world())
+        // **The closing call exists only where something asked for it.** A sitting whose
+        // author wrote no last word ends without one: the character's parting line is never a
+        // behaviour of the app, it is a rule somebody wrote.
+        provokeIfAsked()
         val note = sittingNote()
         // **The verdict is the one that actually fell**, never the declaration. *Let the note
         // decide* is a thing an author writes and not an issue anybody can read back, so it is
@@ -1554,13 +1588,78 @@ class TurnPipeline(
      * being built, it is emptied by it, and nothing on screen reads it. The screen's half of a
      * change is the notice, which is a different thing said to a different reader.
      */
-    private var messages = mutableListOf<String>()
+    private var messages = mutableListOf<Effect.Message>()
 
     /** The instructions standing, and what a rule has just said, for the call about to go. */
     private fun frontDoor(): Pair<List<Instructing>, List<String>> {
-        val laid = messages.toList()
+        val laid = messages.map { it.prose }
         messages = mutableListOf()
         return _state.value.standing.instructions to laid
+    }
+
+    /**
+     * Let the character speak of its own accord, where a rule of the moment just past asked
+     * for it. **Does nothing otherwise, which is every ordinary turn.**
+     *
+     * A provoked turn is an AI turn with **no learner turn in front of it**: nothing was
+     * recorded, so nothing is transcribed, nothing is judged and no passage opens. What the
+     * call carries is the history, the scene, and the prose of every message waiting -- the
+     * one that asked for the turn and any other the same moment laid down, since they are all
+     * things this character has just been told and it would be odd to say one and hold the
+     * rest.
+     *
+     * **It falls only where it is called from**: the opening, a passage's close, and the coda.
+     * Never while somebody is recording -- nothing cuts off a person who is still speaking --
+     * and never at the end of an attempt, where the character has just answered.
+     *
+     * A link giving way here costs the turn and nothing else. There is no recording to keep
+     * and nothing to retry from, so it is said and the sitting carries on: refusing to go on
+     * because a scene lost its opening line would be worse than the missing line.
+     */
+    private suspend fun provokeIfAsked() {
+        if (messages.none { it.now }) return
+        val (standing, laid) = frontDoor()
+        _state.update { it.copy(phase = Phase.Thinking) }
+        try {
+            val reply = conversation.reply(
+                _state.value.history(), heard = emptyList(),
+                scene = Scene(
+                    brief = _state.value.activity.brief,
+                    cast = _state.value.activity.cast,
+                ),
+                present = Present(
+                    _state.value.positions,
+                    ending = null,
+                    // The one being spoken into, which is the one nobody has opened yet: a
+                    // provoked turn falls between passages, never inside one.
+                    passage = _state.value.passages().size + 1,
+                    instructions = standing,
+                    said = laid,
+                    provoked = true,
+                ),
+            )
+            val answer = Utterance(
+                speaker = Speaker.Ai,
+                activity = _state.value.activity.id,
+                text = reply.spoken,
+                // It answers nobody, and that is what tells it from every other AI turn.
+                answers = null,
+            )
+            // Keyed by the utterance itself, there being no passage to key it by. Nothing
+            // opens it from the screen; what this is for is clearing the body, which would
+            // otherwise show up under the next passage as though it had been sent for it.
+            Trace.askedFor(answer.id)
+            _state.update {
+                it.copy(utterances = it.utterances + answer, phase = Phase.Speaking)
+            }
+            write(answer.id)
+            Playback.play(synthesis.speak(reply.spoken, synthesis.voice()))
+        } catch (failure: ChainFailure) {
+            Trace.fail("turn: the character had a turn to take and the link gave way",
+                       "why" to failure.message)
+            _state.update { it.copy(failure = failure.message) }
+        }
+        _state.update { it.copy(phase = Phase.Idle) }
     }
 
     /**

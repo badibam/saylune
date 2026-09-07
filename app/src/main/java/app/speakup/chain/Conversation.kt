@@ -95,6 +95,19 @@ data class Present(
      * the booking was ever made.
      */
     val said: List<String> = emptyList(),
+    /**
+     * Whether this turn has **no learner turn in front of it**.
+     *
+     * A rule can make the character speak of its own accord -- the alarm going off, the
+     * passer-by, the last word of a scene that is ending -- and then there is nothing to
+     * transcribe, nothing to mark and nothing to answer. It is declared here rather than read
+     * off an empty transcript: an emptiness is indistinguishable from a recording nobody spoke
+     * into, and the two want opposite things.
+     *
+     * **It falls only at the opening or at a passage's close**, never while somebody is
+     * recording: nothing cuts off a person who is still speaking.
+     */
+    val provoked: Boolean = false,
 )
 
 /**
@@ -126,8 +139,14 @@ data class Exchange(val fromLearner: Boolean, val text: String)
  * the portion concerned; one notch per group of words settles both.
  */
 data class Reply(
-    /** What the learner meant, and everything marked on it. */
-    val judged: Judgement,
+    /**
+     * What the learner meant, and everything marked on it. **Null on a provoked turn.**
+     *
+     * Null is not *nothing was marked* -- that is a judgement with no spans in it. It is a
+     * turn with **nothing to judge**: nobody spoke into it, so there is no sentence to write
+     * out, no group of words to mark, and no answer whose uptake could be read.
+     */
+    val judged: Judgement?,
     /** The reply, in English, as it is to be said aloud. */
     val spoken: String,
     /**

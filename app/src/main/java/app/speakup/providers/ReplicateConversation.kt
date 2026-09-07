@@ -49,7 +49,7 @@ internal class ReplicateConversation(
                 else put(ConversationPrompt.message("assistant",
                     ConversationPrompt.answered(history, at)))
             }
-            put(ConversationPrompt.message("user", transcript))
+            put(ConversationPrompt.message("user", ConversationPrompt.turn(transcript, present)))
         }
 
         val input = JSONObject()
@@ -72,7 +72,7 @@ internal class ReplicateConversation(
             throw ChainFailure("$model answered with nothing at all")
         }
 
-        return ReplyReader.read(unwrapped(content), transcript)
+        return ReplyReader.read(unwrapped(content), transcript, present.provoked)
     }
 
     /** Replicate hands text back in pieces as it is produced, or whole. Both are answers. */

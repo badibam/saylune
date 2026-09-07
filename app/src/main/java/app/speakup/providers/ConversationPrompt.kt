@@ -226,6 +226,38 @@ internal object ConversationPrompt {
             .joinToString("\n\n")
 
     /**
+     * What goes in as the turn being answered: the transcript, or the line that says there
+     * was none.
+     *
+     * **The override sits in the last message and not in part 1**, for two reasons that agree.
+     * Part 1 is the permanent prefix every call shares, and rewriting it for one turn would
+     * throw away the cached prefix on exactly the turn that has no history to save. And what
+     * governs a turn belongs closest to it, which is where the app already puts everything
+     * else that is rebuilt each time.
+     *
+     * **Something is always sent as the last message.** A call ending on the character's own
+     * previous answer is a shape not every provider accepts, and the one thing the app can
+     * truthfully put there is that nobody spoke.
+     */
+    fun turn(transcript: String, present: Present): String =
+        if (present.provoked) PROVOKED else transcript
+
+    /**
+     * The turn nobody prompted, said to the model in the app's own voice.
+     *
+     * It names **what is missing** rather than asking for a shorter answer: the fields of part
+     * 1 all hang off a learner turn, so with none there is nothing for them to attach to, and
+     * a model told that works out the rest. The echo goes with them -- it picks up a slip, and
+     * there is no slip where there is no sentence.
+     */
+    val PROVOKED = """
+        Nobody has spoken to you this turn. You are taking it of your own accord, on the
+        instruction you have just been given. There is no learner turn to read, so
+        "intended", "spans", "stumbling", "following", "difficulty" and "echo" have nothing
+        to attach to. Answer with a JSON object holding "spoken" alone.
+    """.trimIndent()
+
+    /**
      * Said again to a provider that has no JSON mode to enforce the shape.
      *
      * DeepSeek is asked for `json_object` and cannot answer anything else; the models

@@ -52,7 +52,7 @@ internal object ChatCompletions {
                 if (exchange.fromLearner) put(ConversationPrompt.message("user", exchange.text))
                 else put(ConversationPrompt.message("assistant", ConversationPrompt.answered(history, at)))
             }
-            put(ConversationPrompt.message("user", transcript))
+            put(ConversationPrompt.message("user", ConversationPrompt.turn(transcript, present)))
         }
         val body = JSONObject()
             .put("model", model)
@@ -81,6 +81,6 @@ internal object ChatCompletions {
                        "chars" to content.length.toString())
             throw ChainFailure("$model answered with nothing at all")
         }
-        return ReplyReader.read(content, transcript)
+        return ReplyReader.read(content, transcript, present.provoked)
     }
 }

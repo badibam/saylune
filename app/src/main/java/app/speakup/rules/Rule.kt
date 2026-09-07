@@ -131,9 +131,13 @@ sealed interface Effect {
      * and a rule may want one, the other, or both.
      *
      * [now] is what lets a scene make the AI speak of its own accord -- the alarm going off,
-     * the passer-by, the character who prompts whoever has gone quiet. **A provoked turn falls
-     * only at a passage's close or at the opening**, never while somebody is recording:
-     * nothing cuts off a person who is still speaking.
+     * the passer-by, the character who prompts whoever has gone quiet, the parting line of a
+     * scene that is ending. **A provoked turn falls at the opening, at a passage's close, or
+     * in the coda**, never while somebody is recording and never at the end of an attempt:
+     * nothing cuts off a person who is still speaking, and the character has just answered.
+     *
+     * A message with the flag down waits for the next turn the learner takes, where it rides
+     * in as prose like any other; one with it up is what makes there be a turn at all.
      */
     data class Message(val prose: String, val now: Boolean = false) : Effect
 }
