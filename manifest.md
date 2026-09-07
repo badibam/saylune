@@ -1,4 +1,4 @@
-# manifest — speakup
+# manifest — saylune
 
 ## dev_base @ 535efc4
 ## universel @ ac6b09f

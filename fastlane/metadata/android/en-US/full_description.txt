@@ -1,4 +1,4 @@
-Speakup is a spoken English practice app built around one idea: you are never interrupted.
+Saylune is a spoken English practice app built around one idea: you are never interrupted.
 
 You talk to an AI out loud, in English, as long as you like. The conversation is yours to lead and nothing cuts in to correct you.
 
@@ -6,4 +6,4 @@ When you want feedback, you ask for it. One tap replays the sentence you just sp
 
 The target accent is a single setting. It governs the voice you hear and the reference your pronunciation is graded against, so you are never scored on one variety of English while listening to another.
 
-Speakup has no account and no server of its own. It runs against speech and language services you configure yourself with your own API keys, stored encrypted on your device.
+Saylune has no account and no server of its own. It runs against speech and language services you configure yourself with your own API keys, stored encrypted on your device.

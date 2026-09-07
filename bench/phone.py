@@ -33,17 +33,17 @@ import numpy as np
 import atomic
 
 HERE = Path(__file__).resolve().parent
-PACKAGE = "app.speakup.debug"
-PROBE = f"{PACKAGE}/app.speakup.embedded.ProbeActivity"
+PACKAGE = "app.saylune.debug"
+PROBE = f"{PACKAGE}/app.saylune.embedded.ProbeActivity"
 # Not the app's external directory: since Android 11 what the shell pushes
 # there belongs to the shell and the app is refused entry. This path both can
 # reach -- pushed here, then opened by name -- and it is a debug arrangement.
-REMOTE = "/data/local/tmp/speakup-probe"
+REMOTE = "/data/local/tmp/saylune-probe"
 
 # What comes back leaves by the app's own directory: SELinux lets an app read
 # the path above and never write to it.
 DUMPS = f"/sdcard/Android/data/{PACKAGE}/files/matrices"
-TAG = "speakup.probe"
+TAG = "saylune.probe"
 
 # A phone reads a flat directory, the bench files a matrix under the tag it was
 # read for. The two are bridged by the name on the device, which carries both.

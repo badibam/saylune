@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Entry point for speakup development tasks.
+"""Entry point for saylune development tasks.
 
 Bare invocation opens the interactive menu; `./run <task>` runs one directly,
 without requiring questionary.
@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 GRADLEW = ROOT / "gradlew"
-DEBUG_APPLICATION_ID = "app.speakup.debug"
+DEBUG_APPLICATION_ID = "app.saylune.debug"
 
 
 def gradle(*args):
@@ -211,7 +211,7 @@ def menu():
 
     while True:
         os.system("clear")
-        answer = questionary.select("speakup", choices=choices).ask()
+        answer = questionary.select("saylune", choices=choices).ask()
         if answer is None or answer is _QUIT:
             return 0
         ACTIONS[answer]()

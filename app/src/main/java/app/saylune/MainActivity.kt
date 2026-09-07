@@ -1,0 +1,456 @@
+package app.saylune
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import app.saylune.activity.Definitions
+import app.saylune.activity.Door
+import app.saylune.activity.Status
+import app.saylune.analysis.Analyses
+import app.saylune.capture.TurnRecorder
+import app.saylune.conversation.TurnPipeline
+import app.saylune.providers.ChosenConversation
+import app.saylune.providers.ChosenRecognition
+import app.saylune.providers.ChosenSynthesis
+import app.saylune.levers.At
+import app.saylune.levers.Count
+import app.saylune.levers.Levers
+import app.saylune.levers.Positions
+import app.saylune.levers.severityOn
+import app.saylune.debug.Trace
+import app.saylune.keys.Secret
+import app.saylune.keys.SecretStore
+import app.saylune.store.Archive
+import app.saylune.store.Sitting
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import app.saylune.ui.Action
+import app.saylune.ui.Channel
+import app.saylune.ui.Channels
+import app.saylune.ui.ConversationScreen
+import app.saylune.ui.PromptScreen
+import app.saylune.ui.Glyphs
+import app.saylune.ui.MarkingPrototypeScreen
+import app.saylune.ui.DisplaySettingsScreen
+import app.saylune.ui.DROPPED
+import app.saylune.ui.UNPUSHED
+import app.saylune.ui.PassageNotesScreen
+import app.saylune.ui.Scaffold
+import app.saylune.ui.SettingsScreen
+import app.saylune.ui.Tile
+import app.saylune.ui.AppSettingsScreen
+import app.saylune.ui.BIGGER
+import app.saylune.ui.InLanguage
+import app.saylune.ui.NIGHT
+import app.saylune.ui.PALE
+import app.saylune.ui.SMALLER
+import app.saylune.ui.THIN
+import app.saylune.ui.SituationScreen
+import app.saylune.ui.ThemesScreen
+import app.saylune.ui.TitleScreen
+import app.saylune.ui.theme.Saylune
+import app.saylune.ui.theme.SayluneTheme
+import app.saylune.ui.turnStatus
+import java.util.Locale
+
+/** What the palette preference holds when the spare is the one in force. */
+const val SPARE = "spare"
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val store = SecretStore(applicationContext)
+        val recorder = TurnRecorder(applicationContext)
+        // The three links are resolved at the moment they are used, not here: the user
+        // picks a provider per link in the settings, and the next turn uses it.
+        val pipeline = TurnPipeline(
+            context = applicationContext,
+            recognition = ChosenRecognition(store),
+            conversation = ChosenConversation(store),
+            synthesis = ChosenSynthesis(applicationContext, store),
+            analysis = Analyses.onDevice(applicationContext),
+            archive = Archive.of(applicationContext).dao(),
+        )
+        setContent {
+            // Read here rather than inside the theme: the palette is a preference like any
+            // other, and the store is what holds preferences.
+            val stored by store.values().collectAsState(initial = emptyMap())
+            // The register follows the phone until someone says otherwise, which is why
+            // *system* is a position of the setting and is stored as nothing.
+            val dark = when (stored[Secret.Register]) {
+                NIGHT -> true
+                PALE -> false
+                else -> isSystemInDarkTheme()
+            }
+            SayluneTheme(
+                dark = dark,
+                spare = stored[Secret.SparePalette] == SPARE,
+                thin = stored[Secret.TextWeight] == THIN,
+                steps = when (stored[Secret.TextScale]) {
+                    BIGGER -> 1
+                    SMALLER -> -1
+                    else -> 0
+                },
+            ) {
+                // Material still dresses the buttons and the lists that have not been
+                // rewritten yet, so it is told which register is in force: left to its own
+                // default it painted a light scheme under a night palette, and the ink came
+                // out light on a light ground.
+                MaterialTheme(
+                    colorScheme = if (dark) darkColorScheme() else lightColorScheme(),
+                ) {
+                    // **The ground is the palette's**, and no longer Material's surface. The
+                    // screens are ours now, and a ground the register does not own is a ground
+                    // the marking's colours are not measured against.
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Saylune.palette.ground.srgb,
+                        // Material works out its content colour from its own scheme, and a
+                        // ground it does not know leaves it unspecified -- which came out as
+                        // black text on the night plum. The register says what ink is.
+                        contentColor = Saylune.palette.ink.srgb,
+                    ) {
+                        InLanguage(stored[Secret.Language].orEmpty()) {
+                            Root(store, recorder, pipeline)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Every screen the app has, and the order they descend in.
+ *
+ * The four that were a four-position switch are a **stack** now, which is what the activity
+ * model asks for: screens that go down into one another rather than four doors off one row of
+ * buttons. Still no navigation library -- the `android` wisdom holds one off until a graph
+ * needs one, and a list one pushes onto and pops off is not a graph.
+ */
+private enum class Screen {
+    Title, Themes, Situation, Conversation, Notes, Prompt, Display, Preferences, Settings, Marks
+}
+
+/**
+ * The app, from its root down.
+ *
+ * **The root is the title screen** (`ui.md`, settled 2026-09-06): the four modes, and
+ * everything descends from there. Only *Free* has anything behind it, and behind it stand the
+ * **theme tiles**, one per definition the app ships; a tile opens the situation screen, and the
+ * situation screen opens the conversation.
+ *
+ * Everything below the root wears the **scaffold**: what is true at the top, what one can do
+ * at the bottom. The title screen does not -- it is the root, so back has nowhere to go, and
+ * its eight tiles are meant to take the height.
+ */
+@Composable
+private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipeline) {
+    val stack = rememberSaveable(
+        saver = listSaver<SnapshotStateList<Screen>, String>(
+            save = { it.map(Screen::name) },
+            restore = { it.map(Screen::valueOf).toMutableStateList() },
+        )
+    ) { mutableStateListOf(Screen.Title) }
+
+    // Asked once, at the root, and not on the way into a conversation: whether the
+    // analysis can run at all is a fact about the device, and an app that discovered it
+    // had no engine after somebody had spoken would be finding out too late.
+    LaunchedEffect(Unit) { pipeline.prepare() }
+
+    val context = LocalContext.current
+    // What the Free door ships, read once: the tiles are the files, so their number is decided
+    // at the release and cannot change while the app is up. **Filtered by the door**, which is
+    // what the field is for -- one grid per door, and a file says which one shows it.
+    val themes = remember(context) {
+        Definitions.all(context).filter { it.door == Door.Free }
+    }
+    val rows by pipeline.conversations().collectAsState(initial = emptyList())
+    val counts by pipeline.passages().collectAsState(initial = emptyList())
+    // **The sitting of a theme is the most recent one opened from it**, and the list is
+    // already sorted newest first. The older ones stay in the base and are out of reach,
+    // which is all out of reach can mean until a history screen exists (`docs/ui.md`).
+    val sittings = remember(rows) {
+        // **Abandoned is out.** That is the status *start over* writes, and it is what makes
+        // the answer hold: recency alone put the old sitting out of reach only once a new one
+        // had been opened, so the situation screen showed it again to anyone who left and
+        // came back before speaking.
+        rows.filter { it.status != Status.Abandoned.name }.mapNotNull { row ->
+            row.origin?.let { runCatching { Sitting.readOrigin(it).definition }.getOrNull() to row }
+        }.mapNotNull { (definition, row) -> definition?.let { it to row } }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (_, opened) -> opened.first() }
+    }
+    val counted = remember(sittings, counts) {
+        val byActivity = counts.associate { it.activity to it.n }
+        sittings.mapValues { (_, row) -> byActivity[row.id] ?: 0 }
+    }
+    // Which tile the situation screen is standing on. Held with the stack, that screen being
+    // pushed onto it.
+    var opening by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val here = stack.last()
+    BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
+
+    val stored by store.values().collectAsState(initial = emptyMap())
+    // Which marks the conversation menu has turned off. It is a preference of the learner's
+    // and never a lever: an activity may take an aid away, none hides a mark.
+    val hidden = remember(stored) { Channel.hidden(stored[Secret.HiddenMarks]) }
+    val channels = remember(hidden) { Channels(hidden) }
+    // The ninth setting of the display menu: it says how long a word mark stays, never
+    // whether it was made.
+    val dropped = stored[Secret.MarksDropped] == DROPPED
+    // **Pushed by default**, because a passage's note is ready exactly when the wait begins and
+    // filling those seconds beats watching them go by. Stored as the refusal, so nothing stored
+    // is pushed.
+    val pushed = stored[Secret.NotesUnpushed] != UNPUSHED
+
+    val turn by pipeline.state.collectAsState()
+    val capture by recorder.state.collectAsState()
+
+    // **Held here and not in the conversation screen**: the scaffold's status line is what
+    // names what is running -- a turn, a repeat, running or paused -- and that name is what
+    // makes `PAUSE` and `SEND` unambiguous at the bottom. Saveable, so a rotation does not
+    // turn a repeat into a new turn.
+    var repeating by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Which passage the prompt screen is open on, named by the utterance that opened it.
+    var promptOf by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Which attempt the passage's notes are open on. Held here, with the stack, because the
+    // screen is pushed onto it: the conversation says which passage, the stack says where.
+    var notesOf by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
+    // **The left arrow rather than the return glyph.** The return arrow is the key one presses
+    // to send something, and read on the phone that is what it kept saying; going back a screen
+    // is a direction, and the arrow that points the way one came reads as one without being
+    // learnt.
+    val back = Action(Glyphs.ARROW_LEFT) { if (stack.size > 1) stack.removeAt(stack.lastIndex) }
+
+    // Without this the top line sits under the status bar and the bar at the bottom under the
+    // gesture handle.
+    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+        when (here) {
+            Screen.Title -> TitleScreen(
+                modes = listOf(
+                    Tile(R.string.mode_story, reason = R.string.mode_unwritten),
+                    Tile(R.string.mode_challenges, reason = R.string.mode_unwritten),
+                    Tile(R.string.mode_arcade, reason = R.string.mode_unwritten),
+                    Tile(R.string.mode_free) { stack.add(Screen.Themes) },
+                ),
+                doors = listOf(
+                    // The app's own settings first: it is the door one comes back to, where
+                    // the keys are an installation done once.
+                    Tile(R.string.preferences_open) { stack.add(Screen.Preferences) },
+                    Tile(R.string.settings_open) { stack.add(Screen.Settings) },
+                    Tile(R.string.measured_marks) { stack.add(Screen.Marks) },
+                ),
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            Screen.Themes -> Scaffold(
+                title = stringResource(R.string.mode_free),
+                lives = null,
+                status = stringResource(R.string.themes_pick),
+                actions = listOf(back),
+            ) {
+                ThemesScreen(
+                    themes = themes,
+                    passages = counted,
+                    onOpen = { theme -> opening = theme.id; stack.add(Screen.Situation) },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            // What a tile opens, and the only screen between a theme and speaking it.
+            Screen.Situation -> {
+                val theme = themes.firstOrNull { it.id == opening }
+                val sitting = theme?.let { sittings[it.id] }
+                Scaffold(
+                    title = theme?.short?.inLanguage(Locale.getDefault().language).orEmpty(),
+                    lives = null,
+                    status = stringResource(R.string.situation_what),
+                    actions = listOf(back),
+                ) {
+                    theme?.let {
+                        SituationScreen(
+                            theme = it,
+                            started = sitting?.let { row -> Sitting.readBrief(row.brief.orEmpty()) },
+                            passages = counted[it.id] ?: 0,
+                            onStartOver = {
+                                sitting?.let { row -> scope.launch { pipeline.abandon(row.id) } }
+                            },
+                            onCarryOn = {
+                                sitting?.let { row ->
+                                    scope.launch {
+                                        pipeline.open(row.id)
+                                        stack.add(Screen.Conversation)
+                                    }
+                                }
+                            },
+                            onStart = { answers, gender ->
+                                scope.launch {
+                                    pipeline.begin(it, answers, gender)
+                                    stack.add(Screen.Conversation)
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            }
+
+            Screen.Conversation -> Scaffold(
+                title = turn.definition.short.inLanguage(Locale.getDefault().language),
+                lives = livesLeft(turn.positions),
+                status = turnStatus(turn, capture, repeating),
+                // The sound's gate's own half: it names nothing -- being wired to elocution
+                // and fluency alone, what it named would be a constant -- and it gives the
+                // model to hear, which is the remedy for every sound fault.
+                onStatus = turn.open()?.last?.id?.takeIf { turn.soundGate != null }?.let { of ->
+                    { scope.launch { pipeline.hear(of) } }
+                },
+                actions = listOf(
+                    back,
+                    // Both are the conversation's own, and both are off with their reason:
+                    // the marks menu comes with the redrawn turn, and no screen sets a lever
+                    // yet, before a sitting or during one.
+                    Action(Glyphs.EYE) { stack.add(Screen.Display) },
+                    Action(Glyphs.LEVERS, reason = R.string.action_levers_unwritten),
+                ),
+            ) {
+                ConversationScreen(
+                    recorder, pipeline,
+                    repeating = repeating,
+                    onRepeating = { repeating = it },
+                    channels = channels,
+                    dropWordMarks = dropped,
+                    onNotes = { notesOf = it; stack.add(Screen.Notes) },
+                    // **The other of the two doors**: the same screen, pushed rather than
+                    // asked for. It falls when the next take is sent -- the note is final at
+                    // the close before it, and the wait for the answer is the moment it fills.
+                    onClosed = if (pushed) {
+                        { notesOf = it; stack.add(Screen.Notes) }
+                    } else null,
+                    onPrompt = { promptOf = it; stack.add(Screen.Prompt) },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            // **One screen with two doors**, and this is the second: opened on demand from any
+            // passage of the thread. The first -- pushed between two passages -- is the same
+            // content, and what settles which is the learner's own setting.
+            //
+            // **Pressing anywhere closes it**, the bottom line saying so: the screen offers no
+            // other gesture, so the way out is all of it rather than one glyph in the bar.
+            Screen.Notes -> {
+                val attempt = turn.utterances.firstOrNull { it.id == notesOf }
+                val passage = turn.passages().indexOfFirst { spoken ->
+                    spoken.attempts.any { it.id == notesOf }
+                }
+                Scaffold(
+                    title = stringResource(R.string.passage_notes, passage + 1),
+                    lives = null,
+                    status = stringResource(R.string.passage_notes_what),
+                    actions = emptyList(),
+                ) {
+                    PassageNotesScreen(
+                        attempt,
+                        // **What the mode weighs is what decides a letter is drawn**, and a
+                        // free conversation declares nothing, so its slots stay empty.
+                        weights = turn.activity.weights,
+                        severity = turn.positions::severityOn,
+                        onClose = { stack.removeAt(stack.lastIndex) },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+
+            // **The one screen that does not wear the scaffold below the root**, and the one
+            // that is not in the register at all: it is an instrument for reading a body of
+            // several thousand characters, which the eleven-pixel font on the grid cannot do.
+            // So it carries its own way out, in its own corner, rather than the register's
+            // action bar.
+            Screen.Prompt -> PromptScreen(
+                passage = turn.passages().indexOfFirst { it.opener.id == promptOf } + 1,
+                body = promptOf?.let { Trace.asked(it) },
+                onClose = { stack.removeAt(stack.lastIndex) },
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            Screen.Display -> Scaffold(
+                title = stringResource(R.string.display_what),
+                lives = null,
+                status = stringResource(R.string.display_lead),
+                actions = listOf(back),
+            ) {
+                DisplaySettingsScreen(store, hidden, pushed, dropped, Modifier.fillMaxSize())
+            }
+
+            Screen.Preferences -> Scaffold(
+                title = stringResource(R.string.preferences_open),
+                lives = null,
+                status = stringResource(R.string.preferences_what),
+                actions = listOf(back),
+            ) {
+                AppSettingsScreen(store, stored, modifier = Modifier.fillMaxSize())
+            }
+
+            Screen.Settings -> Scaffold(
+                title = stringResource(R.string.settings_open),
+                lives = null,
+                status = stringResource(R.string.settings_what),
+                actions = listOf(back),
+            ) {
+                SettingsScreen(store, modifier = Modifier.fillMaxSize())
+            }
+
+            Screen.Marks -> Scaffold(
+                title = stringResource(R.string.measured_marks),
+                lives = null,
+                status = stringResource(R.string.marks_what),
+                actions = listOf(back),
+            ) {
+                MarkingPrototypeScreen()
+            }
+        }
+    }
+}
+
+/**
+ * How many lives are left, or null where the sitting counts none.
+ *
+ * **The lives are a lever and their position is the number left** -- not an allowance set
+ * beside a counter (`docs/activity.md`). So this reads the two levers the
+ * catalogue declares and nothing else: whether lives are counted at all, and where the count
+ * stands. A free conversation counts none, so the field is simply absent from its status line.
+ */
+private fun livesLeft(positions: Positions): Int? {
+    val counted = (positions.of(Levers.LIVES.key) as? At)?.name == "counted"
+    return if (counted) (positions.of(Levers.LIVES_LEFT.key) as? Count)?.n else null
+}

@@ -46,7 +46,7 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "out" / "reference"
 VERDICTS = OUT / "verdicts.json"
 PROVENANCE = OUT / "provenance.json"
-AGENT = "speakup-dev/0.1 (badibam@proton.me)"
+AGENT = "saylune-dev/0.1 (badibam@proton.me)"
 
 # Seconds between downloads. Commons rate-limits a burst outright, and being
 # asked to slow down is a reason to slow down rather than to retry harder.

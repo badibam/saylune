@@ -113,7 +113,7 @@ def azure(text, voice):
             "Authorization": f"Bearer {bearer}",
             "Content-Type": "application/ssml+xml",
             "X-Microsoft-OutputFormat": AZURE_FORMAT,
-            "User-Agent": "speakup-bench",
+            "User-Agent": "saylune-bench",
         },
         data=ssml.encode("utf-8"),
         timeout=TIMEOUT_SECONDS,

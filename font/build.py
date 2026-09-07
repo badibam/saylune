@@ -15,7 +15,7 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from pixelfont import (BOTTOM_PX, CAP_PX, CELL_W, GLYPHS, PX, TOP_PX, UPEM, X_PX,
                        read_maps, rows_to_cells)
 
-FAMILY = "Speakup Tile"
+FAMILY = "Saylune Tile"
 
 # The two boxes this compiles, which are two families and not two sizes: the
 # letters and the furniture that goes with them, and the furniture again drawn
@@ -148,8 +148,8 @@ def main(out_dir):
     out_dir.mkdir(parents=True, exist_ok=True)
     for weight in WEIGHTS:
         for prefix, source, box in (
-            ("speakup_tile", f"{weight}.txt", LETTERS),
-            ("speakup_big", f"big-{weight}.txt", BIG),
+            ("saylune_tile", f"{weight}.txt", LETTERS),
+            ("saylune_big", f"big-{weight}.txt", BIG),
         ):
             maps = read_maps(GLYPHS / source)
             path = out_dir / f"{prefix}_{weight}.ttf"

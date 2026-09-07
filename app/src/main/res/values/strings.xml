@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Speakup</string>
+    <string name="app_name">Saylune</string>
     <string name="sample_multi_fault_turn">Multi-fault turn</string>
     <string name="sample_clean_turn">Clean turn</string>
     <string name="measured_turn">Measured turn — %1$s</string>
@@ -46,7 +46,7 @@
     <string name="capture_ended_silence">Your turn was sent: the silence ran on.</string>
     <string name="capture_redo">Redo</string>
     <string name="capture_send">SEND</string>
-    <string name="capture_permission">Speakup needs the microphone to hear your turn.</string>
+    <string name="capture_permission">Saylune needs the microphone to hear your turn.</string>
     <string name="capture_grant">Allow the microphone</string>
     <string name="capture_kept">Turn kept: %1$s</string>
     <string name="measured_marks">Marks</string>
@@ -62,7 +62,7 @@
     <string name="setting_cache_cap_help">Rendered model sentences kept for replay. Over this, the least recently used go first. Blank uses %1$s MB.</string>
     <string name="setting_cache_title">Voice cache</string>
     <string name="speaker_learner">You</string>
-    <string name="speaker_ai">Speakup</string>
+    <string name="speaker_ai">Saylune</string>
     <string name="debug_steps">Debug — %1$d step(s)</string>
     <string name="debug_clear">Clear</string>
     <string name="debug_nothing">Nothing recorded yet.</string>

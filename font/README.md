@@ -16,7 +16,7 @@ Un pixel de dessin vaut 64 unités, le cadratin 1024, l'avance 704.
 - `plank.py` — dessine une planche PNG pour juger en regardant.
 
 - `frames.py` — découpe les seize pièces de cadre depuis la formule du banc.
-- `big.py` — **les meubles une seconde fois, dans une boîte de 22 × 22**, pour la seconde taille du registre. Chaque glyphe y est écrit comme les formes dont il est fait — disque, segment, anneau, polygone — avec l'épaisseur de trait en paramètre : 4 pixels en Regular, 2 en Thin, comme la petite fonte amincit ce qui est un trait. Ils portent **les mêmes codets** que les meubles ordinaires, dans une **famille à part** (`Speakup Tile Big`) : l'app demande le même caractère et choisit la famille selon ce qu'elle dessine, un bouton ou une ligne de texte.
+- `big.py` — **les meubles une seconde fois, dans une boîte de 22 × 22**, pour la seconde taille du registre. Chaque glyphe y est écrit comme les formes dont il est fait — disque, segment, anneau, polygone — avec l'épaisseur de trait en paramètre : 4 pixels en Regular, 2 en Thin, comme la petite fonte amincit ce qui est un trait. Ils portent **les mêmes codets** que les meubles ordinaires, dans une **famille à part** (`Saylune Tile Big`) : l'app demande le même caractère et choisit la famille selon ce qu'elle dessine, un bouton ou une ligne de texte.
 - `furniture.py` — les vingt-cinq meubles de la zone privée. Ce qui est un symbole plein — le disque, le triangle, la jauge, le cœur, le micro, la loupe, l'œil, le cadenas, l'histogramme, les points — est identique dans les deux graisses ; ce qui est un trait — les flèches, la coche, la croix, les curseurs, le retour, la flèche circulaire — s'amincit avec le reste.
 - `phonemes.py` — les quatorze phonèmes de l'API que l'analyse affiche. Trois sont une lettre tournée ou en miroir, sept une lettre plus une barre ou un crochet — donc les deux graisses tombent seules —, quatre sont dessinés par graisse.
 - `scramble.py` — couvre chaque lettre de carrés, pour le tour de l'IA qu'on voit sans le lire.
@@ -33,4 +33,4 @@ Ajouter un caractère : écrire son bloc `@nom U+XXXX` dans les deux cartes, rel
 
 ## Licence
 
-Dérivée de Mono10 (Michael Vieth, Community Pack), sous SIL OFL 1.1 — voir `OFL.txt`. La police dérivée porte un autre nom, `Speakup Tile`, et reste sous la même licence.
+Dérivée de Mono10 (Michael Vieth, Community Pack), sous SIL OFL 1.1 — voir `OFL.txt`. La police dérivée porte un autre nom, `Saylune Tile`, et reste sous la même licence.

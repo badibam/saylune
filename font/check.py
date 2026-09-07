@@ -21,8 +21,8 @@ from fontTools.pens.pointInsidePen import PointInsidePen
 from pixelfont import BOTTOM_PX, CELL_W, TOP_PX
 
 PAIRS = [
-    ("tmp/Mono10 - Community Pack/TTF/Mono10 Regular.ttf", "font/ttf/speakup_tile_regular.ttf"),
-    ("tmp/Mono10 - Community Pack/TTF/Mono10 Thin.ttf", "font/ttf/speakup_tile_thin.ttf"),
+    ("tmp/Mono10 - Community Pack/TTF/Mono10 Regular.ttf", "font/ttf/saylune_tile_regular.ttf"),
+    ("tmp/Mono10 - Community Pack/TTF/Mono10 Thin.ttf", "font/ttf/saylune_tile_thin.ttf"),
 ]
 
 
@@ -73,4 +73,4 @@ def main(root):
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1] if len(sys.argv) > 1 else "/mnt/data/OUTILS/speakup"))
+    main(Path(sys.argv[1] if len(sys.argv) > 1 else "/mnt/data/OUTILS/saylune"))

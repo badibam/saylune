@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "app.speakup"
+    namespace = "app.saylune"
     compileSdk = 37
     // Pinned rather than left to the AGP default: the F-Droid build server must
     // resolve the same toolchain we did, or the APKs cannot be compared.
@@ -16,7 +16,7 @@ android {
     ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
     defaultConfig {
-        applicationId = "app.speakup"
+        applicationId = "app.saylune"
         minSdk = 26
         targetSdk = 37
         versionCode = 1

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "speakup"
+rootProject.name = "saylune"
 include(":app")

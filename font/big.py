@@ -6,7 +6,7 @@ a glyph meant to be read as a letter. Here the drawing is made for that size --
 22 by 22 pixels the size of the text's own, so a button carries the same pixel
 as the line beside it (`docs/ui.md`, "Les images").
 
-They are a **family of their own**, `Speakup Tile Big`, on the same private-use
+They are a **family of their own**, `Saylune Tile Big`, on the same private-use
 codepoints as the furniture of the ordinary font: the app asks for the same
 character and picks the family by what it is drawing, a button or a line of
 text. Nothing in the ordinary font moves, so `check.py` still proves the letters

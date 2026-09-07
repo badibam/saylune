@@ -14,9 +14,9 @@ Une tuile est une **définition d'activité livrée avec l'app** : un fichier de
 
 **Le code se lit, à chaque fois, avant d'écrire le JSON.**
 
-- `app/src/main/java/app/speakup/activity/Definitions.kt` — `parse()` dit **exactement** quels champs sont lus. On écrit ceux-là et aucun autre.
-- `app/src/main/java/app/speakup/activity/Definition.kt` — ce qu'un fichier doit tenir : un seul personnage principal, pas deux trous sur une même clé, un nom court d'au plus dix caractères, l'anglais obligatoire dans chaque table de langue.
-- `app/src/main/java/app/speakup/levers/Levers.kt` — les clés de levier et leurs positions. **Jamais inventées, toujours lues.**
+- `app/src/main/java/app/saylune/activity/Definitions.kt` — `parse()` dit **exactement** quels champs sont lus. On écrit ceux-là et aucun autre.
+- `app/src/main/java/app/saylune/activity/Definition.kt` — ce qu'un fichier doit tenir : un seul personnage principal, pas deux trous sur une même clé, un nom court d'au plus dix caractères, l'anglais obligatoire dans chaque table de langue.
+- `app/src/main/java/app/saylune/levers/Levers.kt` — les clés de levier et leurs positions. **Jamais inventées, toujours lues.**
 - L'arbre des feuilles, pour les chemins de `weights`. Même règle.
 - `app/src/main/assets/definitions/free-conversation.json` — la seule tuile déjà écrite, à lire comme exemple de forme.
 
