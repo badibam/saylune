@@ -63,7 +63,7 @@ Un prescripteur ne décide rien pendant : il remplit des champs avant, puis se t
 
 **Trois natures, et il n'y en a pas de quatrième** — le critère du projet appliqué à l'état entier.
 
-- **Déclaré** — l'entrée figée. De la définition : l'origine, l'ouverture, le `brief`, la distribution, les consignes de départ, les positions de départ, l'arbre des poids, les règles, les questions. De l'apprenant : son **nom**, sans lequel aucune scène ne peut le désigner ; l'accent, donc la voix de référence ; les fournisseurs choisis par maillon.
+- **Déclaré** — l'entrée figée. De la définition : l'origine, le `brief`, la distribution, les consignes de départ, les positions de départ, l'arbre des poids, les règles, les questions. De l'apprenant : son **nom**, sans lequel aucune scène ne peut le désigner ; l'accent, donc la voix de référence ; les fournisseurs choisis par maillon.
 - **Enregistré** — les énoncés et leur audio, les mesures de chaque tentative, le journal de ce qu'un tirage ou l'IA a choisi, et les faits portés par chaque tour.
 - **Dérivé** — les positions effectives, les consignes en vigueur, les feuilles, les notes, les comptes, le blocage, les deux portes, l'avancement, l'issue, les deux horloges.
 
@@ -93,7 +93,7 @@ Ce qui se stocke, ce qui fait un levier et le catalogue complet sont dans `lever
 
 ## Les règles
 
-La forme — **quand**, **quoi**, **qui choisit** —, les six sortes de déclencheur et les trois sortes d'effet sont dans `rules/Rule.kt` ; la résolution par vagues et sa preuve de terminaison dans `rules/Engine.kt` ; ce qu'une condition a le droit de lire dans `conversation/World.kt`. Ce qui suit est ce qui traverse.
+La forme — **quand**, **quoi**, **qui choisit** —, les huit sortes de déclencheur et les trois sortes d'effet sont dans `rules/Rule.kt` ; la résolution par vagues et sa preuve de terminaison dans `rules/Engine.kt` ; ce qu'une condition a le droit de lire dans `conversation/World.kt`. Ce qui suit est ce qui traverse.
 
 **Ce que la forme a replié.** La **rampe** cesse d'être un champ : c'est une règle dont le quand est « tous les N passages » et le quoi un cran de plus. Les **conditions** aussi : « une feuille sous la barre → une vie » est une règle dont le patch retire une vie. Deux champs deviennent une liste.
 
@@ -129,7 +129,7 @@ La forme — **quand**, **quoi**, **qui choisit** —, les six sortes de déclen
 
 **Trois objets à ne pas coller.** L'**interrupteur** porte deux positions et chaque position porte sa phrase ; le **patch** est ce qui le déplace ; la **notification** lit la phrase de la position où on vient d'arriver. Il y a donc deux règles en jeu : celle dont le patch déplace l'interrupteur, et celle que l'interrupteur arme ou désarme.
 
-**Le drapeau se replie sur l'armement.** Il devait être un événement nommé qu'un patch pose et qu'un déclencheur lit — mais **aucune des six sortes n'en lit un**, et la liste est fermée. L'armement fait déjà le travail. Ce qui reste à dire est si la famille garde un nom à elle (`../TODO.md`).
+**Le drapeau se replie sur l'armement.** Il devait être un événement nommé qu'un patch pose et qu'un déclencheur lit — mais **aucune des huit sortes n'en lit un**, et la liste est fermée. L'armement fait déjà le travail. Ce qui reste à dire est si la famille garde un nom à elle (`../TODO.md`).
 
 **Un drapeau ne se compte pas** : compter un événement qui n'a pas son levier — *la troisième fois qu'il mentionne le dragon* — s'écrit en **chaîne de drapeaux**, une règle par cran, la première armant la deuxième. Verbeux, et écrivable ; un compteur générique attend d'avoir été demandé par une scène réelle.
 
@@ -146,23 +146,27 @@ R2  (désarmée au départ)
     → [ finir, issue = raté ]
 ```
 
-### Les trois moments
+### Les cinq moments
 
-Ils ne se distinguent pas par le goût mais par **ce qui est calculé à cet instant**.
+Ils ne se distinguent pas par le goût mais par **ce qui est calculé à cet instant**. Trois arrivent pendant la séance et reviennent ; les deux autres la bornent et n'arrivent qu'une fois chacun.
 
+- **À l'ouverture.** La séance vient d'être ouverte et rien n'a été dit. Rien n'est calculé : aucune horloge ne tourne, aucune feuille n'a été lue, aucun passage n'est fermé.
 - **Pendant l'enregistrement.** Deux horloges tournent, le temps écoulé et le silence en cours. Aucune feuille n'existe encore — donc une règle de ce moment ne peut lire qu'une horloge. Ce n'est pas une restriction posée, c'est un fait sur ce qui existe.
 - **À la fin d'une tentative.** Le tour est parti, le modèle a répondu, l'analyse a tourné. Se décide là ce qui concerne cette tentative : les deux portes, et si la conversation attend.
 - **À la fermeture du passage.** La note du passage est celle de la dernière tentative et le compte est connu. Tombe là tout le reste : les patchs, la rampe, les vies, la fin.
+- **À la clôture.** La séance est finie et tout est arrêté. **Une coda, pas un sursis** : ce qui s'y déclenche peut ajouter un dernier mot et faire répondre aux questions restées ouvertes, et ne peut plus dé-finir.
 
 **Aucune sorte de déclencheur ne lit une horloge hors de l'enregistrement, et c'est une borne choisie.** *« Après deux minutes de conversation »* n'est pas écrivable : le système est par tours, donc une durée de séance ne gouverne rien qui puisse se déclencher entre deux paroles.
 
-**Le début d'une séance n'est pas un déclencheur.** Un déclencheur existe pour éprouver quelque chose à un moment qui revient ; le début arrive une fois et sans condition. Ce qui ouvre la séance est un champ de la définition — **mais ce champ porte un paquet d'effets, pas un texte** : ouvrir une scène demande souvent un message au modèle et une phrase affichée à l'apprenant, et un champ de texte n'en porte qu'une. Le paquet est celui qu'une règle porte déjà, donc zéro type neuf. Les trois façons d'ouvrir — l'apprenant parle en premier, le personnage dit une réplique écrite, le modèle improvise sur consigne — sont trois façons de remplir ce paquet, pas trois champs. Rien ne pousse vers l'une des trois pour la latence : l'apprenant vient d'appuyer sur *lancer* et n'attend pas sa propre réponse.
+**Les deux déclencheurs de borne ne testent rien**, et c'est ce qui les distingue des six autres : atteindre le moment est tout ce qu'ils disent. Ils n'ont pas de paramètre, et leur moment se déduit comme celui de l'horloge. Une règle *à l'ouverture* n'a pas besoin de se désarmer, l'ouverture n'arrivant qu'une fois.
+
+**Ce qui ouvre une séance est donc une règle et non un champ** (tranché le 2026-09-07). Ce doc a longtemps dit l'inverse, et l'argument tenait entièrement à l'existence du champ : `Definition.opening` portait un paquet d'effets, donc un déclencheur d'ouverture aurait été une seconde façon d'écrire la même chose. Le champ n'a jamais été joué et il est **supprimé** au lieu d'être implémenté — et plusieurs règles peuvent contribuer à une ouverture là où un champ unique ne portait qu'un paquet. Les trois façons d'ouvrir — l'apprenant parle en premier, le personnage dit une réplique écrite, le modèle improvise sur consigne — sont trois façons d'écrire cette règle. Rien ne pousse vers l'une des trois pour la latence : l'apprenant vient d'appuyer sur *lancer* et n'attend pas sa propre réponse.
 
 **Une règle se résout avant que l'IA réponde**, parce qu'elle doit pouvoir fabriquer l'occasion de la contrainte qu'on vient de poser. Le cycle est donc : le passage se ferme, les règles se déclenchent, l'IA répond en connaissant ce qui a changé, son tour est dit, la notification s'affiche hors du temps de parole, le micro s'arme. Quand c'est l'IA qui choisit, **elle choisit et répond dans le même appel** — deux sorties, pas deux allers-retours. Contrepartie : elle choisit en sachant ce qu'elle a envie de dire, et le menu est ce qui borne ça.
 
 ### Ce qu'une condition lit
 
-**Une condition est une règle**, pas un mécanisme à part : son déclencheur lit l'arbre des notes, son effet est un patch. **C'est donc un terme étroit**, une des six sortes, et il faut s'y tenir : « les conditions de fin » sont des règles et pas des conditions, et confondre les deux fait affirmer d'une règle quelconque ce qui n'est vrai que de celle-ci.
+**Une condition est une règle**, pas un mécanisme à part : son déclencheur lit l'arbre des notes, son effet est un patch. **C'est donc un terme étroit**, une des huit sortes, et il faut s'y tenir : « les conditions de fin » sont des règles et pas des conditions, et confondre les deux fait affirmer d'une règle quelconque ce qui n'est vrai que de celle-ci.
 
 **La lecture par élément n'a pas de dénominateur, et c'est voulu** : c'est le seul endroit du projet où un fait absolu se lit. « Au moins un mot `à côté` » se déclenche pareil sur trois mots et sur trente ; qui veut la proportion lit le chiffre. **Sur un marquage, l'élément est le mot et jamais l'empan** — un empan a toujours au moins un mot, donc les deux se déclenchent dans les mêmes cas, et sa **longueur** n'est pas lisible, dépendant de l'habitude de coupe du juge.
 
@@ -268,13 +272,19 @@ Les deux portes, ce que chacune lit et ce qui coupe l'analyse du son sont dans `
 
 **Les vies à zéro mettent fin, et c'est une propriété déclarée du levier, pas une règle.** Elle s'évalue une fois par moment, après toutes les vagues, sur l'état stabilisé — ce qui laisse une règle remplir les vies dans le même moment sans que la fin tombe.
 
+**Finir se fait en deux temps.** L'effet marque la séance comme finissante, une **vague de clôture** tourne, puis c'est fini. Ce n'est pas une nouveauté mais une généralisation : la fin par vies à zéro se comportait déjà comme ça, s'évaluant après toutes les vagues sur l'état stabilisé, ce qui laisse une règle remplir les vies dans le même moment sans que la fin tombe ; l'effet, lui, terminait sur l'instant, donc l'app avait deux sortes de fin qui ne se comportaient pas pareil. Les deux se règlent maintenant au même endroit, et ce qu'une règle déclare franchement l'emporte sur ce que disent les vies.
+
+**La vague de clôture ne peut pas annuler la fin.** C'est une coda, pas un sursis : l'état porte déjà l'issue et rien ne la reprend. Laisser la coda dé-finir rendrait *est-ce fini ?* indéterminé pendant sa propre vague. **L'appel de clôture n'existe que si quelque chose l'a demandé** — un message qui provoque un tour, ou des questions restées ouvertes à balayer. Le dernier mot d'un personnage n'est donc jamais un comportement de l'app : c'est une règle qu'un auteur écrit.
+
+**Une séance abandonnée n'atteint jamais la clôture**, donc ses questions restent sans réponse — et c'est sans conséquence : sans fin il n'y a pas d'issue, donc aucune scène suivante ne lit quoi que ce soit.
+
 **L'effet « finir » porte l'issue qu'il ouvre** : *réussi*, *raté*, ou *la note décide*. **L'issue se lit dans cet ordre.** 1. **Aucune fin n'est tombée** — l'apprenant a laissé en route : pas d'issue du tout, c'est une activité à reprendre, et la note se calcule sans rien conclure. 2. **Une fin sèche est tombée** — c'est dit ; la note s'affiche et ne décide pas. 3. **Une fin ordinaire** — la note à la barre A–B décide.
 
 **Ça bouche un trou que la note seule ne voyait pas : la quantité.** Un A sur deux passages puis on ferme, c'est une note excellente et un défi qui n'a rien prouvé. « Assez de passages » n'est donc pas un critère de réussite mais une **condition de fin**.
 
 **Il n'y a donc pas de champ « critère de réussite »** : il se dissout en la barre A–B, qui ne se règle jamais, et ce que les règles de fin déclarent. **Pas de champ ne veut pas dire pas de mécanisme** : une réussite scriptée s'écrit comme n'importe quelle fin, un déclencheur *le modèle juge que oui* et l'effet *finir* portant *réussi*. Le prix est celui du déclencheur, qui est **demandé** — personne ne vérifie que l'objectif a vraiment été atteint.
 
-**Un message au modèle déclare s'il attend le tour suivant ou s'il provoque un tour tout de suite.** Sans ce second cas, rien ne peut faire parler l'IA d'elle-même — or l'ouverture *est* exactement ce cas. Ça donne les événements de scène : l'alarme qui sonne, le passant qui bouscule, le personnage qui relance qui se tait. Une seule borne suffit à tenir l'invariant de capture — **un tour provoqué ne tombe qu'à la fermeture d'un passage ou à l'ouverture**, jamais pendant qu'on enregistre.
+**Un message au modèle déclare s'il attend le tour suivant ou s'il provoque un tour tout de suite.** Sans ce second cas, rien ne peut faire parler l'IA d'elle-même — or l'ouverture *est* exactement ce cas. Ça donne les événements de scène : l'alarme qui sonne, le passant qui bouscule, le personnage qui relance qui se tait. Une seule borne suffit à tenir l'invariant de capture — **un tour provoqué ne tombe qu'à l'ouverture, à la fermeture d'un passage ou dans la coda**, jamais pendant qu'on enregistre et jamais à la fin d'une tentative, où le personnage vient de répondre.
 
 **L'arcade ne réussit ni ne rate**, elle rend un score : sa fin est zéro vie. Comment ce score se calcule reste à écrire.
 
@@ -308,13 +318,35 @@ Un mode histoire tire sur tout ce que le modèle a de mou, donc il sert de banc 
 
 Pas une activité unique dont les scènes seraient des étapes : le `brief` est posé au départ et aucun patch ne le touche, donc une activité ne peut changer ni de lieu, ni de personnage, ni d'objectif — et la rendre modifiable défairait ce qui garantit qu'une séance a une seule situation, donc une seule note lisible. Et une scène **est** une définition terme à terme : ce n'est pas qu'on fait entrer l'histoire dans le modèle, c'est que le modèle décrivait déjà une scène sans le savoir. Le fil se coupe donc entre deux scènes, ce qui est plutôt souhaitable — dans un jeu, une scène se termine.
 
-**Une définition déclare des questions ; le modèle y répond en fin de séance, et les scènes suivantes reçoivent les réponses.** Sans ça rien ne passe d'une scène à l'autre que réussi ou raté, et le barman de la scène 4 ne peut pas demander *« alors, tu l'as retrouvée, la meunière ? »*. Zéro objet neuf : l'exécution porte son origine, et son résultat porte déjà du texte.
+### Les questions
 
-**Le texte libre du résultat devient ces réponses, et rien d'autre.** Un défi qui veut un commentaire de fin déclare la question ; une activité qui n'en déclare aucune n'a pas de texte. Un mécanisme au lieu d'un champ fourre-tout.
+**Une question est un trou de la fiction que le modèle remplit, à un moment que l'auteur a écrit.** *Comment sa conférence s'est-elle passée ? Est-ce qu'il a retrouvé la meunière ? La reine est-elle en sûreté ?* La réponse devient un **fait de la séance** : elle revient au modèle à chaque tour suivant, elle peut s'afficher à l'apprenant, et une scène suivante la lit. Sans ça rien ne passe d'une scène à l'autre que réussi ou raté, et le barman de la scène 4 ne peut rien demander.
 
-**Une question déclare son format** : texte libre, oui/non, ou liste fermée. Le texte libre nourrit le prompt des scènes suivantes ; **une réponse fermée se lit par du code**, donc elle branche — *« a-t-il la clé ? oui »* ouvre la scène 5, sinon la 5 bis. Ce qui le lit est l'ordre du bloc, qui dérive déjà de ce que les scènes ont rendu.
+**C'est aussi ce qui rend une tuile rejouable.** Une mise en scène fixe ne varie pas ; un menu de règles ne varie qu'entre les branches que l'auteur a énumérées. Une question à réponse libre répondue à l'ouverture fait écrire au modèle un fait que personne n'a énuméré, et le **gèle** — il s'engage une fois au lieu de ré-improviser son personnage à chaque tour. La variabilité cesse d'être de la dérive. Le gel ne demande aucune pièce : il tient à ce que la question n'a qu'un moment.
+
+**L'app sert la question, le modèle répond sur-le-champ.** C'est l'inversion qui porte tout le reste : pas un menu de champs vides que le modèle remplit quand il veut, mais une question posée au moment dit, dont la réponse est un champ **obligatoire de ce tour-là**. Le jugement reste cru sur parole ; la **présence** d'une réponse se contrôle comme n'importe quel champ de retour, l'app ayant choisi le moment.
+
+**Rien de tout ça n'est mécanique.** Une réponse est de la prose que le prompt relit : aucune condition ne la lit, aucun patch ne s'y accroche. Ce que l'app doit exécuter passe par les règles, dont le menu est fermé. Faire choisir l'IA hors de la mécanique est le seul endroit où on peut être généreux sans rien payer.
+
+**Ses moments sont des déclencheurs**, au même titre que ceux d'une règle, et plusieurs sont permis. L'auteur écrit *quand*, l'app sert la question à cet instant, ce qui retire au modèle toute discrétion sur le calendrier. Une question **ride sur le premier appel qui suit** le moment qui l'a posée, exactement comme un message de règle : celle qui tombe à la fin d'une tentative a vu l'appel de cette tentative partir sans elle, et le suivant est le plus tôt qu'il y ait. La clôture est le seul endroit où une question seule fait un tour, n'ayant pas d'appel suivant sur quoi monter.
+
+**Une question déclare son format** : texte libre, ou liste fermée — le oui/non en est une à deux entrées. Le texte libre nourrit le prompt des scènes suivantes ; **une réponse fermée se lit par du code**, donc elle branche — *« a-t-il la clé ? oui »* ouvre la scène 5, sinon la 5 bis. Ce qui le lit est l'ordre du bloc, qui dérive déjà de ce que les scènes ont rendu. Les options d'une liste fermée sont du **texte d'auteur**, donc une table langue → texte comme le titre : l'anglais est obligatoire, c'est la clé qui part au prompt et sur laquelle la validation se fait par appartenance.
+
+**Trois crans, un escalier avec un plancher et pas trois modes.** Ce que la discussion établit est **toujours prioritaire** ; les crans disent seulement ce qui se passe quand elle ne tranche pas. *Vérité de la discussion* : répondre uniquement d'après ce qui s'est dit, et sinon **je ne sais pas**, qui fait partie du menu à ce cran et à lui seul. *Extrapolation permise* : à défaut de certitude, conclure. *Invention permise* : à défaut de quoi extrapoler, décider. À écrire comme un escalier et pas comme trois étiquettes, sinon l'invention écrase la vérité. **« Je ne sais pas » plutôt qu'un champ absent**, parce qu'un champ absent est indistinguable d'un modèle qui a oublié et d'un parsing raté.
+
+**Une question à plusieurs moments porte une suite de réponses, chacune datée de son passage, et rien ne s'écrase.** Une réponse tardive **succède** à la précédente, elle ne la corrige pas : *la reine était en sûreté au passage 5 et ne l'est plus au 15* est une histoire, pas une erreur rattrapée. Une scène qui lit une question dit donc laquelle elle lit — la dernière réponse, ou la suite entière.
+
+**Une réponse vit sur le tour qui l'a établie**, et tout le reste s'en dérive : la suite est les tours dans l'ordre, le passage qui date chacune est l'endroit du fil où son tour se trouve. C'est aussi ce que veut le prompt — **le fait se pose là où il a été établi**, ce qui porte sa date gratuitement (posé en tête, un fait du douzième passage se lirait comme un donné de départ et le modèle jouerait quelqu'un qui l'a toujours su) et ne casse pas le préfixe caché, l'historique grossissant par la queue là qu'une section de tête grossirait au milieu. Dans l'objet de retour, ce qui est établi vient **avant** ce que le personnage dit : il parle en sachant ce qui vient d'être établi, jamais l'inverse.
+
+**Un seul drapeau d'affichage par question, et il commande les deux surfaces.** Levé : l'apprenant est mis au courant quand le fait est établi, et l'écran de reprise le lui rappelle. Baissé : c'est de la plomberie pour le modèle, jamais affichée. Un seul drapeau parce que les deux ensembles sont forcément les mêmes — l'écran de reprise ne peut montrer que ce que l'apprenant a **déjà appris**, sinon rouvrir une conversation révèle ce que la jouer n'avait pas révélé. C'est un vrai choix de mise en scène : *le conférencier est vexé, sa salle était à moitié vide* au drapeau levé est un **décor** ; au drapeau baissé, c'est une chose qu'on **découvre en parlant**.
+
+**Une réponse s'écrit comme la situation s'écrit** : l'apprenant est **tu**, tout le reste est nommé ou à la troisième personne. Elle est relue par quelqu'un d'autre que celui qui l'a écrite — le barman de la scène 4 lit ce que le conférencier de la scène 2 a établi, et un *« je suis encore vexé »* n'y a plus de sujet. Et **la question se pose *sur* le personnage, jamais *à* lui** : *« How did the speaker's talk go? »*, pas *« How did your talk go? »* — la posture est donnée par le texte de l'auteur, qui ne peut pas rater, plutôt que par une consigne de forme, qui peut.
+
+**La langue.** La question et la réponse partent au modèle en anglais, toujours. Une réponse en texte libre s'affiche telle quelle, en anglais : on apprend l'anglais, et une ligne d'anglais n'est pas une punition. Une liste fermée affiche la traduction si le fichier en porte une.
 
 **La question est déclarée par la scène qui la produit**, jamais par celle qui en a besoin : seul le modèle qui était là peut y répondre. Le prix est un prix d'auteur, et c'est le travail normal quand on écrit une histoire.
+
+**Les réponses ne sont pas dans le résultat**, et ce n'en est plus le texte libre. Ce sont des faits de la **séance** et non de la façon dont elle s'est passée : elles arrivent pendant qu'elle tourne, et une séance abandonnée en porte sans avoir d'issue du tout. Ce que l'issue ajoute est qu'une scène suivante ait le droit de les lire.
 
 Deux limites. **Le modèle écrit sa propre mémoire**, et rien ne la vérifie : même famille que `intended`. Les questions bornent la dérive sans la supprimer. Et **ça grossit** : à la scène 12 on transporte les réponses de onze scènes.
 

@@ -13,7 +13,7 @@ Les autres docs, à ouvrir au besoin :
 - `added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
 - `tile-authoring.md` — **écrire une tuile de la porte Libre** : ce qu'une scène doit tenir pour valoir la peine, et pourquoi le schéma s'y lit dans le code au lieu de s'y recopier. Suivi tel quel par `./run tile`.
 - `../font/README.md` — **la police de l'app**, écrite et non empruntée : la boîte de 11 × 15, les scripts qui compilent les cartes de pixels en TTF, et la carte de la zone à usage privé.
-- `design/` (`design/grammar-test-set.md`, `design/local-chain.md`, `design/questions.md`, `design/tiles.md`, `design/harvest.md`) — le transitoire, qui s'élague quand il est consommé : les énoncés des deux bancs du chantier 2, qui n'ont jamais tourné ; le montage où la voix des personnages devient locale, avec les critères de ses mesures posés avant les chiffres ; ce que le modèle établit de la fiction, quand on le lui demande et où ça se relit ; les douze scènes de la porte Libre, rédigées avant d'être des fichiers ; et trois leçons d'établi qui attendent d'être poussées vers la sagesse.
+- `design/` (`design/grammar-test-set.md`, `design/local-chain.md`, `design/harvest.md`) — le transitoire, qui s'élague quand il est consommé : les énoncés des deux bancs du chantier 2, qui n'ont jamais tourné ; le montage où la voix des personnages devient locale, avec les critères de ses mesures posés avant les chiffres ; et trois leçons d'établi qui attendent d'être poussées vers la sagesse.
 
 ## Le geste
 
@@ -37,7 +37,9 @@ Le contrôle du moment appartient à l'utilisateur, jamais à l'app. Ce qui peut
 
 **Le statut** : suggérée, acceptée, écartée, en cours, terminée, abandonnée. Une suggestion est une activité qui n'a jamais commencé, et l'écarter est un geste qui compte — sans lui, une suggestion refusée revient. **Accepter et lancer sont deux gestes.** Une suggestion apparaît pendant un tour, et l'ignorer ne la perd pas : elle reste en attente et se retrouve dans l'écran de l'activité qu'elle propose. Le sélecteur d'activités et la file des suggestions sont donc le même écran vu deux fois.
 
-**Le résultat** — une issue, le juge, sa date, et les réponses aux questions que la définition déclare — est **stocké et non recalculé**, parce qu'il repose sur un jugement que rien ne reproduit à l'identique. Savoir qui a jugé et quand est ce qui permet de comparer deux résultats séparés dans le temps.
+**Le résultat** — une issue, ce qui l'a tranchée, et sa date — est **stocké et non recalculé**, parce qu'il repose sur un jugement que rien ne reproduit à l'identique. Savoir qui a jugé et quand est ce qui permet de comparer deux résultats séparés dans le temps.
+
+**Les réponses aux questions que la définition déclare n'y sont pas** : ce sont des faits de la séance et non de la façon dont elle s'est passée. Elles arrivent pendant qu'elle tourne, une séance abandonnée en porte sans avoir d'issue du tout, et chacune vit sur le tour qui l'a établie (`activity.md`). Ce que l'issue ajoute est qu'une scène suivante ait le droit de les lire.
 
 **Rien dans l'app n'est nommé par le modèle.** Une activité s'appelle comme la **définition** dont elle est ouverte, qui déclare son nom en deux longueurs. Une séance n'a donc pas de champ de nom à elle : ce qui l'identifie est son origine.
 
