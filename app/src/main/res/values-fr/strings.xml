@@ -112,6 +112,7 @@
     <string name="lever_ai_complexity_medium">Les personnages parlent de manière équilibrée</string>
     <string name="lever_ai_complexity_high">Les personnages parlent de manière exigeante</string>
     <string name="lever_ai_display_text">Ce qui est dit s\'affiche</string>
+    <string name="lever_ai_display_revealable">Seule la forme de ce qui est dit s\'affiche, jusqu\'à ce qu\'on la touche</string>
     <string name="lever_ai_display_scrambled">Seule la forme de ce qui est dit s\'affiche</string>
     <string name="lever_ai_display_speaker">Seul le nom de qui parle s\'affiche</string>
     <string name="lever_ai_display_nothing">La réponse et le personnage ne s\'affichent pas</string>

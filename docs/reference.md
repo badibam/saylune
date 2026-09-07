@@ -226,7 +226,7 @@ Deux faits mesurés encadrent ce choix. Le piège se déclenche moins souvent qu
 
 La conversation s'affiche en texte : on ne colorie pas une portion de son.
 
-Les tours de l'IA sont **floutables** — non pas un réglage d'écoute à part, mais un **levier de compréhension à quatre marches** : texte affiché, texte brouillé, seulement qui parle, rien (`activity.md`). Les lire au lieu de les écouter fait sortir la compréhension orale par la fenêtre. Le flou ne gêne pas la reprise : la marque est sur le tour de **l'utilisateur**, et on redit dessus sans jamais avoir à déflouter la réponse de l'IA.
+Les tours de l'IA sont **floutables** — non pas un réglage d'écoute à part, mais un **levier de compréhension à cinq marches** : texte affiché, texte brouillé découvrable au doigt, texte brouillé, seulement qui parle, rien (`activity.md`). Les lire au lieu de les écouter fait sortir la compréhension orale par la fenêtre. Le flou ne gêne pas la reprise : la marque est sur le tour de **l'utilisateur**, et on redit dessus sans jamais avoir à déflouter la réponse de l'IA.
 
 ## Ce qui se garde
 

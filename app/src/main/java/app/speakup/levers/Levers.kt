@@ -123,16 +123,25 @@ object Levers {
      * It falls between the plain text and *only who speaks*: the support left standing is one
      * aid fewer than the text and one more than nothing. A preference would hold everywhere
      * and no challenge could take it back.
+     *
+     * **The fifth position is the scrambled text one may uncover by touching it**, and it is a
+     * position and not a permission laid beside one. Uncovering by hand is exactly one aid
+     * between the plain text -- which one reads without asking, and which preempts the
+     * listening -- and the scrambled text one cannot get behind: the ear stays the channel, and
+     * the eye costs a deliberate gesture. It is the default, so a free conversation has the way
+     * out; an activity that wants real listening sets the position under it, and there is
+     * nothing to close separately.
      */
     val AI_DISPLAY = Stepped(
         key = "ai-turn.display",
         steps = listOf(
             Step("text", R.string.lever_ai_display_text),
+            Step("revealable", R.string.lever_ai_display_revealable),
             Step("scrambled", R.string.lever_ai_display_scrambled),
             Step("speaker", R.string.lever_ai_display_speaker),
             Step("nothing", R.string.lever_ai_display_nothing),
         ),
-        fallback = "scrambled",
+        fallback = "revealable",
         held = Held.App,
     )
 

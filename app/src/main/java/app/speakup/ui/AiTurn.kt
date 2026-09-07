@@ -1,10 +1,14 @@
 package app.speakup.ui
 
 import android.graphics.Paint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.res.ResourcesCompat
@@ -17,11 +21,16 @@ import app.speakup.ui.theme.Speakup
 /**
  * What the AI's turn shows, which is the position of `ai-turn.display` and never a preference.
  *
- * Four positions, from the most helped to the barest: the text, the **scrambled** text, only
- * who speaks, nothing. The scrambled one is the **default** (`ui.md`): the ear is the
- * app's main channel and a legible text would preempt the listening, so what is left standing
- * is the support of the phrase without its content. It falls between the plain text and *only
- * who speaks* -- one aid fewer than the text and one more than nothing.
+ * Five positions, from the most helped to the barest: the text, the scrambled text one may
+ * **uncover by touching it**, the scrambled text, only who speaks, nothing. Scrambling is the
+ * default (`ui.md`): the ear is the app's main channel and a legible text would preempt the
+ * listening, so what is left standing is the support of the phrase without its content.
+ *
+ * **[Revealable] is the default of the two scrambled ones**, and it is a position and not a
+ * permission laid beside one: uncovering by hand is exactly one aid between a text one reads
+ * without asking and a text one cannot get behind. The ear stays the channel and the eye costs
+ * a deliberate gesture -- and the gesture is per turn, so nothing is uncovered but what one
+ * asked for.
  *
  * **A preference would hold everywhere and no challenge could take it back**, which is exactly
  * why this is a lever: in a free conversation the learner moves it himself and it stays where
@@ -29,13 +38,20 @@ import app.speakup.ui.theme.Speakup
  * any other position.
  */
 enum class Display(val position: String) {
-    Text("text"), Scrambled("scrambled"), Speaker("speaker"), Nothing("nothing");
+    Text("text"),
+    Revealable("revealable"),
+    Scrambled("scrambled"),
+    Speaker("speaker"),
+    Nothing("nothing");
+
+    /** Whether the text is drawn scrambled at this position. */
+    val scrambles: Boolean get() = this == Revealable || this == Scrambled
 
     companion object {
         /** Where this sitting has it. The catalogue's own default answers for what is unset. */
         fun of(positions: Positions): Display {
             val name = (positions.of(Levers.AI_DISPLAY.key) as? At)?.name
-            return entries.firstOrNull { it.position == name } ?: Scrambled
+            return entries.firstOrNull { it.position == name } ?: Revealable
         }
     }
 }
@@ -43,7 +59,7 @@ enum class Display(val position: String) {
 /**
  * A turn of the AI's, shown as [display] asks.
  *
- * The four positions are drawn from the line that names the turn as much as from the text
+ * The five positions are drawn from the line that names the turn as much as from the text
  * under it: *nothing* is neither, *only who speaks* is the line alone -- which takes its sense
  * with several characters, where one knows it is Vera speaking without reading what she says --
  * and the two above it are the line with the text under it, scrambled or plain.
@@ -63,11 +79,20 @@ fun Heard(
 ) {
     if (display == Display.Nothing) return
     val scramble = rememberScramble()
+    // **Uncovered by hand, one turn at a time, and it goes back covered.** Keyed on the text,
+    // so the state belongs to the turn and not to the place it sits in the thread. It is not
+    // saved across a rotation on purpose: what was uncovered was uncovered to be read once,
+    // and bringing it back uncovered would make the position mean less than it says.
+    var shown by remember(text) { mutableStateOf(false) }
     Column(modifier) {
         TurnLabel(name = speaker, following = null, pace = null, channels = channels)
         if (display == Display.Speaker) return@Column
+        val covered = display.scrambles && !shown
         Text(
-            if (display == Display.Scrambled) scramble(text) else text,
+            if (covered) scramble(text) else text,
+            modifier = if (display == Display.Revealable) {
+                Modifier.clickable { shown = !shown }
+            } else Modifier,
             style = Speakup.type.text,
             color = Speakup.palette.ink.srgb,
         )

@@ -37,7 +37,9 @@ Une **définition** est une activité écrite d'avance, et c'est de la **donnée
 
 **Ce n'est pas purement cosmétique pour autant** : la couche décide **quelle définition part**, et pour une campagne elle dérive quel niveau est ouvert. Peu de code, mais pas un drapeau.
 
-**Et les libertés d'un mode ne sont pas un mécanisme à lui.** Qu'en libre un appui sur le texte de l'IA bascule brouillé/net et qu'un défi ne le permette pas est l'application de ce qui est déjà écrit — le module décide quels leviers il expose. La liste des libertés d'un mode est la liste des leviers que sa définition laisse ouverts, plus les gestes qui ne sont pas des leviers.
+**Et les libertés d'un mode ne sont pas un mécanisme à lui.** La liste des libertés d'un mode est la liste des leviers que sa définition laisse ouverts, plus les gestes qui ne sont pas des leviers.
+
+**L'appui sur le texte de l'IA en est un cas, et il ne passe pas par l'exposition d'un levier mais par une position de plus.** `ai-turn.display` a cinq crans, et le second est *brouillé, découvrable au doigt* — le défaut. Découvrir à la main est exactement une aide entre le texte qu'on lit sans le demander, qui préempte l'écoute, et le brouillé derrière lequel on ne peut pas passer : l'oreille reste le canal, et l'œil coûte un geste voulu. Un défi qui veut de la vraie compréhension orale pose le cran d'en dessous, et il n'y a rien à fermer à côté. La découverte vaut **pour un tour**, jamais pour la séance : elle ne déplace pas le levier, sinon un appui changerait le régime de tout ce qui suit.
 
 ### Les thèmes et les trous
 

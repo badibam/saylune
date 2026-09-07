@@ -136,6 +136,7 @@
     <string name="lever_ai_complexity_medium">The characters speak in a balanced way</string>
     <string name="lever_ai_complexity_high">The characters speak in a demanding way</string>
     <string name="lever_ai_display_text">What is said is shown</string>
+    <string name="lever_ai_display_revealable">Only the shape of what is said is shown, until you touch it</string>
     <string name="lever_ai_display_scrambled">Only the shape of what is said is shown</string>
     <string name="lever_ai_display_speaker">Only who speaks is shown</string>
     <string name="lever_ai_display_nothing">Neither the answer nor the speaker is shown</string>
