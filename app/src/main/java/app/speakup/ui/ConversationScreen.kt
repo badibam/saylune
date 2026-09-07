@@ -426,9 +426,16 @@ private fun Said(
         // The last, and only the last: saying it again is done to improve on the one before,
         // so the newest is what the learner knows how to say now.
         val shown = readings.lastOrNull()
+        // **The judgement is read through the take it repeats.** Nothing judges a repeat -- it
+        // is pipe B alone, on a text already settled -- so a repeat carries none of its own,
+        // and reading only its own left the word marks off the very take one had just improved.
+        // The words are the same words by construction, so it is the same judgement of them,
+        // and it is read rather than copied: copied onto the repeat it would say that these
+        // spans were measured on this take, which they were not.
+        val judged = shown?.judged ?: spoken.judged
         TurnLabel(
             name = speaker,
-            following = shown?.judged?.following,
+            following = judged?.following,
             // The distance and the side, which are two facts and are kept as two: the figure
             // is symmetric so that twice as slow and twice as fast weigh the same in the note,
             // and the chevrons are the one place the side is read. An attempt that measured
@@ -451,7 +458,7 @@ private fun Said(
         if (marking != null) {
             MarkedTurn(
                 marking,
-                reading.judged,
+                judged,
                 channels = channels,
                 sounds = sounds.orEmpty(),
                 modifier = Modifier.fillMaxWidth(),

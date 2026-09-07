@@ -1235,6 +1235,18 @@ class TurnPipeline(
                 repeats = spoken.id,
             )
             _state.update { it.copy(utterances = it.utterances + again) }
+            // **The sheets are measured on this take, like on any other.** Without this the
+            // reading carried its marks and nothing else: the line that names it lost its
+            // pastille and its pace, and the passage's summary went blank the moment one said
+            // the sentence better -- the one moment one wants to read it.
+            //
+            // The sound's gate is **not** read again here, and that is a hole rather than a
+            // choice: a passage the gate closed stays closed however well it is said again.
+            // It does not bite in a free conversation, which declares no weights and so never
+            // closes it, and it is written down as owed.
+            val timed = analysed.timed(stumbling)
+            note(again.id, Sheeting.of(spoken.judged, analysed, timed))
+            update(again.id) { it.copy(slower = Fluency.slower(timed)) }
             write(again.id)
         } catch (failure: ChainFailure) {
             Trace.fail("redo: could not be measured", "why" to failure.message)
