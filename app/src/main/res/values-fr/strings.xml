@@ -257,7 +257,7 @@
     <string name="measure_fraction">%1$d/%2$d</string>
     <string name="measure_plain">%1$d</string>
     <string name="measure_semitones">%1$s ½t</string>
-    <string name="measure_points">%1$s pts</string>
+    <string name="measure_silence">%1$s %% de silence</string>
     <string name="measure_seconds">%1$s s</string>
     <string name="measure_percent">%1$s %%</string>
     <!-- The screen itself. -->

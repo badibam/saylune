@@ -226,9 +226,11 @@ private fun slicesOf(path: String, attempt: Utterance, colors: MarkingColors): L
  * **Three rules behind the units.** A **fraction rather than a percentage** where the sheet
  * counts elements: `47/50` says what `94%` hides, that the turn held fifty sounds -- on a turn
  * of three, the percentage would be a lie of precision. A **sign wherever the measure is a
- * gap**, `+` for more than the model and `-` for less, so `-22 %` reads *22% slower*. And **no
- * unit where it teaches nothing**: the precision's "points" are an internal unit and writing
- * them says nothing to anybody.
+ * gap**, `+` for more than the model and `-` for less, so `-22 %` reads *22% slower*. And **the
+ * unit names the thing measured and never the arithmetic**: continuity's figure is a share of
+ * the turn minus the model's share of the same sentence, so it reads *+16% silence* -- `+16
+ * pts` named the unit of a subtraction and said nothing about speech. The precision's "points"
+ * are an internal unit and are written with no unit at all.
  */
 @Composable
 private fun measureOf(path: String, sheet: Sheet, attempt: Utterance): String? {
@@ -252,7 +254,12 @@ private fun measureOf(path: String, sheet: Sheet, attempt: Utterance): String? {
         // The notch's own words, which is what the following renders: it is a judgement over
         // the whole passage and has no figure to print.
         UPTAKE -> attempt.judged?.following?.let { stringResource(nameOfNotch(it)) }
-        CONTINUITY -> figure?.let { stringResource(R.string.measure_points, signed(it)) }
+        // **In percent of silence and not in "points".** The figure is the share of the turn
+        // spent silent minus the model's share on the same sentence, so it is already a
+        // percentage of the turn; "+16 pts" named the unit of a subtraction and said nothing
+        // about speech. "+16% silence" says what it is: a sixth of the turn quiet that the
+        // model did not spend quiet.
+        CONTINUITY -> figure?.let { stringResource(R.string.measure_silence, signed(it)) }
         LONGEST_SILENCE -> figure?.let { stringResource(R.string.measure_seconds, one(it)) }
         // The distance and the side, which are two facts: the figure is symmetric by
         // construction, so the sign comes from the column that says which way it fell.
