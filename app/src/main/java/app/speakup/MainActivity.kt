@@ -179,7 +179,11 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
     var notesOf by rememberSaveable { mutableStateOf<String?>(null) }
 
     val scope = rememberCoroutineScope()
-    val back = Action(Glyphs.BACK) { if (stack.size > 1) stack.removeAt(stack.lastIndex) }
+    // **The left arrow rather than the return glyph.** The return arrow is the key one presses
+    // to send something, and read on the phone that is what it kept saying; going back a screen
+    // is a direction, and the arrow that points the way one came reads as one without being
+    // learnt.
+    val back = Action(Glyphs.ARROW_LEFT) { if (stack.size > 1) stack.removeAt(stack.lastIndex) }
 
     // Without this the top line sits under the status bar and the bar at the bottom under the
     // gesture handle.

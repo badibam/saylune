@@ -65,7 +65,10 @@ object Glyphs {
     const val EYE = '\uE021'
     const val LEVERS = '\uE022'
 
-    /** Back, which is the third. */
+    /**
+     * The return key's arrow, which the action bar does not use: going back a screen is a
+     * direction, and it is [ARROW_LEFT] that says it.
+     */
     const val BACK = '\uE023'
 
     /** Start the take over, in capture by hand. */
