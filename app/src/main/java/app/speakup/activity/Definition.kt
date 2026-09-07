@@ -4,7 +4,6 @@ import app.speakup.conversation.Speaker
 import app.speakup.levers.Positions
 import app.speakup.notes.Weights
 import app.speakup.rules.Instructing
-import app.speakup.rules.Pack
 import app.speakup.rules.Rule
 
 /**
@@ -75,19 +74,6 @@ data class Definition(
      * story.
      */
     val questions: List<Question> = emptyList(),
-    /**
-     * The pack of effects that opens the sitting, if it opens with anything.
-     *
-     * **A pack and not a text**: opening a scene often wants two things at once -- a message
-     * to the model, *"you bump into Simon and apologise profusely"*, and a line shown to the
-     * learner, *"a passer-by bumps into you"*. A text field carries only one. The three ways
-     * of opening -- the learner speaks first, the character says a written line, the model
-     * improvises on an instruction -- are three ways of filling this pack, not three fields.
-     *
-     * The start of a sitting is **not a trigger**: a trigger exists to test something at a
-     * moment that comes round again, and the start happens once and unconditionally.
-     */
-    val opening: Pack? = null,
 ) {
 
     /**

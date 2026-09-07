@@ -176,9 +176,10 @@ data class Activity(
          * long the two lines took, and a sitting that started before it was created is a fact
          * nobody meant to record.
          *
-         * **What this does not do yet is play the opening**: a definition may carry a pack of
-         * effects that opens the scene, and nothing applies it (`../../../../../../TODO.md`).
-         * The free conversation has none, so nothing is missing today.
+         * **Nothing here opens the scene.** A definition used to carry a pack of effects for
+         * that and it no longer does: an opening is a rule on the `Opening` trigger, so it is
+         * the engine that plays it, at the moment that bounds the sitting, and several rules
+         * can contribute to one where a single field only ever carried one pack.
          */
         fun from(
             definition: Definition,

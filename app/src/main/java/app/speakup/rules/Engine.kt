@@ -363,6 +363,9 @@ private fun Facts.holds(trigger: Trigger, state: State, moved: List<Move>): Bool
                 (it.direction == Direction.Harder) == trigger.harder
         }
         is Trigger.Reaches -> state.positions.of(trigger.key) == trigger.position
+        // The two that bound the sitting test nothing: their moment is the whole of what
+        // they say, and reaching that moment is what makes them hold.
+        is Trigger.Opening, is Trigger.Closing -> true
     }
 
 private data class Landed(

@@ -57,17 +57,6 @@ internal object Rules {
         )
     }
 
-    /**
-     * One pack on its own, which is what a definition's opening is.
-     *
-     * The same effects, read by the same reader: an opening is a pack and not a shape of its
-     * own, so nothing here is a second way of reading one.
-     */
-    fun readPack(stored: String): Pack = Pack(JSONArray(stored).objects().map { effect(it) })
-
-    fun write(pack: Pack): String =
-        JSONArray().apply { pack.effects.forEach { put(effect(it)) } }.toString()
-
     // ── Triggers ────────────────────────────────────────────────────────────────────────
 
     private fun trigger(of: Trigger): JSONObject = JSONObject().apply {
@@ -89,6 +78,10 @@ internal object Rules {
                 put("kind", "moved").put("key", of.key).put("harder", of.harder)
             is Trigger.Reaches ->
                 put("kind", "reaches").put("key", of.key).put("position", position(of.position))
+            // The two that bound the sitting carry nothing but their name: they test nothing,
+            // and their moment is deduced like the clock's.
+            is Trigger.Opening -> put("kind", "opening")
+            is Trigger.Closing -> put("kind", "closing")
         }
     }
 
@@ -113,6 +106,8 @@ internal object Rules {
             "reaches" -> Trigger.Reaches(
                 json.getString("key"), position(json.getJSONObject("position")), moment,
             )
+            "opening" -> Trigger.Opening
+            "closing" -> Trigger.Closing
             else -> error("'$kind' is not a kind of trigger this build knows")
         }
     }

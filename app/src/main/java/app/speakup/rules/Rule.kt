@@ -104,7 +104,7 @@ sealed interface Effect {
          *
          * **A flag is this and not a fourth thing** (found in writing, 2026-09-06): the doc
          * names a flag as a third family a patch lays, read by a trigger and showing nothing
-         * -- and then declares the kinds of trigger closed at six, none of which reads one.
+         * -- and then declares the kinds of trigger closed, none of which reads one.
          * Arming already does the work, and the doc's own chain-of-flags example is written
          * as one rule arming the next. So a flag is an arming switch with no phrase, and the
          * question of whether it wants a name of its own is open
@@ -193,10 +193,20 @@ data class Instructing(
 data class Staging(val text: String, val before: Boolean = false)
 
 /**
- * When a rule fires. **Three moments, and they differ by what is computed at that instant**
+ * When a rule fires. **Five moments, and they differ by what is computed at that instant**
  * rather than by taste.
+ *
+ * Three of them happen inside the sitting and come round again; the two others are the
+ * instants that **bound** it and happen once each.
  */
 enum class Moment {
+
+    /**
+     * The sitting has just been opened and nothing has been said. Nothing is computed: no
+     * clock runs, no sheet has been read, no passage has closed.
+     */
+    Opening,
+
     /**
      * While recording. Two clocks run and nothing else exists yet -- the person is speaking,
      * no sheet has been read -- so a rule of this moment can read a clock and nothing more.
@@ -218,14 +228,26 @@ enum class Moment {
      * else falls here: the patches, the ramp, the lives, the end of the sitting.
      */
     PassageClosed,
+
+    /**
+     * The sitting is over and everything about it is settled. **A coda and not a reprieve**:
+     * what runs here can add a last word and have the open questions answered, and it can no
+     * longer un-finish -- letting it would make *is it over?* undecided during its own wave.
+     */
+    Closing,
 }
 
 /**
- * **Six kinds, and the list is closed.**
+ * **Eight kinds, and the list is closed.**
  *
- * The first has only the first moment and the third only the last, so theirs is deduced. The
- * second has to say which, and that is a real distinction -- *"correctness is under B"* means
- * *block now* at the end of an attempt and *lose a life* at the passage's close.
+ * Six of them **test something that happens during** the sitting -- a note, a clock, a passage
+ * number, a lever moved, a judgement of the model. The two others **name the instants that
+ * bound it** and test nothing at all: [Opening] and [Closing] have no parameter, and their
+ * moment is deduced like the clock's.
+ *
+ * [Clock] has only the first moment and [Passages] only the passage's close, so theirs is
+ * deduced. [Node] has to say which, and that is a real distinction -- *"correctness is under
+ * B"* means *block now* at the end of an attempt and *lose a life* at the passage's close.
  *
  * **No kind reads a clock outside the recording, and that is a chosen bound.** *"After two
  * minutes of conversation"* is not sayable: the only clocks are the turn's. The system runs by
@@ -302,4 +324,28 @@ sealed interface Trigger {
     data class Reaches(
         val key: String, val position: Position, override val moment: Moment,
     ) : Trigger
+
+    /**
+     * The sitting opens. **It tests nothing** and fires once, so it never has to disarm
+     * itself: the opening only ever happens once.
+     *
+     * **This is the only way a scene opens with anything**, and it replaced a field. A
+     * definition used to carry a pack of effects called its opening, and a trigger would then
+     * have been a second way of writing the same thing; the field is gone, so several rules
+     * can contribute to an opening where one field only ever carried one pack.
+     */
+    data object Opening : Trigger {
+        override val moment = Moment.Opening
+    }
+
+    /**
+     * The sitting has ended. **A coda**: what fires here cannot take the ending back.
+     *
+     * It was unwritable while [Effect.Finish] ended the sitting on the spot, there being no
+     * instant left to hang anything on. The last word of a character is therefore never a
+     * behaviour of the app: it is a rule an author writes.
+     */
+    data object Closing : Trigger {
+        override val moment = Moment.Closing
+    }
 }

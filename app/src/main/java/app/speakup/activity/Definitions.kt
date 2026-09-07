@@ -87,7 +87,6 @@ object Definitions {
             ),
             rules = Rules.read(file.optJSONArray("rules")?.toString() ?: "[]"),
             questions = file.optJSONArray("questions").objects().map { question(it) },
-            opening = file.optJSONArray("opening")?.let { Rules.readPack(it.toString()) },
         ).also { validate(it) }
     }
 
