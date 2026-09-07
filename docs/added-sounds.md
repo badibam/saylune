@@ -1,6 +1,6 @@
 # Voir un son que l'apprenant ajoute — les portes fermées
 
-La voie retenue est **écrite et en service** : les sons de l'apprenant posés sur les lettres du texte, ce qui ne trouve aucune lettre étant de la matière ajoutée. Ce qu'elle fait, ce qu'elle rend et ce qui a été mesuré dessus vivent dans `../analysis.md`, brique 12 ; l'instrument est `../../bench/placed.py`.
+La voie retenue est **écrite et en service** : les sons de l'apprenant posés sur les lettres du texte, ce qui ne trouve aucune lettre étant de la matière ajoutée. Ce qu'elle fait, ce qu'elle rend et ce qui a été mesuré dessus vivent dans `analysis.md`, brique 12 ; l'instrument est `../bench/placed.py`.
 
 Ce document ne garde que les **portes fermées**, et il ne garde qu'elles. Chacune a coûté une demi-journée, chacune paraît raisonnable quand on la retrouve seule, et rien dans le code en service ne dit pourquoi elle a été refusée — la relire ici coûte deux minutes, la refaire coûte la journée.
 
@@ -38,7 +38,7 @@ Il marchait, à un seuil posé à la main (trois fois la durée médiane de la p
 
 **Apparenter les sons qu'une même lettre ne relie pas mais qu'un locuteur d'une langue donnée confond couramment** — `f` pour `v` chez un francophone. Ça rattraperait le cas que la voie retenue rate : une substitution dont aucune lettre du mot ne sait écrire le son sort du mot et se lit comme de la matière ajoutée. Non bloquant et non prioritaire, pour la raison dite en brique 12 — le mot porte une marque de toute façon.
 
-**Une prise portant une lettre muette prononcée** — le `b` de `comb`, le `k` de `know`, le `t` de `listen`. **Aucun jeu ne contient un seul mot de cette famille**, donc rien n'a jamais dit ce qu'un de ces canaux ferait dessus, ni l'ancien ni le nouveau. C'est une session d'enregistrement (`../../bench/take.py`), pas un calcul.
+**Une prise portant une lettre muette prononcée** — le `b` de `comb`, le `k` de `know`, le `t` de `listen`. **Aucun jeu ne contient un seul mot de cette famille**, donc rien n'a jamais dit ce qu'un de ces canaux ferait dessus, ni l'ancien ni le nouveau. C'est une session d'enregistrement (`../bench/take.py`), pas un calcul.
 
 ## La borne qui vaut pour tous les chiffres de ce document
 

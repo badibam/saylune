@@ -69,7 +69,7 @@ Reprise en version texte des cas de prononciation : la transcription porte un mo
 
 Critère central : **fidélité verbatim sur la faute** — un STT qui rend `He doesn't know` pour « He don't know » est disqualifié, et **un mot dit ne se répare jamais**. Formatage intelligent coupé quand le fournisseur le permet.
 
-**Les disfluences comptent aussi, et ça a changé.** Ce banc les tolérait coupées, au motif qu'elles ne sont pas un signal d'apprentissage ; une feuille de fluidité les lit désormais, qui range chaque mot prononcé en `retenu`, `abandonné` ou `remplissage` (`activity-model.md`). Un moteur qui les nettoie la rend muette sans le dire, et la fluidité paraîtra excellente. Elles se notent donc comme le reste : coupées, c'est un défaut du candidat, pas une commodité.
+**Les disfluences comptent aussi, et ça a changé.** Ce banc les tolérait coupées, au motif qu'elles ne sont pas un signal d'apprentissage ; une feuille de fluidité les lit désormais, qui range chaque mot prononcé en `retenu`, `abandonné` ou `remplissage` (`../measures.md`). Un moteur qui les nettoie la rend muette sans le dire, et la fluidité paraîtra excellente. Elles se notent donc comme le reste : coupées, c'est un défaut du candidat, pas une commodité.
 
 Les prises existantes se réutilisent — même voix, mêmes fichiers :
 
