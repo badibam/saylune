@@ -98,6 +98,15 @@ fun AnalysisReadout(
      * the sound itself is the only thing that can answer.
      */
     onHearSymbol: (String) -> Unit = {},
+    /**
+     * A sound the learner added, in his own recording, at the place he made it.
+     *
+     * **One press plays it, with no block to open**, where every other row opens one. There is
+     * nothing to put in a block: the model's side does not exist -- that is what the line says
+     * -- so there is no second listening, no spread to face it, and no degree. A block holding
+     * one row would be an object made to look like the others while saying less.
+     */
+    onHearAdded: (AddedSound) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     if (sounds.isEmpty()) return
@@ -129,7 +138,7 @@ fun AnalysisReadout(
         rows.forEachIndexed { index, row ->
             when (val entry = row.of) {
                 null -> Unheard(text.substring(row.at.first, row.at.last + 1))
-                is Entry.Added -> Inserted(entry.sound)
+                is Entry.Added -> Inserted(entry.sound, onHearAdded)
                 is Entry.Heard -> {
                     // The row hands its own top up as it is tapped, rather than the parent
                     // reading it after the fact: read afterwards it would be whatever the last
@@ -344,13 +353,31 @@ private fun Unheard(letters: String) {
     }
 }
 
-/** A sound the learner made that the model did not: a wedge, and a dash where the model was. */
+/**
+ * A sound the learner made that the model did not: a wedge, and a dash where the model was.
+ *
+ * **Pressing it plays it**, in his own recording, where every other row opens a block instead.
+ * There is nothing to put in a block here -- no model side, so no second listening, no spread
+ * to face it and no degree -- and a block holding one row would be an object made to look like
+ * the others while saying less. The triangle at the end is what says the row is pressed.
+ *
+ * A row whose place was never carried is not pressable, and shows no triangle.
+ */
 @Composable
-private fun Inserted(added: AddedSound) {
+private fun Inserted(added: AddedSound, onHear: (AddedSound) -> Unit) {
     val colors = markingColors()
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    val plays = added.saidMs != null
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .let { if (plays) it.clickable { onHear(added) } else it },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Field(Glyphs.ARROW_UP.toString(), LETTER_COLUMNS, colors.added)
         Sides(model = null, said = spelt(added.symbol), colour = colors.added)
+        if (plays) {
+            Field(Glyphs.PLAY.toString(), POINTS_COLUMNS, colors.added)
+        }
     }
 }
 

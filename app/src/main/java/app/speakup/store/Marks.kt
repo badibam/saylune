@@ -52,7 +52,8 @@ internal object Marks {
         })
         .put("added", JSONArray().apply {
             marking.added.forEach {
-                put(JSONObject().put("symbol", it.symbol).put("after", it.after))
+                put(JSONObject().put("symbol", it.symbol).put("after", it.after)
+                    .apply { it.saidMs?.let { at -> put("from", at.first).put("to", at.last) } })
             }
         })
         .put("gutters", JSONArray().apply {
@@ -86,7 +87,12 @@ internal object Marks {
                 WordFault(it.getInt("start"), it.getInt("end"))
             },
             added = json.getJSONArray("added").each {
-                AddedSound(it.getString("symbol"), it.getInt("after"))
+                AddedSound(
+                    it.getString("symbol"), it.getInt("after"),
+                    // Absent on a turn read before the place was carried: the row is then not
+                    // playable, which is the truth about it rather than a guess at where it was.
+                    saidMs = if (it.has("from")) it.getInt("from")..it.getInt("to") else null,
+                )
             },
             gutters = json.getJSONArray("gutters").each {
                 Gutter(it.getString("symbol"), it.getInt("after"),

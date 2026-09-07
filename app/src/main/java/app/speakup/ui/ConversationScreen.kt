@@ -56,6 +56,7 @@ import app.speakup.conversation.TurnPipeline
 import app.speakup.capture.Playback
 import app.speakup.capture.Reference
 import app.speakup.conversation.Side
+import app.speakup.marking.AddedSound
 import app.speakup.marking.TurnMarking
 import app.speakup.ui.theme.Speakup
 import kotlinx.coroutines.launch
@@ -274,6 +275,7 @@ fun ConversationScreen(
                 onHearSound = { where, sound, side ->
                     scope.launch { pipeline.hear(where, sound, side) }
                 },
+                onHearAdded = { where, added -> scope.launch { pipeline.hear(where, added) } },
                 // The small button only opens; the bottom is what pauses and sends, and it
                 // is `repeating` that says where the take goes when it does.
                 onOpenRepeat = {
@@ -417,6 +419,7 @@ private fun Said(
     onHear: (String) -> Unit,
     onHearSpan: (String, Int, Int) -> Unit,
     onHearSound: (String, AnalysedSound, Side) -> Unit,
+    onHearAdded: (String, AddedSound) -> Unit,
     onOpenRepeat: () -> Unit,
     onNotes: (String) -> Unit,
     /** The thread's own scroll, which the readout brings an opened row to the top of. */
@@ -509,6 +512,7 @@ private fun Said(
                     onHearSound = { sound, which -> onHearSound(where, sound, which) },
                     // The pre-recorded set, played whole: a symbol on its own is already
                     // one sound and there is nothing in it to cut.
+                    onHearAdded = { added -> onHearAdded(where, added) },
                     onHearSymbol = { symbol ->
                         Reference.of(context, symbol)?.let { wav ->
                             scope.launch { Playback.play(wav, speed) }

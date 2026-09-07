@@ -17,9 +17,13 @@ import app.speakup.marking.AddedSound
  * not contract puts a `ʊ` on the `o` and a `ɹ` on the `r`, inside the same word. So a fuller
  * reading of a word stays in the word, where the sound marks already speak for it. A sound
  * no letter of any word can write, at its place in the order, belongs to no word -- and that
- * is the whole detection. No duration is read here, by design: measured, free decoding gives
- * labels and peak positions and no durations at all, and forced alignment has no slot for an
- * added sound, so neither of them can say how long added matter lasted.
+ * is the whole detection.
+ *
+ * **No duration is read here, and a place is.** How long added matter lasted is a question
+ * nothing answers: free decoding gives the frames over which a sound is the loudest, which is
+ * not the same thing, and forced alignment has no slot for an added sound at all. But where it
+ * was said is exactly what that run of frames says, and that is enough to play back what one
+ * actually said -- widened, like every other sound's bounds. Nothing in any measure reads it.
  *
  * Two things it is known to get wrong, both accepted rather than unnoticed. A substitution
  * no letter of its own word can write falls **out** of the word and reads as added matter --
@@ -38,7 +42,12 @@ object Added {
      * view draws it is that view's business, and both read the same number: carrying a
      * readout line beside it made two coordinates for one place, and they drifted.
      */
-    fun found(said: List<Sound>, model: List<Sound>): List<AddedSound> {
+    fun found(
+        said: List<Sound>,
+        model: List<Sound>,
+        /** Where each of [said] sits in the learner's recording, in milliseconds. */
+        saidAt: List<IntRange>,
+    ): List<AddedSound> {
         // What the model itself left unwritten, word by word. This is the one place the
         // channel would otherwise read a single recording, and the one that consumes the
         // **label** -- the least reliable thing the network renders. A reduced `I'm` comes
@@ -55,6 +64,9 @@ object Added {
 
         val marks = mutableListOf<AddedSound>()
         val run = mutableListOf<String>()
+        // Where the run began, so a mark of several sounds carries the whole stretch rather
+        // than its last sound alone.
+        var began = -1
         // The last letter the learner claimed, and the word it was in. A borrowed letter
         // belongs to the neighbour that took it, so neither moves for one -- the same rule
         // the gutters already keep on the model's side, in `Marks.drawn`.
@@ -80,17 +92,27 @@ object Added {
             check(ahead == null || after < ahead) {
                 "the mark ${run.joinToString(" ")} passes letter $ahead, which was said after it"
             }
-            marks.add(AddedSound(symbol = run.joinToString(" "), after = after))
+            // The whole run, its first sound to its last. A run the caller gave no times for
+            // carries none: absent beats a place made up out of one end.
+            val from = saidAt.getOrNull(began)
+            val to = saidAt.getOrNull(began + run.size - 1)
+            marks.add(AddedSound(
+                symbol = run.joinToString(" "),
+                after = after,
+                saidMs = if (from != null && to != null) from.first..to.last else null,
+            ))
             run.clear()
+            began = -1
         }
 
-        for (sound in said) {
+        for ((at, sound) in said.withIndex()) {
             if (sound.spots.isEmpty() && sound.borrowed.isEmpty()) {
                 val spare = sound.wordAt?.let { unwritten[it] } ?: 0
                 if (spare > 0) {
                     unwritten[sound.wordAt!!] = spare - 1
                     continue
                 }
+                if (run.isEmpty()) began = at
                 run.add(sound.symbol)
                 continue
             }

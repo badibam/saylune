@@ -130,6 +130,20 @@ data class WordFault(val start: Int, val end: Int)
 data class AddedSound(
     val symbol: String,
     val after: Int,
+    /**
+     * Where it sits in the learner's recording, in milliseconds -- the way back to the audio.
+     *
+     * **This is a place and never a duration**, and the difference is the whole reason it can
+     * exist at all. Free decoding says which sound is loudest frame by frame, so a run of
+     * frames where this one wins is where it was said; how long the added matter *lasted* is a
+     * different question and nothing answers it. Widened like every other sound's bounds, it
+     * is enough to hear what one actually said, which is the only thing asked of it. Nothing
+     * in any measure reads it.
+     *
+     * Null on a turn read before this was carried, and on the bench's own files: the row is
+     * then simply not playable, which says the truth about it.
+     */
+    val saidMs: IntRange? = null,
 )
 
 /**

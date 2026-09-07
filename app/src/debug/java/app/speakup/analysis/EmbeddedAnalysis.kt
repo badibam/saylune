@@ -132,7 +132,22 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                 text = text,
                 affinity = engine.affinity,
             )
-            val added = Added.found(said = theirs, model = sounds)
+
+
+            // Read off the frames rather than declared: a candidate model that halves its
+            // last stride doubles the resolution, and a duration is only worth reading if
+            // it came from the pass that produced it.
+            val step = modelReading.seconds / modelReading.frames
+
+            // Where each of the learner's own sounds sits in his recording, widened as every
+            // other span of the app is: the network is peaky, and a raw run of frames is not
+            // something anyone can listen to. It is a **place** and never a duration -- what a
+            // free decoding says is which sound wins frame by frame -- and it is what lets a
+            // sound the learner added be played back at all.
+            val freelyAt = Overlap
+                .widened(freely.map { it.start..it.stop - 1 })
+                .map { ms(it, step) }
+            val added = Added.found(said = theirs, model = sounds, saidAt = freelyAt)
             Trace.add(
                 "analysis: added sounds",
                 "stretches" to added.size.toString(),
@@ -140,12 +155,6 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     "${theirs.count { it.spots.isNotEmpty() || it.borrowed.isNotEmpty() }}" +
                         " / ${theirs.size}",
             )
-
-
-            // Read off the frames rather than declared: a candidate model that halves its
-            // last stride doubles the resolution, and a duration is only worth reading if
-            // it came from the pass that produced it.
-            val step = modelReading.seconds / modelReading.frames
 
             val points = drawn.phonemes.map { it.points }.sorted()
             Trace.add(

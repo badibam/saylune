@@ -69,6 +69,8 @@ object TurnFile {
                 AddedSound(
                     symbol = entry.getString("symbol"),
                     after = entry.getInt("after"),
+                    saidMs = if (entry.has("from"))
+                        entry.getInt("from")..entry.getInt("to") else null,
                 )
             }
         }

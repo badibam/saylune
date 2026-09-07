@@ -41,6 +41,7 @@ import app.speakup.levers.At
 import app.speakup.levers.Levers
 import app.speakup.levers.Positions
 import app.speakup.levers.Stepped
+import app.speakup.marking.AddedSound
 import app.speakup.marking.TurnMarking
 import app.speakup.providers.ChosenSynthesis
 import app.speakup.providers.words
@@ -1176,6 +1177,22 @@ class TurnPipeline(
      * waits for it; a tap on a symbol is a fraction of a second, and freezing the screen for
      * it would be a worse lie than the wait it prevents.
      */
+    /**
+     * Say a sound the learner **added** -- his own recording, at the place he made it.
+     *
+     * **Only his side exists**, and that is what the line says: there was nothing of the
+     * model's there to compare it to. Hearing what one actually said is worth as much here as
+     * anywhere else, and more -- an added sound is by definition a thing one did not know one
+     * was doing.
+     *
+     * Nothing plays where the place is absent, which is a turn read before it was carried.
+     */
+    suspend fun hear(of: String, added: AddedSound) {
+        val at = added.saidMs ?: return
+        val wav = _state.value.utterances.firstOrNull { it.id == of }?.said ?: return
+        Playback.play(wav, at.first, at.last, _state.value.speed)
+    }
+
     suspend fun hear(of: String, sound: AnalysedSound, side: Side) {
         val wav = (if (side == Side.Model) _state.value.modelOf(of)
                    else _state.value.utterances.firstOrNull { it.id == of }?.said) ?: return
