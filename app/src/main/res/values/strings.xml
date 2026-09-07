@@ -88,16 +88,16 @@
     <string name="credits_sounds">Sound recordings</string>
     <string name="credits_sounds_why">One recording per phoneme, used under the licences below. Tap a line to open the original.</string>
     <string name="credits_by">%1$s — %2$s</string>
-    <string name="latency_title">Latence — comparer les modèles</string>
-    <string name="latency_lead">Chaque modèle dont la clé est saisie, sur deux phrases : une courte, une longue. Chronomètre un maillon, pas un tour. Les résultats s\'ajoutent aux précédents dans latency/latency.jsonl.</string>
-    <string name="latency_note">Nom de la mesure</string>
-    <string name="latency_note_help">Où et sur quel réseau : les chiffres en dépendent autant que du modèle.</string>
-    <string name="latency_repeats">Répétitions</string>
-    <string name="latency_run">Lancer le test</string>
-    <string name="latency_confirm_title">Lancer la mesure ?</string>
-    <string name="latency_confirm_body">%1$d appels seront faits, à votre charge chez les fournisseurs concernés.</string>
-    <string name="latency_go">Lancer</string>
-    <string name="latency_cancel">Annuler</string>
+    <string name="latency_title">Latency — comparing models</string>
+    <string name="latency_lead">Every model whose key is entered, on two sentences: one short, one long. It times a link, not a turn. Results are appended to the previous ones in latency/latency.jsonl.</string>
+    <string name="latency_note">Name of the measurement</string>
+    <string name="latency_note_help">Where, and on which network: the figures depend on it as much as on the model.</string>
+    <string name="latency_repeats">Repeats</string>
+    <string name="latency_run">Run the test</string>
+    <string name="latency_confirm_title">Run the measurement?</string>
+    <string name="latency_confirm_body">%1$d calls will be made, at your expense with the providers concerned.</string>
+    <string name="latency_go">Run</string>
+    <string name="latency_cancel">Cancel</string>
 
     <!-- The lever catalogue: one phrase per position, read by the pre-game screen and by
          the notification a rule fires. Each is a full sentence with a verb, and it states a

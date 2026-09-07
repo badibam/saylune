@@ -278,4 +278,32 @@
     <string name="notice_move">%1$s — %2$s</string>
     <string name="notice_of_sheet">%1$s — %2$s : %3$s</string>
     <string name="notes_pushed">Montrer le bilan du passage précédent lors de l&#8217;envoi d&#8217;un nouveau passage</string>
+    <!-- La liste des conversations. -->
+    <string name="conversations_new">Nouvelle conversation</string>
+    <string name="conversations_none">Aucune conversation pour l\'instant.</string>
+    <string name="conversation_unnamed">Sans titre</string>
+    <!-- Le cache des voix. -->
+    <string name="setting_cache_title">Cache des voix</string>
+    <string name="setting_cache_cap">Cache des voix, en Mo</string>
+    <string name="setting_cache_cap_help">Les phrases du modèle rendues sont gardées pour être réécoutées. Au-delà, les moins récemment demandées partent les premières. Vide : %1$s Mo.</string>
+    <string name="secret_elevenlabs_key">ElevenLabs — clé d\'API</string>
+    <!-- Le prompt d'un passage, en debug. -->
+    <string name="debug_prompt">debug</string>
+    <string name="debug_prompt_title">ce qui est parti pour le passage %1$d</string>
+    <string name="debug_prompt_none">Rien n\'est parti pour ce passage depuis le lancement de l\'app. Ce qui est gardé est ce qui est sorti, et ça vit en mémoire seule : une séance rouverte n\'en a aucun.</string>
+    <string name="debug_prompt_close">fermer</string>
+    <string name="debug_prompt_chars">%1$d caractères, %2$d messages</string>
+    <string name="debug_prompt_size">%1$d caractères</string>
+    <string name="debug_prompt_raw">brut</string>
+    <!-- L'écran de latence, en debug. -->
+    <string name="latency_title">Latence — comparer les modèles</string>
+    <string name="latency_lead">Chaque modèle dont la clé est saisie, sur deux phrases : une courte, une longue. Chronomètre un maillon, pas un tour. Les résultats s\'ajoutent aux précédents dans latency/latency.jsonl.</string>
+    <string name="latency_note">Nom de la mesure</string>
+    <string name="latency_note_help">Où et sur quel réseau : les chiffres en dépendent autant que du modèle.</string>
+    <string name="latency_repeats">Répétitions</string>
+    <string name="latency_run">Lancer le test</string>
+    <string name="latency_confirm_title">Lancer la mesure ?</string>
+    <string name="latency_confirm_body">%1$d appels seront faits, à votre charge chez les fournisseurs concernés.</string>
+    <string name="latency_go">Lancer</string>
+    <string name="latency_cancel">Annuler</string>
 </resources>
