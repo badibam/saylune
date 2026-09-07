@@ -74,6 +74,7 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 - **Material habille encore ce qui n'est pas passé au registre** : dans la conversation, la demande de permission, l'échec de la chaîne, la ligne d'un tour interrompu ; et l'écran des réglages entier, lisible depuis qu'on lui donne l'encre du registre mais pas du registre.
 - **Le score et la note n'ont pas de champ** dans la ligne d'état : le score et son écran sont hors périmètre, et la note est une lettre, que la couche d'accès coupe.
 - **Les nombres de l'écran-titre sont du matériau**, posés à l'œil sur un seul téléphone, et **la raison d'une entrée éteinte s'efface au bout de quatre secondes**, un délai posé à la main.
+- **L'écran du prompt n'a jamais rendu de corps.** Le bouton `debug` de la ligne d'un passage ouvre ce qui est parti au modèle, et seul le cas vide a été vu sur le téléphone, sur une séance rouverte : la marche qui déplie les messages, ouvre le tour d'IA et bascule en brut compile sans avoir été essayée. Ça se lève en parlant une fois.
 - **Le banc et l'app ne s'accordent plus sur la forme de `turn.json`**, et personne ne le tient à jour. Un fichier que l'app ne sait plus lire ne tue plus l'app — l'écran du prototype porte la raison — mais le désaccord reste.
 
 ### La police, le thème et les palettes
