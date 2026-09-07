@@ -23,6 +23,30 @@ android {
         versionName = "0.1.0"
     }
 
+    // The block of dependency metadata AGP adds is signed by Google and cannot be read
+    // from the sources, so F-Droid refuses it.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
+    // Release signing, driven by Gradle and never by the IDE -- building a release from an
+    // IDE leaves the order of the archive's entries undetermined. The keystore and its
+    // passwords live outside the repository and reach the build through the environment;
+    // absent, there is simply no release config and the build signs with nothing rather
+    // than failing, which is what F-Droid does anyway since it signs with its own key.
+    signingConfigs {
+        val store = System.getenv("SAYLUNE_KEYSTORE")
+        if (store != null) {
+            create("release") {
+                storeFile = file(store)
+                storePassword = System.getenv("SAYLUNE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("SAYLUNE_KEY_ALIAS")
+                keyPassword = System.getenv("SAYLUNE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -33,7 +57,12 @@ android {
             // PNG crunching varies from machine to machine, which would break
             // the reproducible build F-Droid verifies against.
             isCrunchPngs = false
+            // AGP writes the repository's git state into the APK from 8.3 on. Two people
+            // building the same commit would then produce two different files, which is
+            // exactly the comparison a reproducible build rests on.
+            vcsInfo { include = false }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
