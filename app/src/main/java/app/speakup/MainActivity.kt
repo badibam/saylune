@@ -57,6 +57,13 @@ import app.speakup.ui.PassageNotes
 import app.speakup.ui.Scaffold
 import app.speakup.ui.SettingsScreen
 import app.speakup.ui.Tile
+import app.speakup.ui.AppSettingsScreen
+import app.speakup.ui.BIGGER
+import app.speakup.ui.InLanguage
+import app.speakup.ui.NIGHT
+import app.speakup.ui.PALE
+import app.speakup.ui.SMALLER
+import app.speakup.ui.THIN
 import app.speakup.ui.TitleScreen
 import app.speakup.ui.theme.Speakup
 import app.speakup.ui.theme.SpeakupTheme
@@ -85,8 +92,23 @@ class MainActivity : ComponentActivity() {
             // Read here rather than inside the theme: the palette is a preference like any
             // other, and the store is what holds preferences.
             val stored by store.values().collectAsState(initial = emptyMap())
-            val dark = isSystemInDarkTheme()
-            SpeakupTheme(dark = dark, spare = stored[Secret.SparePalette] == SPARE) {
+            // The register follows the phone until someone says otherwise, which is why
+            // *system* is a position of the setting and is stored as nothing.
+            val dark = when (stored[Secret.Register]) {
+                NIGHT -> true
+                PALE -> false
+                else -> isSystemInDarkTheme()
+            }
+            SpeakupTheme(
+                dark = dark,
+                spare = stored[Secret.SparePalette] == SPARE,
+                thin = stored[Secret.TextWeight] == THIN,
+                steps = when (stored[Secret.TextScale]) {
+                    BIGGER -> 1
+                    SMALLER -> -1
+                    else -> 0
+                },
+            ) {
                 // Material still dresses the buttons and the lists that have not been
                 // rewritten yet, so it is told which register is in force: left to its own
                 // default it painted a light scheme under a night palette, and the ink came
@@ -105,7 +127,9 @@ class MainActivity : ComponentActivity() {
                         // black text on the night plum. The register says what ink is.
                         contentColor = Speakup.palette.ink.srgb,
                     ) {
-                        Root(store, recorder, pipeline)
+                        InLanguage(stored[Secret.Language].orEmpty()) {
+                            Root(store, recorder, pipeline, stored)
+                        }
                     }
                 }
             }
@@ -121,7 +145,9 @@ class MainActivity : ComponentActivity() {
  * buttons. Still no navigation library -- the `android` wisdom holds one off until a graph
  * needs one, and a list one pushes onto and pops off is not a graph.
  */
-private enum class Screen { Title, Conversations, Conversation, Notes, Prompt, Display, Settings, Marks }
+private enum class Screen {
+    Title, Conversations, Conversation, Notes, Prompt, Display, Preferences, Settings, Marks
+}
 
 /**
  * The app, from its root down.
@@ -136,7 +162,12 @@ private enum class Screen { Title, Conversations, Conversation, Notes, Prompt, D
  * its eight tiles are meant to take the height.
  */
 @Composable
-private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipeline) {
+private fun Root(
+    store: SecretStore,
+    recorder: TurnRecorder,
+    pipeline: TurnPipeline,
+    stored: Map<Secret, String>,
+) {
     val stack = rememberSaveable(
         saver = listSaver<SnapshotStateList<Screen>, String>(
             save = { it.map(Screen::name) },
@@ -197,6 +228,9 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     Tile(R.string.mode_free) { stack.add(Screen.Conversations) },
                 ),
                 doors = listOf(
+                    // The app's own settings first: it is the door one comes back to, where
+                    // the keys are an installation done once.
+                    Tile(R.string.preferences_open) { stack.add(Screen.Preferences) },
                     Tile(R.string.settings_open) { stack.add(Screen.Settings) },
                     Tile(R.string.measured_marks) { stack.add(Screen.Marks) },
                 ),
@@ -304,6 +338,15 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                 actions = listOf(back),
             ) {
                 DisplaySettingsScreen(store, hidden, pushed, modifier = Modifier.fillMaxSize())
+            }
+
+            Screen.Preferences -> Scaffold(
+                title = stringResource(R.string.preferences_open),
+                lives = null,
+                status = stringResource(R.string.preferences_what),
+                actions = listOf(back),
+            ) {
+                AppSettingsScreen(store, stored, modifier = Modifier.fillMaxSize())
             }
 
             Screen.Settings -> Scaffold(

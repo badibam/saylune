@@ -36,16 +36,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import app.speakup.R
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
-import app.speakup.providers.Renders
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.providers.Provider
 import app.speakup.providers.LatencyTest
 import app.speakup.providers.Task
 import app.speakup.providers.VoiceOption
-import app.speakup.SPARE
 import app.speakup.providers.effortFor
 import app.speakup.providers.modelFor
 import app.speakup.chain.Voice
@@ -56,6 +52,10 @@ import kotlinx.coroutines.launch
 
 /**
  * Where the user brings their own keys and says who does what.
+ *
+ * **What the app looks like is not here any more**: the weight, the size, the register, the
+ * palette, the language and the voice cache have a screen of their own (`AppSettingsScreen`),
+ * because this one is an installation and those are settings one comes back to.
  *
  * Two sections, and the order matters: a provider is only offered for a task once its key is
  * there, so the keys come first and the menus below them fill up as they are filled in.
@@ -69,36 +69,6 @@ import kotlinx.coroutines.launch
  * It does not block. The rest of the screen is usable while a list is loading, and only the
  * selector that is waiting says it is waiting.
  */
-/**
- * How much of the voice cache to keep, written as it is typed.
- *
- * Written straight through rather than under the Save button, the way the selectors are: the
- * button belongs to the fields that are typed together and saved together, and a lone number
- * that looked saved and was not would be found out a fortnight later, by a cache that had
- * never been pruned.
- */
-@Composable
-private fun CacheCap(stored: String, onWrite: (String) -> Unit) {
-    var typed by remember(stored) { mutableStateOf(stored) }
-    Text(stringResource(R.string.setting_cache_title), style = MaterialTheme.typography.titleSmall)
-    OutlinedTextField(
-        value = typed,
-        onValueChange = { entry ->
-            // Digits only. A ceiling is a number, and a field that accepts letters and then
-            // quietly falls back to the default is a field that lies about what it holds.
-            typed = entry.filter { it.isDigit() }
-            onWrite(typed)
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        label = { Text(stringResource(R.string.setting_cache_cap)) },
-        supportingText = {
-            Text(stringResource(R.string.setting_cache_cap_help, Renders.DEFAULT_CAP_MB))
-        },
-        modifier = Modifier.fillMaxWidth(),
-    )
-}
-
 @Composable
 fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
@@ -137,10 +107,6 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
     ) {
         Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.settings_lead), style = MaterialTheme.typography.bodyMedium)
-
-        CacheCap(stored[Secret.RenderCacheCap].orEmpty()) { typed ->
-            scope.launch { store.write(Secret.RenderCacheCap, typed) }
-        }
 
         Provider.entries.forEach { provider ->
             Text(provider.label, style = MaterialTheme.typography.titleSmall)
@@ -191,18 +157,6 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
 
         Text(stringResource(R.string.tasks_title), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.tasks_lead), style = MaterialTheme.typography.bodyMedium)
-
-        // Not a correction of the palette but a replacement of it: the plain registers keep
-        // their colours for everyone, and whoever does not separate them changes palette.
-        Picker(
-            label = stringResource(R.string.setting_palette),
-            options = listOf(
-                "" to stringResource(R.string.palette_plain),
-                SPARE to stringResource(R.string.palette_spare),
-            ),
-            selected = stored[Secret.SparePalette].orEmpty(),
-            onPick = { id -> scope.launch { store.write(Secret.SparePalette, id) } },
-        )
 
         Task.entries.forEach { task ->
             TaskSection(task, store, stored)

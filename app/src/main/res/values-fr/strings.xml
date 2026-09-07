@@ -306,4 +306,20 @@
     <string name="latency_confirm_body">%1$d appels seront faits, à votre charge chez les fournisseurs concernés.</string>
     <string name="latency_go">Lancer</string>
     <string name="latency_cancel">Annuler</string>
+    <!-- Les réglages de l\'app : ce dans quoi on la lit, et ce à quoi elle ressemble. -->
+    <string name="preferences_open">Réglages</string>
+    <string name="preferences_what">Langue, texte et couleurs.</string>
+    <string name="setting_system">Comme le téléphone</string>
+    <string name="setting_language">Langue</string>
+    <string name="setting_weight">Épaisseur du texte</string>
+    <string name="weight_normal">Ordinaire</string>
+    <string name="weight_thin">Fine</string>
+    <string name="setting_size">Taille du texte</string>
+    <string name="size_smaller">Petite</string>
+    <string name="size_ordinary">Ordinaire</string>
+    <string name="size_bigger">Grande</string>
+    <string name="setting_register">Registre</string>
+    <string name="register_night">Nuit</string>
+    <string name="register_pale">Jour</string>
+    <string name="setting_cache_default">%1$s Mo</string>
 </resources>

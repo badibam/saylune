@@ -64,6 +64,24 @@ enum class Secret(
     SparePalette("view.palette.spare", R.string.setting_palette, masked = false),
 
     /**
+     * The four things the app itself is set by, as against the links it calls out to.
+     *
+     * They share this store with the keys because there is one mechanism for *what the user
+     * settled* and a second one would be a second place to get wrong. What separates them is
+     * the screen: the keys are an installation, visited three times in a life; these are
+     * revisited, so they have a door of their own on the title screen.
+     *
+     * **Blank means the default everywhere here**, and the default of a look is what the
+     * device says: the register follows the system's dark mode until someone says otherwise,
+     * and the language follows the system's locale. Storing "system" as a value would be the
+     * same state written twice.
+     */
+    TextWeight("view.text.weight", R.string.setting_weight, masked = false),
+    TextScale("view.text.scale", R.string.setting_size, masked = false),
+    Register("view.register", R.string.setting_register, masked = false),
+    Language("view.language", R.string.setting_language, masked = false),
+
+    /**
      * Which marks the conversation menu has turned **off**, comma separated.
      *
      * The channels that are off and not the ones that are on: nothing stored is then every

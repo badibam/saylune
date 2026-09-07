@@ -7,6 +7,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 
 /**
  * The project's own theme, held outside Material.
@@ -26,10 +27,14 @@ fun SpeakupTheme(
     dark: Boolean = isSystemInDarkTheme(),
     /** The spare palette, for an eye that does not separate red from green. */
     spare: Boolean = false,
+    /** Ordinary text in the lighter of the two weights, a preference of the app's settings. */
+    thin: Boolean = false,
+    /** How many whole steps the grid is enlarged by, the app's own text size. */
+    steps: Int = 0,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
-    val grid = remember(density) { gridFor(density) }
+    val grid = remember(density, steps) { gridFor(density, steps) }
     CompositionLocalProvider(
         LocalPalette provides remember(dark, spare) {
             Palette(
@@ -41,7 +46,9 @@ fun SpeakupTheme(
                 }
             )
         },
-        LocalTypography provides remember(grid, density) { Typography(grid, density) },
+        LocalTypography provides remember(grid, density, thin) {
+            Typography(grid, density, if (thin) FontWeight.Thin else FontWeight.Normal)
+        },
         LocalGrid provides grid,
         LocalRhythm provides Rhythm(),
         content = content,

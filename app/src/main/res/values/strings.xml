@@ -303,4 +303,20 @@
     <string name="notice_move">%1$s — %2$s</string>
     <string name="notice_of_sheet">%1$s — %2$s: %3$s</string>
     <string name="notes_pushed">Show the previous passage&#8217;s summary when a new one is sent</string>
+    <!-- The app's own settings: what one reads it in, and what it looks like. -->
+    <string name="preferences_open">Settings</string>
+    <string name="preferences_what">Language, text and colours.</string>
+    <string name="setting_system">As the phone is</string>
+    <string name="setting_language">Language</string>
+    <string name="setting_weight">Text weight</string>
+    <string name="weight_normal">Ordinary</string>
+    <string name="weight_thin">Light</string>
+    <string name="setting_size">Text size</string>
+    <string name="size_smaller">Small</string>
+    <string name="size_ordinary">Ordinary</string>
+    <string name="size_bigger">Large</string>
+    <string name="setting_register">Register</string>
+    <string name="register_night">Night</string>
+    <string name="register_pale">Pale</string>
+    <string name="setting_cache_default">%1$s MB</string>
 </resources>

@@ -23,10 +23,22 @@ import app.speakup.R
  * to occupy only if the glyph is dense.
  */
 @Immutable
-class Typography(private val grid: Grid, private val density: Density) {
+class Typography(
+    private val grid: Grid,
+    private val density: Density,
+    /**
+     * Which of the two weights ordinary text is set in, a preference of the app's settings.
+     *
+     * **It moves the ordinary and never the light**: [thin] is the register's secondary ink --
+     * a date under a name, a reason under an entry -- and it is defined by being lighter than
+     * what it sits under. Made to follow, it would collapse onto [text] the moment someone
+     * chose the light one, and the two levels of a screen would become one.
+     */
+    private val base: FontWeight = FontWeight.Normal,
+) {
 
     /** Ordinary text, at one drawing pixel per [Grid.scale] screen pixels. */
-    val text: TextStyle = style(FontWeight.Normal)
+    val text: TextStyle = style(base)
 
     /** The lighter of the two weights, a one-pixel stroke against the Regular's two. */
     val thin: TextStyle = style(FontWeight.Thin)
@@ -45,7 +57,7 @@ class Typography(private val grid: Grid, private val density: Density) {
      * A character of it is **two cells across and two lines tall**, so a layout takes it in
      * whole cells like everything else -- what changes is how many.
      */
-    val big: TextStyle = style(FontWeight.Normal, DOUBLE)
+    val big: TextStyle = style(base, DOUBLE)
 
     /**
      * **The furniture at the second size, drawn for it rather than doubled.**
@@ -64,7 +76,7 @@ class Typography(private val grid: Grid, private val density: Density) {
      */
     val furniture: TextStyle = TextStyle(
         fontFamily = SpeakupBig,
-        fontWeight = FontWeight.Normal,
+        fontWeight = base,
         // The em is EM_PIXELS pixels of the same size as the text's, so this is the ordinary
         // size and not the doubled one: what makes the glyph twice as big is its own box.
         fontSize = with(density) { grid.painted(EM_PIXELS).toSp() },

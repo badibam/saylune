@@ -67,6 +67,12 @@ class Grid(
  * scale nearest 10 dp is the density rounded. Density varies from device to device, so **the
  * number of columns does too** -- a 720 screen gives half what a 1440 does at a constant
  * factor, and a layout has to hold across a range rather than aim at a count.
+ *
+ * **[steps] is how the app enlarges, and it is the only way it can.** The system's text-size
+ * preference is refused a few lines down in `Typography` because it multiplies by 1.3 and the
+ * whole factor is the one hard rule; enlarging moves this number by whole steps instead, so
+ * everything the grid holds -- letters, frames, marks, the air between them -- grows together
+ * and nothing lands between two pixels. A step down exists too, and it buys columns.
  */
-fun gridFor(density: Density): Grid =
-    Grid(density.density.roundToInt().coerceAtLeast(1), density)
+fun gridFor(density: Density, steps: Int = 0): Grid =
+    Grid((density.density.roundToInt() + steps).coerceAtLeast(1), density)

@@ -56,7 +56,7 @@ fun DisplaySettingsScreen(
             color = palette.ink.srgb,
         )
         Channel.entries.forEach { channel ->
-            Setting(
+            Pick(
                 on = channel !in hidden,
                 says = stringResource(channel.says),
             ) {
@@ -83,33 +83,9 @@ fun DisplaySettingsScreen(
             style = type.text,
             color = palette.ink.srgb,
         )
-        Setting(on = pushed, says = stringResource(R.string.notes_pushed)) {
+        Pick(on = pushed, says = stringResource(R.string.notes_pushed)) {
             scope.launch { store.write(Secret.NotesUnpushed, if (pushed) UNPUSHED else "") }
         }
-    }
-}
-
-/** One setting: the dot that says where it stands, and what it does. */
-@Composable
-private fun Setting(on: Boolean, says: String, onPress: () -> Unit) {
-    val grid = Speakup.grid
-    val palette = Speakup.palette
-    val type = Speakup.type
-    Row(
-        Modifier.fillMaxWidth().clickable(onClick = onPress),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(grid.cell),
-    ) {
-        Text(
-            (if (on) Glyphs.DOT_FILLED else Glyphs.DOT_HOLLOW).toString(),
-            style = type.text,
-            color = if (on) palette.ink.srgb else palette.dim.srgb,
-        )
-        Text(
-            says,
-            style = type.text,
-            color = if (on) palette.ink.srgb else palette.dim.srgb,
-        )
     }
 }
 
