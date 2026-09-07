@@ -87,7 +87,6 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 ### Les fournisseurs, les clés et les poids
 
 - **Le fini du BYOK**, dont l'ordre de priorité est remonté avec la publication. La sonde est faite, et c'est la récupération du catalogue. Restent le **bouton « tester » par tâche**, qui valide à la demande plutôt qu'à l'ouverture — un fournisseur sans voix à lister, comme le modèle de langue, n'est aujourd'hui sondé par rien — et l'**écran guidé**, qui dit où l'on crée chaque clé et ce qu'elle coûte.
-- **Le moteur reste au build debug** — l'ONNX Runtime en `debugImplementation`, pour qu'aucune release ne porte une dépendance native sur un pari. La release répond qu'elle n'embarque aucun moteur, et le dit.
 - **Le cache des synthèses n'a ni plafond ni éviction** — il grossit sans borne dans `cacheDir/renders/`. Et quand l'éviction viendra, **l'indisponibilité devra porter sa raison** : `store/Keeping.kt` rend aujourd'hui `null` sur un fichier absent, donc l'écoute du modèle échouerait en silence.
 - **La voix de l'apprenant n'est pas purgée, et c'est délibéré.** Le doc demande qu'elle le soit, et le raisonnement tient : passé son tour rien ne la consomme. Ce qu'il ne pesait pas, c'est que les mesures encore dues ne se font que sur des tours réels, et qu'un tour non gardé est un tour jamais mesuré. Donc **le build debug seul** garde (`Takes`, sous `Trace.on`) : c'est un instrument, pas un comportement de l'app. **Ça s'enlève quand les bancs ont leur matière**, sinon la purge devient une règle que le code contredit.
 - **Le bruit et le filtre du canal sont déclarés et ne s'utilisent pas**, faute qu'une position vaille une difficulté comparable d'un fond à l'autre.
@@ -102,7 +101,7 @@ Les modules autres que la conversation libre et les écrans qui tombent avec eux
 
 Écrit le 2026-09-07, quand l'app a pris son nom. Tout ici est **absent**, pas imparfait : rien de cette liste n'existe à moitié.
 
-**Ce qui bloque tout le reste : quel APK un tiers reçoit.** L'analyse est la colonne vertébrale, et elle est en `debugImplementation` — une release répond qu'elle n'embarque aucun moteur, et le dit. Donc une release ne fait pas de prononciation, et un debug n'est pas l'app : `applicationId` en `.debug`, rien de minifié, le panneau de debug ouvert, et `Trace.on` qui garde sur le disque toutes les prises de l'apprenant, ce que l'app ne fait pas. Trois issues, aucune écrite : **promouvoir le moteur** en `implementation`, ce qui pose du même coup la question F-Droid du runtime natif ; **livrer un debug en le disant** ; ou **livrer une release sans prononciation**, qui ne montre pas ce que l'app est. Rien d'autre de cette liste ne se décide avant.
+**Ce qui bloquait tout le reste est levé** : la release porte l'analyse depuis le 2026-09-07, et un tiers reçoit donc l'app entière plutôt qu'un banc de mesure. Reste une chose que le bureau ne peut pas dire : **qu'une release minifiée analyse vraiment un tour**. Elle se compile, ses classes de moteur ne sont plus renommées, et personne n'a encore parlé dedans. C'est une installation et une phrase.
 
 **Le téléchargement des poids, dans l'écran des clés.** Aujourd'hui trois fichiers arrivent par `adb push` et doivent se trouver côte à côte : `timit-ipa-int8.onnx` (358,5 Mo), `vocab.json` et `probe.json` (62 Ko). Les trois tables d'affinité, elles, sont dans les assets du build et ne se téléchargent pas. Ce qu'il faut écrire :
 
@@ -118,6 +117,8 @@ Les modules autres que la conversation libre et les écrans qui tombent avec eux
 **Ce que ça consomme n'est dit nulle part**, alors que `docs/reference.md` l'exige : l'utilisateur paie ses trois maillons et l'app doit pouvoir dire ce qu'elle en tire.
 
 **Le dépôt n'a pas de page.** Pas de `README.md` du tout. Ce qu'il doit tenir : ce que l'app fait, ce qu'elle exige avant de servir, comment on la construit, et **son état dit franchement** — un travail dont les mesures sont écrites et dont la moitié des chiffres est encore posée à la main.
+
+**La mise en règle F-Droid est faite pour ce qui tient dans le build** (2026-09-07) : l'état git n'entre plus dans l'APK, le bloc de métadonnées signé par Google non plus, et la signature de release est pilotée par Gradle depuis des variables d'environnement. Restent **un tag par release**, sur un arbre propre, et le fait que **personne n'a jamais construit deux fois pour comparer** — la reproductibilité est câblée, pas éprouvée.
 
 **L'app n'a pas d'icône** — `AndroidManifest.xml` ne déclare aucun `android:icon`, donc le lanceur affiche le robot par défaut. Elle relève du registre pixel, et `fdroid` en veut par ailleurs deux versions dans la fiche, `icon.png` et `featureGraphic.png`, qui n'y sont pas.
 
