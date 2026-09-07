@@ -1,5 +1,6 @@
 {
   "id": "free-conversation",
+  "door": "free",
   "title": {
     "en": "Free conversation",
     "fr": "Conversation libre"

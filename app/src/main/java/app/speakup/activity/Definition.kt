@@ -48,6 +48,24 @@ data class Definition(
      * suffer a truncation (`ui.md`, "La charpente").
      */
     val short: Text,
+    /**
+     * Which of the four doors this file is offered behind.
+     *
+     * **Read by the screens, never by the engine nor by a rule.** It says **where a definition
+     * is offered** and never **how it is played**: the day a condition, an effect or a
+     * passage's gate reads it, the problem `activity.md` closed is open again -- a round name
+     * taken for the model, which forced the same sitting to be described twice and made it
+     * impossible for a campaign to hold an arcade level, both being values of one field.
+     *
+     * That invariant's scope is **behaviour**, and this is not behaviour: it is a fact of
+     * **delivery**, which grid shows this file. It is called `door` and not `mode` on purpose
+     * -- the doc reserved that word and refused it, and taking it back would start the
+     * confusion again. A door is a place one comes in by, not a way of playing.
+     *
+     * **One value and never a list.** A scene offered at two doors would be two files anyway,
+     * its weights and its rules differing; a single value reads better.
+     */
+    val door: Door,
     /** What opens the sitting. Null in a free conversation, whose brief comes from the learner. */
     val brief: Brief? = null,
     /** Who speaks, besides the learner. */
@@ -107,6 +125,22 @@ data class Definition(
         /** What the status line has room for once the right-hand fields are full. */
         const val SHORT_LIMIT = 10
     }
+}
+
+/**
+ * One of the four doors of the title screen -- **where a definition is offered**.
+ *
+ * Read by the screens alone (see [Definition.door]): the engine knows nothing of it.
+ */
+enum class Door {
+    /** A block with **ordered** access, the declared questions carrying one scene to the next. */
+    Story,
+    /** A block with **free** access, each with its own weights, instructions, rules and issue. */
+    Challenges,
+    /** Replayed without end, a ramp that tightens, the end at zero lives, and a score. */
+    Arcade,
+    /** **No stakes**: no lives, no ending rule, no issue, no letters. */
+    Free,
 }
 
 /**

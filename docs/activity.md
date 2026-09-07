@@ -26,6 +26,8 @@ Une **définition** est une activité écrite d'avance, et c'est de la **donnée
 
 **« Mode » n'est pas un champ** : c'est une **couche d'accès, écrite en dur, côté écran** — la façon d'arriver à une définition. Le même moteur tourne derrière toutes. L'app s'ouvre sur un écran-titre qui les présente.
 
+**La définition dit quand même par quelle porte elle est offerte, et ça ne contredit pas la phrase ci-dessus.** Cet invariant a été écrit contre un champ **de comportement** — un nom rond pris pour le modèle, qui obligeait à décrire deux fois la même séance et rendait impossible qu'une campagne contienne un niveau d'arcade, les deux étant des valeurs du même champ. Sa portée est le comportement. Le champ `door` n'en est pas : le moteur n'en fait rien, aucune condition ni aucun effet ne le lit, c'est un fait de **livraison** — quelle grille affiche ce fichier. Il s'appelle `door` et pas `mode` délibérément, ce doc ayant réservé ce mot et l'ayant refusé. Une porte est un endroit par où l'on entre, pas une façon de jouer.
+
 - **Histoire** — un bloc à accès **ordonné**. Chaque scène est une définition, les questions déclarées portent la mémoire d'une scène à la suivante.
 - **Défis** — un bloc à accès **libre**, chacun avec ses poids, ses consignes, ses règles, et une issue.
 - **Arcade** — quatre définitions d'*easy* à *extreme*, rejouées sans fin, une **rampe** qui durcit en cours de partie, la fin à zéro vie, un **score** par difficulté plutôt qu'une réussite. Un score ne se compare qu'à ceux de la même difficulté.

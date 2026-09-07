@@ -68,6 +68,16 @@ object Definitions {
             version = version,
             title = text(file.getJSONObject("title")),
             short = text(file.getJSONObject("short")),
+            // **Required, and an unknown name fails outright**, like the rung and like the
+            // moments: a file that does not say where it is offered is a file nobody can
+            // place, and a silent default would file it somewhere without saying so.
+            door = when (val at = file.getString("door")) {
+                "story" -> Door.Story
+                "challenges" -> Door.Challenges
+                "arcade" -> Door.Arcade
+                "free" -> Door.Free
+                else -> error("$id: '$at' is not a door this build knows")
+            },
             brief = file.optJSONObject("brief")?.let { Sitting.readBrief(it.toString()) },
             cast = file.optJSONArray("cast").objects().map {
                 Character(

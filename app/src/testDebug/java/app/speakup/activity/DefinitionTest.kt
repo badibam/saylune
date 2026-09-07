@@ -1,6 +1,7 @@
 package app.speakup.activity
 
 import app.speakup.conversation.Speaker
+import app.speakup.rules.Trigger
 import app.speakup.sheets.Branch
 import app.speakup.sheets.Sheet
 import app.speakup.sheets.Sheets
@@ -159,8 +160,57 @@ class DefinitionTest {
             Definitions.parse(
                 "some-scene", VERSION,
                 minimal(
-                    """"questions": [{ "key": "k", "ask": "did he?", "answers": "a-number" }],""",
+                    """"questions": [{ "key": "k", "ask": "did he?", "answers": "a-number",
+                        "when": [{ "kind": "closing", "moment": "Closing" }] }],""",
                 ),
+            )
+        }
+    }
+
+    /**
+     * A question reads back whole: its moments are triggers like a rule's, and its rung says
+     * how far the model may go.
+     */
+    @Test
+    fun `a question carries its moments and its rung`() {
+        val scene = Definitions.parse(
+            "some-scene", VERSION,
+            minimal(
+                """"questions": [{ "key": "safe", "ask": "Is the queen safe?",
+                    "answers": "one-of",
+                    "among": [{ "en": "yes" }, { "en": "no", "fr": "non" }],
+                    "rung": "may-extrapolate", "shown": true,
+                    "when": [{ "kind": "passages", "moment": "PassageClosed",
+                               "at": null, "every": 5 }] }],""",
+            ),
+        )
+        val question = scene.questions.single()
+        assertEquals(listOf("yes", "no"), (question.answers as Answers.OneOf).keys)
+        assertEquals("non", (question.answers as Answers.OneOf).among[1].inLanguage("fr"))
+        assertEquals(Rung.MayExtrapolate, question.rung)
+        assertEquals(true, question.shown)
+        assertEquals(listOf(Trigger.Passages(every = 5)), question.moments)
+    }
+
+    // ── The door ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Every shipped file says where it is offered. It is read by the screens alone, and a file
+     * that does not say it is a file nobody can place.
+     */
+    @Test
+    fun `every shipped definition declares a door`() {
+        folder.listFiles { file -> file.extension == "json" }.orEmpty().forEach { file ->
+            assertTrue(shipped(file.nameWithoutExtension).door in Door.entries)
+        }
+    }
+
+    @Test
+    fun `a door this build does not know fails`() {
+        assertThrows(IllegalStateException::class.java) {
+            Definitions.parse(
+                "some-scene", VERSION,
+                minimal().replace(""""door": "free"""", """"door": "the-cellar""""),
             )
         }
     }
@@ -185,6 +235,7 @@ class DefinitionTest {
           "id": "some-scene",
           "title": { "en": "Scene" },
           "short": { "en": "Scene" },
+          "door": "free",
           $extra
           "weights": { ${
         Sheets.tree.children.joinToString(",") { branch ->
