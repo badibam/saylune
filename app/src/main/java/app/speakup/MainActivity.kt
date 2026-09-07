@@ -27,6 +27,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.speakup.activity.Definitions
+import app.speakup.activity.Door
 import app.speakup.analysis.Analyses
 import app.speakup.capture.TurnRecorder
 import app.speakup.conversation.TurnPipeline
@@ -181,9 +182,12 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
     LaunchedEffect(Unit) { pipeline.prepare() }
 
     val context = LocalContext.current
-    // What the app ships, read once: the tiles are the files, so their number is decided at
-    // the release and cannot change while the app is up.
-    val themes = remember(context) { Definitions.all(context) }
+    // What the Free door ships, read once: the tiles are the files, so their number is decided
+    // at the release and cannot change while the app is up. **Filtered by the door**, which is
+    // what the field is for -- one grid per door, and a file says which one shows it.
+    val themes = remember(context) {
+        Definitions.all(context).filter { it.door == Door.Free }
+    }
     val rows by pipeline.conversations().collectAsState(initial = emptyList())
     val counts by pipeline.passages().collectAsState(initial = emptyList())
     // **The sitting of a theme is the most recent one opened from it**, and the list is
