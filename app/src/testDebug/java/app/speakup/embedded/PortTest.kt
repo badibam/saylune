@@ -94,7 +94,7 @@ class PortTest {
             expected.getString("text"),
             affinity,
         )
-        val added = Added.found(said = theirs, model = sounds)
+        val added = Added.found(said = theirs, model = sounds, saidAt = emptyList())
         assertTrue(
             "${turn.name}: frozen before added sounds -- re-freeze it with bench/fixture.py",
             expected.has("added"),

@@ -40,7 +40,8 @@ class AddedTest {
         )
         val model = listOf(sound("ŋ", listOf(8, 9), trying))
 
-        val added = Added.found(said = said, model = model)
+        // No places: what these tests are about is where a mark lands in the text.
+        val added = Added.found(said = said, model = model, saidAt = emptyList())
         assertEquals(1, added.size)
         // One mark for the whole of it: an added word is one thing that happened.
         assertEquals("h aʊ", added[0].symbol)
@@ -65,7 +66,8 @@ class AddedTest {
         )
         val model = listOf(sound("ɹ", listOf(5), trying))
 
-        val added = Added.found(said = said, model = model)
+        // No places: what these tests are about is where a mark lands in the text.
+        val added = Added.found(said = said, model = model, saidAt = emptyList())
         assertEquals(1, added.size)
         assertEquals("it may not pass the letters said after it", 5, added[0].after)
     }
@@ -77,7 +79,7 @@ class AddedTest {
             sound("b", emptyList(), null),
             sound("aɪ", listOf(0), 0..2),
         )
-        val added = Added.found(said, emptyList())
+        val added = Added.found(said, emptyList(), emptyList())
         assertEquals(1, added.size)
         assertEquals(-1, added[0].after)
     }

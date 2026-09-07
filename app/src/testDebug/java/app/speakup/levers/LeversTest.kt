@@ -22,7 +22,7 @@ class LeversTest {
     }
 
     @Test fun `a declared key nobody set takes its declared default`() {
-        assertEquals(At("scrambled"), Positions().of("ai-turn.display"))
+        assertEquals(At("revealable"), Positions().of("ai-turn.display"))
         assertEquals(Count(null), Positions().of("rewordings-allowed"))
     }
 

@@ -42,7 +42,7 @@ class ReadoutTest {
             val step = 0.02f
             val theirs = Join.joined(
                 Grid.decode(said, alphabet).map { alphabet[it.symbol] }, text, affinity)
-            val added = Added.found(said = theirs, model = sounds)
+            val added = Added.found(said = theirs, model = sounds, saidAt = emptyList())
             out.append("=== ").append(turn.name).append(" ===\n")
                 .append(Readout.table(text, reading.gaps, sounds, drawn.phonemes, added,
                                       reading.grid, reading.dropped, step, 5f))
