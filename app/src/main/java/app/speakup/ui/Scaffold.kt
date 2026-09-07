@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -122,6 +123,10 @@ fun Scaffold(
             }
             actions.forEach { action -> Entry(action, onReason = { reason = it }) }
         }
+        // The cell this file's header calls structural, and which was not being laid: the
+        // title line and the status line were touching, so the framed entries and the framed
+        // status read as one stack of boxes instead of two lines saying two things.
+        Spacer(Modifier.height(grid.cell))
         Framed(
             Modifier
                 .fillMaxWidth()
