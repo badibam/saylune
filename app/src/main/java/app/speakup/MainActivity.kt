@@ -49,6 +49,7 @@ import app.speakup.ui.ConversationsScreen
 import app.speakup.ui.Glyphs
 import app.speakup.ui.MarkingPrototypeScreen
 import app.speakup.ui.MarksMenuScreen
+import app.speakup.ui.UNPUSHED
 import app.speakup.ui.PassageNotes
 import app.speakup.ui.Scaffold
 import app.speakup.ui.SettingsScreen
@@ -153,6 +154,10 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
     // and never a lever: an activity may take an aid away, none hides a mark.
     val hidden = remember(stored) { Channel.hidden(stored[Secret.HiddenMarks]) }
     val channels = remember(hidden) { Channels(hidden) }
+    // **Pushed by default**, because a passage's note is ready exactly when the wait begins and
+    // filling those seconds beats watching them go by. Stored as the refusal, so nothing stored
+    // is pushed.
+    val pushed = stored[Secret.NotesUnpushed] != UNPUSHED
 
     val turn by pipeline.state.collectAsState()
     val capture by recorder.state.collectAsState()
@@ -228,6 +233,12 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     onRepeating = { repeating = it },
                     channels = channels,
                     onNotes = { notesOf = it; stack.add(Screen.Notes) },
+                    // **The other of the two doors**: the same screen, pushed rather than
+                    // asked for. It falls at the close, which is where a passage's note
+                    // becomes final and where the doc puts it -- between two passages.
+                    onClosed = if (pushed) {
+                        { notesOf = it; stack.add(Screen.Notes) }
+                    } else null,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -260,7 +271,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                 status = stringResource(R.string.channels_measured),
                 actions = listOf(back),
             ) {
-                MarksMenuScreen(store, hidden, modifier = Modifier.fillMaxSize())
+                MarksMenuScreen(store, hidden, pushed, modifier = Modifier.fillMaxSize())
             }
 
             Screen.Settings -> Scaffold(

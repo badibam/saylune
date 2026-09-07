@@ -71,6 +71,16 @@ enum class Secret(
      * channel added later is on by default rather than silently missing.
      */
     HiddenMarks("view.marks.hidden", R.string.channels_what, masked = false),
+
+    /**
+     * Whether the passage's notes are pushed between two passages.
+     *
+     * **What the mode decides is the letters; what the learner sets is whether the screen is
+     * pushed** (`pixel-ui.md`). Stored as the refusal rather than the wish, like the marks:
+     * nothing stored is pushed, which is the default, and it stays the default for anyone who
+     * has never opened the setting.
+     */
+    NotesUnpushed("view.notes.unpushed", R.string.notes_pushed, masked = false),
     SynthesisProvider("task.tts.provider", R.string.task_synthesis, masked = false),
     SynthesisModel("task.tts.model", R.string.setting_model, masked = false),
 

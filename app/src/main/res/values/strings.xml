@@ -293,4 +293,5 @@
     <string name="notice_easier">Easier</string>
     <string name="notice_move">%1$s — %2$s</string>
     <string name="notice_of_sheet">%1$s — %2$s: %3$s</string>
+    <string name="notes_pushed">Show the passage&#8217;s notes between passages</string>
 </resources>

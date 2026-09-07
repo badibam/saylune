@@ -90,6 +90,14 @@ fun ConversationScreen(
     channels: Channels,
     /** Open the summary of the passage whose last attempt is this one. */
     onNotes: (String) -> Unit,
+    /**
+     * Show the summary of the passage that has just closed, or null where the learner has
+     * turned that off.
+     *
+     * **The same screen through the other door**: pushed rather than asked for, which is the
+     * learner's setting and not the mode's -- what the mode decides is the letters.
+     */
+    onClosed: ((String) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -325,9 +333,12 @@ fun ConversationScreen(
               // **It closes the previous passage and opens mine**, which is exactly what
               // happens: a turn of speech and not a next page.
               scope.launch {
+                  // Read before the close, which is what makes the passage stop being open.
+                  val closed = turn.open()?.last?.takeIf { it.measured.isNotEmpty() }
                   pipeline.close()
                   onRepeating(null)
                   recorder.open(scope, settings)
+                  closed?.let { last -> onClosed?.invoke(last.id) }
               }
           },
           onPause = {

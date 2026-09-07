@@ -30,7 +30,13 @@ import kotlinx.coroutines.launch
  * the screen says once at the bottom rather than eight times.
  */
 @Composable
-fun MarksMenuScreen(store: SecretStore, hidden: Set<Channel>, modifier: Modifier = Modifier) {
+fun MarksMenuScreen(
+    store: SecretStore,
+    hidden: Set<Channel>,
+    /** Whether the passage's notes are pushed between two passages. */
+    pushed: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val grid = Speakup.grid
     val palette = Speakup.palette
     val type = Speakup.type
@@ -70,6 +76,32 @@ fun MarksMenuScreen(store: SecretStore, hidden: Set<Channel>, modifier: Modifier
                 )
             }
         }
+        // **What the mode decides is the letters; what the learner sets is whether the screen
+        // is pushed.** It sits with the channels because it answers the same question -- what
+        // shows and what does not -- and not with the providers and the keys.
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = grid.cell)
+                .clickable {
+                    scope.launch {
+                        store.write(Secret.NotesUnpushed, if (pushed) UNPUSHED else "")
+                    }
+                },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(grid.cell),
+        ) {
+            Text(
+                (if (pushed) Glyphs.DOT_FILLED else Glyphs.DOT_HOLLOW).toString(),
+                style = type.text,
+                color = if (pushed) palette.ink.srgb else palette.dim.srgb,
+            )
+            Text(
+                stringResource(R.string.notes_pushed),
+                style = type.text,
+                color = if (pushed) palette.ink.srgb else palette.dim.srgb,
+            )
+        }
         Text(
             stringResource(R.string.channels_measured),
             style = type.thin,
@@ -78,3 +110,6 @@ fun MarksMenuScreen(store: SecretStore, hidden: Set<Channel>, modifier: Modifier
         )
     }
 }
+
+/** What the store holds when the notes are **not** pushed: the refusal, so nothing is the default. */
+const val UNPUSHED = "unpushed"

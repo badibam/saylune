@@ -276,4 +276,5 @@
     <string name="notice_easier">Ça s’allège</string>
     <string name="notice_move">%1$s — %2$s</string>
     <string name="notice_of_sheet">%1$s — %2$s : %3$s</string>
+    <string name="notes_pushed">Montrer les notes du passage entre deux passages</string>
 </resources>
