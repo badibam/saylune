@@ -17,7 +17,6 @@
     <string name="weights_ready">timit-ipa · %1$s · vérifié</string>
     <string name="weights_erase">Effacer</string>
     <string name="weights_wrong">%1$s n\'est pas le bon fichier. Efface et recommence.</string>
-    <string name="weights_unaddressed">Pas encore d\'adresse de téléchargement. Tu peux apporter les fichiers.</string>
     <string name="weights_failed">Arrêté : %1$s</string>
     <string name="weights_brought">%1$s est en place.</string>
     <string name="settings_save">Enregistrer</string>

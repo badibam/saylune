@@ -50,18 +50,25 @@ import java.security.MessageDigest
 object Weights {
 
     /**
-     * Where the files are served from, and the two lines that are filled once they are.
+     * Where the files are served from: a release of this project's own repository.
      *
-     * A repository of models rather than one of code, and a **pinned revision** rather than
-     * a branch: what is fetched has to be the bytes these hashes were taken from, and a
-     * moving reference is a promise nobody can keep. Blank here means the download has no
-     * address yet -- [addressed] is false, the offer says so, and bringing a file by hand
-     * still works. Filling these two strings is the whole of turning it on.
+     * **Beside the code that makes them, rather than at a model host.** These are not
+     * somebody else's weights fetched from where they were published -- the network is an
+     * export `bench/export.py` writes from a chosen candidate, so it is this project's
+     * artefact and belongs with this project's tags.
+     *
+     * **A tag of its own, not the app's.** The model does not move at the app's pace: it
+     * changes when the acoustic model is settled, which is a question of its own
+     * (`../../../../../../../TODO.md`), so an app release would otherwise drag 358 MB behind
+     * every version that did not touch it.
+     *
+     * The tag is stable rather than immutable -- a tag can be moved, an asset replaced. That
+     * is not what makes this safe: **the digests are**. What arrives is checked against the
+     * bytes the bench measured before it is put in place, so a swapped file is refused
+     * rather than installed, which is the same answer a truncated download gets.
      */
-    private const val REPOSITORY = ""
-    private const val REVISION = ""
-
-    val addressed: Boolean get() = REPOSITORY.isNotEmpty() && REVISION.isNotEmpty()
+    private const val REPOSITORY = "badibam/saylune"
+    private const val TAG = "weights-timit-ipa-1"
 
     /**
      * One file the set needs, and what its bytes must be.
@@ -209,9 +216,6 @@ object Weights {
         context: Context,
         onProgress: (done: Long, total: Long) -> Unit,
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        if (!addressed) {
-            return@withContext Result.failure(IllegalStateException("no address is configured"))
-        }
         runCatching {
             var done = PIECES.sumOf { if (target(context, it).isFile) it.bytes else 0L }
             PIECES.forEach { piece ->
@@ -247,10 +251,13 @@ object Weights {
      */
     private fun pull(piece: Piece, into: File, onProgress: (Long) -> Unit) {
         val from = into.length()
-        val url = "https://huggingface.co/$REPOSITORY/resolve/$REVISION/${piece.name}"
+        val url = "https://github.com/$REPOSITORY/releases/download/$TAG/${piece.name}"
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 15_000
             readTimeout = 60_000
+            // A release asset is served from a signed URL on another host, so this is not
+            // optional. The original URL is asked for afresh each time rather than the
+            // redirect being kept: those signatures expire, and a resume may come hours later.
             instanceFollowRedirects = true
             if (from > 0) setRequestProperty("Range", "bytes=$from-")
         }

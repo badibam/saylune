@@ -19,7 +19,6 @@
     <string name="weights_ready">timit-ipa · %1$s · checked</string>
     <string name="weights_erase">Erase</string>
     <string name="weights_wrong">%1$s is not the right file. Erase and start again.</string>
-    <string name="weights_unaddressed">No download address yet. You can still bring the files.</string>
     <string name="weights_failed">Stopped: %1$s</string>
     <string name="weights_brought">%1$s is in place.</string>
     <string name="settings_save">Save</string>

@@ -243,17 +243,10 @@ private fun WeightsSection() {
                 stringResource(R.string.weights_cost, size(Weights.total)),
                 style = MaterialTheme.typography.bodySmall,
             )
-            if (!Weights.addressed) {
-                Text(
-                    stringResource(R.string.weights_unaddressed),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = { Weights.start(context) },
-                    enabled = Weights.addressed,
-                ) { Text(stringResource(R.string.weights_get)) }
+                Button(onClick = { Weights.start(context) }) {
+                    Text(stringResource(R.string.weights_get))
+                }
                 // Any type: the picker filters on what the provider declares, and a phone
                 // has no idea what an .onnx is. What it really is gets settled by its
                 // digest anyway, which is the only check that means anything here.
