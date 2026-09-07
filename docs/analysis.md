@@ -310,7 +310,7 @@ Poids sous licence libre uniquement — un poids non libre serait un `NonFreeAss
 
 Le 8 bits est donc à la fois plus léger et **plus rapide** — l'arrondi n'achète pas du temps contre de la place, il achète les deux. La mémoire tient sans effort, et deux prises du même fichier rendent les mêmes octets : le déterminisme, qui est un critère de qualification, est vérifié et non supposé.
 
-**Ce que coûte un tour, et non une passe.** Le montage en demande deux — l'apprenant et le modèle — mais celle du modèle est mise en cache avec la synthèse, donc elle ne se paie qu'à la première rencontre d'une phrase. Pour un tour de six secondes : environ **2,4 s** sur une phrase déjà entendue, **3 s** sur une phrase neuve, plus 0,85 s de chargement une fois par session. À mettre en face des 2,6 s de la chaîne de conversation jusqu'au premier son (`conversation-chain.md`) : l'analyse ne bloquant jamais la conversation, elle tourne pendant que l'IA répond et disparaît en pratique.
+**Ce que coûte un tour, et non une passe.** Le montage en demande deux — l'apprenant et le modèle — mais celle du modèle est mise en cache avec la synthèse, donc elle ne se paie qu'à la première rencontre d'une phrase. Pour un tour de six secondes : environ **2,4 s** sur une phrase déjà entendue, **3 s** sur une phrase neuve, plus 0,85 s de chargement une fois par session. À mettre en face des 2,6 s de la chaîne de conversation jusqu'au premier son (`providers.md`) : l'analyse ne bloquant jamais la conversation, elle tourne pendant que l'IA répond et disparaît en pratique.
 
 **Ce que coûte un tour long est mesuré, et ce qui croît est la mémoire plus que le temps.** Sur des prises du banc mises bout à bout :
 
