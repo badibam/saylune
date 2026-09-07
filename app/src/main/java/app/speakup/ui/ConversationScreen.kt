@@ -217,11 +217,19 @@ fun ConversationScreen(
         }
         val retakes = open != null &&
             (retaking == null || open.spare(retaking, turn.positions))
+        // What the AI's turn shows, which is a lever's position and never a preference: the
+        // scrambled text by default, the ear being the main channel and a legible text
+        // preempting the listening.
+        val display = Display.of(turn.positions)
         turn.utterances.forEach { spoken ->
             // An utterance that says another again is not drawn where it sits in the run: it
             // is one of the readings grouped under the one it repeats, which is where the
             // learner is looking. The run keeps the order; the screen keeps the grouping.
             if (spoken.repeats != null) return@forEach
+            if (!spoken.speaker.isLearner) {
+                Heard(spoken.text, shortName(turn, spoken.speaker), display, channels)
+                return@forEach
+            }
             val readings = turn.readings(spoken.id)
             Said(
                 spoken = spoken,
