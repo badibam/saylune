@@ -240,6 +240,10 @@ Le montage est tranché (`docs/reference.md`) ; reste à choisir qui tient chaqu
 
 **Le test de voix reste à écrire**, et c'est lui qui donnera un sens à « cette voix-là » : la netteté moyenne des pics de la grille, le pire son, les zones où la répartition s'effondre, et la divergence aux autres voix (`tmp/voices.py`, à promouvoir). Les seuils de passage se calibrent sur les voix connues bonnes. **La version d'un modèle Replicate n'étant pas épinglée**, c'est là que se tranche ce qu'on fait d'un modèle republié sous l'app.
 
+**La chaîne locale rebat ce chantier** (`docs/design/local-chain.md`, écrit le 2026-09-07). La voix des personnages passe en local **par défaut**, non pour la qualité mais parce qu'une distribution est ce qu'un catalogue commercial fait payer par abonnement : les deux issues distantes sont de monter le mur BYOK ou de vendre des jetons. Ça supprime avant écriture le mode payant, les crédits et leurs plafonds. Le doc porte le montage cible, les huit critères de décision posés avant les chiffres, et leur ordre — dont les deux bancs ci-dessus, qui en sont les deux dernières étapes.
+
+**Une seule chose est à préparer tout de suite, et elle ne coûte rien** : écrire le prompt en une **partie permanente et une queue courte**. Le jour où l'appel se découpe en deux — un modèle léger pour `intended`, un fort pour le jugement — les deux appels doivent partager leur préfixe à l'octet près pour que la mise en cache absorbe le second envoi de l'historique. Le rattraper après coup est une réécriture.
+
 ## Chantier 3 — incarnation
 
 - Porter le mécanisme de persona de `parcours`, un autre projet du parc : persona = paramètre, catalogue de personas nommés, séparation cadre / voix. Le principe ne dépend pas du fournisseur, l'injection si.
