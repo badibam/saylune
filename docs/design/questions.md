@@ -69,6 +69,8 @@ Une règle *à l'ouverture* n'a pas besoin de se désarmer : l'ouverture n'arriv
 
 **L'appel de clôture n'existe que si quelque chose l'a demandé** — un message qui provoque un tour, ou des questions ouvertes à balayer. Une séance dont l'auteur n'a écrit ni l'un ni l'autre se termine sans appel. Le dernier mot du personnage n'est donc jamais un comportement de l'app : c'est une règle qu'un auteur écrit.
 
+**Une conversation libre n'atteint jamais la clôture non plus**, n'ayant aucune règle de fin : une question qui l'attend n'y partirait jamais. Une scène sans fin pose donc ses questions **tous les N passages**, ce qui rend un état vivant plutôt qu'un verdict et se lit sur l'écran de reprise (`tiles.md`).
+
 **Une séance abandonnée n'atteint jamais la clôture**, donc ses questions restent sans réponse. C'est sans conséquence : sans fin, il n'y a pas d'issue, donc aucune scène suivante ne lit quoi que ce soit.
 
 ## La suite de réponses
