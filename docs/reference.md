@@ -12,7 +12,7 @@ Les autres docs, à ouvrir au besoin :
 - `providers.md` — ce que les fournisseurs font et coûtent : la latence mesurée maillon par maillon, les paramètres de chatterbox, les plafonds du BYOK.
 - `added-sounds.md` — voir un son que l'apprenant ajoute : les trois portes fermées en chemin et pourquoi aucune ne se rouvre. La voie retenue est en service et se lit en brique 12 d'`analysis.md`.
 - `../font/README.md` — **la police de l'app**, écrite et non empruntée : la boîte de 11 × 15, les scripts qui compilent les cartes de pixels en TTF, et la carte de la zone à usage privé.
-- `design/` — le transitoire, qui s'élague quand il est consommé : `grammar-test-set.md`, les deux bancs du chantier 2 qui ne sont pas écrits, et `harvest.md`, trois leçons d'établi qui attendent d'être poussées vers la sagesse.
+- `design/` (`design/grammar-test-set.md`, `design/harvest.md`) — le transitoire, qui s'élague quand il est consommé : les deux bancs du chantier 2 qui ne sont pas écrits, et trois leçons d'établi qui attendent d'être poussées vers la sagesse.
 
 ## Le geste
 
