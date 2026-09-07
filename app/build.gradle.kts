@@ -21,6 +21,13 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+
+        // The engine ships for the two instruction sets real phones run. The other two the
+        // library carries, x86 and x86_64, are emulators, and they cost 42 MB of the 72 the
+        // archive holds. Splitting further -- one APK per architecture, which is what the
+        // published precedent does -- halves what an arm64 phone downloads again, and waits
+        // until there is a release to publish and a recipe to write.
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
 
     // The block of dependency metadata AGP adds is signed by Google and cannot be read
@@ -120,9 +127,13 @@ dependencies {
     testImplementation("org.json:json:20240303")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    // The embedded analysis is still a proof of concept, and which engine the
-    // app ships with is not decided. Held to the debug build so that no release
-    // carries a native dependency on a bet -- and so that F-Droid is not owed an
-    // answer about a prebuilt AAR before the measure that would justify it.
-    debugImplementation("com.microsoft.onnxruntime:onnxruntime-android:1.20.0")
+    // What runs the acoustic model, and therefore what makes the app the app: without it
+    // there are no pronunciation marks at all. MIT, and taken from Maven Central rather
+    // than committed here, which is the distinction F-Droid draws -- a binary sitting in
+    // the repository is refused, a dependency from a trusted Maven repository is not
+    // (`../TODO.md`).
+    //
+    // The runtime is not the bet the acoustic model is: `bench/export.py` turns whichever
+    // candidate wins into the same kind of file, and they all run on this.
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.20.0")
 }
