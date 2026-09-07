@@ -94,6 +94,8 @@ fun ConversationScreen(
      */
     repeating: String?,
     onRepeating: (String?) -> Unit,
+    /** Which marks the conversation menu has left on. */
+    channels: Channels,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -224,6 +226,7 @@ fun ConversationScreen(
             Said(
                 spoken = spoken,
                 speaker = shortName(turn, spoken.speaker),
+                channels = channels,
                 readings = readings,
                 open = spoken.id == open?.opener?.id && retakes,
                 busy = turn.phase != Phase.Idle,
@@ -579,6 +582,7 @@ private fun Said(
     spoken: Utterance,
     /** The short name of whoever said it, which the line that names the turn carries. */
     speaker: String,
+    channels: Channels,
     /** Every reading of this turn, oldest first. Each one is addressed by its own identity. */
     readings: List<Utterance>,
     /** Whether this is the passage still open, the only one that can be said again. */
@@ -608,6 +612,7 @@ private fun Said(
             // kept on an utterance. The empty slot is the right shape for that
             // (`../../../../../../TODO.md`).
             pace = null,
+            channels = channels,
         )
         // The earlier takes stay in the base for the measures and for a bench, and no screen
         // shows them.
@@ -621,6 +626,8 @@ private fun Said(
             MarkedTurn(
                 marking,
                 reading.judged,
+                channels = channels,
+                sounds = sounds.orEmpty(),
                 modifier = Modifier.fillMaxWidth(),
                 // A tap anywhere in a word plays that word, on whichever side the selector
                 // points at. Its bounds are read off the sounds it covers rather than

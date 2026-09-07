@@ -221,7 +221,17 @@
     <string name="settings_what">Fournisseurs, clés et préférences.</string>
     <string name="marks_what">Le marquage, sur des tours mesurés et sur des tours inventés.</string>
     <!-- La barre d'actions : pourquoi une entrée est éteinte. -->
-    <string name="action_marks_menu_unwritten">Quelles marques s\'affichent se règle avec le tour redessiné.</string>
     <string name="action_levers_unwritten">Aucun écran ne pose de levier, ni avant la séance ni pendant.</string>
     <string name="unreadable_turn_file">%1$s est là et ne se lit pas : %2$s</string>
+    <!-- Le menu de conversation : quelles marques s'affichent. -->
+    <string name="channels_what">Quelles marques s\'affichent</string>
+    <string name="channel_tint">Les sons, sur les lettres</string>
+    <string name="channel_stress">L\'accent, sous la syllabe</string>
+    <string name="channel_melody">La mélodie, au-dessus de la ligne</string>
+    <string name="channel_squiggle">La grammaire, en vaguelette</string>
+    <string name="channel_brackets">La pertinence, entre crochets</string>
+    <string name="channel_pauses">Les pauses, entre les mots</string>
+    <string name="channel_following">Le suivi, au bout de l\'étiquette</string>
+    <string name="channel_pace">Le débit, à côté</string>
+    <string name="channels_measured">En éteindre une la cache et ne la démesure pas : la note ne bouge pas, et la rouvrir remontre ce qui était là.</string>
 </resources>

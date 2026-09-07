@@ -42,6 +42,8 @@ fun TurnLabel(
     following: String?,
     /** How far the pace fell from the model's, in percent, or null where it was not measured. */
     pace: Float?,
+    /** Which marks the learner has left on. */
+    channels: Channels = Channels.All,
     modifier: Modifier = Modifier,
 ) {
     val grid = Speakup.grid
@@ -56,17 +58,24 @@ fun TurnLabel(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Spacer(Modifier.width(grid.cell))
-        Pastille(following?.let { followingColour(it, colors) })
-        Spacer(Modifier.width(grid.cell))
-        Text(
-            pace?.let { paceOf(it) } ?: "",
-            modifier = Modifier.width(grid.cell * PACE_COLUMNS),
-            style = type.text,
-            color = pace?.let { paceColour(it, colors) } ?: colors.ink,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-        )
+        // **A channel that is off gives its slot up rather than emptying it.** These two live
+        // on a line where an empty slot says *not measured*, so leaving one blank would make
+        // the line lie. No slot, no channel; an empty slot, not measured.
+        if (Channel.Following in channels) {
+            Spacer(Modifier.width(grid.cell))
+            Pastille(following?.let { followingColour(it, colors) })
+        }
+        if (Channel.Pace in channels) {
+            Spacer(Modifier.width(grid.cell))
+            Text(
+                pace?.let { paceOf(it) } ?: "",
+                modifier = Modifier.width(grid.cell * PACE_COLUMNS),
+                style = type.text,
+                color = pace?.let { paceColour(it, colors) } ?: colors.ink,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+            )
+        }
     }
 }
 
@@ -132,10 +141,13 @@ private fun followingColour(notch: String, colors: MarkingColors): Color = when 
  * ramp and never drawn from the sensitivity: a mark that moved with a setting would stop
  * carrying anything.
  */
-private fun paceOf(gap: Float): String = when {
-    gap <= INSIDE -> "="
-    gap <= FAR -> if (gap > 0) "><" else "<->"
-    else -> if (gap > 0) ">><<" else "<-->"
+private fun paceOf(gap: Float): String {
+    val far = kotlin.math.abs(gap)
+    return when {
+        far <= INSIDE -> "="
+        far <= FAR -> if (gap > 0) "><" else "<->"
+        else -> if (gap > 0) ">><<" else "<-->"
+    }
 }
 
 private fun paceColour(gap: Float, colors: MarkingColors): Color = when {

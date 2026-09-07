@@ -38,11 +38,15 @@ import app.speakup.levers.Positions
 import app.speakup.keys.Secret
 import app.speakup.keys.SecretStore
 import app.speakup.store.Archive
+import androidx.compose.runtime.remember
 import app.speakup.ui.Action
+import app.speakup.ui.Channel
+import app.speakup.ui.Channels
 import app.speakup.ui.ConversationScreen
 import app.speakup.ui.ConversationsScreen
 import app.speakup.ui.Glyphs
 import app.speakup.ui.MarkingPrototypeScreen
+import app.speakup.ui.MarksMenuScreen
 import app.speakup.ui.Scaffold
 import app.speakup.ui.SettingsScreen
 import app.speakup.ui.Tile
@@ -110,7 +114,7 @@ class MainActivity : ComponentActivity() {
  * buttons. Still no navigation library -- the `android` wisdom holds one off until a graph
  * needs one, and a list one pushes onto and pops off is not a graph.
  */
-private enum class Screen { Title, Conversations, Conversation, Settings, Marks }
+private enum class Screen { Title, Conversations, Conversation, MarksMenu, Settings, Marks }
 
 /**
  * The app, from its root down.
@@ -140,6 +144,12 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
 
     val here = stack.last()
     BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
+
+    val stored by store.values().collectAsState(initial = emptyMap())
+    // Which marks the conversation menu has turned off. It is a preference of the learner's
+    // and never a lever: an activity may take an aid away, none hides a mark.
+    val hidden = remember(stored) { Channel.hidden(stored[Secret.HiddenMarks]) }
+    val channels = remember(hidden) { Channels(hidden) }
 
     val turn by pipeline.state.collectAsState()
     val capture by recorder.state.collectAsState()
@@ -194,7 +204,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     // Both are the conversation's own, and both are off with their reason:
                     // the marks menu comes with the redrawn turn, and no screen sets a lever
                     // yet, before a sitting or during one.
-                    Action(Glyphs.EYE, reason = R.string.action_marks_menu_unwritten),
+                    Action(Glyphs.EYE) { stack.add(Screen.MarksMenu) },
                     Action(Glyphs.LEVERS, reason = R.string.action_levers_unwritten),
                 ),
             ) {
@@ -202,8 +212,18 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     recorder, pipeline,
                     repeating = repeating,
                     onRepeating = { repeating = it },
+                    channels = channels,
                     modifier = Modifier.fillMaxSize(),
                 )
+            }
+
+            Screen.MarksMenu -> Scaffold(
+                title = stringResource(R.string.channels_what),
+                lives = null,
+                status = stringResource(R.string.channels_measured),
+                actions = listOf(back),
+            ) {
+                MarksMenuScreen(store, hidden, modifier = Modifier.fillMaxSize())
             }
 
             Screen.Settings -> Scaffold(

@@ -27,7 +27,10 @@ import androidx.compose.ui.unit.Constraints
 import app.speakup.judged.Judgement
 import app.speakup.judged.Span
 import app.speakup.judged.Word
+import app.speakup.analysis.AnalysedSound
+import app.speakup.marking.Pause
 import app.speakup.marking.TurnMarking
+import app.speakup.marking.pausesOf
 import app.speakup.providers.words
 import app.speakup.ui.theme.Grid
 import app.speakup.ui.theme.Rhythm
@@ -63,6 +66,10 @@ fun MarkedTurn(
     marking: TurnMarking,
     /** What the language model marked, or null on a turn nothing judged. */
     judged: Judgement?,
+    /** Which marks the learner has left on. */
+    channels: Channels = Channels.All,
+    /** Where each sound was said, which is what the pauses are read off. */
+    sounds: List<AnalysedSound> = emptyList(),
     modifier: Modifier = Modifier,
     onTapCharacter: ((Int) -> Unit)? = null,
 ) {
@@ -78,6 +85,7 @@ fun MarkedTurn(
         val cell = grid.painted(Grid.CELL).toInt()
         val columns = (widthPx / cell).coerceAtLeast(1)
 
+        val pauses = remember(marking, sounds) { pausesOf(marking.text, sounds) }
         val laid = remember(marking, judged, columns) {
             val stumbling = judged?.words()?.stumbling ?: kept(marking.text)
             wrap(tokensOf(marking.text, stumbling), columns)
@@ -87,8 +95,8 @@ fun MarkedTurn(
         // Measured once per line and reused for drawing: the font is fixed-width at a whole
         // scale, so a character's column times the cell is where it is, and the layout is only
         // asked for its baseline.
-        val painted = remember(laid, colors, style) {
-            laid.map { line -> measurer.measure(tinted(line, marking, colors), style, softWrap = false) }
+        val painted = remember(laid, colors, style, channels) {
+            laid.map { line -> measurer.measure(tinted(line, marking, channels, colors), style, softWrap = false) }
         }
 
         val tap = rememberUpdatedState(onTapCharacter)
@@ -108,7 +116,8 @@ fun MarkedTurn(
                 .then(tapModifier)
         ) {
             laid.forEachIndexed { index, line ->
-                drawLine(line, painted[index], marking, judged, colors, grid.scale, rhythm, index)
+                drawLine(line, painted[index], marking, judged, pauses, channels,
+                         colors, grid.scale, rhythm, index)
             }
         }
     }
@@ -157,6 +166,8 @@ private fun DrawScope.drawLine(
     painted: TextLayoutResult,
     marking: TurnMarking,
     judged: Judgement?,
+    pauses: List<Pause>,
+    channels: Channels,
     colors: MarkingColors,
     scale: Int,
     rhythm: Rhythm,
@@ -168,15 +179,17 @@ private fun DrawScope.drawLine(
     val bandTop = top + px(stack.bandTop)
     val ty = top + px(stack.boxTop)
 
-    melody(line, marking, colors, scale, rhythm, bandTop)
-    judged?.spans?.forEach { span ->
+    if (Channel.Melody in channels) melody(line, marking, colors, scale, rhythm, bandTop)
+    if (Channel.Brackets in channels) judged?.spans?.forEach { span ->
         enclosure(line, span, colors, scale, rhythm, ty)
     }
     drawText(painted, topLeft = Offset(0f, ty + px(Typography.ASCENT) - painted.firstBaseline))
-    judged?.spans?.forEach { span ->
+    if (Channel.Pauses in channels) points(line, pauses, colors, scale, ty)
+    if (Channel.Squiggle in channels) judged?.spans?.forEach { span ->
         squiggle(line, span, colors, scale, rhythm, top + px(stack.squiggleTop))
     }
-    rules(line, marking, colors, scale, rhythm, top + px(stack.markTop))
+    if (Channel.Stress in channels) rules(line, marking, colors, scale, rhythm,
+                                          top + px(stack.markTop))
     seams(line, marking, colors, scale, rhythm, ty)
 }
 
@@ -195,6 +208,7 @@ private fun DrawScope.drawLine(
 private fun tinted(
     line: List<Placed>,
     marking: TurnMarking,
+    channels: Channels,
     colors: MarkingColors,
 ): AnnotatedString {
     val width = line.lastOrNull()?.after ?: 0
@@ -215,6 +229,7 @@ private fun tinted(
                 val points = marking.phonemes.firstOrNull { offset in it.start until it.end }?.points
                 val faulty = marking.words.any { offset in it.start until it.end }
                 val colour = when {
+                    Channel.Tint !in channels -> colors.ink
                     faulty -> colors.wordFault
                     points != null -> phonemeColor(points, colors)
                     else -> colors.ink
@@ -503,6 +518,47 @@ private fun DrawScope.seams(
         .forEach { wedge(it.after, phonemeColor(it.points, colors), filled = false) }
     marking.added.forEach { wedge(it.after, colors.added, filled = true) }
 }
+
+/**
+ * A pause: a column of points stacked **in the blank the text already has** between two words.
+ *
+ * Never a column of its own: the melody is anchored to the characters, so an inserted column
+ * would slide the curve. Two pixels wide of the eleven, which is what lets the two arms of a
+ * bracket keep the rest of the blank at a group's edge. The silences at the edges go in the
+ * blank column bordering the turn.
+ *
+ * **No colour on the points.** What makes a pause too long depends on the setting, and no
+ * setting touches a mark; tinting the longest would be worse still, the same two-second pause
+ * coming out tinted in a calm turn and grey in one where a three-second blank drags. The points
+ * carry the duration and nothing else.
+ *
+ * **Middle points and not baseline points**: three low dots mean text was taken out, which is
+ * what the dimmed brackets of a fragment already say.
+ */
+private fun DrawScope.points(
+    line: List<Placed>,
+    pauses: List<Pause>,
+    colors: MarkingColors,
+    scale: Int,
+    ty: Float,
+) {
+    pauses.forEach { pause ->
+        val column =
+            if (pause.after < 0) (line.firstOrNull()?.column ?: return@forEach) - 1
+            else columnOf(line, pause.after)?.plus(1) ?: return@forEach
+        if (column < 0) return@forEach
+        AT[pause.notches - 1].forEach { row ->
+            drawRect(
+                colors.ink,
+                topLeft = Offset(((column * Grid.CELL + 4) * scale).toFloat(), ty + row * scale),
+                size = Size((2 * scale).toFloat(), (2 * scale).toFloat()),
+            )
+        }
+    }
+}
+
+/** Where the points of one, two or three notches sit inside the ink box. */
+private val AT = arrayOf(intArrayOf(6), intArrayOf(4, 8), intArrayOf(2, 6, 10))
 
 /** How many pixels tall a seam's wedge is. */
 private const val WEDGE = 4

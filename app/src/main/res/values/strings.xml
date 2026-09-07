@@ -238,7 +238,17 @@
     <string name="settings_what">Providers, keys and preferences.</string>
     <string name="marks_what">The marking, on measured turns and on invented ones.</string>
     <!-- The action bar: why an entry is off. -->
-    <string name="action_marks_menu_unwritten">Which marks show is settled with the redrawn turn.</string>
     <string name="action_levers_unwritten">No screen sets a lever yet, before a sitting or during one.</string>
     <string name="unreadable_turn_file">%1$s is there and cannot be read: %2$s</string>
+    <!-- The conversation menu: which marks are shown. -->
+    <string name="channels_what">Which marks are shown</string>
+    <string name="channel_tint">Sounds, on the letters</string>
+    <string name="channel_stress">Stress, under the syllable</string>
+    <string name="channel_melody">Melody, above the line</string>
+    <string name="channel_squiggle">Grammar, in a squiggle</string>
+    <string name="channel_brackets">Relevance, in brackets</string>
+    <string name="channel_pauses">Pauses, between the words</string>
+    <string name="channel_following">Following, at the end of the label</string>
+    <string name="channel_pace">Pace, beside it</string>
+    <string name="channels_measured">Turning one off hides it and never unmeasures it: the note does not move, and opening it again shows what was there.</string>
 </resources>

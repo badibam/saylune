@@ -62,6 +62,15 @@ enum class Secret(
     ConversationModel("task.llm.model", R.string.setting_model, masked = false),
     ConversationEffort("task.llm.effort", R.string.setting_effort, masked = false),
     SparePalette("view.palette.spare", R.string.setting_palette, masked = false),
+
+    /**
+     * Which marks the conversation menu has turned **off**, comma separated.
+     *
+     * The channels that are off and not the ones that are on: nothing stored is then every
+     * mark shown, which is what the app does before anybody has asked for anything, and a
+     * channel added later is on by default rather than silently missing.
+     */
+    HiddenMarks("view.marks.hidden", R.string.channels_what, masked = false),
     SynthesisProvider("task.tts.provider", R.string.task_synthesis, masked = false),
     SynthesisModel("task.tts.model", R.string.setting_model, masked = false),
 
