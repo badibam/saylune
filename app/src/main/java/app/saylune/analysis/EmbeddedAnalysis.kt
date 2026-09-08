@@ -50,6 +50,19 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
     private var engine: Engine? = null
     private var refused: Readiness.Off? = null
 
+    /**
+     * The set on disk the refusal was given against ([Weights.onDisk]).
+     *
+     * **A refusal lapses when the files change, and that is the whole of it.** Cached with no
+     * such condition it outlived the very gesture that answers it: the app opened without the
+     * model, said no once, and went on saying no for the life of the process -- so someone who
+     * then brought the three files by hand saw the settings screen declare them verified while
+     * the conversation kept the marks off, and only killing the app made it true. Read off the
+     * files rather than counted from the gestures, so a piece pushed over the cable lifts it
+     * exactly like one the picker brought.
+     */
+    private var refusedOver: String? = null
+
     private class Engine(
         val matrix: AcousticMatrix,
         val alphabet: Alphabet,
@@ -61,7 +74,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
     override suspend fun readiness(): Readiness = lock.withLock {
         engine?.let { return Readiness.On(it.version) }
-        refused?.let { return it }
+        val disk = Weights.onDisk(context)
+        refused?.let { if (refusedOver == disk) return it }
         // Settled once for the conversation and cached either way: the doc is explicit that
         // this is not a per-turn question, and a turn stays analysable as long as the
         // conversation started with its model loaded.
@@ -76,6 +90,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         val off = Readiness.Off(R.string.analysis_engine_refused, failure?.message)
         Trace.fail("analysis: off for the session", "why" to failure?.message)
         refused = off
+        refusedOver = disk
         return off
     }
 

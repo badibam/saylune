@@ -177,6 +177,14 @@ fun ConversationScreen(
         }
     }
 
+    // **Asked again on the way in, not only when the sitting opened.** The model is brought
+    // from another screen, so the one moment the answer can have changed is the return from
+    // it -- and a line still saying the marks are off, over a screen that has just declared
+    // the files verified, is read as the app being broken. It costs nothing when nothing
+    // moved: an engine already up says so at once, and a refusal is remembered against the
+    // files it was given over.
+    LaunchedEffect(Unit) { pipeline.recheckAnalysis() }
+
     // **A clock closed the turn**: it is truncated and sent as it stands, never cut into two
     // turns. Sending is the same gesture the hand would have made, so it is the same lambda.
     LaunchedEffect(capture.ending) { if (capture.ending != null) send() }

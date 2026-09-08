@@ -162,6 +162,23 @@ object Weights {
     }
 
     /**
+     * What the set on disk is right now, cheaply enough to ask before every reading.
+     *
+     * Three `stat` calls, no bytes read: a piece that arrives, is replaced or is erased moves
+     * its length or its date, and that is all this has to tell apart. It is **not** a check
+     * that the files are right -- [state] is, and it hashes 359 MB to say so. This answers the
+     * only question a cached answer needs asked of it: *is this still the same set I looked
+     * at?*
+     *
+     * It reads the files rather than counting the gestures that touched them, so a piece the
+     * bench pushed over the cable is seen exactly like one the picker brought.
+     */
+    fun onDisk(context: Context): String = PIECES.joinToString("/") { piece ->
+        val file = target(context, piece)
+        "${file.length()}@${file.lastModified()}"
+    }
+
+    /**
      * How far a download has already got, in bytes, so the offer can say "resume" honestly.
      *
      * Only ever the part files: a piece already whole and verified is not counted, because

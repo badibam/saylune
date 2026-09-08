@@ -678,10 +678,26 @@ class TurnPipeline(
             runCatching { Recordings.sweepOrphans(context, archive.recordings().toSet()) }
                 .onFailure { Trace.fail("recordings: not swept", "why" to it.message) }
         }
-        if (_state.value.analysis == null) {
-            val readiness = analysis.readiness()
-            _state.update { it.copy(analysis = readiness) }
-        }
+        recheckAnalysis()
+    }
+
+    /**
+     * Ask again whether the marks can be produced, and keep an answer that says they can.
+     *
+     * **An `On` is settled for the sitting, an `Off` is not.** The doc's rule is that a turn
+     * stays analysable as long as the conversation started with its model loaded -- it guards
+     * against *losing* the marks halfway, and says nothing about gaining them. Kept both ways,
+     * the refusal survived the model arriving: whoever brought the three files while the app
+     * was open was told no until the process was killed, on a screen that was at that moment
+     * declaring the same files verified.
+     *
+     * Cheap when the answer has not moved: the engine remembers its refusal against the files
+     * it refused over and only looks at them again when they change.
+     */
+    suspend fun recheckAnalysis() {
+        if (_state.value.analysis is Readiness.On) return
+        val readiness = analysis.readiness()
+        _state.update { it.copy(analysis = readiness) }
     }
 
     /** So a second call does not open a second conversation while the first is loading. */
@@ -1171,8 +1187,8 @@ class TurnPipeline(
         of: String, said: File, heard: List<Word>, text: String, kept: Kept,
         stumbling: List<Marked>,
     ) {
+        recheckAnalysis()
         val readiness = _state.value.analysis
-            ?: analysis.readiness().also { ready -> _state.update { it.copy(analysis = ready) } }
         if (readiness !is Readiness.On) {
             keep(of, Takes.keep(context, said, null, heard, text, false, null,
                                 stumbling = stumbling,
