@@ -2,6 +2,8 @@ package app.saylune
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -83,6 +85,7 @@ const val SPARE = "spare"
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        hideTheNavigationBar()
         val store = SecretStore(applicationContext)
         val recorder = TurnRecorder(applicationContext)
         // The three links are resolved at the moment they are used, not here: the user
@@ -140,6 +143,45 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * **Said again every time the window comes back**, and that is the whole of what makes it
+     * hold. The bar returns of its own accord when the activity is left and re-entered -- the
+     * system file picker that brings the weights in does exactly that -- and again on every
+     * recreation, so on every rotation, which this app is not allowed to lock. Set once in
+     * `onCreate` alone, it worked until the first of those and never again.
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) hideTheNavigationBar()
+    }
+
+    /**
+     * Take back the rows the navigation bar was holding.
+     *
+     * **The bar at the bottom and not the one at the top.** Both are the only things on screen
+     * that are in neither the font nor the palette, so the register wants both gone; the status
+     * bar is the one that costs something to take, since this phone's camera sits in that strip
+     * and the title line would run under it. That is an insets job, not a line.
+     *
+     * **Nothing else has to change, and that is measured rather than hoped.** The app is
+     * already drawn edge to edge -- the platform imposes it from `targetSdk` 35 -- and the root
+     * lays a single `safeDrawingPadding`. Hiding the bar puts its inset at zero, so the rows it
+     * held come back on their own; and a bar swiped back is **transient**, drawn over the app
+     * without moving an inset, so nothing is ever re-laid out under the reader. On a pixel grid
+     * that matters more than the rows.
+     *
+     * The gestures are untouched either way: with gesture navigation there is only a handle to
+     * hide and home still answers, with three buttons the strip is real and comes back at a
+     * swipe.
+     */
+    private fun hideTheNavigationBar() {
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            hide(WindowInsetsCompat.Type.navigationBars())
         }
     }
 }
