@@ -287,6 +287,7 @@ Conçu et largement écrit : `docs/ui.md` porte le registre, la police, les pale
 ## Bugs repérés à l'usage
 
 - **Écrire davantage de tests sur les règles** — les états, les enchaînements. Le moteur est de la logique pure, il tourne en JVM sans appareil ni réseau, donc il se prouve par des tests dans le dépôt.
+- **Une redite ne se déclare pas comme telle.** `redoLocked` construit sa tentative sans `attempt`, et rien d'autre n'écrit `Attempt.Repeat` : `Passage.repeats` compte donc toujours zéro et le budget de redites ne se dépense jamais. Même portée que la ligne suivante — la conversation libre ne consulte le budget qu'à porte fermée, donc jamais — mais c'est le compteur lui-même qui est faux, pas seulement sa relecture.
 - **La porte du son n'est pas relue après une redite.** Un passage que la porte a fermé reste fermé quelle que soit la qualité de la redite : `soundGate` n'est appelée que depuis `examine`, donc jamais depuis `redoLocked`. Ça ne mord pas en conversation libre, qui ne déclare aucun poids et ne ferme donc jamais la porte. Le doc, lui, dit l'inverse — « l'épuisement des redites tombe après l'analyse » — donc c'est un trou et pas un choix.
 
 ## Reste

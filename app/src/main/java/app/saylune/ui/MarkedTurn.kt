@@ -99,7 +99,14 @@ fun MarkedTurn(
         // Measured once per line and reused for drawing: the font is fixed-width at a whole
         // scale, so a character's column times the cell is where it is, and the layout is only
         // asked for its baseline.
-        val painted = remember(laid, colors, style, channels) {
+        //
+        // **The marking is a key of its own, and [laid] does not stand in for it.** The layout
+        // is the text cut into columns, so two readings of the same sentence lay out to a value
+        // that is equal -- which is exactly what saying it again produces. Keyed on the layout
+        // alone, the tint of a repeat was the tint of the take before it: the letters kept the
+        // colours of the attempt one had just improved on, while everything `drawLine` reads
+        // straight off the marking moved.
+        val painted = remember(laid, marking, colors, style, channels) {
             laid.map { line -> measurer.measure(tinted(line, marking, channels, colors), style, softWrap = false) }
         }
 
