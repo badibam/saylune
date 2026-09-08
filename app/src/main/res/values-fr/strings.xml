@@ -57,16 +57,16 @@
     <string name="capture_ended_silence">Ton tour est parti : le silence a duré.</string>
     <string name="capture_redo">Refaire</string>
     <string name="capture_send">ENVOI</string>
-    <string name="capture_permission">Saylune a besoin du micro pour entendre ton tour.</string>
+    <string name="capture_permission">Saylune a besoin du micro pour entendre le tour parlé.</string>
     <string name="capture_grant">Autoriser le micro</string>
     <string name="capture_kept">Tour conservé : %1$s</string>
     <string name="measured_marks">Marques</string>
     <string name="mic_unprocessed">micro sans traitement</string>
     <string name="mic_voice_recognition">micro de reconnaissance (cet appareil n\'offre pas de source sans traitement)</string>
-    <string name="phase_hearing">Écoute de ton tour…</string>
+    <string name="phase_hearing">Écoute du tour…</string>
     <string name="phase_thinking">Réflexion…</string>
     <string name="phase_speaking">Réponse…</string>
-    <string name="phase_measuring">Mesure de ton tour…</string>
+    <string name="phase_measuring">Mesure du tour…</string>
     <string name="turn_retry">Réessayer</string>
     <string name="turn_failed">La chaîne a lâché : %1$s. Ton tour est conservé — rien à redire.</string>
     <string name="speaker_learner">Toi</string>
@@ -94,14 +94,19 @@
 
          Deux choses qu\'elle ne fait jamais. Elle ne nomme ni l\'app ni l\'IA : ce qui parle est
          un personnage, et toute voix au-delà appartient à la phrase de mise en scène, que
-         l\'auteur d\'une scène écrit sur le patch. Et elle ne s\'adresse à l\'apprenant que là où
-         la phrase a vraiment besoin d\'un sujet — un écran qui en liste vingt ferait un mur
-         de « tu ». -->
+         l\'auteur d\'une scène écrit sur le patch. Et **elle ne s\'adresse jamais à
+         l\'apprenant** : le français oblige à choisir entre tu et vous, ce choix n\'apporte
+         rien qu\'une tournure impersonnelle n\'apporte déjà, et un réglage pour le porter
+         serait deux catalogues à tenir pour toujours — la plateforme n\'ayant aucun
+         qualificateur pour ça. Cette page était déjà écrite comme ça presque partout ; les
+         six phrases qui ne l\'étaient pas le sont maintenant. Vaut pour le texte français
+         des fiches de scène aussi (`docs/tile-authoring.md`). L\'anglais est laissé tel
+         quel : il ne marque pas l\'adresse, donc il n\'a rien à éviter. -->
     <plurals name="lever_model_listens">
         <item quantity="one">Le modèle peut être écouté %1$d fois</item>
         <item quantity="other">Le modèle peut être écouté %1$d fois</item>
     </plurals>
-    <string name="lever_model_listens_none">Tu redis de mémoire</string>
+    <string name="lever_model_listens_none">Le passage se redit de mémoire</string>
     <string name="lever_model_listens_free">Le modèle peut être écouté à l\'infini</string>
     <string name="lever_tempo_free">Le rythme est libre</string>
     <string name="lever_tempo_set">Le rythme du modèle est imposé</string>
@@ -319,7 +324,7 @@
     <string name="latency_repeats">Répétitions</string>
     <string name="latency_run">Lancer le test</string>
     <string name="latency_confirm_title">Lancer la mesure ?</string>
-    <string name="latency_confirm_body">%1$d appels seront faits, à votre charge chez les fournisseurs concernés.</string>
+    <string name="latency_confirm_body">%1$d appels seront faits, à la charge du compte chez les fournisseurs concernés.</string>
     <string name="latency_go">Lancer</string>
     <string name="latency_cancel">Annuler</string>
     <!-- Les réglages de l\'app : ce dans quoi on la lit, et ce à quoi elle ressemble. -->
@@ -344,9 +349,9 @@
         <item quantity="one">%1$d passage</item>
         <item quantity="other">%1$d passages</item>
     </plurals>
-    <string name="situation_what">Ce dans quoi tu arrives.</string>
+    <string name="situation_what">Ce dans quoi la scène commence.</string>
     <string name="situation_words">deux ou trois mots</string>
-    <string name="situation_gender">Qui tu rencontres</string>
+    <string name="situation_gender">La personne rencontrée</string>
     <string name="gender_any">Peu importe</string>
     <string name="gender_man">Un homme</string>
     <string name="gender_woman">Une femme</string>

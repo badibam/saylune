@@ -50,7 +50,7 @@
       "key": "about",
       "ask": {
         "en": "What do you feel like talking about? (optional)",
-        "fr": "De quoi as-tu envie de parler ? (facultatif)"
+        "fr": "Un sujet dont parler (facultatif)"
       }
     }
   ]
