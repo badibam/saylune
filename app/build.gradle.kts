@@ -50,6 +50,13 @@ android {
                 storePassword = System.getenv("SAYLUNE_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("SAYLUNE_KEY_ALIAS")
                 keyPassword = System.getenv("SAYLUNE_KEY_PASSWORD")
+                // v2 alone is enough to install at minSdk 26, and AGP stops there. v3 is
+                // what makes the key **replaceable**: it carries a proof, signed by the
+                // current key, that a new one takes over, so a phone accepts an update
+                // signed differently. Without it the key is the app's identity for good --
+                // lost, nobody can be updated, only told to uninstall and lose their data.
+                // It can only be armed while no release has shipped, which is now.
+                enableV3Signing = true
             }
         }
     }
