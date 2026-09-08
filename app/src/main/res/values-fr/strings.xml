@@ -361,11 +361,11 @@
     <string name="situation_no">Non</string>
     <string name="situation_yes">Oui</string>
     <string name="situation_over_warns">Recommencer laisse derrière ce qui a été dit : on n\'y revient pas.</string>
-    <string name="display_drop_words">Retirer les marques des mots d\'un passage une fois qu\'il est passé</string>
-    <string name="setting_avoid">Ce dont il vaut mieux rester loin</string>
-    <string name="setting_avoid_help">En toutes lettres, et ça ne quitte pas l\'appareil. Le personnage qui parle en est informé et contourne. Vide, rien n\'est envoyé.</string>
-    <string name="setting_show_triggers">Montrer ce qu\'une scène annonce</string>
-    <string name="setting_show_triggers_help">Décoché, une tuile ne dit rien de son contenu. Coché, elle liste ce que son auteur a déclaré, avant de commencer.</string>
+    <string name="display_drop_words">Effacer les marques de grammaire et de pertinence une fois qu\'il n\'y a plus rien à reformuler</string>
+    <string name="setting_avoid">Ce que la conversation doit éviter</string>
+    <string name="setting_avoid_help">Un texte libre, qui ne quitte pas l\'appareil. Le personnage qui parle en est informé et contourne, sans jamais le dire. Vide, rien n\'est envoyé.</string>
+    <string name="setting_show_triggers">Annoncer ce que contient une scène avant de commencer</string>
+    <string name="setting_show_triggers_help">Décoché, une scène ne dit rien d\'elle-même avant d\'être jouée. Coché, elle annonce d\'avance ce sur quoi elle est bâtie : un reproche, une horloge, un deuil.</string>
     <string name="situation_triggers">Ce que cette scène est faite pour faire</string>
     <string name="situation_triggers_none">Son auteur n\'a rien déclaré.</string>
     <string name="trigger_conflict">Un reproche, ou quelqu\'un de fâché</string>

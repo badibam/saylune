@@ -355,11 +355,11 @@
     <string name="situation_no">No</string>
     <string name="situation_yes">Yes</string>
     <string name="situation_over_warns">Starting over leaves what you have said behind: there is no way back to it.</string>
-    <string name="display_drop_words">Take the word marks off a passage once it has gone through</string>
-    <string name="setting_avoid">What to keep away from</string>
-    <string name="setting_avoid_help">In your own words, and it stays on this device. Whoever is speaking is told, and steers around it. Blank sends nothing.</string>
-    <string name="setting_show_triggers">Show what a scene warns about</string>
-    <string name="setting_show_triggers_help">Off, a tile says nothing of what it is about. On, it lists what its author declared before it starts.</string>
+    <string name="display_drop_words">Clear the grammar and relevance marks once there is nothing left to reword</string>
+    <string name="setting_avoid">What the conversation should avoid</string>
+    <string name="setting_avoid_help">In your own words, and it stays on this device. Whoever is speaking is told, and steers around it without ever saying so. Blank sends nothing.</string>
+    <string name="setting_show_triggers">Say what a scene contains before it starts</string>
+    <string name="setting_show_triggers_help">Off, a scene tells nothing of itself until it is played. On, it says up front what it is built around: a reproach, a clock, a loss.</string>
     <string name="situation_triggers">What this one is set up to do</string>
     <string name="situation_triggers_none">Its author declared nothing.</string>
     <string name="trigger_conflict">A reproach, or somebody angry with you</string>
