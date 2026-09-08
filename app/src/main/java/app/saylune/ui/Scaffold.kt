@@ -127,9 +127,17 @@ fun Scaffold(
         // title line and the status line were touching, so the framed entries and the framed
         // status read as one stack of boxes instead of two lines saying two things.
         Spacer(Modifier.height(grid.cell))
+        // **Two lines, and the height is fixed rather than grown.** One line truncated too
+        // often -- the phase of a turn, a gate naming three aptitudes, the reason an entry is
+        // off all outrun a padded worst screen. Left to grow, the box would change height as
+        // the phase changes, and the whole thread under it would step up and down while
+        // somebody reads it; fixed, the screen has one shape and the second line is simply
+        // there when it is needed. Four rows is the arithmetic of the frame: two text steps of
+        // fifteen pixels between two borders of four.
         Framed(
             Modifier
                 .fillMaxWidth()
+                .height(grid.cell * STATUS_ROWS)
                 .padding(horizontal = grid.cell)
                 .let { if (onStatus == null) it else it.clickable(onClick = onStatus) },
         ) {
@@ -138,7 +146,7 @@ fun Scaffold(
                 modifier = Modifier.align(Alignment.CenterStart),
                 style = type.text,
                 color = palette.ink.srgb,
-                maxLines = 1,
+                maxLines = STATUS_LINES,
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -213,3 +221,7 @@ private const val REASON_MS = 4_000L
  */
 private const val ENTRY_COLUMNS = 4
 private const val ENTRY_ROWS = 4
+
+/** How many lines of status the frame holds, and how many grid rows that costs. */
+private const val STATUS_LINES = 2
+private const val STATUS_ROWS = 4
