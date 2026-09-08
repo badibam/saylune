@@ -24,7 +24,9 @@ import androidx.compose.ui.Alignment
 import app.saylune.conversation.Utterance
 import app.saylune.judged.Judgement
 import app.saylune.notes.Measured
+import app.saylune.notes.Letter
 import app.saylune.notes.Note
+import app.saylune.notes.windowAt
 import app.saylune.notes.Passage as Scored
 import app.saylune.notes.Weights
 import app.saylune.notes.noteOver
@@ -116,6 +118,11 @@ fun PassageNotesScreen(
  * either way, and its height is exactly the air the aptitudes needed between them, so nothing
  * was spent to get it.
  *
+ * **Colour says the note, form says the level.** The letters are doubled and the figures are
+ * not; both are painted with what they came to -- green at A and B, the ramp below -- so a
+ * figure that carried no scale of its own now says whether it is good, and an aptitude's letter
+ * can be read across the room without being read at all ([inkOf]).
+ *
  * **A row with no measure says *not measured***, and it is drawn rather than dropped: the list
  * of sheets is fixed, so a missing row could not be told from a sheet nobody drew. A passage
  * whose words' gate closed shows four empty pronunciation rows, which is the truth about it.
@@ -168,15 +175,17 @@ fun PassageNotes(
         Heading(
             stringResource(R.string.passage_notes_whole),
             noteOf(Sheets.tree.sheets(), attempt, judged, weights, severity),
+            colors,
         )
         Sheets.tree.children.filterIsInstance<Branch>().forEach { aptitude ->
             val sheets = aptitude.sheets()
             Heading(
                 stringResource(nameOfAptitude(aptitude.name)),
                 noteOf(sheets, attempt, judged, weights, severity),
+                colors,
             )
             sheets.forEach { sheet ->
-                SheetRow(Sheets.pathOf(sheet), sheet, attempt, judged, colors)
+                SheetRow(Sheets.pathOf(sheet), sheet, attempt, judged, weights, severity, colors)
             }
         }
     }
@@ -197,7 +206,7 @@ fun PassageNotes(
  * shape.
  */
 @Composable
-private fun Heading(name: String, note: Note?) {
+private fun Heading(name: String, note: Note?, colors: MarkingColors) {
     val grid = Saylune.grid
     val palette = Saylune.palette
     Row(
@@ -215,7 +224,7 @@ private fun Heading(name: String, note: Note?) {
         Text(
             note?.letter?.name.orEmpty(),
             style = Saylune.type.big,
-            color = palette.ink.srgb,
+            color = note?.let { inkOf(it, colors) } ?: palette.ink.srgb,
             maxLines = 1,
         )
     }
@@ -253,6 +262,30 @@ private fun noteOf(
     )
 }
 
+/**
+ * What a letter, and the figure it came from, are painted with.
+ *
+ * **A and B share the green, and only C, D and E take the ramp.** The bar is at B, so *this is
+ * fine* is one thing and is said one way; which of the two it is, the letter itself says. It is
+ * the rule the sounds already follow -- under the noise band the letter keeps a single ink,
+ * because a tint there would be a lie of precision.
+ *
+ * `ramp[0]` is left out: three steps are wanted and the first is too near the neutral to be
+ * told from a B at a glance.
+ *
+ * **What the ramp means here is not what it means on a turn.** There it is the distance to the
+ * model, which nothing sets; here it is the distance to the bar of *this* sitting, which the
+ * severity moves -- two learners at the same figure and two severities take two colours. That
+ * is not a breach of the invariant, which is written about marks and not about notes, but it is
+ * a second reading of one ramp on one screen and it is said here rather than found later.
+ */
+private fun inkOf(note: Note, colors: MarkingColors): Color = when (note.letter) {
+    Letter.A, Letter.B -> colors.apt
+    Letter.C -> colors.ramp[1]
+    Letter.D -> colors.ramp[2]
+    Letter.E -> colors.ramp[3]
+}
+
 /** Every sheet under this node, at any depth. */
 private fun Node.sheets(): List<Sheet> = when (this) {
     is Sheet -> listOf(this)
@@ -273,6 +306,8 @@ private fun SheetRow(
     sheet: Sheet,
     attempt: Utterance,
     judged: Judgement?,
+    weights: Weights?,
+    severity: (Sheet) -> Int,
     colors: MarkingColors,
 ) {
     val grid = Saylune.grid
@@ -296,7 +331,15 @@ private fun SheetRow(
             style = type.text,
             // Not measured is the empty string and no sign of its own, exactly as on the line
             // that names a turn: the slot is fixed, so its emptiness is what carries.
-            color = palette.ink.srgb,
+            //
+            // **The figure wears the letter it came to**, which is the only thing that says
+            // whether *+2.3 semitones* is good: a figure alone carries no scale, and the
+            // series that gives it one is exactly what a note reads. Cut with the letters
+            // where the mode scores nothing, for the same reason they are.
+            color = attempt.measured[path]
+                ?.takeIf { weights != null }
+                ?.let { inkOf(sheet.windowAt(severity(sheet)).noteOf(it), colors) }
+                ?: palette.ink.srgb,
             textAlign = androidx.compose.ui.text.style.TextAlign.End,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
