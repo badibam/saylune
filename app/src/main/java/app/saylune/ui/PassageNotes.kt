@@ -118,6 +118,11 @@ fun PassageNotesScreen(
  * either way, and its height is exactly the air the aptitudes needed between them, so nothing
  * was spent to get it.
  *
+ * **The passage's own letter is framed, and it is the only one.** It is the sum of the five
+ * under it and not a sixth of them, and in a plain column of headings it read as one more
+ * aptitude. A frame is the register's word for *this is an object*, and it is spent once here:
+ * five of them would be five boxes and nothing standing out.
+ *
  * **Colour says the note, form says the level.** The letters are doubled and the figures are
  * not; both are painted with what they came to -- green at A and B, the ramp below -- so a
  * figure that carried no scale of its own now says whether it is good, and an aptitude's letter
@@ -175,13 +180,19 @@ fun PassageNotes(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = grid.cell),
     ) {
-        // The passage's own letter, over every sheet at once: the same formula as an
-        // aptitude's, restricted to nothing rather than to a branch.
-        Heading(
-            stringResource(R.string.passage_notes_whole),
-            noteOf(Sheets.tree.sheets(), attempt, judged, weights, severity),
-            colors,
-        )
+        // **The passage's own letter is framed, and it is the only one that is.** It is the sum
+        // of the five under it rather than a sixth of them, and read down a column of headings
+        // it looked like one more aptitude. The frame is the register's word for *this is an
+        // object* (`ui.md`), and it is spent once: five framed headings would be five boxes
+        // and nothing standing out, which is the argument the marking already makes about
+        // colouring everything.
+        Framed(Modifier.fillMaxWidth().padding(bottom = grid.cell)) {
+            Heading(
+                stringResource(R.string.passage_notes_whole),
+                noteOf(Sheets.tree.sheets(), attempt, judged, weights, severity),
+                colors,
+            )
+        }
         Sheets.tree.children.filterIsInstance<Branch>().forEach { aptitude ->
             val sheets = aptitude.sheets()
             Heading(
