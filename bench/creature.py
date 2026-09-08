@@ -60,11 +60,18 @@ def load_voice(path):
     return PiperVoice.load(str(path))
 
 
-def say(voice, text, speaker):
-    """One line, one speaker, as float32 mono."""
+def say(voice, text, speaker, **engine):
+    """One line, one speaker, as float32 mono.
+
+    `engine` reaches the model instead of the signal coming out of it, which is
+    why it is the only thing here that touches delivery: a filter works on
+    speech already spoken, and no amount of it stops a narrator reading like a
+    narrator.
+    """
     from piper import SynthesisConfig
 
-    chunks = list(voice.synthesize(text, syn_config=SynthesisConfig(speaker_id=speaker)))
+    config = SynthesisConfig(speaker_id=speaker, **engine)
+    chunks = list(voice.synthesize(text, syn_config=config))
     if not chunks:
         raise SystemExit(f"The engine rendered nothing for speaker {speaker}.")
     audio = np.concatenate([chunk.audio_float_array for chunk in chunks])
@@ -244,6 +251,16 @@ CAST = {
     ],
 }
 
+# The model's own three, read off this voice's config: rate, how much the voice
+# itself wavers, and how uneven the phoneme durations come out. They are swept
+# apart from the filters because they are not filters -- they change what is
+# said before anything is done to it, and they are the only lever on delivery.
+ENGINE = {
+    "rate": [("length_scale", v) for v in (0.65, 0.8, 1.0, 1.3, 1.7, 2.2)],
+    "waver": [("noise_scale", v) for v in (0.0, 0.15, 0.333, 0.6, 1.0)],
+    "uneven": [("noise_w_scale", v) for v in (0.0, 0.15, 0.333, 0.7, 1.2)],
+}
+
 KNOBS = {
     "pitch": pitch, "formants": formants, "double": double,
     "ring": ring, "saturate": saturate, "breath": breath, "reverb": reverb,
@@ -273,11 +290,11 @@ def write(path, x, rate):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("mode", choices=("voices", "sweep", "cast"))
+    parser.add_argument("mode", choices=("voices", "engine", "sweep", "cast"))
     parser.add_argument("-s", "--speaker", type=int, default=0, help="speaker id of the engine")
     parser.add_argument("-n", "--count", type=int, default=12, help="how many speakers, for `voices`")
     parser.add_argument("-t", "--text", default=LINE)
-    parser.add_argument("-k", "--knob", choices=sorted(SWEEPS), help="one sweep instead of all")
+    parser.add_argument("-k", "--knob", help="one sweep instead of all")
     args = parser.parse_args()
 
     voice = load_voice(VOICE)
@@ -295,6 +312,15 @@ def main():
     audio, rate = say(voice, args.text, args.speaker)
     out = OUT / f"speaker-{args.speaker:03d}"
     write(out / "plain.wav", audio, rate)
+
+    if args.mode == "engine":
+        knobs = [args.knob] if args.knob else sorted(ENGINE)
+        for knob in knobs:
+            print(f"{knob}:")
+            for field, value in ENGINE[knob]:
+                said, rate = say(voice, args.text, args.speaker, **{field: value})
+                write(out / "engine" / f"{knob}-{value}.wav", said, rate)
+        return
 
     if args.mode == "sweep":
         knobs = [args.knob] if args.knob else sorted(SWEEPS)
