@@ -332,13 +332,20 @@ Contrepartie assumée : le jeu de fonctionnalités **dépend du fournisseur choi
 
 **Et ce n'est pas seulement le jeu d'options qui en dépend : ce que valent les chiffres en dépend aussi.** Un jugement rendu par le modèle de langue n'est pas le même d'un fournisseur à l'autre, donc deux apprenants sur deux clés différentes n'ont pas des notes strictement comparables. **C'est admis, et ce n'est pas une objection recevable contre une brique** : la règle qui protège la lecture est ailleurs et suffit — une note ne se lit jamais sans la combinaison qui l'a produite, et tout ce qui est stocké porte la version de ce qui l'a produit.
 
-## Construire en debug, sauf quand la doublure de release change
+## Construire en debug, et ce que la release seule peut dire
 
-`./gradlew :app:assembleDebug` suffit pour tout le travail courant, et `assembleRelease` est long — R8, le rétrécissement des ressources, un APK complet — pour ne rien apprendre la plupart du temps.
+`./run install` suffit pour tout le travail courant. La release est longue à construire et n'apprend rien la plupart du temps.
 
-La seule raison de toucher au release est que `app/src/release/` existe : la doublure `Analyses` qui répond qu'aucun moteur d'analyse n'est embarqué. **Ce source set n'est jamais compilé par le build debug**, donc une erreur y dort jusqu'à la RC. Il fait vingt lignes et ne bouge quasiment pas.
+**Ce qui les sépare a changé le 2026-09-07.** Il y avait un `app/src/release/` — une doublure répondant qu'aucun moteur d'analyse n'était embarqué — et la règle était de compiler la release quand ce dossier bougeait. Il n'existe plus : la release porte l'analyse entière, et les deux builds compilent le même code.
 
-D'où la règle : debug par défaut ; compiler le release **seulement** quand `app/src/release/` ou la couture `Analysis` change, et avant une RC. Et alors `:app:compileReleaseKotlin` plutôt qu'`assembleRelease` — c'est la compilation qui manque, pas l'APK.
+Restent deux différences, et une seule peut casser quelque chose :
+
+- **R8 passe sur la release et pas sur le debug.** Il retire ce qu'il croit mort et renomme ce qu'il peut atteindre — donc ce qu'on ne trouve pas par un appel Kotlin ordinaire lui échappe. Mesuré : il renommait les classes que le moteur d'analyse cherche **par leur nom** depuis son code natif, ce qui compile proprement et échoue au premier tour analysé. Une règle de conservation le tient (`app/proguard-rules.pro`).
+- **Les instruments sont absents de la release** : la trace, le panneau de debug, le banc `ProbeActivity`, et la conservation des prises de l'apprenant. Ils sont tenus par `BuildConfig.DEBUG`, donc R8 supprime la branche morte.
+
+D'où la règle : debug par défaut ; construire la release **avant de publier**, et dès qu'on touche à quelque chose que R8 pourrait atteindre sans le voir — le moteur, ou toute chose trouvée par son nom plutôt que par un appel.
+
+**Et une release ne se juge pas à sa compilation.** Elle se construit, elle s'installe, et on parle dedans : une règle de conservation manquante ne se voit qu'à l'exécution.
 
 ## Hors périmètre
 

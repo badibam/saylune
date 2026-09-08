@@ -14,6 +14,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 GRADLEW = ROOT / "gradlew"
 DEBUG_APPLICATION_ID = "app.saylune.debug"
+# The two live side by side on a device, being two applications as far as Android is
+# concerned, with separate private storage. Which is the point of the suffix, and the
+# reason anything that talks to "the app" has to say which one it means.
+APPLICATION_ID = "app.saylune"
 
 # The release signing key, which lives outside the repository on purpose: a gitignored
 # file at the root would still be swept away by `git clean -xdf`, and this one cannot be
@@ -117,6 +121,24 @@ def task_install():
     gradle("installDebug")
 
 
+def task_install_release():
+    """Assemble the release and put it on the device.
+
+    Not `installRelease`: Gradle's own task wants a signing config declared at
+    configuration time, and this project's is only there when the key is. Assembling and
+    handing the file to adb keeps the unsigned case an ordinary refusal from Android
+    rather than a build that fails to configure.
+    """
+    if ready_device() is None:
+        return
+    task_release()
+    apk = ROOT / "app/build/outputs/apk/release/app-release.apk"
+    if not apk.is_file():
+        print(f"{apk} was not produced.", file=sys.stderr)
+        return
+    subprocess.run(["adb", "install", "-r", str(apk)], check=False)
+
+
 def task_release():
     """Assemble the release, signed when the key is where it belongs.
 
@@ -181,18 +203,46 @@ def task_devices():
     subprocess.run(["adb", "devices", "-l"], check=False)
 
 
-def task_logs():
+def running(application_id):
+    """The pid of that application on the device, or None."""
+    probe = subprocess.run(
+        ["adb", "shell", "pidof", "-s", application_id],
+        capture_output=True, text=True, check=False,
+    )
+    return probe.stdout.strip() or None
+
+
+def task_logs(which=None):
+    """Follow one application's log.
+
+    `logcat` takes a single `--pid`, so with both builds installed -- which is the ordinary
+    state of a device one tests releases on -- something has to choose. Whichever is running
+    when only one is; the debug build when both are, that being the working loop, while
+    saying the other is up and how to ask for it instead.
+    """
     if ready_device() is None:
         return
-    probe = subprocess.run(
-        ["adb", "shell", "pidof", "-s", DEBUG_APPLICATION_ID],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    pid = probe.stdout.strip()
+    wanted = {"debug": DEBUG_APPLICATION_ID, "release": APPLICATION_ID}.get(which)
+    if which is not None and wanted is None:
+        print(f"Unknown build: {which}. Say 'debug' or 'release'.", file=sys.stderr)
+        return
+
+    if wanted is None:
+        up = {name: running(app) for name, app in
+              (("debug", DEBUG_APPLICATION_ID), ("release", APPLICATION_ID))}
+        up = {name: pid for name, pid in up.items() if pid}
+        if not up:
+            print("Neither build is running on the device.", file=sys.stderr)
+            return
+        which = "debug" if "debug" in up else "release"
+        if len(up) > 1:
+            other = "release" if which == "debug" else "debug"
+            print(f"Both are running; following {which}. For the other: ./run logs {other}")
+        wanted = {"debug": DEBUG_APPLICATION_ID, "release": APPLICATION_ID}[which]
+
+    pid = running(wanted)
     if not pid:
-        print(f"{DEBUG_APPLICATION_ID} is not running on the device.", file=sys.stderr)
+        print(f"{wanted} is not running on the device.", file=sys.stderr)
         return
     subprocess.run(["adb", "logcat", f"--pid={pid}"], check=False)
 
@@ -200,6 +250,7 @@ def task_logs():
 ACTIONS = {
     "build": task_build,
     "install": task_install,
+    "install-release": task_install_release,
     "logs": task_logs,
     "bench": task_bench,
     "tile": task_tile,
@@ -210,7 +261,8 @@ ACTIONS = {
 
 LABELS = {
     "build": "build      assemble the debug APK",
-    "install": "install    assemble and install on the connected device",
+    "install": "install    assemble and install the debug build",
+    "install-release": "install-release   assemble, sign and install the release",
     "logs": "logs       follow logcat, filtered on the app",
     "devices": "devices    list attached devices and their state",
     "bench": "bench      read the labelled set, fault by fault",
@@ -243,7 +295,8 @@ def menu():
 
     choices = [Separator("Build")]
     choices += [Choice(LABELS[k], k) for k in ("build", "install", "logs", "devices")]
-    choices += [Separator("Release"), Choice(LABELS["release"], "release")]
+    choices += [Separator("Release")]
+    choices += [Choice(LABELS[k], k) for k in ("release", "install-release")]
     choices += [Separator("Bench"), Choice(LABELS["bench"], "bench")]
     choices += [Separator("Content"), Choice(LABELS["tile"], "tile")]
     choices += [Separator(""), Choice(LABELS["clean"], "clean")]
@@ -275,7 +328,7 @@ def main(argv):
         print(f"Unknown task: {task}\n", file=sys.stderr)
         usage()
         return 1
-    ACTIONS[task]()
+    ACTIONS[task](*argv[1:])
     return 0
 
 
