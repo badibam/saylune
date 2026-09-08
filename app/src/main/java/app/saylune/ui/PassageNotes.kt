@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -121,7 +122,9 @@ fun PassageNotesScreen(
  * **The passage's own letter is framed, and it is the only one.** It is the sum of the five
  * under it and not a sixth of them, and in a plain column of headings it read as one more
  * aptitude. A frame is the register's word for *this is an object*, and it is spent once here:
- * five of them would be five boxes and nothing standing out.
+ * five of them would be five boxes and nothing standing out. **The box holds the letter alone
+ * and not the line it sits on**: what is the sum of the others is the note, and framing its
+ * name with it made a banner of a heading that reads like the five below it.
  *
  * **Colour says the note, form says the level.** The letters are doubled and the figures are
  * not; both are painted with what they came to -- green at A and B, the ramp below -- so a
@@ -185,14 +188,15 @@ fun PassageNotes(
         // it looked like one more aptitude. The frame is the register's word for *this is an
         // object* (`ui.md`), and it is spent once: five framed headings would be five boxes
         // and nothing standing out, which is the argument the marking already makes about
-        // colouring everything.
-        Framed(Modifier.fillMaxWidth().padding(bottom = grid.cell)) {
-            Heading(
-                stringResource(R.string.passage_notes_whole),
-                noteOf(Sheets.tree.sheets(), attempt, judged, weights, severity),
-                colors,
-            )
-        }
+        // colouring everything. **It holds the letter and not the row**: the letter is what
+        // sums the five, and boxing its name with it framed a heading rather than a note.
+        Heading(
+            stringResource(R.string.passage_notes_whole),
+            noteOf(Sheets.tree.sheets(), attempt, judged, weights, severity),
+            colors,
+            Modifier.padding(bottom = grid.cell),
+            framed = true,
+        )
         Sheets.tree.children.filterIsInstance<Branch>().forEach { aptitude ->
             val sheets = aptitude.sheets()
             Heading(
@@ -223,12 +227,21 @@ fun PassageNotes(
  * shape.
  */
 @Composable
-private fun Heading(name: String, note: Note?, colors: MarkingColors) {
+private fun Heading(
+    name: String,
+    note: Note?,
+    colors: MarkingColors,
+    modifier: Modifier = Modifier,
+    /** Whether the letter sits in a frame, which the passage's own does and no other. */
+    framed: Boolean = false,
+) {
     val grid = Saylune.grid
     val palette = Saylune.palette
     Row(
-        Modifier.fillMaxWidth().height(grid.cell * HEADING_ROWS),
-        verticalAlignment = Alignment.Bottom,
+        modifier.fillMaxWidth().height(grid.cell * HEADING_ROWS),
+        // Bottom on a bare letter, which puts the two texts on one line; centred against a
+        // frame, whose ink is its border and whose letter sits in the middle of it.
+        verticalAlignment = if (framed) Alignment.CenterVertically else Alignment.Bottom,
     ) {
         Text(
             name,
@@ -238,13 +251,30 @@ private fun Heading(name: String, note: Note?, colors: MarkingColors) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Text(
-            note?.letter?.name.orEmpty(),
-            style = Saylune.type.big,
-            color = note?.let { inkOf(it, colors) } ?: palette.ink.srgb,
-            maxLines = 1,
-        )
+        // The frame's width is asked for rather than left to the letter, so the box is the same
+        // box whether the mode gives a letter or none -- a frame that shrank to two cells on a
+        // mode that scores nothing would be a second shape for the same thing.
+        if (framed) Framed(Modifier.width(grid.cell * LETTER_CELLS)) {
+            Letter(note, colors, Modifier.fillMaxWidth())
+        } else Letter(note, colors)
     }
+}
+
+/**
+ * A note's letter at the register's second size, painted with what it came to, and the empty
+ * string where the mode scores nothing -- the slot stays, which is what keeps the screen one
+ * shape from one mode to the next.
+ */
+@Composable
+private fun Letter(note: Note?, colors: MarkingColors, modifier: Modifier = Modifier) {
+    Text(
+        note?.letter?.name.orEmpty(),
+        modifier = modifier,
+        style = Saylune.type.big,
+        color = note?.let { inkOf(it, colors) } ?: Saylune.palette.ink.srgb,
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+    )
 }
 
 /**
@@ -562,6 +592,13 @@ private fun signed(value: Float): String =
  * that holds one is what separates two aptitudes.
  */
 private const val HEADING_ROWS = 4
+
+/**
+ * How wide the framed letter is, in cells: two for a doubled character, one each side for the
+ * border. Its height falls out of the same arithmetic at four cells, which is exactly
+ * [HEADING_ROWS] -- the frame fills the row it is on without making it taller.
+ */
+private const val LETTER_CELLS = 4
 
 /** How many lines a remark may run to, and how many cells it leaves for the letter. */
 private const val REMARK_LINES = 2
