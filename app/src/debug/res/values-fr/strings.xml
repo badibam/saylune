@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Needed beside the default one: for a French phone `values-fr` of `main` would
+         otherwise win over `values` of this source set, and the debug build would go back
+         to calling itself Saylune. -->
+    <string name="app_name">Saylune debug</string>
+</resources>

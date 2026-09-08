@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The two builds live side by side on a device, `applicationIdSuffix` being there so
+         they can. Sharing a name in the launcher undoes that: one opens the wrong one and
+         wonders why the keys are gone or the model is missing. A build-type source set
+         overrides `main` resource for resource, so this is the whole of it. -->
+    <string name="app_name">Saylune debug</string>
+</resources>
