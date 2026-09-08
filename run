@@ -115,10 +115,35 @@ def task_build():
     gradle("assembleDebug")
 
 
+def launch(application_id):
+    """Start the application that was just installed.
+
+    Not a courtesy. A freshly installed package sits `stopped=true notLaunched=true`, and a
+    launcher is free to leave it out of its list until it has run once -- measured here on
+    Easy Launcher, where an install that plainly succeeded showed up nowhere and read as a
+    failed install. Running it once settles that, and puts it on screen besides.
+
+    The activity is asked for rather than written down: it lives under the namespace while
+    the package carries the build type's suffix, so the pair is not guessable from either.
+    """
+    probe = subprocess.run(
+        ["adb", "shell", "cmd", "package", "resolve-activity", "--brief",
+         "-c", "android.intent.category.LAUNCHER", application_id],
+        capture_output=True, text=True, check=False,
+    )
+    component = probe.stdout.strip().splitlines()[-1].strip() if probe.stdout.strip() else ""
+    if "/" not in component:
+        print(f"{application_id} declares no launcher activity to start.", file=sys.stderr)
+        return
+    subprocess.run(["adb", "shell", "am", "start", "-n", component],
+                   capture_output=True, check=False)
+
+
 def task_install():
     if ready_device() is None:
         return
     gradle("installDebug")
+    launch(DEBUG_APPLICATION_ID)
 
 
 def task_install_release():
@@ -137,6 +162,7 @@ def task_install_release():
         print(f"{apk} was not produced.", file=sys.stderr)
         return
     subprocess.run(["adb", "install", "-r", str(apk)], check=False)
+    launch(APPLICATION_ID)
 
 
 def task_release():
@@ -261,8 +287,8 @@ ACTIONS = {
 
 LABELS = {
     "build": "build      assemble the debug APK",
-    "install": "install    assemble and install the debug build",
-    "install-release": "install-release   assemble, sign and install the release",
+    "install": "install    assemble, install and start the debug build",
+    "install-release": "install-release   assemble, sign, install and start the release",
     "logs": "logs       follow logcat, filtered on the app",
     "devices": "devices    list attached devices and their state",
     "bench": "bench      read the labelled set, fault by fault",
