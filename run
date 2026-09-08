@@ -15,10 +15,33 @@ ROOT = Path(__file__).resolve().parent
 GRADLEW = ROOT / "gradlew"
 DEBUG_APPLICATION_ID = "app.saylune.debug"
 
+# The release signing key, which lives outside the repository on purpose: a gitignored
+# file at the root would still be swept away by `git clean -xdf`, and this one cannot be
+# regenerated -- it is the app's identity to every phone that installed from GitHub.
+SIGNING = Path.home() / ".config" / "saylune" / "signing.env"
 
-def gradle(*args):
+
+def gradle(*args, env=None):
     """Delegate to the wrapper, never to a system-wide gradle."""
-    subprocess.run([str(GRADLEW), *args], cwd=ROOT, check=False)
+    subprocess.run([str(GRADLEW), *args], cwd=ROOT, check=False, env=env)
+
+
+def signing():
+    """Read the signing key's environment, or None when there is none.
+
+    Parsed rather than sourced: this only ever needs four `export NAME=value` lines, and
+    handing a file to a shell to run is a much larger thing to allow than reading it.
+    """
+    if not SIGNING.is_file():
+        return None
+    values = {}
+    for line in SIGNING.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line.startswith("export "):
+            continue
+        name, _, value = line[len("export "):].partition("=")
+        values[name.strip()] = value.strip().strip("\'\"")
+    return values
 
 
 def attached_devices():
@@ -95,7 +118,24 @@ def task_install():
 
 
 def task_release():
-    gradle("assembleRelease")
+    """Assemble the release, signed when the key is where it belongs.
+
+    It says which of the two happened, because the difference decides whether the APK can
+    be installed at all: Android refuses an unsigned one outright. Left unsaid, that turns
+    up much later as a phone rejecting the file for no visible reason.
+    """
+    keys = signing()
+    if keys is None:
+        print(
+            f"No signing key at {SIGNING}: the APK will be unsigned, and Android\n"
+            "installs no unsigned APK. Fine for checking that it builds; not for giving\n"
+            "to anyone. F-Droid signs with its own key regardless.",
+            file=sys.stderr,
+        )
+        gradle("assembleRelease")
+        return
+    print(f"Signing with the key named by {SIGNING}.")
+    gradle("assembleRelease", env={**os.environ, **keys})
 
 
 def task_clean():
