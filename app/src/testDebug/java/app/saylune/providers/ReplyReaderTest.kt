@@ -26,11 +26,13 @@ class ReplyReaderTest {
         spans: String = "[]",
         stumbling: String = "[]",
         following: String = "\"precise\"",
+        reach: String = "\"extended\"",
         difficulty: String = "\"medium\"",
         extra: String = "",
     ) = """
         {"intended": "$intended", "spans": $spans, "stumbling": $stumbling,
-         "following": $following, "spoken": "Ah, yesterday!", "difficulty": $difficulty$extra}
+         "following": $following, "reach": $reach, "spoken": "Ah, yesterday!",
+         "difficulty": $difficulty$extra}
     """.trimIndent()
 
     /**

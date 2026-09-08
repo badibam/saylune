@@ -223,4 +223,13 @@ enum class Marking {
     Stumbling,
     /** One notch per passage: what the answer proves it took in. */
     Following,
+    /**
+     * One notch per passage: how much of a sentence they built.
+     *
+     * **It takes no instruction, and that is not an oversight.** An instruction may only
+     * tighten, and there is nothing here to tighten: the notch describes the structure that
+     * came out of the mouth. What a challenge wants of it is said with the sensitivity, which
+     * is the lever, or in the staging, which is fiction and never reaches the criterion.
+     */
+    Reach,
 }

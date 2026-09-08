@@ -127,7 +127,7 @@ class SheetsTest {
 
     @Test fun `every node is reachable by the path it is addressed with`() {
         Sheets.all.forEach { assertEquals(it, Sheets.of(Sheets.pathOf(it))) }
-        assertEquals(11, scored.size)
+        assertEquals(12, scored.size)
         assertEquals(4, Sheets.unscored.size)
     }
 }

@@ -53,6 +53,7 @@ fun nameOfSheet(path: String): Int = when (path) {
     STRESS -> R.string.sheet_lexical_stress
     CORRECTNESS -> R.string.sheet_correctness
     RELEVANCE -> R.string.sheet_relevance
+    REACH -> R.string.sheet_reach
     UPTAKE -> R.string.sheet_uptake
     CONTINUITY -> R.string.sheet_continuity
     LONGEST_SILENCE -> R.string.sheet_longest_silence
@@ -61,7 +62,12 @@ fun nameOfSheet(path: String): Int = when (path) {
     else -> error("$path: no screen name. The tree is the list of them.")
 }
 
-/** The following's six notches in words, the one sheet whose measure is a notch and not a figure. */
+/**
+ * The notches in words, for the two sheets whose measure is a notch and not a figure.
+ *
+ * One map and not two: no notch name is shared between the two columns, and a screen asking
+ * for a name has the notch and not the sheet it came from.
+ */
 @StringRes
 fun nameOfNotch(notch: String): Int = when (notch) {
     "implied" -> R.string.notch_implied
@@ -70,6 +76,11 @@ fun nameOfNotch(notch: String): Int = when (notch) {
     "on-topic" -> R.string.notch_on_topic
     "vague" -> R.string.notch_vague
     "off-target" -> R.string.notch_off_target
+    "built" -> R.string.notch_built
+    "extended" -> R.string.notch_extended
+    "plain" -> R.string.notch_plain
+    "bare" -> R.string.notch_bare
+    "minimal" -> R.string.notch_minimal
     else -> error("$notch: no screen name. The column is the list of them.")
 }
 
@@ -80,6 +91,7 @@ internal const val MELODY = "pronunciation/melody"
 internal const val STRESS = "pronunciation/lexical-stress"
 internal const val CORRECTNESS = "correctness/correctness"
 internal const val RELEVANCE = "relevance/relevance"
+internal const val REACH = "relevance/reach"
 internal const val UPTAKE = "understanding/uptake"
 internal const val CONTINUITY = "fluency/continuity"
 internal const val LONGEST_SILENCE = "fluency/longest-silence"

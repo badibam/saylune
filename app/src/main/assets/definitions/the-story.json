@@ -47,6 +47,7 @@
     "correctness/correctness": 1,
     "relevance": 1,
     "relevance/relevance": 1,
+    "relevance/reach": 1,
     "fluency": 1,
     "fluency/continuity": 1,
     "fluency/longest-silence": 1,

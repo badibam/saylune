@@ -414,6 +414,10 @@ private fun measureOf(path: String, sheet: Sheet, attempt: Utterance): String? {
         // The notch's own words, which is what the following renders: it is a judgement over
         // the whole passage and has no figure to print.
         UPTAKE -> attempt.judged?.following?.let { stringResource(nameOfNotch(it)) }
+        // Same shape, same reason: a judgement over the whole passage with no figure to
+        // print. Blank on a judgement stored before the notch existed, which names none.
+        REACH -> attempt.judged?.reach?.takeIf { it.isNotBlank() }
+            ?.let { stringResource(nameOfNotch(it)) }
         // **In percent of silence and not in "points".** The figure is the share of the turn
         // spent silent minus the model's share on the same sentence, so it is already a
         // percentage of the turn; "+16 pts" named the unit of a subtraction and said nothing

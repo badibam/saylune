@@ -132,6 +132,41 @@ object Sheets {
         fallback = null,
     )
 
+    /**
+     * Reach: how much of a sentence did they build?
+     *
+     * The hole it closes is that somebody can cross the whole app on *Yeah*, *I go shop*, *is
+     * good* and come out with A everywhere. Correctness asks *is this English* and `Yeah` is;
+     * the following asks *did you take in what was said* and `Yeah` to a closed question is
+     * perfectly specific, brevity never being marked there; the fluency counts blanks a
+     * three-word turn does not have; and relevance marks the **word** that is flat, not the
+     * **sentence** that stays low. The following has a `vague` notch because the doc saw this
+     * exact hole on the side of what comes **in**. This is the same notch on the side of what
+     * goes **out**.
+     *
+     * **It is a description and not a level.** The doc refused a notch above `ok` on
+     * correctness -- *a difficult construction brought off right* -- because difficult depends
+     * on who is speaking and the app has no learner level. That refusal was written against a
+     * per-word label on an absolute norm, and it does not reach here: naming how many clauses
+     * came out, and whether a tense was held, asks nothing of a level.
+     *
+     * **`built` sits just above `extended`**, the same gesture as `implied` above `precise`:
+     * not every turn admits a subordinate clause, and a turn that offers no occasion must cap
+     * at `extended` for almost nothing. What the series does with that is the rest of the
+     * story -- `built` stays A at every position, so the top of the sheet is never out of
+     * reach, and `extended` falls a letter a notch from the middle on.
+     */
+    private val REACH = Reading.Column(
+        listOf(
+            Notch("built", 1.00f),
+            Notch("extended", 0.85f),
+            Notch("plain", 0.65f),
+            Notch("bare", 0.35f),
+            Notch("minimal", 0.00f),
+        ),
+        fallback = null,
+    )
+
     // ── The tree ────────────────────────────────────────────────────────────────────────
 
     /**
@@ -242,6 +277,21 @@ object Sheets {
         ),
     ))
 
+    /**
+     * Two sheets, and the inversion test separates them cleanly: *aim right* against *stretch*.
+     * The short exact answer is at the ceiling on `relevance` and on the floor on `reach`; the
+     * long ambitious sentence that misses the register does the reverse. So no setting of a
+     * single sheet renders both verdicts, which is the project's own condition for a second
+     * sheet on a branch.
+     *
+     * **Two prices, named rather than discovered.** `reach` reads other elements than
+     * `relevance` -- the whole passage against the groups of words -- so the parallel is
+     * weaker than the two on the sounds, the same weakness that keeps melody's second sheet
+     * unshipped. And it brushes against `flat`: `reach` reads the **structure** of the
+     * passage, `relevance` the **choice of words**, so *I make a thing* is marked by both.
+     * That is a second double count on the same words, after correctness and relevance, and
+     * it is owned.
+     */
     private val RELEVANCE_BRANCH = Branch("relevance", listOf(
         Sheet(
             name = "relevance",
@@ -251,6 +301,26 @@ object Sheets {
             direction = null,
             from = Marking.LanguageSpans,
             series = listOf(0.35f, 0.48f, 0.58f, 0.67f, 0.75f, 0.82f, 0.88f, 0.93f),
+        ),
+        /**
+         * The bounds sit so that **the position says what a plain sentence is worth**: A, B,
+         * C, D, E as the sensitivity climbs, which is the one-notch-one-letter property
+         * `notes/Sensitivity.kt` promises, read on the notch a learner produces all day.
+         * `extended` runs a letter above it from the middle on, and `built` stays A
+         * throughout, so both ends of the column are reachable at every position -- what
+         * `measures.md` asks of a sheet read by notches.
+         *
+         * At `normal` that puts a plain sentence at C and a linked one at B: by default the
+         * app asks for two ideas joined, and a joined sentence passes.
+         */
+        Sheet(
+            name = "reach",
+            elements = Elements.Whole,
+            reading = REACH,
+            unit = Unit.NotchValue,
+            direction = null,
+            from = Marking.Reach,
+            series = listOf(0.10f, 0.25f, 0.45f, 0.60f, 0.75f, 0.88f, 0.94f, 0.98f),
         ),
     ))
 

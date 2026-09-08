@@ -140,6 +140,18 @@ internal object ConversationPrompt {
         on point. If your last turn does not exist, use "off-target" only if they really are
         off; a first turn has nothing to follow.
 
+        "reach": one notch for the whole turn, saying how much of a sentence they built,
+        and nothing else. "built" is a sentence whose structure carries the meaning -- a
+        condition, a subordinate clause, tenses stacked; "extended" is two clauses joined,
+        or one tense other than the present held to the end; "plain" is one clause, one
+        tense, subject-verb-object; "bare" is a fragment that answers without making a
+        sentence; "minimal" is one word, an interjection, or a set phrase -- "yeah",
+        "me too", "I don't know". Judge only what came out of their mouth: this scale says
+        nothing about whether they were right, whether they aimed well, or whether it was
+        the answer the moment called for -- those are the other fields. A short answer that
+        was exactly what was asked for is still "bare" or "minimal" here, and that is the
+        point of the field.
+
         "established": include this field only when the instruction for this turn lists
         questions to settle. An object whose keys are exactly the keys listed there and
         whose values are your answers, one per question and none left out. Each question
@@ -311,9 +323,9 @@ internal object ConversationPrompt {
     val PROVOKED = """
         Nobody has spoken to you this turn. You are taking it of your own accord, on the
         instruction you have just been given. There is no learner turn to read, so
-        "intended", "spans", "stumbling", "following", "difficulty" and "echo" have nothing
-        to attach to: leave those six out. Answer with "spoken", and with "established" as
-        well if the instruction for this turn lists questions to settle.
+        "intended", "spans", "stumbling", "following", "reach", "difficulty" and "echo" have
+        nothing to attach to: leave those seven out. Answer with "spoken", and with
+        "established" as well if the instruction for this turn lists questions to settle.
     """.trimIndent()
 
     /**

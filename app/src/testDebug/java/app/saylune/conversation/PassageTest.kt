@@ -294,12 +294,13 @@ class PassageTest {
             judged = app.saylune.judged.Judgement(
                 intended = "I go there yesterday",
                 spans = emptyList(), stumbling = emptyList(),
-                following = "precise", difficulty = "medium",
+                following = "precise", reach = "extended", difficulty = "medium",
             ),
             analysed = null,
             timed = null,
         )
-        val judged = listOf("correctness/correctness", "relevance/relevance", "understanding/uptake")
+        val judged = listOf("correctness/correctness", "relevance/relevance",
+                            "relevance/reach", "understanding/uptake")
         judged.forEach { path ->
             val measured = read.first { Sheets.scoredPathOf(it.sheet) == path }
             assertTrue("$path has no figure", measured.figure != null)

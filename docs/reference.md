@@ -5,7 +5,7 @@ App Android de pratique de l'anglais oral : conversation libre avec une IA, jama
 Les autres docs, à ouvrir au besoin :
 
 - `activity.md` — le modèle d'activité : la définition, l'exécution et le bloc, les leviers et leur catalogue, les règles et leur moteur, ce que le modèle reçoit, le passage et ses tentatives, les deux portes, le blocage, la fin et son issue, le personnage et sa voix, la capture, l'audio.
-- `measures.md` — ce qui se mesure et comment ça devient une note : l'échelle A–E, l'arbre des poids, les onze feuilles, les séries et les sensibilités, ce qui est jugé contre ce qui est calculé, les noms d'écran.
+- `measures.md` — ce qui se mesure et comment ça devient une note : l'échelle A–E, l'arbre des poids, les douze feuilles, les séries et les sensibilités, ce qui est jugé contre ce qui est calculé, les noms d'écran.
 - `ui.md` — l'interface en pixel doux : le registre, la police et sa grille, les deux palettes, les cadres, le tour marqué, la charpente et les écrans.
 - `analysis.md` — l'analyse, brique par brique : ce qu'elle lit, ce qu'elle rend, ce qui est mesuré et ce qui reste à écrire.
 - `qualification.md` — comment on la vérifie : la procédure, et le jeu d'essai étiqueté qu'elle déroule. Rejouable par un tiers.
@@ -49,7 +49,7 @@ Une marque qui apparaîtrait parce que *le même son a déjà été raté trois 
 
 **Et elle n'interdit pas de lire la situation.** Une mesure a le droit de lire tout ce dans quoi l'apprenant se trouve — la conversation en cours, et la consigne de l'activité s'il y en a une. *« I go there yesterday »* n'est fautif que sachant qu'on parle d'hier, et *« I'll go there »* est de l'anglais parfait qu'un défi « parle au passé » rend hors sujet. Ce qu'une mesure ne lit jamais, ce sont **les réglages** et **le passé de l'apprenant**. La règle porte sur la faute, pas sur la suite de mots. Le prix se paie à la vérification : un juge qui lit le contexte s'éprouve sur des couples (contexte, phrase), jamais sur des phrases seules.
 
-**Cet invariant a été écrit contre les réglages, et sa portée s'arrête là.** Il dit qu'aucun levier ne déplace une marque ; il ne dit pas que le marquage est reproductible. Les trois marquages jugés viennent d'un modèle de langue non déterministe : la même phrase resoumise peut rendre des empans différents, et aucune architecture ne l'empêche. Ce n'est pas une violation, c'est une garantie que l'invariant n'a jamais donnée — à ne pas le citer un jour comme s'il l'avait donnée (`../TODO.md`).
+**Cet invariant a été écrit contre les réglages, et sa portée s'arrête là.** Il dit qu'aucun levier ne déplace une marque ; il ne dit pas que le marquage est reproductible. Les quatre marquages jugés viennent d'un modèle de langue non déterministe : la même phrase resoumise peut rendre des empans différents, et aucune architecture ne l'empêche. Ce n'est pas une violation, c'est une garantie que l'invariant n'a jamais donnée — à ne pas le citer un jour comme s'il l'avait donnée (`../TODO.md`).
 
 **Le mécanisme tient en trois étages, et un seul où les réglages entrent.** La **mesure**, que rien ne règle. La **marque**, qui l'affiche telle quelle, et qui est le repère stable de l'apprenant. La **note**, qui l'agrège et où les réglages agissent seuls, la sévérité décidant où tombent les bornes A–E.
 
@@ -65,7 +65,7 @@ Une marque qui apparaîtrait parce que *le même son a déjà été raté trois 
 - **Compréhension** — prendre ce qu'on vient de vous dire. À l'oral d'abord, à la vitesse de l'autre et avec ses réductions ; mais aussi la langue elle-même, qui reste à comprendre quand le texte est sous les yeux. Voir le texte est une aide en moins à trouver, pas une mesure qui disparaît.
 - **Correction** — la phrase bien formée, et la règle appliquée en parlant plutôt que sue.
 - **Fluidité** — trouver ses mots assez vite, enchaîner, ne pas s'arrêter au milieu.
-- **Pertinence** — avoir visé juste : le mot précis, le registre, la nuance, et ce que la situation demandait. La seule dont l'échec est invisible : rien ne signale qu'on vient de dire une version pauvre de son idée. C'est elle, jamais la correction, qui porte les exigences d'une activité.
+- **Pertinence** — avoir visé juste : le mot précis, le registre, la nuance, et ce que la situation demandait. La seule dont l'échec est invisible : rien ne signale qu'on vient de dire une version pauvre de son idée. C'est elle, jamais la correction, qui porte les exigences d'une activité. C'est aussi elle qui porte **l'étoffe**, une seconde feuille qui demande *as-tu construit une phrase* : sans elle on traverse l'app sur des *Yeah* et des phrases de trois mots avec des A partout, aucune des cinq aptitudes ne regardant ce que la phrase a tenté (`measures.md`).
 
 Les réglages sont **fixés pour toute la durée** de la conversation. Ce ne sont pas des modes entre lesquels on bascule — **les régler est la façon de déclarer l'intention de la conversation**, sans changer ni d'écran ni de mode, et c'est le mécanisme qui tisse les cinq dans une seule conversation.
 

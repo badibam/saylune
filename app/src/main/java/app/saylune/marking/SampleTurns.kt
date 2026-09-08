@@ -110,6 +110,7 @@ val MULTI_FAULT_JUDGED = Judgement(
     ),
     stumbling = listOf(Marked(8, 10, "abandoned")),
     following = "on-point",
+    reach = "plain",
     difficulty = "moyenne",
 )
 
@@ -119,5 +120,6 @@ val CLEAN_JUDGED = Judgement(
     spans = emptyList(),
     stumbling = emptyList(),
     following = "precise",
+    reach = "extended",
     difficulty = "moyenne",
 )

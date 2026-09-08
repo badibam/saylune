@@ -277,18 +277,24 @@
     <string name="sheet_lexical_stress">Stress</string>
     <string name="sheet_correctness">Form</string>
     <string name="sheet_relevance">Choice</string>
+    <string name="sheet_reach">Reach</string>
     <string name="sheet_uptake">Reply</string>
     <string name="sheet_continuity">Continuity</string>
     <string name="sheet_longest_silence">Longest gap</string>
     <string name="sheet_pace">Pace</string>
     <string name="sheet_stumbling">Hesitations</string>
-    <!-- The following's six notches, which are what the reply's row prints. -->
+    <!-- The notches of the two sheets a row prints in words rather than as a figure. -->
     <string name="notch_implied">between the lines</string>
     <string name="notch_precise">precise</string>
     <string name="notch_on_point">on point</string>
     <string name="notch_on_topic">on topic</string>
     <string name="notch_vague">vague</string>
     <string name="notch_off_target">off target</string>
+    <string name="notch_built">built</string>
+    <string name="notch_extended">extended</string>
+    <string name="notch_plain">plain</string>
+    <string name="notch_bare">bare</string>
+    <string name="notch_minimal">minimal</string>
     <!-- The units. A fraction where the sheet counts elements, a sign where it is a gap. -->
     <string name="measure_fraction">%1$d/%2$d</string>
     <string name="measure_plain">%1$d</string>

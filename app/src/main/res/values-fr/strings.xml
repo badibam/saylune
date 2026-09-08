@@ -253,18 +253,24 @@
     <string name="sheet_lexical_stress">Accentuation</string>
     <string name="sheet_correctness">Forme</string>
     <string name="sheet_relevance">Choix</string>
+    <string name="sheet_reach">Étoffe</string>
     <string name="sheet_uptake">Réponse</string>
     <string name="sheet_continuity">Continuité</string>
     <string name="sheet_longest_silence">Silence max</string>
     <string name="sheet_pace">Débit</string>
     <string name="sheet_stumbling">Hésitations</string>
-    <!-- The following's six notches, which are what the reply's row prints. -->
+    <!-- The notches of the two sheets a row prints in words rather than as a figure. -->
     <string name="notch_implied">entre les lignes</string>
     <string name="notch_precise">précis</string>
     <string name="notch_on_point">en rapport</string>
     <string name="notch_on_topic">sur le sujet</string>
     <string name="notch_vague">vague</string>
     <string name="notch_off_target">à côté</string>
+    <string name="notch_built">construit</string>
+    <string name="notch_extended">étoffé</string>
+    <string name="notch_plain">simple</string>
+    <string name="notch_bare">court</string>
+    <string name="notch_minimal">minimal</string>
     <!-- The units. A fraction where the sheet counts elements, a sign where it is a gap. -->
     <string name="measure_fraction">%1$d/%2$d</string>
     <string name="measure_plain">%1$d</string>

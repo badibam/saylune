@@ -100,6 +100,32 @@ Quatre crans — `à côté`, `plat`, `ok`, `juste` — dans cette précédence.
 
 **Le registre, la variété, la rareté et la complexité de la phrase n'ont pas de cran à eux** : le registre est ce que `à côté` dit, la répétition et la platitude ce que `plat` dit. Un cran par notion aurait compté deux fois les mêmes mots.
 
+### L'étoffe — as-tu construit une phrase ?
+
+**Le trou qu'elle bouche** : on peut traverser toute l'app en répondant *Yeah*, *I go shop*, *is good* et sortir avec des A partout. La correction demande *est-ce que c'est de l'anglais* et `Yeah` en est ; le suivi demande *as-tu pris ce qu'on t'a dit* et `Yeah` à une question fermée est parfaitement spécifique, la brièveté ne s'y marquant jamais ; la fluidité compte des blancs qu'une phrase de trois mots n'a pas ; et la pertinence marque le **mot** plat, pas la **phrase** basse. Le suivi a un cran `vague` parce que le doc a vu ce trou du côté de ce qui **entre** ; l'étoffe est le même cran du côté de ce qui **sort**.
+
+**Un cran par passage, jugé, un seul élément**, de la même famille que le suivi et non du marquage par groupe de mots. Cinq crans, chacun ancré par sa phrase, sur le même tour d'IA que le suivi — *« I finally got the tickets, but only for the Sunday matinée »* :
+
+| cran | ce qui le décide | exemple |
+|---|---|---|
+| `construit` | la structure porte le sens : une hypothèse, une subordonnée, des temps empilés | *« If you'd told me earlier, I could have swapped my shift »* |
+| `étoffé` | deux propositions liées, ou un temps autre que le présent tenu jusqu'au bout | *« That's a shame, because I was hoping for the evening one »* |
+| `simple` | une proposition, un temps, sujet-verbe-complément | *« Sunday is fine for me »* |
+| `court` | un fragment qui répond sans faire de phrase | *« Oh, Sunday »* |
+| `minimal` | un mot, une interjection, une formule figée | *« Oh, nice »* |
+
+**C'est une description et pas un niveau.** Le doc a refusé un cran au-dessus d'`ok` côté correction — *une construction difficile montée juste* — au motif que « difficile » demande un niveau d'apprenant que l'app n'a pas. Ce refus visait une **étiquette au mot sur une norme absolue** et ne porte pas ici : dire combien de propositions sont sorties, et si un temps a été tenu, ne demande aucun niveau.
+
+**La sensibilité dit ce que vaut une phrase ordinaire.** `simple` descend d'exactement une lettre par position — A, B, C, D, E — ce qui est la propriété que `notes/Sensitivity.kt` promet, lue sur le cran qu'un apprenant produit toute la journée. Au réglage `normal` ça met la phrase simple en C et la phrase liée en B : par défaut l'app demande qu'on lie deux idées, et une phrase liée passe.
+
+**`construit` se pose juste au-dessus d'`étoffé`**, même geste qu'`entre les lignes` au-dessus de `précis` : tous les tours n'admettent pas une subordonnée, et un tour qui n'en offre pas l'occasion doit plafonner sans que ça coûte grand-chose. La série le laisse donc à A à **toutes** les positions — les deux bouts de la colonne restent atteignables partout, ce que ce doc exige d'une feuille à crans — et c'est `étoffé` qui cède une lettre par cran à partir du milieu.
+
+**Le test d'inversion passe, et c'est ce qui justifie une seconde feuille sur la branche** : *vise juste* contre *déploie-toi*. La réponse courte et exacte est au plafond sur `Choix` et au sol sur l'étoffe ; la longue phrase ambitieuse qui rate le registre fait l'inverse. Aucun réglage d'une feuille unique ne rend les deux verdicts.
+
+**Elle ne prend aucune consigne, et ce n'est pas un oubli.** Une consigne ne peut que durcir, et il n'y a rien à durcir : le cran décrit la structure sortie de la bouche. Ce qu'un défi veut en demander se dit par la sensibilité, qui est le levier, ou dans la mise en scène, qui est de la fiction et n'atteint jamais le critère.
+
+**Deux prix, nommés plutôt que découverts.** Elle lit d'autres éléments que `Choix` — le passage entier contre les groupes de mots —, donc le parallèle est plus faible que celui des deux feuilles du son, la faiblesse même qui retient la seconde feuille de mélodie. Et elle frôle `plat` : l'étoffe lit la **structure**, la pertinence le **choix des mots**, donc *« I make a thing »* est marqué des deux côtés. C'est un second double-compte sur les mêmes mots, après celui de la correction et de la pertinence, et il est assumé.
+
 **Un même mot peut être marqué par la correction et par la pertinence**, et son poids s'ajoute dans les deux. *« I make a thing »* est mal formé **et** plat : deux défauts réels, pas un compté deux fois. C'est la seule exception au principe qu'aucun mot n'entre dans deux feuilles dont les poids s'additionnent, et elle est assumée.
 
 ## Compréhension — le suivi
@@ -233,20 +259,22 @@ Ce qu'un écran affiche n'est pas la clé de la feuille mais un nom court, sans 
 | `lexical-stress` | Stress | Accentuation | | `relevance` | Relevance | Pertinence |
 | `correctness` | Form | Forme | | `fluency` | Fluency | Fluidité |
 | `relevance` | Choice | Choix | | | | |
+| `reach` | Reach | Étoffe | | | | |
 | `uptake` | Reply | Réponse | | | | |
 | `continuity` | Continuity | Continuité | | | | |
 | `longest-silence` | Longest gap | Silence max | | | | |
 | `pace` | Pace | Débit | | | | |
 | `stumbling` | Hesitations | Hésitations | | | | |
 
-**Trois branches n'ont qu'une feuille, et c'est ce qui rend leurs noms difficiles** : le titre a déjà pris le nom du domaine, donc la feuille doit dire autre chose. Et pour deux d'entre elles, la correction et la pertinence sortent d'un seul marquage sur les mêmes éléments — leur nom ne peut donc pas être l'unité, les deux diraient *Mots*, il doit être la **question**. D'où `Forme` contre `Choix` : *est-ce que c'est de l'anglais*, puis *était-ce l'anglais qu'il fallait*.
+**Deux branches n'ont qu'une feuille, et c'est ce qui rend leurs noms difficiles** : le titre a déjà pris le nom du domaine, donc la feuille doit dire autre chose. Et la correction et le choix sortent d'un seul marquage sur les mêmes éléments — leur nom ne peut donc pas être l'unité, les deux diraient *Mots*, il doit être la **question**. D'où `Forme` contre `Choix` : *est-ce que c'est de l'anglais*, puis *était-ce l'anglais qu'il fallait*. `Étoffe` est la troisième question de la même famille, *as-tu construit une phrase*, et elle échappe au problème : elle lit le passage entier, donc son nom peut dire ce qu'elle regarde.
 
-Cinq choix à ne pas rouvrir.
+Six choix à ne pas rouvrir.
 
 - **`Grammar` / `Grammaire` pour `correctness`.** Le terme du code est large et exact, il couvre la syntaxe et l'idiome, mais il se lit à l'écran comme le geste de corriger — *« en cause : la Correction »* se comprend *« on t'a corrigé »*. `Langue` a été écarté pour l'inverse, exact et fade, tout étant la langue dans une app de langue. Coût borné : quand la faute est idiomatique, le nom trompe sur le *pourquoi*, et la marque dit toujours *quels mots*.
 - **`Elocution` est un faux ami**, le seul de la table : en anglais il désigne l'art de parler en public. Posé tel quel il annoncerait un cours d'éloquence au-dessus de quatre feuilles qui comptent des `th` ratés. `Pronunciation` couvre exactement la branche, prosodie comprise.
 - **`Stress` / `Accentuation`**, pas `Accent` des deux côtés : en français, `Accent` nu se lit *accent régional*, le contre-sens même que `Grammar` évitait.
 - **`Continuity` et `Reply` sont fades exprès.** `Flow` / `Fluidité` appartient à la branche au-dessus, et une feuille ne porte pas le nom de sa branche sur l'écran qui les empile. `Preuve` aurait tenu le registre — c'est le mot du doc — mais il est froid, et la lisibilité passe devant l'homogénéité sur une ligne qu'on lit en passant. Le risque est connu : ce qui est jugé n'est pas la qualité de la réponse, et le nom ne le dit pas. La liste des six crans, elle, le dit.
+- **`Reach` / `Étoffe`, et le français porte mieux que l'anglais.** `Étoffe` dit exactement ce qui est jugé, la matière de la phrase, sans dire *long* ni *savant*. `Reach` a été pris faute de mieux : `Ambition` fait un jugement de personne, `Range` sonne comme du vocabulaire, `Complexity` promet une échelle de difficulté que la feuille n'est pas. Le risque connu est qu'il se lise *portée* ; ce qui le rattrape est la ligne juste au-dessus, `Choice`, et la liste des cinq crans.
 - **`Relevance` est le maillon faible, gardé sciemment.** En anglais il tire vers *hors sujet*, quand la feuille marque aussi un mot **plat qui est dans le sujet** — l'objection même qui l'avait écarté comme nom de feuille. Deux choses le rattrapent : dans une liste de cinq il se lit *as-tu dit ce qu'il fallait*, et la feuille juste dessous dit `Choice`. `Aptness` serait exact et se lit mal.
 
 **Les noms mélangent la dimension et la faute, et c'est assumé.** `Clarity`, `Melody`, `Pace` nomment une dimension ; `Hesitations` et `Longest gap` nomment ce qui a raté. Tout convertir en dimensions échoue sur la fluidité, dont les quatre feuilles parlent du même tissu et où le vocabulaire manque. L'unité de l'écran de bilan se tient par la mise en page, pas par les mots.

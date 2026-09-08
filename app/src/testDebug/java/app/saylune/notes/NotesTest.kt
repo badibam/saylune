@@ -2,6 +2,7 @@ package app.saylune.notes
 
 import app.saylune.sheets.Branch
 import app.saylune.sheets.POSITIONS
+import app.saylune.sheets.Reading
 import app.saylune.sheets.Sheet
 import app.saylune.sheets.Sheets
 import app.saylune.sheets.Unit
@@ -175,6 +176,42 @@ class NotesTest {
             }
         }
     }
+
+    /**
+     * What the reach's series is **for**, stated as the property and not as its numbers: the
+     * sensitivity says what an ordinary sentence is worth, and `plain` walks the whole scale
+     * A to E as the position climbs -- one notch of sensitivity, one letter, read on the
+     * notch a learner produces all day.
+     */
+    @Test
+    fun `the reach position says what a plain sentence is worth`() {
+        val reach = sheet("relevance/reach")
+        val plain = reach.notch("plain")
+        val letters = (0 until POSITIONS).map { reach.windowAt(it).noteOf(plain).letter }
+        assertEquals(listOf(Letter.A, Letter.B, Letter.C, Letter.D, Letter.E), letters)
+    }
+
+    /**
+     * **The top of the reach is never out of reach**, at any position, and that is why `built`
+     * sits just above `extended` rather than far ahead: not every turn admits a subordinate
+     * clause, and requiring one for an A would punish everyone for an occasion nobody gave.
+     * `extended`, which every turn admits, gives ground a letter at a time instead.
+     */
+    @Test
+    fun `the reach never demands a construction the turn may not admit`() {
+        val reach = sheet("relevance/reach")
+        val built = reach.notch("built")
+        val extended = reach.notch("extended")
+        (0 until POSITIONS).forEach { position ->
+            val window = reach.windowAt(position)
+            assertEquals("at position $position", Letter.A, window.noteOf(built).letter)
+            assertTrue("at position $position",
+                       window.noteOf(extended).value >= window.noteOf(reach.notch("plain")).value)
+        }
+    }
+
+    private fun Sheet.notch(name: String): Float =
+        (reading as Reading.Column).notches.first { it.name == name }.value
 
     // ── The two sound sheets ────────────────────────────────────────────────────────────
 

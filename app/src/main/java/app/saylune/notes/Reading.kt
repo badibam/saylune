@@ -48,6 +48,7 @@ object Sheeting {
         "understanding/uptake" -> judged?.let { notch(sheet, it.following) }
         "correctness/correctness" -> judged?.let { column(sheet, it.words().correctness) }
         "relevance/relevance" -> judged?.let { column(sheet, it.words().relevance) }
+        "relevance/reach" -> judged?.let { notch(sheet, it.reach) }
         "fluency/continuity" -> timed?.let { Fluency.continuity(it) }
         "fluency/longest-silence" -> timed?.let { Fluency.longestSilence(it) }
         "fluency/pace" -> timed?.let { Fluency.rate(it) }

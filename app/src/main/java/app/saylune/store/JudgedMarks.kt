@@ -21,6 +21,7 @@ internal object JudgedMarks {
     fun write(judged: Judgement): String = JSONObject()
         .put("intended", judged.intended)
         .put("following", judged.following)
+        .put("reach", judged.reach)
         .put("difficulty", judged.difficulty)
         .put("spans", JSONArray().apply {
             judged.spans.forEach {
@@ -47,6 +48,11 @@ internal object JudgedMarks {
                 Marked(it.getInt("from"), it.getInt("to"), it.getString("notch"))
             },
             following = json.getString("following"),
+            // A judgement written before this notch existed carries none, and a sitting
+            // reopened has to stay readable. The empty string names no notch of the column,
+            // so the sheet drops out of the sum -- which is what an absent measure does
+            // everywhere else, rather than a value nobody produced.
+            reach = json.optString("reach"),
             difficulty = json.getString("difficulty"),
         )
     }

@@ -3,10 +3,10 @@ package app.saylune.judged
 /**
  * What the language model marks on the learner's turn, and how the app reads it.
  *
- * **Three markings come from the model** -- the language spans, from which the app draws
- * correctness and relevance; the stumbling, from which it draws filler and restarts; and the
- * following of what was said (`activity.md`). Everything else is calculated: a spread
- * gap, a silence, a rate, a ratio.
+ * **Four markings come from the model** -- the language spans, from which the app draws
+ * correctness and relevance; the stumbling, from which it draws filler and restarts; the
+ * following of what was said; and the reach of the sentence they built (`activity.md`).
+ * Everything else is calculated: a spread gap, a silence, a rate, a ratio.
  *
  * **The judge returns a notch, never a percentage.** "72% following" is checkable by nobody,
  * and the fineness comes from counting, as it does for the sounds: a passage is finely scored
@@ -29,6 +29,8 @@ data class Judgement(
     val stumbling: List<Marked>,
     /** One notch for the whole passage: what the answer proves it took in. */
     val following: String,
+    /** One notch for the whole passage: how much of a sentence they built. */
+    val reach: String,
     /** What the model says of the turn it just wrote. Not a measure of the learner. */
     val difficulty: String,
 )

@@ -82,14 +82,16 @@ internal object ReplyReader {
         }
 
         val following = parsed.required("following", content)
+        val reach = parsed.required("reach", content)
         val difficulty = parsed.required("difficulty", content)
         check(following, Sheets.columnOf("understanding/uptake"), "following", content)
+        check(reach, Sheets.columnOf("relevance/reach"), "reach", content)
         check(difficulty, Sheets.DIFFICULTY, "difficulty", content)
 
         // Unfolding is where the bounds are checked against the words of `intended`, so it
         // runs here rather than downstream: a span that misses a word boundary is a broken
         // answer, and the place to say so is the seam that read it.
-        val judged = Judgement(intended, spans, stumbling, following, difficulty)
+        val judged = Judgement(intended, spans, stumbling, following, reach, difficulty)
         runCatching { judged.words() }.onFailure {
             Trace.fail("conversation: a marking does not fit its own text",
                        "why" to it.message, "content" to content)
@@ -112,6 +114,7 @@ internal object ReplyReader {
             "spans" to spans.size.toString(),
             "stumbling" to stumbling.size.toString(),
             "following" to following,
+            "reach" to reach,
             "difficulty" to difficulty,
             "echo" to echo,
             "picked from the menu" to choice,
