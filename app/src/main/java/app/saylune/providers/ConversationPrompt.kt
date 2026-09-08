@@ -152,6 +152,17 @@ internal object ConversationPrompt {
         was exactly what was asked for is still "bare" or "minimal" here, and that is the
         point of the field.
 
+        "remarks": a short line about an aptitude, as an object, for the ones worth one.
+        Keys are "understanding", "correctness" and "relevance", and you include only the
+        keys you have something to say under -- leaving all three out is the ordinary case
+        on a turn with nothing remarkable about it. **At most 45 characters each**: it is
+        one line on a small screen, not a sentence of explanation. Say what stands out
+        over the whole turn, and **never where a fault is**: every span you marked above is
+        already drawn on the words it falls on, so naming one here would only pick a
+        favourite among marks the learner can already see. "The topic was never touched"
+        and "Answers, but never asks anything back" are remarks; "the past tense is wrong
+        in the second clause" is not.
+
         "established": include this field only when the instruction for this turn lists
         questions to settle. An object whose keys are exactly the keys listed there and
         whose values are your answers, one per question and none left out. Each question
@@ -323,9 +334,9 @@ internal object ConversationPrompt {
     val PROVOKED = """
         Nobody has spoken to you this turn. You are taking it of your own accord, on the
         instruction you have just been given. There is no learner turn to read, so
-        "intended", "spans", "stumbling", "following", "reach", "difficulty" and "echo" have
-        nothing to attach to: leave those seven out. Answer with "spoken", and with
-        "established" as well if the instruction for this turn lists questions to settle.
+        "intended", "spans", "stumbling", "following", "reach", "remarks", "difficulty" and
+        "echo" have nothing to attach to: leave those eight out. Answer with "spoken", and
+        with "established" as well if the instruction for this turn lists questions to settle.
     """.trimIndent()
 
     /**
@@ -371,6 +382,17 @@ internal object ConversationPrompt {
 
     fun message(role: String, content: String): JSONObject =
         JSONObject().put("role", role).put("content", content)
+
+    /**
+     * The aptitudes a remark may be written about: the three the language model judges.
+     *
+     * The other two are the app's own -- nothing about the sounds or the timing reaches the
+     * model -- so a line about them could only be invented.
+     */
+    val REMARKED = listOf("understanding", "correctness", "relevance")
+
+    /** How long a remark may be. One line of the round-up on the narrowest screen holds 23. */
+    const val REMARK_LIMIT = 45
 
     /** The notch names the contract above lists, straight from the catalogue that owns them. */
     val CORRECTNESS get() = Sheets.columnOf("correctness/correctness")

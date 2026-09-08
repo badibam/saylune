@@ -46,6 +46,16 @@ data class Register(
     /** The model's melody contour: a calm tone laid over the learner's on the ramp's red end. */
     val melodyHue: Float = 250f,
     val melodyChroma: Float = 0.055f,
+    /**
+     * The remark line of the round-up: prose the model wrote about an aptitude.
+     *
+     * **Its own two numbers rather than the melody's**, and that is what the spare needs: there
+     * the good end has taken the blue, so a remark left on the melody blue would wear the
+     * colour of *this went well* while saying the opposite. Held apart, the spare can empty it
+     * instead.
+     */
+    val remarkHue: Float = 250f,
+    val remarkChroma: Float = 0.055f,
 )
 
 /**
@@ -179,6 +189,17 @@ class Palette(private val register: Register) {
      */
     val melodyModel = calm
 
+    /**
+     * The round-up's remark: **a calm blue, and it is not a verdict**.
+     *
+     * A sentence in a column of figures, saying what stands out about an aptitude. It carries
+     * no note, so it takes neither the ramp nor the good end -- and where the spare register
+     * has spent the blue on the good end, it drains to the plain ink rather than compete: a
+     * line of prose is already told from a figure by being a line of prose.
+     */
+    val remark =
+        Lch(register.inkLightness + 0.08f * up, register.remarkChroma, register.remarkHue)
+
     /** The learner's contour, on the red end of the ramp. */
     val melodyLearner = Lch(register.rampLightness, register.rampChroma, register.rampEndHue)
 
@@ -217,7 +238,7 @@ class Palette(private val register: Register) {
  * a fault. The stress rule has the same defect -- the target against the stray -- and the
  * following pastille has it over four values.
  *
- * So it is **not a permutation of hues**. Three things change, and each answers one of those:
+ * So it is **not a permutation of hues**. Four things change, and each answers one of those:
  *
  * - **The good end goes blue.** Blue against amber-to-red is the one strong contrast that
  *   survives a red-green deficiency, since it lives on the axis that is not damaged.
@@ -228,6 +249,9 @@ class Palette(private val register: Register) {
  *   thing to an eye that does not read that arc; spreading the lightness gives them a second
  *   axis to separate on, and the alarm gets lighter off a dark ground and darker off a pale
  *   one.
+ * - **The round-up's remark drains to the ink**, for the same reason as the contour and with
+ *   less to lose: it is a sentence, told from a figure by being a sentence, and left blue it
+ *   would wear the colour this register gives to *this went well*.
  *
  * The plain registers keep their colours for everyone. Correcting the base palette instead
  * would tax the default with an aesthetic chosen for a perception most people do not have.
@@ -241,10 +265,12 @@ val NightPlumSpare = NightPlum.copy(
     rampLightnessSpread = 0.18f,
     goodHue = 255f,
     melodyChroma = 0.012f,
+    remarkChroma = 0f,
 )
 
 val PalePlumSpare = PalePlum.copy(
     rampLightnessSpread = 0.18f,
     goodHue = 255f,
     melodyChroma = 0.012f,
+    remarkChroma = 0f,
 )

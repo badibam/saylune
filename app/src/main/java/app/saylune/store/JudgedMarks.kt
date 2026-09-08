@@ -23,6 +23,9 @@ internal object JudgedMarks {
         .put("following", judged.following)
         .put("reach", judged.reach)
         .put("difficulty", judged.difficulty)
+        .put("remarks", JSONObject().apply {
+            judged.remarks.forEach { (aptitude, line) -> put(aptitude, line) }
+        })
         .put("spans", JSONArray().apply {
             judged.spans.forEach {
                 put(JSONObject().put("from", it.from).put("to", it.to)
@@ -54,6 +57,11 @@ internal object JudgedMarks {
             // everywhere else, rather than a value nobody produced.
             reach = json.optString("reach"),
             difficulty = json.getString("difficulty"),
+            // Same as `reach` above: a judgement written before these existed carries none,
+            // and an empty map is what an absent remark already looks like on a clean turn.
+            remarks = json.optJSONObject("remarks")?.let { written ->
+                written.keys().asSequence().associateWith { written.getString(it) }
+            } ?: emptyMap(),
         )
     }
 

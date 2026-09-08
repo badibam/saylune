@@ -33,6 +33,21 @@ data class Judgement(
     val reach: String,
     /** What the model says of the turn it just wrote. Not a measure of the learner. */
     val difficulty: String,
+    /**
+     * A short line about an aptitude, by the name of its branch, for the ones worth one.
+     *
+     * **Prose, and never a measure**: nothing weighs it, nothing stores a note from it, and no
+     * gate reads it. It exists because four of the five aptitudes **paint on the turn** -- the
+     * tinted letters, the rule, the squiggle, the brackets, the pause columns all say *where*
+     * -- and a sentence about them would only elect one of the marks already drawn, which the
+     * project refuses. Understanding paints nothing at all: its notch is one word on a label,
+     * with no place on the sentence and no content. That is the hole a line fills.
+     *
+     * Three keys at most -- `understanding`, `correctness`, `relevance` -- and **empty is the
+     * ordinary case**: a clean passage has nothing to remark, and a forced sentence would be
+     * noise taking two lines of a screen that scrolls.
+     */
+    val remarks: Map<String, String> = emptyMap(),
 )
 
 /**

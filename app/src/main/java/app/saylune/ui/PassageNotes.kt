@@ -123,6 +123,11 @@ fun PassageNotesScreen(
  * figure that carried no scale of its own now says whether it is good, and an aptitude's letter
  * can be read across the room without being read at all ([inkOf]).
  *
+ * **Three aptitudes also carry a line of prose** ([Remark]): the model's own remark on what
+ * stands out, in the calm blue, under the heading and above the sheets. It exists because the
+ * other four aptitudes **paint on the turn** and say where by themselves, and understanding
+ * paints nothing at all.
+ *
  * **A row with no measure says *not measured***, and it is drawn rather than dropped: the list
  * of sheets is fixed, so a missing row could not be told from a sheet nobody drew. A passage
  * whose words' gate closed shows four empty pronunciation rows, which is the truth about it.
@@ -184,6 +189,7 @@ fun PassageNotes(
                 noteOf(sheets, attempt, judged, weights, severity),
                 colors,
             )
+            judged?.remarks?.get(aptitude.name)?.let { Remark(it) }
             sheets.forEach { sheet ->
                 SheetRow(Sheets.pathOf(sheet), sheet, attempt, judged, weights, severity, colors)
             }
@@ -259,6 +265,37 @@ private fun noteOf(
         ),
         weights,
         severity,
+    )
+}
+
+/**
+ * A line the model wrote about this aptitude, in the register's calm blue.
+ *
+ * **Only three aptitudes ever have one, and no slot is kept for the other two.** Elocution and
+ * fluency are the app's own -- nothing about the sounds or the timing reaches the model -- so
+ * their absence is permanent rather than contingent, and two empty two-line slots on every
+ * passage would cost four lines of a screen that already scrolls. That is not the rule the
+ * letters follow, and the difference is exactly that: a letter is missing because a mode
+ * scores nothing, which could have been otherwise.
+ *
+ * **It stops before the letters' column.** Three cells -- a doubled letter is two across, plus
+ * a gutter -- so a remark never runs under the one thing on this screen meant to be read at a
+ * glance. What is left is 23 columns on the narrowest screen, twice, which is where the
+ * contract's 45 characters comes from; past that it is cut like every other line here.
+ *
+ * Aligned with the heading and not indented like a sheet: it belongs to the aptitude above,
+ * not to the list below.
+ */
+@Composable
+private fun Remark(line: String) {
+    val grid = Saylune.grid
+    Text(
+        line,
+        modifier = Modifier.fillMaxWidth().padding(end = grid.cell * REMARK_RESERVE),
+        style = Saylune.type.text,
+        color = Saylune.palette.remark.srgb,
+        maxLines = REMARK_LINES,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 
@@ -514,6 +551,10 @@ private fun signed(value: Float): String =
  * that holds one is what separates two aptitudes.
  */
 private const val HEADING_ROWS = 4
+
+/** How many lines a remark may run to, and how many cells it leaves for the letter. */
+private const val REMARK_LINES = 2
+private const val REMARK_RESERVE = 3
 
 /** How wide a notch bar is, in cells. Five columns of the twenty-eight the worst screen gives. */
 private const val BAR_CELLS = 5

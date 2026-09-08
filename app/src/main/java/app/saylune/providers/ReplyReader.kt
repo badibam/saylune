@@ -88,10 +88,23 @@ internal object ReplyReader {
         check(reach, Sheets.columnOf("relevance/reach"), "reach", content)
         check(difficulty, Sheets.DIFFICULTY, "difficulty", content)
 
+        // **Kept to the keys the contract names, and a stray one is dropped rather than fatal.**
+        // It is prose: nothing weighs it, nothing gates on it, so losing a line costs a line --
+        // where throwing would cost the turn, the recording and the reply with it.
+        val remarks = parsed.optJSONObject("remarks")?.let { written ->
+            ConversationPrompt.REMARKED
+                .mapNotNull { key ->
+                    written.optString(key).trim().ifBlank { null }
+                        ?.take(ConversationPrompt.REMARK_LIMIT)?.let { key to it }
+                }
+                .toMap()
+        } ?: emptyMap()
+
         // Unfolding is where the bounds are checked against the words of `intended`, so it
         // runs here rather than downstream: a span that misses a word boundary is a broken
         // answer, and the place to say so is the seam that read it.
-        val judged = Judgement(intended, spans, stumbling, following, reach, difficulty)
+        val judged =
+            Judgement(intended, spans, stumbling, following, reach, difficulty, remarks)
         runCatching { judged.words() }.onFailure {
             Trace.fail("conversation: a marking does not fit its own text",
                        "why" to it.message, "content" to content)
@@ -116,6 +129,8 @@ internal object ReplyReader {
             "following" to following,
             "reach" to reach,
             "difficulty" to difficulty,
+            "remarks" to remarks.entries.joinToString("; ") { "${it.key}: ${it.value}" }
+                .ifEmpty { null },
             "echo" to echo,
             "picked from the menu" to choice,
             "intended fell back to the transcript" to
