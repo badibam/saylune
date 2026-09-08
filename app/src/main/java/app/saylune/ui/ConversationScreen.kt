@@ -228,7 +228,14 @@ fun ConversationScreen(
             // Outside the scroll and not inside it: inside, the gap would be a last empty line
             // of the thread and would scroll away with it, leaving the text against the buttons
             // exactly when the thread is long enough for it to matter.
-            .padding(bottom = grid.cell)
+            //
+            // **The cell at the sides is the one every other screen already pays.** The
+            // settings, the situation, the themes, the buttons, the commands, the notes and
+            // the title all lay it; the thread was the only surface flush to the glass. What
+            // that cost is measured: a relevance bracket opening on the first letter of a line
+            // is drawn four pixels to the left of its cell (`MarkedTurn.kt`), so it fell off
+            // the screen entirely -- and a curved edge takes the rest.
+            .padding(bottom = grid.cell, start = grid.cell, end = grid.cell)
             .verticalScroll(thread),
         verticalArrangement = Arrangement.spacedBy(grid.cell),
       ) {
