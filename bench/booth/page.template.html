@@ -1,0 +1,782 @@
+<title>Saylune Phoneme Booth</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #e8ecee;
+    --surface: #fbfcfc;
+    --surface-sunk: #dfe5e8;
+    --ink: #16212a;
+    --muted: #5d6d79;
+    --faint: #8496a2;
+    --line: #cbd5db;
+    --line-soft: #dde4e8;
+    --accent: #2c5c6b;
+    --accent-soft: #d5e5e9;
+    --rec: #a83a3a;
+    --rec-soft: #f0d9d9;
+    --done: #3f7357;
+    --focus: #2c5c6b;
+    --shadow: 0 1px 2px rgba(22, 33, 42, .07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #10161b;
+      --surface: #182027;
+      --surface-sunk: #0c1116;
+      --ink: #e2e9ee;
+      --muted: #93a3af;
+      --faint: #6d7f8c;
+      --line: #2b3841;
+      --line-soft: #222d35;
+      --accent: #77b7c7;
+      --accent-soft: #1d333b;
+      --rec: #e07b7b;
+      --rec-soft: #3a2222;
+      --done: #74b58c;
+      --focus: #77b7c7;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #10161b;
+    --surface: #182027;
+    --surface-sunk: #0c1116;
+    --ink: #e2e9ee;
+    --muted: #93a3af;
+    --faint: #6d7f8c;
+    --line: #2b3841;
+    --line-soft: #222d35;
+    --accent: #77b7c7;
+    --accent-soft: #1d333b;
+    --rec: #e07b7b;
+    --rec-soft: #3a2222;
+    --done: #74b58c;
+    --focus: #77b7c7;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font: 400 16px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 60rem; margin: 0 auto; padding: 1.75rem 1.25rem 5rem; }
+
+  header { display: flex; flex-direction: column; gap: .5rem; }
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+  }
+  .lede { margin: 0; color: var(--muted); max-width: 42rem; }
+
+  .progress { display: flex; align-items: center; gap: .75rem; margin-top: .5rem; }
+  .progress-bar {
+    flex: 1;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--surface-sunk);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0;
+    background: var(--done);
+    transition: width .25s ease;
+  }
+  .progress-count {
+    font: 500 .8125rem/1 "IBM Plex Mono", ui-monospace, monospace;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .banner {
+    margin-top: 1rem;
+    padding: .75rem .9rem;
+    border-left: 3px solid var(--rec);
+    background: var(--rec-soft);
+    color: var(--ink);
+    font-size: .9375rem;
+    border-radius: 0 4px 4px 0;
+  }
+  .banner[hidden] { display: none !important; }
+
+  section { margin-top: 2.25rem; }
+
+  .family { display: flex; flex-direction: column; gap: .15rem; margin-bottom: .6rem; }
+  .family h2 {
+    margin: 0;
+    font: 500 .75rem/1 "IBM Plex Mono", ui-monospace, monospace;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .family p { margin: 0; color: var(--muted); font-size: .9375rem; }
+
+  .rows { display: flex; flex-direction: column; gap: 2px; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .5rem 1rem;
+    padding: .6rem .9rem;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-radius: 5px;
+    box-shadow: var(--shadow);
+  }
+  .row[data-state="recorded"] { border-left: 3px solid var(--done); padding-left: calc(.9rem - 2px); }
+  .row[data-state="recording"] { border-color: var(--rec); }
+
+  .symbol {
+    font: 500 1.75rem/1 "Noto Sans", "Segoe UI", "IBM Plex Sans", sans-serif;
+    text-align: center;
+    letter-spacing: 0;
+  }
+  .symbol[data-missing="yes"] { color: var(--accent); }
+
+  .word { min-width: 0; }
+  .word-text { font-size: 1.0625rem; }
+  .word-text em {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 1px;
+  }
+  .note {
+    display: block;
+    font-size: .8125rem;
+    color: var(--faint);
+    margin-top: .1rem;
+    min-height: 1.1em;
+  }
+  .note[data-kind="error"] { color: var(--rec); }
+  .note[data-kind="live"] { color: var(--rec); font-variant-numeric: tabular-nums; }
+
+  .controls { display: flex; align-items: center; gap: .4rem; }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  button[disabled] { opacity: .35; cursor: default; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .7rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-size: .875rem;
+    white-space: nowrap;
+  }
+  .btn:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
+  .btn svg { width: 13px; height: 13px; flex: none; }
+
+  .btn-rec { border-color: var(--rec); color: var(--rec); }
+  .btn-rec:hover:not([disabled]) { border-color: var(--rec); color: var(--rec); background: var(--rec-soft); }
+  .btn-rec[data-live="yes"] { background: var(--rec); color: #fff; border-color: var(--rec); }
+  .btn-rec[data-live="yes"]:hover { background: var(--rec); color: #fff; }
+
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
+  .btn-rec[data-live="yes"] .dot { animation: pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-rec[data-live="yes"] .dot { animation: none; }
+    .progress-fill { transition: none; }
+  }
+
+  .meter {
+    width: 46px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--surface-sunk);
+    overflow: hidden;
+  }
+  .meter i { display: block; height: 100%; width: 0; background: var(--rec); }
+
+  .takes {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem;
+  }
+  .takes:empty { display: none; }
+
+  .take {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .take-play {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .25rem .55rem;
+    font: 500 .8125rem/1.4 "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    border-radius: 0;
+  }
+  .take-play:hover { color: var(--accent); }
+  .take-play svg { width: 11px; height: 11px; }
+  .take-drop {
+    padding: .25rem .45rem;
+    border-left: 1px solid var(--line);
+    color: var(--faint);
+    border-radius: 0;
+    line-height: 1;
+  }
+  .take-drop:hover { color: var(--rec); background: var(--rec-soft); }
+  .take-drop svg { width: 11px; height: 11px; display: block; }
+
+  .pending {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .25rem .3rem .25rem .55rem;
+    border: 1px dashed var(--rec);
+    border-radius: 4px;
+    background: var(--rec-soft);
+  }
+  .pending-label {
+    font: 500 .8125rem/1.4 "IBM Plex Mono", ui-monospace, monospace;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .pending .btn { padding: .2rem .5rem; font-size: .8125rem; background: var(--surface); }
+
+  .bar {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    margin-top: 2.5rem;
+    padding: .8rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    box-shadow: 0 -2px 12px rgba(22, 33, 42, .09);
+  }
+  .bar p { margin: 0; color: var(--muted); font-size: .875rem; }
+  .bar .btn { padding: .5rem 1rem; font-size: .9375rem; border-color: var(--accent); color: var(--accent); }
+  .bar .btn[disabled] { border-color: var(--line); color: var(--muted); }
+
+  .ipa { font-family: "Noto Sans", "Segoe UI", sans-serif; color: var(--accent); }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+    color: var(--faint);
+    font-size: .875rem;
+  }
+
+  @media (max-width: 34rem) {
+    .row { grid-template-columns: 3rem minmax(0, 1fr); }
+    .controls { grid-column: 1 / -1; }
+    .takes { grid-column: 1 / -1; }
+  }
+</style>
+
+<div class="page">
+  <header>
+    <h1>Saylune Phoneme Booth</h1>
+    <p class="lede">One recording per sound of English, said on its own. Hit the reference to hear the one shipping today, then record your own. Record a sound as many times as you like — keep every take you're happy with, I'll pick between them. When you're done, hit Download at the bottom and send Simon the one file it makes.</p>
+    <div class="progress">
+      <div class="progress-bar"><div class="progress-fill" id="fill"></div></div>
+      <span class="progress-count" id="count">0 of 38 recorded</span>
+    </div>
+    <div class="banner" id="banner" hidden></div>
+  </header>
+
+  <main id="main"></main>
+
+  <div class="bar">
+    <button class="btn" id="download" disabled>Download every take</button>
+    <p id="tally">Nothing recorded yet.</p>
+  </div>
+
+  <footer id="foot">Three sounds have no reference to play — <span class="ipa">ɝ</span>, <span class="ipa">eɪ</span>, <span class="ipa">oʊ</span>. No free recording of them exists anywhere, so they're the most useful three here.</footer>
+</div>
+
+<script>
+const SOUNDS = /*__SOUNDS__*/;
+
+const MAX_MS = 60000;           // nothing to fit into a store document any more
+const BITRATE = 64000;
+
+const ICON = {
+  play: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1.5 11 6l-9 4.5z" fill="currentColor"/></svg>',
+  drop: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5 9.5 9.5M9.5 2.5 2.5 9.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>'
+};
+
+const el = (tag, cls, html) => {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (html != null) node.innerHTML = html;
+  return node;
+};
+const seconds = ms => (ms / 1000).toFixed(1) + 's';
+
+let takes = new Map();          // soundId -> [{id, ms, mime, blob, createdAt}]
+let pending = null;             // {soundId, blob, ms, url}
+let recording = null;
+let stream = null;              // one microphone grant, held for the session
+let saved = true;               // is everything on disk as well as in the browser
+const urls = new Map();         // take id -> object url, made once
+const rows = new Map();
+
+function say(message) {
+  const banner = document.getElementById('banner');
+  banner.textContent = message || '';
+  banner.hidden = !message;
+}
+
+/* ---------- build the page ---------- */
+
+let family = null;
+let section = null;
+for (const sound of SOUNDS) {
+  if (sound.family !== family) {
+    family = sound.family;
+    section = el('section');
+    const head = el('div', 'family');
+    head.append(el('h2', null, sound.family), el('p', null, sound.how));
+    section.append(head, el('div', 'rows'));
+    document.getElementById('main').append(section);
+  }
+  section.lastChild.append(buildRow(sound));
+}
+
+function buildRow(sound) {
+  const row = el('div', 'row');
+  row.dataset.state = 'empty';
+
+  const symbol = el('div', 'symbol', sound.symbol);
+  if (!sound.reference) symbol.dataset.missing = 'yes';
+
+  const [from, to] = sound.carrier;
+  const word = el('div', 'word');
+  const text = el('div', 'word-text');
+  text.append(sound.word.slice(0, from), el('em', null, sound.word.slice(from, to)), sound.word.slice(to));
+  const note = el('span', 'note');
+  word.append(text, note);
+
+  const controls = el('div', 'controls');
+  const reference = el('button', 'btn', ICON.play + '<span>Reference</span>');
+  if (sound.reference) {
+    reference.addEventListener('click', () => playReference(sound));
+  } else {
+    reference.disabled = true;
+    reference.title = 'No free recording of this sound exists';
+  }
+
+  const meter = el('div', 'meter', '<i></i>');
+  meter.hidden = true;
+
+  const rec = el('button', 'btn btn-rec', '<span class="dot"></span><span>Record</span>');
+  rec.addEventListener('click', () => (recording?.soundId === sound.id ? stopRecording() : startRecording(sound)));
+
+  controls.append(reference, meter, rec);
+
+  const strip = el('div', 'takes');
+  row.append(symbol, word, controls, strip);
+  rows.set(sound.id, { row, note, rec, meter, takes: strip, sound, pending: null });
+  return row;
+}
+
+function setNote(soundId, text, kind) {
+  const note = rows.get(soundId).note;
+  note.textContent = text;
+  if (kind) note.dataset.kind = kind; else delete note.dataset.kind;
+}
+
+/* ---------- the reference already shipping ---------- */
+
+const referenceAudio = new Audio();
+function playReference(sound) {
+  referenceAudio.pause();
+  referenceAudio.src = 'data:audio/ogg;base64,' + sound.reference;
+  referenceAudio.play().catch(() => {});
+}
+
+/* ---------- recording ---------- */
+
+async function microphone() {
+  if (stream) return stream;
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+  });
+  return stream;
+}
+
+function pickType() {
+  for (const type of ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/webm', 'audio/mp4']) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(type)) return type;
+  }
+  return '';
+}
+
+async function startRecording(sound) {
+  if (pending) { setNote(pending.soundId, 'Keep or drop that take first.', 'error'); return; }
+  if (recording) stopRecording();
+  const parts = rows.get(sound.id);
+  setNote(sound.id, '', null);
+
+  let source;
+  try {
+    source = await microphone();
+  } catch (error) {
+    say(error.name === 'NotAllowedError'
+      ? 'The microphone was refused. Click the microphone icon in the address bar, allow it, then press Record again.'
+      : 'No microphone found (' + error.name + '). Plug one in or pick one in your sound settings, then press Record again.');
+    return;
+  }
+  say('');
+
+  const type = pickType();
+  if (!type) { say('This browser cannot record audio. Open the file in Edge, Chrome or Firefox.'); return; }
+
+  const recorder = new MediaRecorder(source, { mimeType: type, audioBitsPerSecond: BITRATE });
+  const chunks = [];
+  recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
+  recorder.onstop = () => {
+    const ms = Date.now() - recording.started;
+    clearInterval(recording.timer);
+    stopMeter();
+    parts.rec.dataset.live = '';
+    parts.rec.lastChild.textContent = 'Record';
+    parts.meter.hidden = true;
+    recording = null;
+    holdRecord(false);
+    offerTake(sound, new Blob(chunks, { type }), ms);
+  };
+
+  recording = { soundId: sound.id, recorder, started: Date.now(), timer: null };
+  recorder.start();
+  startMeter(source, parts.meter);
+
+  parts.rec.dataset.live = 'yes';
+  parts.rec.lastChild.textContent = 'Stop';
+  parts.meter.hidden = false;
+  parts.row.dataset.state = 'recording';
+  holdRecord(true);
+
+  recording.timer = setInterval(() => {
+    const ms = Date.now() - recording.started;
+    setNote(sound.id, 'Recording ' + seconds(ms), 'live');
+    if (ms >= MAX_MS) stopRecording();
+  }, 100);
+}
+
+function stopRecording() {
+  if (recording && recording.recorder.state !== 'inactive') recording.recorder.stop();
+}
+
+function holdRecord(held) {
+  const open = recording?.soundId ?? pending?.soundId;
+  for (const [id, parts] of rows) parts.rec.disabled = held && id !== open;
+}
+
+/* ---------- the level meter, which is how he knows the microphone is live ---------- */
+
+let meterStop = null;
+function startMeter(source, meter) {
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+  const analyser = context.createAnalyser();
+  analyser.fftSize = 512;
+  context.createMediaStreamSource(source).connect(analyser);
+  const buffer = new Float32Array(analyser.fftSize);
+  const bar = meter.firstChild;
+  let frame;
+  const tick = () => {
+    analyser.getFloatTimeDomainData(buffer);
+    let sum = 0;
+    for (const value of buffer) sum += value * value;
+    bar.style.width = (Math.min(1, Math.sqrt(sum / buffer.length) * 6) * 100).toFixed(0) + '%';
+    frame = requestAnimationFrame(tick);
+  };
+  tick();
+  meterStop = () => { cancelAnimationFrame(frame); context.close().catch(() => {}); bar.style.width = '0'; };
+}
+function stopMeter() { if (meterStop) { meterStop(); meterStop = null; } }
+
+/* ---------- keep or drop ---------- */
+
+function offerTake(sound, blob, ms) {
+  const parts = rows.get(sound.id);
+  pending = { soundId: sound.id, blob, ms, url: URL.createObjectURL(blob) };
+  holdRecord(true);
+
+  const box = el('div', 'pending');
+  const play = el('button', 'btn', ICON.play + '<span>Hear it</span>');
+  const keep = el('button', 'btn', '<span>Keep</span>');
+  const drop = el('button', 'btn', '<span>Drop</span>');
+  const audio = new Audio(pending.url);
+  play.addEventListener('click', () => { audio.currentTime = 0; audio.play().catch(() => {}); });
+  keep.addEventListener('click', () => keepTake(sound));
+  drop.addEventListener('click', dropPending);
+  box.append(el('span', 'pending-label', 'New take ' + seconds(ms)), play, keep, drop);
+  parts.takes.append(box);
+  parts.pending = box;
+  setNote(sound.id, 'Keep it, or drop it and go again.', null);
+  play.click();
+}
+
+function dropPending() {
+  if (!pending) return;
+  const parts = rows.get(pending.soundId);
+  URL.revokeObjectURL(pending.url);
+  parts.pending?.remove();
+  parts.pending = null;
+  setNote(pending.soundId, '', null);
+  pending = null;
+  holdRecord(false);
+}
+
+function keepTake(sound) {
+  if (!pending) return;
+  const take = {
+    id: sound.id + '-' + Date.now().toString(36),
+    soundId: sound.id, symbol: sound.symbol,
+    ms: pending.ms, mime: pending.blob.type,
+    createdAt: new Date().toISOString(), blob: pending.blob
+  };
+  urls.set(take.id, pending.url);
+  if (!takes.has(sound.id)) takes.set(sound.id, []);
+  takes.get(sound.id).push(take);
+
+  pending = null;
+  rows.get(sound.id).pending?.remove();
+  rows.get(sound.id).pending = null;
+  setNote(sound.id, '', null);
+  holdRecord(false);
+  saved = false;
+  renderTakes(sound.id);
+  remember(take);
+}
+
+/* ---------- what is kept ---------- */
+
+const takeAudio = new Audio();
+
+function renderTakes(soundId) {
+  const parts = rows.get(soundId);
+  const kept = takes.get(soundId) || [];
+  const pendingBox = parts.pending;
+  parts.takes.textContent = '';
+  kept.forEach((take, index) => {
+    const chip = el('div', 'take');
+    const play = el('button', 'take-play', ICON.play + '<span>' + (index + 1) + '</span>');
+    play.title = seconds(take.ms);
+    play.addEventListener('click', () => {
+      if (!urls.has(take.id)) urls.set(take.id, URL.createObjectURL(take.blob));
+      takeAudio.src = urls.get(take.id);
+      takeAudio.play().catch(() => {});
+    });
+    const drop = el('button', 'take-drop', ICON.drop);
+    drop.title = 'Delete take ' + (index + 1);
+    drop.setAttribute('aria-label', 'Delete take ' + (index + 1));
+    drop.addEventListener('click', () => deleteTake(soundId, take.id));
+    chip.append(play, drop);
+    parts.takes.append(chip);
+  });
+  if (pendingBox) parts.takes.append(pendingBox);
+  parts.row.dataset.state = kept.length ? 'recorded' : (recording?.soundId === soundId ? 'recording' : 'empty');
+  countUp();
+}
+
+function deleteTake(soundId, id) {
+  takes.set(soundId, (takes.get(soundId) || []).filter(take => take.id !== id));
+  const url = urls.get(id);
+  if (url) { URL.revokeObjectURL(url); urls.delete(id); }
+  forget(id);
+  renderTakes(soundId);
+}
+
+function countUp() {
+  const done = SOUNDS.filter(sound => (takes.get(sound.id) || []).length).length;
+  const total = [...takes.values()].reduce((sum, list) => sum + list.length, 0);
+  document.getElementById('count').textContent = done + ' of ' + SOUNDS.length + ' recorded';
+  document.getElementById('fill').style.width = (done / SOUNDS.length * 100) + '%';
+  document.getElementById('download').disabled = total === 0;
+  document.getElementById('tally').textContent = total === 0
+    ? 'Nothing recorded yet.'
+    : total + (total === 1 ? ' take' : ' takes') + ' across ' + done + ' sounds'
+      + (saved ? ', downloaded.' : ' — not downloaded yet.');
+}
+
+/* ---------- the browser remembers, the file is what counts ---------- */
+
+let store = null;
+const noMemory = 'This browser will not keep takes between visits. Don\u2019t close the tab before you download.';
+let request = null;
+try { request = indexedDB.open('phoneme-booth', 1); } catch (error) { say(noMemory); }
+if (request) {
+request.onupgradeneeded = () => request.result.createObjectStore('takes', { keyPath: 'id' });
+request.onerror = () => say(noMemory);
+request.onsuccess = () => {
+  store = request.result;
+  const all = store.transaction('takes', 'readonly').objectStore('takes').getAll();
+  all.onsuccess = () => {
+    for (const take of all.result) {
+      if (!takes.has(take.soundId)) takes.set(take.soundId, []);
+      takes.get(take.soundId).push(take);
+    }
+    for (const list of takes.values()) list.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    if (all.result.length) saved = false;
+    for (const soundId of takes.keys()) renderTakes(soundId);
+    countUp();
+  };
+};
+}
+
+function remember(take) {
+  if (!store) return;
+  try { store.transaction('takes', 'readwrite').objectStore('takes').put(take); } catch (error) { /* the file is the record */ }
+}
+function forget(id) {
+  if (!store) return;
+  try { store.transaction('takes', 'readwrite').objectStore('takes').delete(id); } catch (error) { /* idem */ }
+}
+
+/* ---------- the one thing to send back ---------- */
+
+const CRC = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return bytes => {
+    let c = 0xffffffff;
+    for (const byte of bytes) c = table[(c ^ byte) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+})();
+
+/**
+ * The MS-DOS clock a zip entry carries: seconds in steps of two, years from 1980.
+ * Left at zero it reads as day zero of month zero, which some readers refuse.
+ */
+function dosStamp(when) {
+  const date = when && !isNaN(when) ? when : new Date();
+  const year = Math.max(1980, date.getFullYear());
+  return {
+    time: (date.getHours() << 11) | (date.getMinutes() << 5) | (date.getSeconds() >> 1),
+    date: ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate()
+  };
+}
+
+/** A zip with one stored entry per take: no compression, since opus is already packed. */
+function zipped(entries) {
+  const encoder = new TextEncoder();
+  const locals = [], central = [];
+  let offset = 0;
+  for (const [name, bytes, when] of entries) {
+    const label = encoder.encode(name);
+    const crc = CRC(bytes);
+    const stamp = dosStamp(when);
+    const local = new DataView(new ArrayBuffer(30));
+    local.setUint32(0, 0x04034b50, true);
+    local.setUint16(4, 20, true);
+    local.setUint16(8, 0, true);          // stored
+    local.setUint16(10, stamp.time, true);
+    local.setUint16(12, stamp.date, true);
+    local.setUint32(14, crc, true);
+    local.setUint32(18, bytes.length, true);
+    local.setUint32(22, bytes.length, true);
+    local.setUint16(26, label.length, true);
+    locals.push(new Uint8Array(local.buffer), label, bytes);
+
+    const entry = new DataView(new ArrayBuffer(46));
+    entry.setUint32(0, 0x02014b50, true);
+    entry.setUint16(4, 20, true);
+    entry.setUint16(6, 20, true);
+    entry.setUint16(10, 0, true);
+    entry.setUint16(12, stamp.time, true);
+    entry.setUint16(14, stamp.date, true);
+    entry.setUint32(16, crc, true);
+    entry.setUint32(20, bytes.length, true);
+    entry.setUint32(24, bytes.length, true);
+    entry.setUint16(28, label.length, true);
+    entry.setUint32(42, offset, true);
+    central.push(new Uint8Array(entry.buffer), label);
+    offset += 30 + label.length + bytes.length;
+  }
+  const size = central.reduce((sum, part) => sum + part.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, entries.length, true);
+  end.setUint16(10, entries.length, true);
+  end.setUint32(12, size, true);
+  end.setUint32(16, offset, true);
+  return new Blob([...locals, ...central, new Uint8Array(end.buffer)], { type: 'application/zip' });
+}
+
+const EXTENSION = { 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/mp4': 'm4a' };
+
+document.getElementById('download').addEventListener('click', async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  button.textContent = 'Packing…';
+  const entries = [];
+  const manifest = [];
+  for (const sound of SOUNDS) {
+    (takes.get(sound.id) || []).forEach((take, index) => {
+      const kind = EXTENSION[(take.mime || '').split(';')[0]] || 'webm';
+      const name = sound.id + '-take' + (index + 1) + '.' + kind;
+      entries.push([name, take.blob, new Date(take.createdAt)]);
+      manifest.push({ file: name, symbol: sound.symbol, word: sound.word, ms: take.ms, recordedAt: take.createdAt });
+    });
+  }
+  const loaded = await Promise.all(
+    entries.map(async ([name, blob, when]) => [name, new Uint8Array(await blob.arrayBuffer()), when]));
+  loaded.push(['manifest.json', new TextEncoder().encode(JSON.stringify(manifest, null, 2)), new Date()]);
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(zipped(loaded));
+  link.download = 'phoneme-takes-' + new Date().toISOString().slice(0, 10) + '.zip';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 30000);
+
+  saved = true;
+  button.textContent = 'Download every take';
+  button.disabled = false;
+  countUp();
+});
+
+window.addEventListener('beforeunload', event => {
+  if (!saved) { event.preventDefault(); event.returnValue = ''; }
+});
+
+/* ---------- can this browser do it at all ---------- */
+
+if (!window.isSecureContext || !navigator.mediaDevices || !window.MediaRecorder) {
+  say('This browser will not give the page a microphone. Open the file in Edge, Chrome or Firefox by double-clicking it — not from inside an email or a chat window.');
+}
+
+countUp();
+</script>
