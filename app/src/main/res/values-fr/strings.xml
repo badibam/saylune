@@ -362,4 +362,24 @@
     <string name="situation_yes">Oui</string>
     <string name="situation_over_warns">Recommencer laisse derrière ce qui a été dit : on n\'y revient pas.</string>
     <string name="display_drop_words">Retirer les marques des mots d\'un passage une fois qu\'il est passé</string>
+    <string name="setting_avoid">Ce dont il vaut mieux rester loin</string>
+    <string name="setting_avoid_help">En toutes lettres, et ça ne quitte pas l\'appareil. Le personnage qui parle en est informé et contourne. Vide, rien n\'est envoyé.</string>
+    <string name="setting_show_triggers">Montrer ce qu\'une scène annonce</string>
+    <string name="setting_show_triggers_help">Décoché, une tuile ne dit rien de son contenu. Coché, elle liste ce que son auteur a déclaré, avant de commencer.</string>
+    <string name="situation_triggers">Ce que cette scène est faite pour faire</string>
+    <string name="situation_triggers_none">Son auteur n\'a rien déclaré.</string>
+    <string name="trigger_conflict">Un reproche, ou quelqu\'un de fâché</string>
+    <string name="trigger_hostility">Froid, méprisant, ou qui refuse</string>
+    <string name="trigger_deception">Un mensonge, ou une version des faits tenue contre l\'autre</string>
+    <string name="trigger_pressure">Une horloge, une file, quelqu\'un qui attend</string>
+    <string name="trigger_scrutiny">Être interrogé, évalué, enregistré</string>
+    <string name="trigger_intimacy">Des questions sur la vie, les sentiments, le passé</string>
+    <string name="trigger_grief">Deuil, mort, maladie grave</string>
+    <string name="trigger_violence">Un acte de violence, vu ou raconté</string>
+    <string name="trigger_body">Le corps, une blessure, être soigné</string>
+    <string name="trigger_discrimination">Être visé pour ce que l\'on est</string>
+    <string name="trigger_substances">Alcool, drogue, dépendance</string>
+    <string name="trigger_isolation">Seul, bloqué, la nuit</string>
+    <string name="triggers_manner">Comment le personnage se comporte</string>
+    <string name="triggers_subject">Ce dont il est question</string>
 </resources>

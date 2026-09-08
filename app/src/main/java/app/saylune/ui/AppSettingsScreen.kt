@@ -121,6 +121,48 @@ fun AppSettingsScreen(
             chosen = stored[Secret.SparePalette].orEmpty(),
         ) { write(Secret.SparePalette, it) }
 
+        // **What the learner would rather stay away from, and it is prose.** Unlike the boxes a
+        // scene ticks, this is not drawn from anybody's vocabulary: what a person needs kept
+        // away is theirs, and the model reads a sentence better than a taxonomy. It never
+        // leaves the phone except inside the instruction of the conversation it governs.
+        Column(verticalArrangement = Arrangement.spacedBy(grid.cell)) {
+            Text(
+                stringResource(R.string.setting_avoid),
+                style = type.text,
+                color = palette.ink.srgb,
+            )
+            var avoid by remember(stored[Secret.Avoid]) {
+                mutableStateOf(stored[Secret.Avoid].orEmpty())
+            }
+            Field(
+                value = avoid,
+                onChange = { avoid = it; write(Secret.Avoid, it) },
+                rows = AVOID_ROWS,
+            )
+            Text(
+                stringResource(R.string.setting_avoid_help),
+                style = type.thin,
+                color = palette.dim.srgb,
+            )
+        }
+
+        // **Off by default, and that is the design and not a timid default.** Whoever has
+        // nothing to keep away from would be handed a list of what a scene is about, which is a
+        // spoiler nobody asked for. Both halves of this are opt-in and neither implies the
+        // other: what is written above steers the model, this only decides what a tile says
+        // about itself, and nothing anywhere hides a tile.
+        Column(verticalArrangement = Arrangement.spacedBy(grid.cell)) {
+            val shown = stored[Secret.ShowTriggers] == SHOWN
+            Pick(on = shown, says = stringResource(R.string.setting_show_triggers)) {
+                write(Secret.ShowTriggers, if (shown) "" else SHOWN)
+            }
+            Text(
+                stringResource(R.string.setting_show_triggers_help),
+                style = type.thin,
+                color = palette.dim.srgb,
+            )
+        }
+
         Column(verticalArrangement = Arrangement.spacedBy(grid.cell)) {
             Text(
                 stringResource(R.string.setting_cache_title),
@@ -153,6 +195,7 @@ fun AppSettingsScreen(
 
 /** What the store holds for the position that is not the default. */
 const val THIN = "thin"
+const val SHOWN = "shown"
 const val SMALLER = "smaller"
 const val BIGGER = "bigger"
 const val NIGHT = "night"
@@ -160,3 +203,6 @@ const val PALE = "pale"
 
 /** The air between two settings: more than between two positions of one, so a family reads as one. */
 private const val SECTIONS = 2
+
+/** Three lines to write in: a frame of five rows holds a fourteen-pixel box and two steps. */
+private const val AVOID_ROWS = 5

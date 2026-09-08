@@ -69,6 +69,7 @@ import app.saylune.ui.BIGGER
 import app.saylune.ui.InLanguage
 import app.saylune.ui.NIGHT
 import app.saylune.ui.PALE
+import app.saylune.ui.SHOWN
 import app.saylune.ui.SMALLER
 import app.saylune.ui.THIN
 import app.saylune.ui.SituationScreen
@@ -344,6 +345,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                             theme = it,
                             started = sitting?.let { row -> Sitting.readBrief(row.brief.orEmpty()) },
                             passages = counted[it.id] ?: 0,
+                            showTriggers = stored[Secret.ShowTriggers] == SHOWN,
                             onStartOver = {
                                 sitting?.let { row -> scope.launch { pipeline.abandon(row.id) } }
                             },

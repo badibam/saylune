@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import app.saylune.R
 import app.saylune.activity.Brief
+import app.saylune.activity.Caution
 import app.saylune.activity.Definition
 import app.saylune.ui.theme.Saylune
 import java.util.Locale
@@ -76,6 +77,8 @@ fun SituationScreen(
      * empty sitting rather than piling a second one on top of it.
      */
     passages: Int,
+    /** Whether the learner asked to be shown what a scene declares. Off by default. */
+    showTriggers: Boolean,
     onCarryOn: () -> Unit,
     /**
      * Put the sitting out of reach, and open none.
@@ -143,6 +146,58 @@ fun SituationScreen(
                         ),
                         chosen = gender,
                     ) { gender = it }
+                }
+            }
+            // **Last on the screen, and only where it was asked for.** It is read after the
+            // situation and the form, at the moment of pressing rather than before reading what
+            // the scene is -- and to whoever left the setting off it does not exist, because to
+            // them it is a list of what a scene is about and nobody asked for that.
+            //
+            // **It says what the scene is set up to do, never what the sitting will be.** Most
+            // of these scenes are built on a hole the learner types themselves, so the author
+            // answers for the frame and the rest arrives from the learner and the model. It is
+            // shown and never used to hide a tile: matching one person's own words against
+            // these keys is a judgement the app cannot make, and a tile taken away in silence
+            // is what this project refuses everywhere.
+            if (showTriggers) {
+                Column(
+                    Modifier.padding(top = grid.cell),
+                    verticalArrangement = Arrangement.spacedBy(grid.cell),
+                ) {
+                    Text(
+                        stringResource(R.string.situation_triggers),
+                        style = type.text,
+                        color = palette.ink.srgb,
+                    )
+                    if (theme.triggers.isEmpty()) {
+                        Text(
+                            stringResource(R.string.situation_triggers_none),
+                            style = type.thin,
+                            color = palette.dim.srgb,
+                        )
+                    }
+                    // Grouped by family, and the two headings are worth their lines: what a
+                    // character does to you and what a scene is about are not the same kind of
+                    // warning, and read in one list they would be taken for one.
+                    Caution.Kind.entries.forEach { kind ->
+                        val declared = theme.triggers.filter { it.kind == kind }
+                        if (declared.isEmpty()) return@forEach
+                        Text(
+                            stringResource(
+                                if (kind == Caution.Kind.Manner) R.string.triggers_manner
+                                else R.string.triggers_subject
+                            ),
+                            style = type.thin,
+                            color = palette.dim.srgb,
+                        )
+                        declared.forEach { caution ->
+                            Text(
+                                stringResource(caution.says),
+                                style = type.text,
+                                color = palette.ink.srgb,
+                            )
+                        }
+                    }
                 }
             }
         }

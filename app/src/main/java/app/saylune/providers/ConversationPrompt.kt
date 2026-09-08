@@ -196,6 +196,34 @@ internal object ConversationPrompt {
      * is the sentence saying the judge's criterion is the instruction. That is checked at a
      * bench; it is not proved.
      */
+    /**
+     * What the learner asked to be steered around, handed over with what to do about it.
+     *
+     * **Said as prose and left to the model's reading**, which is the only thing that could
+     * work: what a person needs kept away is theirs and does not come out of anybody's
+     * vocabulary, so a list of categories would only be a worse version of the sentence they
+     * wrote. What the app adds is the instruction around it -- steer, do not announce -- since
+     * a character that names the subject in order to avoid it has raised it.
+     *
+     * **It is a setting sitting in the judge's context**, and that is the same known the
+     * staging already carries: nothing here may move a mark, and what holds it at arm's length
+     * is the sentence saying the judge marks against the instruction. Checkable at a bench, not
+     * proved (`../../../../../../TODO.md`).
+     */
+    fun avoiding(said: String): String = """
+        One more thing, and it comes from the person you are talking to rather than from the
+        scene. They have written down what they would rather this conversation stayed away
+        from, in their own words:
+
+        "$said"
+
+        Read it as they meant it and steer around it: choose other ground, let a subject drop,
+        take the scene elsewhere. **Never announce that you are doing so** and never name what
+        you are avoiding -- a character who says what he will not talk about has talked about
+        it. Whoever you are playing stays who they are; this changes what they bring up, not
+        their temper.
+    """.trimIndent()
+
     fun activity(scene: Scene): String {
         val lines = mutableListOf<String>()
         scene.brief?.staging?.takeIf { it.isNotBlank() }?.let { lines += it }
@@ -295,9 +323,20 @@ internal object ConversationPrompt {
             "${question.ask} $shape $far"
     }
 
-    /** The whole instruction: part 1, then part 2, then part 4. Part 3 is the message list. */
+    /**
+     * The whole instruction: part 1, then part 2, then part 4. Part 3 is the message list.
+     *
+     * What the learner asked to be steered around goes between 1 and 2 -- after everything
+     * that is the same for everybody, before anything that is this scene's, and inside the
+     * stable head either way.
+     */
     fun system(scene: Scene, present: Present = Present()): String =
-        listOf(APP, activity(scene), present(present))
+        listOf(
+            APP,
+            scene.avoid.trim().takeIf { it.isNotEmpty() }?.let { avoiding(it) }.orEmpty(),
+            activity(scene),
+            present(present),
+        )
             .filter { it.isNotBlank() }
             .joinToString("\n\n")
 

@@ -140,6 +140,18 @@ data class Present(
 data class Scene(
     val brief: Brief? = null,
     val cast: List<Character> = emptyList(),
+    /**
+     * What the learner asked the conversation to stay away from, in their own words.
+     *
+     * **It is not the activity's and it sits here anyway**, which is worth saying rather than
+     * leaving to be noticed: it is a fact about the person, identical in every scene they
+     * open. What puts it in part 2 is that part 2 is the last stable thing before the history
+     * -- it does not change inside a sitting, so it belongs in the head of the instruction that
+     * a provider's cache can keep, and not in part 4, which is rebuilt and resent every turn.
+     *
+     * Blank is the ordinary case and nothing at all is written then.
+     */
+    val avoid: String = "",
 )
 
 /**

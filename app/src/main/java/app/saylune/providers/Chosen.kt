@@ -49,8 +49,17 @@ class ChosenConversation(private val store: SecretStore) : Conversation {
     ): Reply {
         val values = store.values().first()
         val (provider, model) = pick(Task.Conversation, values)
+        // **Laid on the scene here and not carried down from the pipeline.** What the learner
+        // wants steered around is a setting, and this is where the settings already are: the
+        // pipeline would have had to hold the store to pass it, and every provider below would
+        // have had to take one more argument to hand it on unchanged.
         return conversationBy(store, provider, model, effortFor(provider, values))
-            .reply(history, heard, scene, present)
+            .reply(
+                history,
+                heard,
+                scene.copy(avoid = values[Secret.Avoid].orEmpty()),
+                present,
+            )
     }
 }
 

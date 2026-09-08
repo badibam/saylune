@@ -134,5 +134,28 @@ enum class Secret(
      * store where an absent value legitimately stands for something.
      */
     RenderCacheCap("cache.renders.cap", R.string.setting_cache_cap, masked = false),
+
+    /**
+     * What the learner would rather the conversation stayed away from, in their own words.
+     *
+     * **Prose and not a list of boxes**, on purpose and unlike the ones a scene declares: what
+     * a person needs kept away is theirs, it is not drawn from a vocabulary somebody else
+     * wrote, and the model reads prose better than it reads a taxonomy. It is read at every
+     * call and sits in the stable head of the instruction, since it does not change inside a
+     * sitting.
+     *
+     * Blank is the default and nothing at all is sent then -- not an empty section, not a
+     * sentence saying there is nothing.
+     */
+    Avoid("talk.avoid", R.string.setting_avoid, masked = false),
+
+    /**
+     * Whether a scene's declared warnings are shown before it is started.
+     *
+     * **Off by default, and that is the whole design**: whoever has nothing to keep away from
+     * is being handed a list of what a scene is about, which is a spoiler nobody asked for.
+     * Stored as the wish rather than the refusal, so nothing stored means not shown.
+     */
+    ShowTriggers("talk.triggers.shown", R.string.setting_show_triggers, masked = false),
     ;
 }

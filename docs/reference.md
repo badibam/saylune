@@ -269,6 +269,18 @@ Par défaut, **le modèle à imiter est la voix de la conversation** — c'est c
 
 **Une activité peut porter sa propre voix de conversation, et ça ne touche pas la mesure.** Un personnage dit *ses* tours ; le modèle à imiter dit *la phrase de l'apprenant*. Deux énoncés différents, donc deux voix qui se séparent sans conflit : la voix de référence reste le réglage global, et **la voix d'un personnage ne sert jamais d'étalon**, donc elle n'a aucun test à passer. Une voix difficile à suivre devient alors un levier de compréhension (`activity.md`).
 
+## Ce dont on veut rester loin
+
+Deux réglages, **tous deux opt-in, et aucun n'implique l'autre**.
+
+Le premier est un champ de texte libre dans les réglages de l'app : ce que l'apprenant préfère que la conversation évite, **dans ses mots à lui**. Il part dans la partie stable de l'instruction — après ce qui est identique pour tout le monde, avant ce qui est propre à la scène — avec la consigne qui va avec : contourner, et **ne jamais annoncer qu'on contourne**, un personnage qui dit ce dont il ne parlera pas en ayant parlé. De la prose et pas des cases, parce que ce qu'une personne a besoin qu'on écarte est à elle et ne sort pas d'un vocabulaire écrit par quelqu'un d'autre. Vide, rien n'est envoyé — ni section vide, ni phrase disant qu'il n'y a rien.
+
+C'est un **réglage qui atterrit dans le contexte du juge**, au même titre que la mise en scène, et le même connu s'applique : il ne peut déplacer aucune marque **par contrat**, et ce qui le tient à distance est la phrase disant que le juge marque contre la consigne. Vérifiable au banc, pas prouvé (`../TODO.md`).
+
+Le second est l'affichage : une fiche **déclare ce qu'elle est faite pour faire**, avec une liste fermée de clés, et rien ne s'affiche tant que l'apprenant ne l'a pas demandé. **Décoché par défaut** — à qui n'a rien à écarter, c'est un résumé de ce que la scène contient, donc un gâchis de découverte que personne n'a demandé.
+
+Deux limites, écrites parce qu'elles se prendraient pour des promesses. **La déclaration porte sur le cadre et jamais sur la séance** : la plupart des scènes livrées sont bâties sur un trou que l'apprenant remplit lui-même, donc ce qui coche une case est ce que la scène est montée pour faire, et ce qui le remplit vient de lui et du modèle. Et **rien ne filtre** : faire correspondre la prose d'une personne aux clés d'une autre est un jugement que l'app ne sait pas rendre, et une tuile retirée en silence est ce que ce doc refuse partout ailleurs — ce qui est indisponible porte sa raison. On montre, on ne trie pas.
+
 ## Les clés d'API
 
 L'app est un **client vide** : l'utilisateur apporte ses propres clés (BYOK) pour la conversation et la synthèse, qui ne partent qu'aux fournisseurs concernés. Aucun serveur, aucun compte, aucune consommation à la charge du projet. **L'analyse n'a pas de clé** : elle tourne sur l'appareil.

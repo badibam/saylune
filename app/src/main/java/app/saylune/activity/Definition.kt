@@ -93,6 +93,17 @@ data class Definition(
      * story.
      */
     val questions: List<Question> = emptyList(),
+    /**
+     * What this scene warns about, from the closed list in [Caution].
+     *
+     * **Empty is the ordinary case and says nothing either way**: a file that declares none
+     * has not promised there is nothing, it has said nothing -- the frame is what an author
+     * can answer for, and what fills it comes from the learner's own hole and the model.
+     *
+     * It is a property of the file and is never copied onto a sitting: it is read before
+     * starting, on the situation screen, and only where the learner asked to be shown it.
+     */
+    val triggers: List<Caution> = emptyList(),
 ) {
 
     /**
@@ -119,6 +130,7 @@ data class Definition(
         require(questions.map { it.key }.toSet().size == questions.size) {
             "$id: two questions, one key"
         }
+        require(triggers.toSet().size == triggers.size) { "$id: the same caution twice" }
     }
 
     companion object {

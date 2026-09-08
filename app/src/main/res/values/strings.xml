@@ -356,4 +356,24 @@
     <string name="situation_yes">Yes</string>
     <string name="situation_over_warns">Starting over leaves what you have said behind: there is no way back to it.</string>
     <string name="display_drop_words">Take the word marks off a passage once it has gone through</string>
+    <string name="setting_avoid">What to keep away from</string>
+    <string name="setting_avoid_help">In your own words, and it stays on this device. Whoever is speaking is told, and steers around it. Blank sends nothing.</string>
+    <string name="setting_show_triggers">Show what a scene warns about</string>
+    <string name="setting_show_triggers_help">Off, a tile says nothing of what it is about. On, it lists what its author declared before it starts.</string>
+    <string name="situation_triggers">What this one is set up to do</string>
+    <string name="situation_triggers_none">Its author declared nothing.</string>
+    <string name="trigger_conflict">A reproach, or somebody angry with you</string>
+    <string name="trigger_hostility">Cold, dismissive, or refusing you</string>
+    <string name="trigger_deception">Lying, or holding out against your account</string>
+    <string name="trigger_pressure">A clock, a queue, somebody waiting</string>
+    <string name="trigger_scrutiny">Being questioned, assessed, recorded</string>
+    <string name="trigger_intimacy">Asking after your life, your feelings, your past</string>
+    <string name="trigger_grief">Loss, death, serious illness</string>
+    <string name="trigger_violence">An act of violence, seen or told</string>
+    <string name="trigger_body">Bodies, injury, being cared for</string>
+    <string name="trigger_discrimination">Being singled out for what one is</string>
+    <string name="trigger_substances">Drink, drugs, dependence</string>
+    <string name="trigger_isolation">Alone, stranded, at night</string>
+    <string name="triggers_manner">How the character behaves</string>
+    <string name="triggers_subject">What is talked about</string>
 </resources>

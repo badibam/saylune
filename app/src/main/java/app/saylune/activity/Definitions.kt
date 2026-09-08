@@ -97,6 +97,11 @@ object Definitions {
             ),
             rules = Rules.read(file.optJSONArray("rules")?.toString() ?: "[]"),
             questions = file.optJSONArray("questions").objects().map { question(it) },
+            // Unknown keys fail here rather than being dropped: a warning that goes missing
+            // through a typo is the one failure this list exists against.
+            triggers = file.optJSONArray("triggers")?.let { declared ->
+                (0 until declared.length()).map { Caution.of(declared.getString(it)) }
+            } ?: emptyList(),
         ).also { validate(it) }
     }
 
