@@ -52,6 +52,10 @@ internal object ConversationPrompt {
      * and it knows nothing of variety or register. `Gonna try?` and `I ain't got none` are
      * English people speak, so they pass. What a challenge wants to demand of the variety or
      * the register is an instruction on **relevance**, which is where situation is judged.
+     *
+     * **The origin of the span offsets is spelled out** because a worked example implying it
+     * was not enough: a turn came back with every bound one too high but the first, which is
+     * what counting from one gives, and the marking was refused (2026-09-08).
      */
     val APP = """
         You are talking with someone who is practising spoken English. Whoever you are
@@ -94,7 +98,9 @@ internal object ConversationPrompt {
         "spans": the groups of words worth marking, as a list. Each is
         {"from": <int>, "to": <int>, "correctness": <notch>, "relevance": <notch>} where
         "from" and "to" are character offsets into "intended", "from" included and "to"
-        excluded, and both must fall exactly on a word boundary. A word is a run of
+        excluded, and both must fall exactly on a word boundary. Offsets count from zero:
+        the first character of "intended" is 0, and a group running to the end of the turn
+        has a "to" equal to the number of characters in "intended". A word is a run of
         characters with no space in it, so whatever punctuation touches a word belongs to
         that word: "from" is the first character of the first word, and "to" is one past
         the last character of the last word -- past its comma or full stop, and never on
