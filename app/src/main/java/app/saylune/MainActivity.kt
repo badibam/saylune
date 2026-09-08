@@ -370,6 +370,15 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
             // other gesture, so the way out is all of it rather than one glyph in the bar.
             Screen.Notes -> {
                 val attempt = turn.utterances.firstOrNull { it.id == notesOf }
+                // **The judgement is read through the take it repeats**, the same detour the
+                // thread makes: nothing judges a repeat, so the last attempt of a passage one
+                // has said again carries none of its own, and read off the attempt alone this
+                // screen showed no letter and three empty rows on exactly the passage that had
+                // just been worked at. The run is here and not in the screen, so the walk back
+                // is here.
+                val judged = attempt?.judged ?: attempt?.repeats?.let { opener ->
+                    turn.utterances.firstOrNull { it.id == opener }?.judged
+                }
                 val passage = turn.passages().indexOfFirst { spoken ->
                     spoken.attempts.any { it.id == notesOf }
                 }
@@ -381,8 +390,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                 ) {
                     PassageNotesScreen(
                         attempt,
-                        // **What the mode weighs is what decides a letter is drawn**, and a
-                        // free conversation declares nothing, so its slots stay empty.
+                        judged,
                         weights = turn.activity.weights,
                         severity = turn.positions::severityOn,
                         onClose = { stack.removeAt(stack.lastIndex) },

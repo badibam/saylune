@@ -22,6 +22,7 @@ import app.saylune.R
 import androidx.compose.foundation.layout.height
 import androidx.compose.ui.Alignment
 import app.saylune.conversation.Utterance
+import app.saylune.judged.Judgement
 import app.saylune.notes.Measured
 import app.saylune.notes.Note
 import app.saylune.notes.Passage as Scored
@@ -55,6 +56,17 @@ import kotlin.math.roundToInt
 fun PassageNotesScreen(
     /** The attempt to read, or null where the state no longer holds it. */
     attempt: Utterance?,
+    /**
+     * What the language model marked on this passage, **read through the take it repeats**.
+     *
+     * Nothing judges a repeat -- it is pipe B alone, on a text already settled -- so the last
+     * attempt of a passage one has said again carries none of its own. Read off the attempt
+     * alone, this screen then showed no letter at all and three empty rows, on exactly the
+     * passage the learner had just worked at. The thread already makes this detour
+     * (`ConversationScreen.kt`); it is passed in rather than dug out here, because finding
+     * what an attempt repeats takes the run, which this screen does not hold.
+     */
+    judged: Judgement?,
     weights: Weights?,
     severity: (Sheet) -> Int,
     onClose: () -> Unit,
@@ -71,7 +83,7 @@ fun PassageNotesScreen(
             )
     ) {
         Box(Modifier.fillMaxWidth().weight(1f)) {
-            attempt?.let { PassageNotes(it, weights, severity, Modifier.fillMaxSize()) }
+            attempt?.let { PassageNotes(it, judged, weights, severity, Modifier.fillMaxSize()) }
         }
         Text(
             stringResource(R.string.passage_notes_close),
@@ -99,9 +111,10 @@ fun PassageNotesScreen(
  * thing here drawn at the second size.** A letter says where to look; a sheet's figure is what
  * one goes down to once it has said so, and doubling it too would flatten the two levels into
  * one. What decides a letter is drawn is the mode's **weights**: a mode that declares none has
- * no note to give, which is a free conversation. The slot stays either way, so the screen has
- * the same shape in both -- and its height is exactly the air the aptitudes needed between
- * them, so nothing was spent to get it.
+ * no note to give. Every definition the app ships declares all sixteen, free conversation
+ * included, so that case is a sitting made before there were definitions -- the slot stays
+ * either way, and its height is exactly the air the aptitudes needed between them, so nothing
+ * was spent to get it.
  *
  * **A row with no measure says *not measured***, and it is drawn rather than dropped: the list
  * of sheets is fixed, so a missing row could not be told from a sheet nobody drew. A passage
@@ -118,12 +131,13 @@ fun PassageNotesScreen(
 fun PassageNotes(
     /** The attempt being read, which is the passage's last -- what one knows how to say now. */
     attempt: Utterance,
+    /** What the model marked on the passage, read through the take a repeat repeats. */
+    judged: Judgement?,
     /**
      * What the mode weighs each sheet at, or null where it scores nothing.
      *
      * **This is what decides whether a letter is drawn**, and it decides it by existing: a mode
-     * that declares no weights has no note to give, which is a free conversation. The slot is
-     * kept either way -- an aptitude's line is as tall with a letter as without -- so the screen
+     * that declares no weights has no note to give. The slot is kept either way -- an aptitude's line is as tall with a letter as without -- so the screen
      * does not change shape between one mode and the next.
      */
     weights: Weights?,
@@ -153,16 +167,16 @@ fun PassageNotes(
         // aptitude's, restricted to nothing rather than to a branch.
         Heading(
             stringResource(R.string.passage_notes_whole),
-            noteOf(Sheets.tree.sheets(), attempt, weights, severity),
+            noteOf(Sheets.tree.sheets(), attempt, judged, weights, severity),
         )
         Sheets.tree.children.filterIsInstance<Branch>().forEach { aptitude ->
             val sheets = aptitude.sheets()
             Heading(
                 stringResource(nameOfAptitude(aptitude.name)),
-                noteOf(sheets, attempt, weights, severity),
+                noteOf(sheets, attempt, judged, weights, severity),
             )
             sheets.forEach { sheet ->
-                SheetRow(Sheets.pathOf(sheet), sheet, attempt, colors)
+                SheetRow(Sheets.pathOf(sheet), sheet, attempt, judged, colors)
             }
         }
     }
@@ -220,11 +234,12 @@ private fun Heading(name: String, note: Note?) {
 private fun noteOf(
     sheets: List<Sheet>,
     attempt: Utterance,
+    judged: Judgement?,
     weights: Weights?,
     severity: (Sheet) -> Int,
 ): Note? {
     if (weights == null) return null
-    val kept = attempt.judged?.words()?.kept?.size ?: return null
+    val kept = judged?.words()?.kept?.size ?: return null
     return noteOver(
         listOf(
             Scored(
@@ -253,7 +268,13 @@ private fun Node.sheets(): List<Sheet> = when (this) {
  * invent short names for the six notches of the following.
  */
 @Composable
-private fun SheetRow(path: String, sheet: Sheet, attempt: Utterance, colors: MarkingColors) {
+private fun SheetRow(
+    path: String,
+    sheet: Sheet,
+    attempt: Utterance,
+    judged: Judgement?,
+    colors: MarkingColors,
+) {
     val grid = Saylune.grid
     val palette = Saylune.palette
     val type = Saylune.type
@@ -264,13 +285,13 @@ private fun SheetRow(path: String, sheet: Sheet, attempt: Utterance, colors: Mar
             color = palette.dim.srgb,
             maxLines = 1,
         )
-        val slices = slicesOf(path, attempt, colors)
+        val slices = slicesOf(path, judged, colors)
         if (slices != null) {
             NotchBar(slices, Modifier.weight(1f))
             return@Row
         }
         Text(
-            measureOf(path, sheet, attempt).orEmpty(),
+            measureOf(path, sheet, attempt, judged).orEmpty(),
             modifier = Modifier.weight(1f),
             style = type.text,
             // Not measured is the empty string and no sign of its own, exactly as on the line
@@ -349,8 +370,8 @@ private fun cells(slices: List<Slice>): List<Pair<Color, Int>> {
  * two bars of different sheets are compared at a glance.
  */
 @Composable
-private fun slicesOf(path: String, attempt: Utterance, colors: MarkingColors): List<Slice>? {
-    val marked = attempt.judged?.words() ?: return null
+private fun slicesOf(path: String, judged: Judgement?, colors: MarkingColors): List<Slice>? {
+    val marked = judged?.words() ?: return null
     fun count(words: List<app.saylune.judged.Word>, notch: String) =
         words.count { it.notch == notch }
     return when (path) {
@@ -393,7 +414,12 @@ private fun slicesOf(path: String, attempt: Utterance, colors: MarkingColors): L
  * are an internal unit and are written with no unit at all.
  */
 @Composable
-private fun measureOf(path: String, sheet: Sheet, attempt: Utterance): String? {
+private fun measureOf(
+    path: String,
+    sheet: Sheet,
+    attempt: Utterance,
+    judged: Judgement?,
+): String? {
     val figure = attempt.measured[path]
     return when (path) {
         // The two that count elements. The counts come off the reading itself rather than off
@@ -413,10 +439,10 @@ private fun measureOf(path: String, sheet: Sheet, attempt: Utterance): String? {
         MELODY -> figure?.let { stringResource(R.string.measure_semitones, one(it)) }
         // The notch's own words, which is what the following renders: it is a judgement over
         // the whole passage and has no figure to print.
-        UPTAKE -> attempt.judged?.following?.let { stringResource(nameOfNotch(it)) }
+        UPTAKE -> judged?.following?.let { stringResource(nameOfNotch(it)) }
         // Same shape, same reason: a judgement over the whole passage with no figure to
         // print. Blank on a judgement stored before the notch existed, which names none.
-        REACH -> attempt.judged?.reach?.takeIf { it.isNotBlank() }
+        REACH -> judged?.reach?.takeIf { it.isNotBlank() }
             ?.let { stringResource(nameOfNotch(it)) }
         // **In percent of silence and not in "points".** The figure is the share of the turn
         // spent silent minus the model's share on the same sentence, so it is already a
