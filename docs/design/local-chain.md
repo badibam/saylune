@@ -152,16 +152,16 @@ Les nombres, eux : un débit, une étendue de hauteur et un niveau pour la ligne
 
 | | son propre | rythme par phonème | hauteur par phonème | voix |
 |---|---|---|---|---|
-| Piper, VITS en ONNX | oui | lisible seulement | non | 904 |
+| Piper, VITS en ONNX | oui | **oui, depuis la deuxième session** | non | **904, et par vecteur** |
 | VITS d'ESPnet | oui | **`dur` est un argument publié** | non, VITS n'en a pas | 108, ou par vecteur |
 | JETS, LJSpeech | oui | par crochet sur ses prédicteurs | par crochet | **une seule** |
 | FastSpeech2, LibriTTS | **non** | oui | oui | 2 456 |
 
 Il n'existe **aucun JETS multi-locuteurs publié** : LJSpeech en anglais, deux modèles coréens, rien d'autre.
 
-**Les deux pistes restantes.** Prendre le VITS d'ESPnet, qui donne les voix et le rythme et laisse la hauteur au traitement après coup. Ou entraîner un JETS multi-voix, qui donnerait les trois.
+**Trois pistes en sortaient.** Prendre le VITS d'ESPnet, qui donne les voix et le rythme et laisse la hauteur au traitement après coup ; entraîner un JETS multi-voix, qui donnerait les trois ; ou, jamais essayée et sans téléchargement, faire de `w_ceil` une **entrée** du fichier ONNX de Piper, comme son propre correctif en a fait une sortie.
 
-**Et une troisième, jamais essayée, qui ne coûte aucun téléchargement** : faire de `w_ceil` une **entrée** du fichier ONNX de Piper, comme son propre correctif en a fait une sortie. Si ça marche, c'est les 904 voix, le son propre et le rythme par phonème avec ce qui est déjà sur le disque.
+La troisième a été menée le 2026-09-09 et elle marche ; la première se ferme avec elle. Ce qui reste est plus bas.
 
 
 ### Les sondes de la session, et où elles sont
@@ -169,9 +169,63 @@ Il n'existe **aucun JETS multi-locuteurs publié** : LJSpeech en anglais, deux m
 Écrites dans `../../tmp/`, donc **hors du dépôt et effaçables**. Nommées ici pour qu'une session suivante sache ce qui a existé et ce que ça coûterait de le refaire, plutôt que de le redécouvrir.
 
 - `jets-acting.py` — le montage complet sur JETS, et la seule pièce qui vaudrait d'être reprise. Ce qu'elle a de dur à retrouver : **des crochets sur les trois prédicteurs** du générateur, qui laissent leur fonction tourner intacte et n'échangent que les nombres au passage ; et une **phonémisation mot à mot vérifiée** contre celle de la phrase entière, sans quoi les marques se décalent d'un phonème en silence.
-- `plan-p.py` — Piper rendu une fois, puis retouché sur la ligne de temps aux positions que le correctif d'alignement rapporte. Le correctif est un utilitaire de Piper (`python -m piper.patch_voice_with_alignment`), pas un bricolage.
+- `plan-p.py` — Piper rendu une fois, puis retouché sur la ligne de temps aux positions que le correctif d'alignement rapporte. Le correctif est un utilitaire de Piper (`python -m piper.patch_voice_with_alignment`), pas un bricolage. **Dépassée** par `../../bench/levers.py`, qui ouvre les durées au lieu de retoucher l'onde ; ce qu'elle garde d'utile est la retouche de hauteur par Praat, qui reste la seule voie vers le contour.
 - `render-marks.py`, `fastspeech-b-probe.py` — FastSpeech2, l'injection par phonème et les trois vocodeurs.
 - `sibilance.py` — dé-esseur et remplacement de la bande sifflante par du bruit. Verdict rendu : ça aide et ça ne suffit pas.
 - `fastspeech-probe.py`, `jets-probe.py`, `fastspeech-b-probe.py` — les sondes qui ont dit lequel accepte quoi.
 
 Le banc de créatures, lui, est au dépôt (`../../bench/creature.py`) : sept boutons de filtre, des balayages à un bouton et des mélanges nommés.
+
+
+## Ce que la deuxième session a mesuré, et ce qu'elle ferme
+
+2026-09-09. Elle a mené la troisième piste du mur, en a ouvert une quatrième que personne n'avait vue, et répondu au critère 4.
+
+**La phrase de comparaison est *« I asked you twice, and you said nothing. »***, et elle l'est pour de bon. Elle porte déjà les quinze balisages du test de marquage (`../../bench/marking/`), elle est la seconde moitié de la phrase du banc de créatures, et elle porte maintenant les rendus de rythme et de timbre — tout se lit contre tout. Les rendus sont sous `../../bench/out/levers/`, et `../../bench/levers.py` les refait.
+
+### Les durées se pilotent, et c'est vérifié plutôt qu'espéré
+
+`w_ceil` accepte d'être une entrée : deux consommateurs seulement le lisent dans le graphe, la longueur totale et le chemin d'alignement, et un `Where` devant eux suffit. Le même fichier garde la valeur prédite en sortie, donc une passe lit ce que le modèle a décidé et la suivante la renvoie multipliée — la règle *on module, on n'écrase pas* tient par construction.
+
+**Le contrôle est le résultat** : réinjecter les nombres prédits rend le même audio **à l'octet près**. Tout écart entendu ensuite vient donc de la multiplication et de rien d'autre. Il a fallu pour ça poser une graine sur les deux tirages de VITS, qui n'en portent aucune, et **ouvrir une session par rendu** — onnxruntime applique la graine à l'ouverture de la session et fait avancer le générateur d'un appel à l'autre.
+
+Un mot tenu tombe sur le seul mot visé. Et **le facteur appartient au mot, pas au phonème** : arrondir chaque phonème au supérieur porte un phonème d'une trame à deux, soit ×2 là où on demandait ×1,6 ; c'est le total du mot qui s'arrondit, et le reste se répartit sur les plus grosses fractions.
+
+### Le vecteur de locuteur : la quatrième piste
+
+`sid` ne fait qu'aller chercher une ligne dans `emb_g.weight`, **904 × 512**, et cette ligne conditionne tout l'aval — le prédicteur de durée, les quatre flots, le décodeur. Le vecteur s'ouvre donc par exactement la même chirurgie, et le même contrôle passe : le numéro et son propre vecteur rendent le même audio à l'octet près.
+
+**Ce que la géométrie dit** : les 904 sont centrés sur zéro, à 4,51 de distance médiane et 6,48 au plus loin, et les directions sont **plates** — les 100 premières sur 512 ne portent que 58,5 % de l'étalement. Les voix remplissent l'espace au lieu de vivre sur une surface mince : il n'y a pas de bonne région à longer.
+
+**Ce que l'oreille dit**, sur douze directions tirées au hasard entre les rayons 4,5 et 13 :
+
+- **La voix moyenne, que personne n'occupe, est naturelle.** Le centre du nuage n'est pas une bouillie.
+- **Douze directions font douze voix distinctes** — âgée, rauque, zozotante, blasée, précipitée, insistant en fin de mots.
+- **Le mur est progressif et se situe vers 16** : tenable jusqu'à 13, réverbération à 15,9, plus forte à 18,6, machine à 21,3. Il n'y a pas de falaise, donc le rayon utilisable est un nombre à poser.
+- **Le vecteur porte la diction autant que le timbre.** Trois des douze ont été décrites par leur manière et non par leur grain, et les durées le confirment — 1,16 s pour l'une, 2,18 s pour l'autre sur la même phrase. Le doc traitait le moteur comme la source du timbre et les marques du modèle de langue comme la source de la manière ; ce n'est pas séparé.
+
+**Ce que ça ne donne pas** : des créatures. Ce sont douze humains variés, pas un bestiaire — le même reproche que la session d'avant faisait au catalogue. L'espace élargit la variation humaine, il ne la quitte pas, et au-delà du mur on ne trouve pas un monstre mais une machine.
+
+### Le critère 4 est répondu, et la conversion neuronale tombe
+
+Le critère porte sur **le moteur plus le traitement du signal**, et c'est le montage complet qui a été essayé : trois bases distinctes passées aux mêmes préréglages de `../../bench/creature.py`. **La singularité de chaque base survit au filtre** — trois goblins, pas un. Le filtre partait d'une voix ordinaire, il part maintenant de douze voix séparées, et une distribution se fabrique en croisant les deux.
+
+Donc, conformément à ce que le critère 4 promettait avant les chiffres, **la conversion neuronale est abandonnée**. Elle ne se rouvre que sur ses cas nommés, dont le premier est vouloir la voix de quelqu'un en particulier.
+
+### La piste ESPnet se ferme, et pour une raison mesurée
+
+Le doc la gardait parce qu'elle « donne les voix et le rythme et laisse la hauteur au traitement après coup ». Piper retouché donne les deux mêmes leviers, avec 904 ancres au lieu de 108 et aucun téléchargement. Sur la hauteur les deux sont à égalité et le resteront : VITS n'a pas de prédicteur de hauteur, c'est architectural.
+
+Ce qu'ESPnet garde pour lui est une dette de moins, pas une capacité de plus : son `dur` est un argument publié, notre `w_ceil` est une chirurgie qui se refera à chaque nouveau modèle.
+
+**Il reste donc deux voies pour la hauteur**, et elles ne sont pas de même nature. Entraîner un JETS multi-voix, seul chemin vers la hauteur par phonème avec le son propre et plusieurs voix. Ou la poser au traitement du signal par-dessus le rythme, ce que `../../tmp/plan-p.py` fait déjà avec Praat. La seconde ne coûte rien et décide de la première : tant que personne n'a entendu ce que le contour rapporté après coup donne, entraîner un modèle pour l'avoir nativement est un pari sur un besoin que rien n'a nommé.
+
+### La pause est le seul endroit qui résiste
+
+Elle ne se fabrique **par aucune durée**. Tenir le jeton d'espace casse l'attaque du mot suivant ; tenir son jeton de remplissage rend la nasale anormalement longue, parce que ce jeton porte l'attaque et non du silence ; multiplier les jetons d'espace fait se chevaucher des choses ; et ajouter une virgule ne change rien, le modèle ne lui allouant que deux trames.
+
+**Ce qui marche est une découpe de l'onde, et pas à la frontière déclarée.** L'énergie trame par trame montre que le vrai silence — la fermeture du `d` de *said* — précède de six trames le début que l'alignement annonce pour le `n`, lequel tombe en plein murmure nasal. La règle retenue n'a donc aucune constante : parmi les trames qui précèdent le mot, **couper là où le son est déjà le plus faible**. Ici 0,008 contre 0,15 à la frontière déclarée, un rapport de vingt.
+
+Il en reste un défaut, nommé plutôt que réglé : **le modèle ne relâche pas une occlusive finale devant une pause qu'il n'a pas prévue**. Il a rendu de la parole liée, le `d` de *said* n'a pas d'explosion, et le silence posé derrière le laisse en l'air. Tenir ce `d` trois fois plus longtemps améliore un peu et n'ajoute aucune explosion — la fermeture s'allonge, c'est tout.
+
+**La voie propre n'a pas été essayée** : rendre la ligne **en deux morceaux au point de pause**, chacun étant une phrase entière que le modèle termine et attaque normalement. Le `d` se relâcherait parce qu'il serait en fin de groupe, et la couture tomberait là où il y a vraiment du silence. Ce n'est pas le découpage par groupe de mots que la session d'avant a écarté — celui-là coupait à chaque groupe et détruisait la mélodie de la phrase ; ici on ne couperait qu'aux pauses marquées, qui sont précisément les endroits où une phrase se coupe.
