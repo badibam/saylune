@@ -276,6 +276,8 @@ Le montage est tranché (`docs/reference.md`) ; reste à choisir qui tient chaqu
 
 **La chaîne locale rebat ce chantier** (`docs/design/local-chain.md`, écrit le 2026-09-07). La voix des personnages passe en local **par défaut**, non pour la qualité mais parce qu'une distribution est ce qu'un catalogue commercial fait payer par abonnement : les deux issues distantes sont de monter le mur BYOK ou de vendre des jetons. Ça supprime avant écriture le mode payant, les crédits et leurs plafonds. Le doc porte le montage cible, les huit critères de décision posés avant les chiffres, et leur ordre — dont les deux bancs ci-dessus, qui en sont les deux dernières étapes.
 
+**La première session sur ce doc a tourné** (2026-09-08) et ses mesures y sont consignées : le filtre fabrique une distribution utilisable, le clonage local est six fois trop lent, et le grain d'un modèle acoustique cousu à un vocodeur vient de la couture elle-même. Elle a ouvert une dimension que le doc n'avait pas — **écrire la diction d'un personnage**, en marquant la réplique dans l'appel au modèle de langue déjà fait et en modulant les prédictions par phonème du moteur. Deux pistes restent, et le choix entre elles est le même arbitrage : la hauteur par phonème, ou le nombre de voix.
+
 **Une seule chose est à préparer tout de suite, et elle ne coûte rien** : écrire le prompt en une **partie permanente et une queue courte**. Le jour où l'appel se découpe en deux — un modèle léger pour `intended`, un fort pour le jugement — les deux appels doivent partager leur préfixe à l'octet près pour que la mise en cache absorbe le second envoi de l'historique. Le rattraper après coup est une réécriture.
 
 ## Chantier 3 — incarnation

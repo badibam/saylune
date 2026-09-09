@@ -28,7 +28,9 @@ Maillon par maillon, en partant de ce qui est branché aujourd'hui.
 
 **Pourquoi le traitement du signal plutôt qu'un modèle de conversion.** Une conversion de voix garde la prosodie et les phonèmes de la source et remplace le timbre : elle donne un gobelin, jamais un accent écossais. Or c'est le timbre qui fait la distribution d'heroic fantasy, et le timbre est aussi ce que quelques transformations de signal font pour rien — sans poids à télécharger, sans licence à vérifier, et **en diffusion**, là où une conversion neuronale veut le plus souvent l'énoncé entier. S'y ajoute un argument de registre : l'app est du pixel doux, une police dessinée à la main, un jeu rétro. Une voix visiblement traitée y est du même bois ; une voix neuronale parfaitement humaine y serait le seul élément qui prétend au réel.
 
-Ce qui rouvrirait la conversion neuronale, et rien d'autre : vouloir qu'un personnage ait la voix de **quelqu'un** — l'apprenant, une personne enregistrée.
+**Ce qui rouvre la conversion neuronale** : vouloir un timbre qui n'est pas à portée de décalage depuis la voix source. Vouloir la voix de **quelqu'un** en est le cas nommé, parce que la cible a un nom ; il y en a deux autres, la distance qu'un filtre ne franchit pas sans casser, et une distribution que le moteur ne fournit pas. La première écriture n'en gardait qu'un et le raisonnement était trop étroit.
+
+Ce qui la referme, en revanche, tient : **une conversion a besoin d'une cible qu'elle puisse entendre**, et il n'existe aucun corpus de parole de gobelin. Sur de l'heroic fantasy elle n'a rien à viser, sauf à enregistrer quelqu'un — le cas nommé.
 
 ### Le parallélisme
 
@@ -86,3 +88,59 @@ La suite est ordonnée par ce que chaque étape coûte, et chacune ferme des opt
 5. **Les deux bancs** (7, 8), les plus chers, et qui sont **les deux tiers restants du chantier 2** : ils sont écrits et n'ont jamais tourné. Ce doc ne crée donc pas un chantier neuf, il donne au chantier 2 une raison de démarrer.
 
 Le téléchargement croît avec chaque maillon local — 359 Mo aujourd'hui pour l'analyse seule. Ce n'est pas une porte : c'est un opt-in, il est déjà là, et il est franchi une fois.
+
+
+## Ce qui a été mesuré, et ce que ça a déplacé
+
+Première session sur ce doc, 2026-09-08. Elle a mené les critères 1, 2 et 4, et ouvert une dimension que le doc n'avait pas.
+
+### La distribution : le moteur ne la donne pas, le filtre si
+
+**Le critère 1 ne trie presque rien** : un candidat écarté sur onze, `MMS-TTS` en CC-BY-NC. Ce qui trie est la taille du modèle contre un appareil de 2019. La GPL passe — le projet est lui-même en GPL-3.0-or-later —, ce que la première écriture du critère laissait croire l'inverse en ne nommant que les licences communautaires.
+
+**Les 904 locuteurs d'un VITS ne font pas une distribution.** Écoutés, ce sont des voix humaines normales, moins variées que des humains, et rien pour de l'heroic fantasy. Le compte du catalogue n'est pas le compte des timbres, ce que le critère 4 disait déjà.
+
+**Le filtre, lui, en fait une** (`../../bench/creature.py`). Sept boutons — hauteur, formants seuls, doublage désaccordé, modulation en anneau, saturation, souffle, réverbération — sur une voix ordinaire. Jugé à l'oreille : *pas ouf, mais pas mal, très raisonnable*. Le doc en nommait quatre ; les trois autres viennent du son de jeu, où la transposition est *l'ingrédient principal de toute voix de monstre*.
+
+**Le moteur n'offre qu'un levier de diction, le débit.** Ses deux autres réglages d'échantillonnage sont mesurés sans effet audible sur cette voix, et l'irrégularité des durées **a une falaise** : 2,8 s de parole à zéro, 3,5 s à 1,2, 5,3 s à 2,0, **448 s à 3,5**. Un personnage qui porterait ce réglage dans sa fiche aurait besoin d'une borne dure.
+
+### Le clonage est écarté, avec ses chiffres
+
+**Chatterbox** transporte le timbre et une part du jeu — le clonage tire un style de sa référence, là où une conversion ne prend que le timbre. Distinction qui compte : c'est le clonage, pas la conversion, qui achète de la diction.
+
+**ZipVoice en local** (Apache-2.0, 123 M de paramètres, ONNX 8 bits à 124 Mo) : mesuré à **2,0 fois plus lent que le temps réel** sur un poste, et **le coût croît comme le carré de la durée** — `1,0 × durée + 0,063 × durée²`, même forme que la passe d'analyse. À comparer aux **1,4 s** qu'ElevenLabs en direct met jusqu'au premier son sur l'appareil (`../providers.md`) : le local perd d'un facteur six, sur un poste, avant la pénalité du téléphone. Et il ne diffuse pas.
+
+### Le grain, et sa cause
+
+**Un modèle acoustique et son vocodeur entraînés séparément laissent un grain sur toute la parole.** Mesuré sur FastSpeech2 : la part d'énergie entre 5 et 10,5 kHz vaut trois à dix fois celle de Piper, **y compris sur une phrase sans aucune sifflante** — donc ce n'est pas un défaut des `s`, qui ne font que le révéler.
+
+Ce n'est pas non plus le choix du vocodeur : trois essayés, le générique livré, celui affiné sur une voix, et BigVGAN qui ajoute ses propres parasites. Et deux traitements aval — dé-esseur, remplacement de la bande par du bruit — aident sans suffire.
+
+**La cause est la couture.** Piper est propre, JETS est propre, FastSpeech2 gratte, et ce qui sépare les deux premiers du troisième est qu'ils sont **entraînés d'un bloc**. Le spectrogramme mel qui joint deux moitiés n'ayant jamais appris l'une de l'autre est où le défaut naît.
+
+### La dimension que le doc n'avait pas : écrire la diction
+
+Un filtre travaille sur de la parole déjà prononcée, donc **aucun réglage ne lui fait porter une intention**. Ce qui la porte est la prosodie, et elle se pilote si le moteur expose ses prédictions par phonème.
+
+**Le montage, éprouvé de bout en bout** : un seul appel au modèle de langue rend la réplique **et ses marques** ; le phonémiseur donne les phonèmes, les frontières de mots et les accents ; des règles en tirent un facteur par phonème ; le modèle prédit, on multiplie, il synthétise.
+
+Trois choses tranchées en chemin. **On module, on n'écrase pas** — les facteurs se calculent depuis les prédictions du modèle, qui garde ainsi tout ce qu'il sait de la langue ; des valeurs inventées le sortent de son domaine. **Le modèle de langue marque des mots, jamais des positions** dans une liste de phonèmes, où il se décale. Et **une borne sur chaque facteur** rend l'intelligibilité garantie par construction plutôt que surveillée après coup.
+
+**Deux langages de marquage essayés, tous deux concluants.** Des balises dans la ligne — poids, contour, voix, silences — et un petit objet de nombres : débit, étendue de hauteur, niveau, puis un poids, une hauteur et un volume par mot qui s'écarte. **Un vocabulaire pauvre ne séparait pas les personnages** — trois fiches sur cinq rendaient un balisage identique au caractère près ; un vocabulaire riche les sépare toutes les cinq. Les nombres vont mieux là où le moteur parle déjà en nombres, et c'est le modèle qui choisit l'amplitude au lieu d'une table de constantes.
+
+### Le mur
+
+**Aucun modèle publié n'a les trois à la fois** — son propre, contrôle par phonème, plusieurs voix.
+
+| | son propre | rythme par phonème | hauteur par phonème | voix |
+|---|---|---|---|---|
+| Piper, VITS en ONNX | oui | lisible seulement | non | 904 |
+| VITS d'ESPnet | oui | **`dur` est un argument publié** | non, VITS n'en a pas | 108, ou par vecteur |
+| JETS, LJSpeech | oui | par crochet sur ses prédicteurs | par crochet | **une seule** |
+| FastSpeech2, LibriTTS | **non** | oui | oui | 2 456 |
+
+Il n'existe **aucun JETS multi-locuteurs publié** : LJSpeech en anglais, deux modèles coréens, rien d'autre.
+
+**Les deux pistes restantes.** Prendre le VITS d'ESPnet, qui donne les voix et le rythme et laisse la hauteur au traitement après coup. Ou entraîner un JETS multi-voix, qui donnerait les trois.
+
+**Et une troisième, jamais essayée, qui ne coûte aucun téléchargement** : faire de `w_ceil` une **entrée** du fichier ONNX de Piper, comme son propre correctif en a fait une sortie. Si ça marche, c'est les 904 voix, le son propre et le rythme par phonème avec ce qui est déjà sur le disque.
