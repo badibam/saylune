@@ -47,6 +47,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `review.py` | écouter ce qui a été marqué, modèle puis prise, et écrire si c'est une faute |
 | `divergence.py` | écouter là où deux modèles ne nomment pas le même son, et écrire lequel a raison |
 | `creature.py` | une voix de personnage fabriquée à partir d'une voix ordinaire, par traitement du signal seul — les balayages à un bouton disent où chacun cesse de sonner comme une bouche, les mélanges nommés disent si une distribution en sort. Se juge en écoutant, ne demande aucune clé, tourne hors ligne (`../docs/design/local-chain.md`) |
+| `levers.py` | les deux entrées que Piper cache, ouvertes par chirurgie du graphe ONNX : la durée de chaque phonème, donc le rythme, et la ligne du locuteur dans la table 904 × 512, donc un timbre qui se déplace au lieu de se choisir. Rend les mesures de la deuxième session sur la chaîne locale (`../docs/design/local-chain.md`). Se juge en écoutant, aucune clé, hors ligne |
 | `pixel-ui.html` | l'écran complet dessiné à la résolution réelle d'un téléphone, police embarquée et palette réglable — le seul banc qui se juge en regardant, et la source des valeurs de `../docs/design/pixel-ui.md`. S'ouvre dans un navigateur, ne demande aucune clé. |
 
 Chaque brique s'utilise seule.
