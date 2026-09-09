@@ -65,6 +65,20 @@ Le second est le **plafond** et pas un candidat : sa licence l'écarte de l'app,
 
 **Sur AMI**, tranche de 20 000 énoncés, 17 h : 21 % portent un `UH` ou un `UM`, et 11 % portaient un symbole hors du vocabulaire du modèle — les points de `S. S. H.` —, qui deviennent des espaces faute de quoi le réseau apprend à écrire un jeton inconnu.
 
+**Deux affinages de la tête seule, tous deux ratés** (2026-09-09). Sur les mêmes 24 prises, après entraînement sur AMI :
+
+| | remplissages | fragments | répétitions | phrases propres |
+|---|---|---|---|---|
+| étagère | 0/7 | 1/4 | 2/2 | 0 % d'écart |
+| tête, 20 000 énoncés, lr 3e-4 | 2/7 | 2/4 | 1/2 | **78 %** |
+| tête, corpus réduit, lr 3e-5 | 0/7 | 1/4 | 1/2 | **89 %** |
+
+**La signature est la même dans les deux cas : les mots se collent.** `THECHAIRISVERYCOMFORTABLE` pour *The chair is very comfortable* — les lettres sont bonnes, le séparateur de mots a disparu. Ce que la cause **n'est pas** : les cibles, vérifiées comme portant bien le séparateur ; ni le taux d'apprentissage, deux valeurs à un facteur dix donnant la même casse.
+
+**Un acquis quand même, et il répond à une question de conception.** Le premier run écrit `ER`, `A`, `E` à l'endroit des hésitations, là où l'étagère n'écrivait rien. L'encodeur **garde** donc quelque chose de vocalique au passage d'un *euh*, et une tête peut l'atteindre — l'hypothèse d'une information effacée par l'affinage LibriSpeech est fausse. Ce qui a échoué est l'optimisation, pas l'accès.
+
+**Et la perte n'a rien vu.** Elle oscillait entre 2 et 4, illisible, pendant que le modèle devenait inutilisable. Le projet écrit qu'un état se qualifie par la procédure et jamais par la perte ; c'est vérifié ici à ses dépens.
+
 **Un fait à part, qui n'est pas une mesure** : sur *I picked a pear*, l'étagère écrit `BEAR`. Selon la doctrine du projet — ce que le réseau entend est la source de vérité — ce serait une faute de prononciation correctement entendue, pas une erreur de la machine. À vérifier à l'oreille sur cette prise avant d'en faire quoi que ce soit.
 
 ## La voie légère
@@ -83,7 +97,10 @@ Les notebooks sont dans `train/kaggle/` : `baseline.ipynb` (le plancher), `prefi
 
 ## Ce qui reste
 
-- **Les deux runs sont partis le 2026-09-09** — tête seule et réseau entier, 20 000 énoncés, deux époques — et **rien de leur résultat n'est connu**.
+- **Pourquoi les mots se collent après entraînement** — la question ouverte, et rien ne se relance avant qu'elle soit répondue. Deux pistes non explorées : l'équilibre entre le blanc et les autres jetons, que le modèle de phonèmes corrige par un terme de prior (`train/train.py`) et qu'aucun de ces runs ne touche ; et le fait que l'échec vienne d'AMI même, dont le rythme de parole n'est pas celui de LibriSpeech.
+- **Le run du réseau entier n'a jamais démarré.** Le gradient sort NaN au premier pas, sur les 396 paramètres à la fois et sans aucun infini, alors que la perte et les logits sont finis — donc le NaN naît dans la traversée de l'encodeur, la seule chose que le run de la tête ne fait pas. LayerDrop a été éteint et SpecAugment aussi ; le *gradient checkpointing* reste le suspect non éliminé.
+- **Le régime intermédiaire n'a pas été essayé** : `LAYERS` dans `finetune.ipynb` dégèle les couches du haut, ce qui rétropropage sans checkpointing et évite donc le chemin cassé.
+- **`AMP = False`** — voir ci-dessus, un réglage qui a marché et pas une cause trouvée.
 - **Les références du bloc B ne sont pas écrites.** Le brouillon existe (`tmp/prefill.json`), `bench/verbatim.py` attend. Une prise demandera du travail : sur `failed-repair`, CrisperWhisper part en boucle et écrit environ deux cents *I* d'affilée — la panne classique de Whisper sur une hésitation longue. L'audio est bon ; c'est la seule prise qui ait fait tomber le modèle.
 - **Une divergence du bloc A à trancher à l'oreille** : sur `repeat-group`, les deux modèles écrivent *I want to **I** I want to*. Soit la référence écrite est fausse, soit c'est la seule invention du bloc.
 - **Rien n'est mesuré sur l'appareil** : ni la durée d'une passe, ni la mémoire, ni ce que la quantification 8 bits coûte au verbatim.
