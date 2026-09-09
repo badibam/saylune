@@ -77,6 +77,8 @@ Rien de gros ne descend sur la ligne de l'auteur. Trois gestes, dans cet ordre d
 
 **Ne pas rapatrier du tout.** L'app va chercher ses poids dans une release GitHub ; le notebook peut les y pousser directement. Datacenter → GitHub → téléphone.
 
+**Un réglage à ne pas rallumer sans mesurer** : `AMP = False` dans `finetune.ipynb`. Sous demi-précision, la perte sortait NaN dès le premier pas ; sans elle, elle descend. La cause n'est **pas** prouvée — quatre sondes ont rendu des chiffres propres, signal, passe avant dans les deux précisions, passe en mode entraînement et perte sur deux lots —, et le lot fautif n'a jamais été isolé, la boucle mélangeant ses groupes. On a changé un réglage et le symptôme a disparu, ce qui n'est pas la même chose que de savoir pourquoi.
+
 Les notebooks sont dans `train/kaggle/` : `baseline.ipynb` (le plancher), `prefill.ipynb` (le brouillon de référence), `finetune.ipynb` (l'affinage, `FULL` en tête pour la tête seule ou le réseau entier).
 
 ## Ce qui reste
