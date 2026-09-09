@@ -25,6 +25,10 @@ counts as a miss is writing nothing, or writing a content word.
 
 # (slug, verbatim text, kind). The slug names the recorded file, so it stays
 # stable. `kind` is what the take is there to exercise; `clean` is a control.
+#
+# Written in the convention of the nyra verbatim benchmark, so our numbers
+# compare to theirs without a translation: a cut-off word keeps its trailing
+# hyphen, and a filled pause is a word of its own.
 STUMBLES = (
     # Filled pauses. The commonest kind by far, and the one the fluency sheet
     # leans on hardest.
@@ -50,10 +54,10 @@ STUMBLES = (
     # Cut-off words: a fragment that is not a word of the language. Nothing in
     # a recogniser's vocabulary writes it, so it is the hardest kind and the one
     # most likely to come back as a wrong whole word.
-    ("cut-comfortable", "It is very comf comfortable", "fragment"),
-    ("cut-interesting", "This lesson is inter interesting for me", "fragment"),
-    ("cut-tree", "I picked a pear from the tr tree", "fragment"),
-    ("cut-question", "That ques question was easy", "fragment"),
+    ("cut-comfortable", "It is very comf- comfortable", "fragment"),
+    ("cut-interesting", "This lesson is inter- interesting for me", "fragment"),
+    ("cut-tree", "I picked a pear from the tr- tree", "fragment"),
+    ("cut-question", "That ques- question was easy", "fragment"),
     # Silence where a hesitation would be: two seconds of nothing, mid-sentence.
     # There is nothing to write, so this take asks the opposite question -- does
     # the model invent a word to fill the gap?
