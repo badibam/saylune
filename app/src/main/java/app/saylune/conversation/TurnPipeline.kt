@@ -409,23 +409,29 @@ data class ConversationState(
     val standing: RuleState get() = effective ?: stateOf(activity)
 
     /**
-     * Every reading of the utterance [of], oldest first: its own, then each one that says it
-     * again.
+     * The attempts at the utterance [of] that still stand, oldest first.
      *
-     * Each reading is addressed by its own identity, which every listening gesture then
-     * carries: a reading whose audio came from one take and whose times came from another
-     * plays a different part of the sentence.
+     * Each one is addressed by its own identity, which every listening gesture then carries:
+     * a reading whose audio came from one take and whose times came from another plays a
+     * different part of the sentence.
+     *
+     * **It starts at the last rewording**, the words having changed there: everything said
+     * before it is an attempt at a sentence the learner has since replaced, so showing its
+     * marks would put marks on words that are no longer on screen.
+     *
+     * **And an attempt with no marking is here too.** It was going to be filtered out, one
+     * that carries none never having been read -- but a rewording exists from the moment the
+     * call returns and is read seconds later, so filtering left the screen showing the
+     * sentence that was just replaced for the whole of the analysis.
      *
      * Derived and never stored. It is a walk of the run, and a walk of the run cannot fall
      * out of step with the run -- which is exactly what a list kept beside it used to do.
-     * Only the readings that carry a marking are here: one that carries none was never read,
-     * so there is nothing of it to look at.
      */
     fun readings(of: String): List<Utterance> {
         val root = utterances.firstOrNull { it.id == of } ?: return emptyList()
-        return utterances.filter {
-            (it.id == root.id || it.repeats == root.id) && it.marking != null
-        }
+        val attempts = utterances.filter { it.id == root.id || it.repeats == root.id }
+        val reworded = attempts.indexOfLast { it.attempt == Attempt.Rewording }
+        return attempts.drop(if (reworded < 0) 0 else reworded)
     }
 
     /**
@@ -538,14 +544,45 @@ data class ConversationState(
 
     private fun exchangesOf(passage: Passage): List<Exchange> = listOfNotNull(
         Exchange(fromLearner = true, text = passage.last.text),
-        // The last reply of the **passage**, and not the one answering the last attempt: a
-        // repeat is never answered at all -- it is pipe B alone, on a text already settled --
-        // so looking it up by the last attempt would lose the reply the moment the learner
-        // said the sentence again. A rewording, which does make a fresh call, is the case
-        // where the two coincide.
-        utterances.lastOrNull { reply -> passage.attempts.any { reply.answers == it.id } }
-            ?.let { Exchange(false, it.text, it.established) },
+        standingReply(passage)?.let { Exchange(false, it.text, it.established) },
     )
+
+    /**
+     * The reply that stands for [passage], or null before one has been made.
+     *
+     * The last reply of the **passage**, and not the one answering the last attempt: a repeat
+     * is never answered at all -- it is pipe B alone, on a text already settled -- so looking
+     * it up by the last attempt would lose the reply the moment the learner said the sentence
+     * again. A rewording, which does make a fresh call, is the case where the two coincide.
+     */
+    private fun standingReply(passage: Passage): Utterance? =
+        utterances.lastOrNull { reply -> passage.attempts.any { reply.answers == it.id } }
+
+    /**
+     * The run as the screen draws it: **what opens a passage, and the reply that stands**.
+     *
+     * Two things are left out, and the same fact leaves them: an attempt is not drawn where it
+     * sits in the run, it is one of the readings grouped under the utterance it repeats, which
+     * is where the learner is looking. And a reply that a rewording superseded goes with it --
+     * a rewording remakes the exchange, so the answer made to the sentence that was replaced
+     * is an answer to something nobody said any more.
+     *
+     * **Superseded is not deleted**: the old reply stays in the store, where it is what was
+     * actually said to the learner, and it is only its pointing at an attempt that is no
+     * longer the last that keeps it off the screen. The same rule keeps it out of [history],
+     * which is what makes the two agree.
+     */
+    fun thread(): List<Utterance> {
+        val standing = passages().mapNotNull { standingReply(it)?.id }.toSet()
+        return utterances.filter {
+            when {
+                it.speaker.isLearner -> it.repeats == null
+                // A provoked turn answers nobody, so nothing can supersede it.
+                it.answers == null -> true
+                else -> it.id in standing
+            }
+        }
+    }
 
     /**
      * What the model has settled so far, by question key, oldest first.

@@ -275,11 +275,11 @@ fun ConversationScreen(
         // scrambled text by default, the ear being the main channel and a legible text
         // preempting the listening.
         val display = Display.of(turn.positions)
-        turn.utterances.forEach { spoken ->
-            // An utterance that says another again is not drawn where it sits in the run: it
-            // is one of the readings grouped under the one it repeats, which is where the
-            // learner is looking. The run keeps the order; the screen keeps the grouping.
-            if (spoken.repeats != null) return@forEach
+        // What the run holds minus what it has superseded: an attempt is drawn under the
+        // utterance it repeats rather than where it sits, and a reply a rewording replaced
+        // goes with the sentence it answered. The run keeps the order; the screen keeps the
+        // grouping.
+        turn.thread().forEach { spoken ->
             if (!spoken.speaker.isLearner) {
                 Heard(
                     spoken.text, shortName(turn, spoken.speaker), display, channels,
@@ -486,6 +486,11 @@ private fun Said(
         // and it is read rather than copied: copied onto the repeat it would say that these
         // spans were measured on this take, which they were not.
         val judged = shown?.judged ?: spoken.judged
+        // The words on screen are the standing attempt's, and the opener's only until one has
+        // been made: everything drawn here is measured against them -- the marks, a tap that
+        // plays a word, the inventory sound by sound -- so reading them anywhere else would
+        // put a reading of one sentence on top of another.
+        val text = shown?.text ?: spoken.text
         TurnLabel(
             name = speaker,
             following = judged?.following,
@@ -521,7 +526,7 @@ private fun Said(
                 // points at. Its bounds are read off the sounds it covers rather than
                 // measured again, so the two recordings stay in step by construction.
                 onTapCharacter = { offset ->
-                    spanOfWord(spoken.text, offset)?.let { word ->
+                    spanOfWord(text, offset)?.let { word ->
                         heard(sounds.orEmpty(), word, side)?.let { (from, to) ->
                             // The take being looked at, never the turn's first: its times
                             // are the ones just read off it.
@@ -531,13 +536,17 @@ private fun Said(
                 },
             )
         } else Text(
-            spoken.text,
+            // The attempt that stands, and the opener only until one has been made: a
+            // rewording is on screen from the moment the call returns, seconds before it is
+            // read, and drawing the opener there left the learner reading the sentence he had
+            // just replaced while its analysis ran.
+            text,
             style = Saylune.type.text,
             color = Saylune.palette.ink.srgb,
         )
-        // Every passage that carries a recording gets the row -- listening back is what a
+        // Every passage that carries a reading gets the row -- listening back is what a
         // measured turn is for. What the row holds depends on whether the passage is open.
-        if (where != null) {
+        if (where != null && marking != null) {
             val context = LocalContext.current
             var reading by rememberSaveable { mutableStateOf(false) }
             Commands(
@@ -560,7 +569,7 @@ private fun Said(
             // the inventory sound by sound, where the row above plays the whole phrase.
             if (reading && sounds != null) {
                 AnalysisReadout(
-                    spoken.text, sounds, marking?.added.orEmpty(), thread,
+                    text, sounds, marking.added, thread,
                     onHearSound = { sound, which -> onHearSound(where, sound, which) },
                     // The pre-recorded set, played whole: a symbol on its own is already
                     // one sound and there is nothing in it to cut.
@@ -576,7 +585,7 @@ private fun Said(
         // **A turn a clock closed says so, on itself**: it is truncated and sent as it
         // stands, and someone who does not know that reads a sentence that stops mid-word as
         // the app having lost half of it.
-        spoken.ending?.let { ending ->
+        (shown ?: spoken).ending?.let { ending ->
             Text(
                 stringResource(
                     when (ending) {

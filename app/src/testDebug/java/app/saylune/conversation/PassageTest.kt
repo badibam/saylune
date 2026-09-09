@@ -4,6 +4,7 @@ import app.saylune.activity.Shipped
 import app.saylune.levers.At
 import app.saylune.levers.Count
 import app.saylune.levers.Positions
+import app.saylune.marking.TurnMarking
 import app.saylune.notes.Measured
 import app.saylune.notes.Passage as Scored
 import app.saylune.notes.Weights
@@ -31,6 +32,10 @@ class PassageTest {
             speaker = Speaker.Learner, text = text, activity = "a",
             repeats = repeats, attempt = attempt, id = "u${next++}",
         )
+
+    /** The same, once it has been read: what a marking makes of it is on it. */
+    private fun read(text: String, repeats: String? = null, attempt: Attempt? = null) =
+        said(text, repeats, attempt).copy(marking = TurnMarking.wordsOnly(text))
 
     private fun replied(to: String, text: String) = Utterance(
         speaker = Speaker.Ai, text = text, activity = "a", answers = to, id = "u${next++}",
@@ -143,6 +148,82 @@ class PassageTest {
     fun `an unanswered passage carries no reply`() {
         val opener = said("hello")
         assertEquals(listOf("hello"), state(opener).history().map { it.text })
+    }
+
+    // ── The thread ──────────────────────────────────────────────────────────────────────
+
+    /**
+     * **The screen agrees with the history**: a rewording remakes the exchange, so the answer
+     * made to the sentence that was replaced is an answer to something nobody said any more.
+     * Left in, the learner read the old reply under the new sentence.
+     */
+    @Test
+    fun `a superseded reply is not drawn`() {
+        val opener = said("I have 25 years")
+        val stale = replied(opener.id, "How long have you had them?")
+        val again = said("I am 25 years old", repeats = opener.id, attempt = Attempt.Rewording)
+        val fresh = replied(again.id, "Ah, and where do you live?")
+        val thread = state(opener, stale, again, fresh).thread()
+        assertEquals(listOf(opener.id, fresh.id), thread.map { it.id })
+    }
+
+    /** A turn nobody prompted answers no passage, so nothing can supersede it. */
+    @Test
+    fun `a provoked turn stays in the thread`() {
+        val provoked = Utterance(speaker = Speaker.Ai, text = "So", activity = "a", id = "p")
+        val opener = said("hello")
+        val answer = replied(opener.id, "hi")
+        assertEquals(
+            listOf(provoked.id, opener.id, answer.id),
+            state(provoked, opener, answer).thread().map { it.id },
+        )
+    }
+
+    /** A repeat answers nothing, so the reply of the passage it is in stays. */
+    @Test
+    fun `a repeat leaves the reply where it is`() {
+        val opener = said("I am twenty five")
+        val answer = replied(opener.id, "Nice")
+        val once = said("I am twenty five", repeats = opener.id, attempt = Attempt.Repeat)
+        assertEquals(
+            listOf(opener.id, answer.id),
+            state(opener, answer, once).thread().map { it.id },
+        )
+    }
+
+    /**
+     * **A rewording is on screen before it is read.** It exists the moment the call returns
+     * and its marks arrive seconds later; a reading filtered out until then left the sentence
+     * that had just been replaced on screen for the whole of the analysis.
+     */
+    @Test
+    fun `an unread rewording is what the passage shows`() {
+        val opener = read("I have 25 years")
+        val again = said("I am 25 years old", repeats = opener.id, attempt = Attempt.Rewording)
+        val readings = state(opener, replied(opener.id, "Ah"), again).readings(opener.id)
+        assertEquals(listOf(again.id), readings.map { it.id })
+    }
+
+    /** And what it replaced goes with it: those marks are on words no longer on screen. */
+    @Test
+    fun `the readings before a rewording are dropped`() {
+        val opener = read("I have 25 years")
+        val once = read("I have 25 years", repeats = opener.id, attempt = Attempt.Repeat)
+        val again = read("I am 25 years old", repeats = opener.id, attempt = Attempt.Rewording)
+        val after = read("I am 25 years old", repeats = opener.id, attempt = Attempt.Repeat)
+        val readings = state(opener, once, again, after).readings(opener.id)
+        assertEquals(listOf(again.id, after.id), readings.map { it.id })
+    }
+
+    /** With no rewording, every attempt at the sentence is a reading of the same words. */
+    @Test
+    fun `repeats are all readings of the passage`() {
+        val opener = read("I am twenty five")
+        val once = read("I am twenty five", repeats = opener.id, attempt = Attempt.Repeat)
+        assertEquals(
+            listOf(opener.id, once.id),
+            state(opener, once).readings(opener.id).map { it.id },
+        )
     }
 
     // ── The gates ───────────────────────────────────────────────────────────────────────
