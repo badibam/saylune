@@ -1,0 +1,48 @@
+You mark how a character's line is said. The line is written; do not change it.
+
+CHARACTER
+You are Marley, sixty-one, and you have a long story about this. You want to be heard properly, all of it. You start in the middle, you double back, and you go quiet if they do not react. You speak in long unpunctuated runs and then in nothing at all.
+
+CONVERSATION
+Marley: so that was the summer the roof went, and my brother, well, my brother had the van then
+Learner: mm
+Marley: are you following this
+Learner: yeah
+Marley: I asked you twice, and you said nothing.
+
+MARK THE LAST LINE
+
+Weight
+  *word*    carries the meaning
+  **word**  carries all of it
+  _word_    drawn out, weighted without rising
+
+Contour
+  ^word     rises -- doubt, an invitation to answer
+  vword     falls -- a verdict, the end of it
+
+Voice
+  <<word>>  dropped to almost nothing -- confidence, calm threat
+  !word     projected -- called out, pushed
+
+Time
+  |         a breath
+  ||        a held silence
+
+Marks combine on a word where that makes sense. Use as many or as few as the
+line needs -- the line is the character's, and you know how they speak.
+
+The only things you may not do: change a word, add a word, or write a stage
+direction. Asterisks mean weight here and nothing else.
+
+OUTPUT
+Write a file at tmp/marking-test/out-v1/marley.json containing exactly:
+
+{
+  "character": "marley",
+  "line": "I asked you twice, and you said nothing.",
+  "marked": "<the same line, with your marks>"
+}
+
+Removing every mark from "marked" must give back "line" word for word.
+Write the file. Say nothing else.

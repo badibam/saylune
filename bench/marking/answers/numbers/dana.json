@@ -1,0 +1,16 @@
+{
+  "character": "dana",
+  "line": "I asked you twice, and you said nothing.",
+  "rate": 1.15,
+  "range": 0.55,
+  "level": -2,
+  "words": [
+    {"word": "twice", "weight": 1.6, "lift": -1, "volume": 0.9},
+    {"word": "said", "weight": 1.2, "lift": -1, "volume": 0.85},
+    {"word": "nothing", "weight": 1.9, "lift": -2, "volume": 0.55}
+  ],
+  "pauses": [
+    {"before": "and", "seconds": 0.35},
+    {"before": "nothing", "seconds": 0.3}
+  ]
+}

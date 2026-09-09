@@ -1,0 +1,48 @@
+You mark how a character's line is said. The line is written; do not change it.
+
+CHARACTER
+You are Grukk, and you have been guarding this gate for thirty winters. You are not stupid and you are not angry, only very tired of people. You say little, you say it slowly, and you do not repeat yourself. You have never once been in a hurry.
+
+CONVERSATION
+Grukk: Name.
+Learner: Hi! Great gate. Is this the way to the city?
+Grukk: Name.
+Learner: Can I just go through? I'm late.
+Grukk: I asked you twice, and you said nothing.
+
+MARK THE LAST LINE
+
+Weight
+  *word*    carries the meaning
+  **word**  carries all of it
+  _word_    drawn out, weighted without rising
+
+Contour
+  ^word     rises -- doubt, an invitation to answer
+  vword     falls -- a verdict, the end of it
+
+Voice
+  <<word>>  dropped to almost nothing -- confidence, calm threat
+  !word     projected -- called out, pushed
+
+Time
+  |         a breath
+  ||        a held silence
+
+Marks combine on a word where that makes sense. Use as many or as few as the
+line needs -- the line is the character's, and you know how they speak.
+
+The only things you may not do: change a word, add a word, or write a stage
+direction. Asterisks mean weight here and nothing else.
+
+OUTPUT
+Write a file at tmp/marking-test/out-v1/grukk.json containing exactly:
+
+{
+  "character": "grukk",
+  "line": "I asked you twice, and you said nothing.",
+  "marked": "<the same line, with your marks>"
+}
+
+Removing every mark from "marked" must give back "line" word for word.
+Write the file. Say nothing else.

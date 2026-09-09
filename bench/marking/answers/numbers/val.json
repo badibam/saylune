@@ -1,0 +1,14 @@
+{
+  "character": "val",
+  "line": "I asked you twice, and you said nothing.",
+  "rate": 1.25,
+  "range": 0.45,
+  "level": -2,
+  "words": [
+    {"word": "twice", "weight": 1.6, "lift": -1, "volume": 1.1},
+    {"word": "nothing", "weight": 2.0, "lift": -3, "volume": 0.7}
+  ],
+  "pauses": [
+    {"before": "and", "seconds": 0.5}
+  ]
+}

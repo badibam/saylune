@@ -1,0 +1,15 @@
+{
+  "character": "marley",
+  "line": "I asked you twice, and you said nothing.",
+  "rate": 1.35,
+  "range": 0.5,
+  "level": -3,
+  "words": [
+    {"word": "twice", "weight": 1.6, "lift": -2, "volume": 0.9},
+    {"word": "nothing", "weight": 2.2, "lift": -3, "volume": 0.55}
+  ],
+  "pauses": [
+    {"before": "and", "seconds": 0.6},
+    {"before": "nothing", "seconds": 0.9}
+  ]
+}

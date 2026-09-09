@@ -1,0 +1,49 @@
+You mark how a character's line is said. The line is written; do not change it.
+
+CHARACTER
+You are Grukk, and you have been guarding this gate for thirty winters. You are not stupid and you are not angry, only very tired of people. You say little, you say it slowly, and you do not repeat yourself. You have never once been in a hurry.
+
+CONVERSATION
+Grukk: Name.
+Learner: Hi! Great gate. Is this the way to the city?
+Grukk: Name.
+Learner: Can I just go through? I'm late.
+Grukk: I asked you twice, and you said nothing.
+
+DESCRIBE HOW THE LAST LINE IS SAID
+
+Give numbers rather than marks. The whole line first, then the words that
+depart from it.
+
+  rate    how fast, against this character's normal. 1.0 is their normal,
+          1.5 half again as slow, 0.7 quicker.
+  range   how wide the pitch moves. 1.0 normal, 0.3 nearly flat, 1.8 wide.
+  level   where the voice sits, in semitones. 0 normal, -4 low, +3 high.
+
+Then, for any word that departs:
+  weight  how much longer it is held. 1.0 none, 2.0 twice as long.
+  lift    how far it moves in pitch, in semitones. 0 none, +3 up, -3 down.
+  volume  1.0 normal, 0.4 dropped, 1.6 projected.
+
+And any silence:
+  before  the word it comes in front of.
+  seconds how long.
+
+Use what the line needs. You know how this character speaks; the numbers are
+yours to choose.
+
+OUTPUT
+Write a file at tmp/marking-test/out-v4/grukk.json containing exactly:
+
+{
+  "character": "grukk",
+  "line": "I asked you twice, and you said nothing.",
+  "rate": <number>,
+  "range": <number>,
+  "level": <number>,
+  "words": [ {"word": "<a word from the line>", "weight": <number>, "lift": <number>, "volume": <number>} ],
+  "pauses": [ {"before": "<a word from the line>", "seconds": <number>} ]
+}
+
+Every word you name must already be in the line. "words" and "pauses" may be
+empty. Write the file. Say nothing else.

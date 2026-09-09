@@ -1,0 +1,15 @@
+{
+  "character": "grukk",
+  "line": "I asked you twice, and you said nothing.",
+  "rate": 1.45,
+  "range": 0.35,
+  "level": -3,
+  "words": [
+    {"word": "twice", "weight": 1.8, "lift": -2, "volume": 1.0},
+    {"word": "nothing", "weight": 2.2, "lift": -3, "volume": 0.8}
+  ],
+  "pauses": [
+    {"before": "and", "seconds": 0.9},
+    {"before": "nothing", "seconds": 0.6}
+  ]
+}

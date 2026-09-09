@@ -1,0 +1,49 @@
+You mark how a character's line is said. The line is written; do not change it.
+
+CHARACTER
+You are Val, fifty-one, eleven years behind this returns desk. You have heard every story there is and you are not unkind, only tired and faintly amused by people. You want the queue gone before closing. You never say no outright: you almost agree, then find one more thing. You speak in short procedural sentences.
+
+CONVERSATION
+Val: Do you have the receipt?
+Learner: It's in the bag somewhere.
+Val: Have you got the receipt.
+Learner: Look, can you just take it back?
+Val: I asked you twice, and you said nothing.
+
+DESCRIBE HOW THE LAST LINE IS SAID
+
+Give numbers rather than marks. The whole line first, then the words that
+depart from it.
+
+  rate    how fast, against this character's normal. 1.0 is their normal,
+          1.5 half again as slow, 0.7 quicker.
+  range   how wide the pitch moves. 1.0 normal, 0.3 nearly flat, 1.8 wide.
+  level   where the voice sits, in semitones. 0 normal, -4 low, +3 high.
+
+Then, for any word that departs:
+  weight  how much longer it is held. 1.0 none, 2.0 twice as long.
+  lift    how far it moves in pitch, in semitones. 0 none, +3 up, -3 down.
+  volume  1.0 normal, 0.4 dropped, 1.6 projected.
+
+And any silence:
+  before  the word it comes in front of.
+  seconds how long.
+
+Use what the line needs. You know how this character speaks; the numbers are
+yours to choose.
+
+OUTPUT
+Write a file at tmp/marking-test/out-v4/val.json containing exactly:
+
+{
+  "character": "val",
+  "line": "I asked you twice, and you said nothing.",
+  "rate": <number>,
+  "range": <number>,
+  "level": <number>,
+  "words": [ {"word": "<a word from the line>", "weight": <number>, "lift": <number>, "volume": <number>} ],
+  "pauses": [ {"before": "<a word from the line>", "seconds": <number>} ]
+}
+
+Every word you name must already be in the line. "words" and "pauses" may be
+empty. Write the file. Say nothing else.

@@ -126,7 +126,25 @@ Un filtre travaille sur de la parole déjà prononcée, donc **aucun réglage ne
 
 Trois choses tranchées en chemin. **On module, on n'écrase pas** — les facteurs se calculent depuis les prédictions du modèle, qui garde ainsi tout ce qu'il sait de la langue ; des valeurs inventées le sortent de son domaine. **Le modèle de langue marque des mots, jamais des positions** dans une liste de phonèmes, où il se décale. Et **une borne sur chaque facteur** rend l'intelligibilité garantie par construction plutôt que surveillée après coup.
 
-**Deux langages de marquage essayés, tous deux concluants.** Des balises dans la ligne — poids, contour, voix, silences — et un petit objet de nombres : débit, étendue de hauteur, niveau, puis un poids, une hauteur et un volume par mot qui s'écarte. **Un vocabulaire pauvre ne séparait pas les personnages** — trois fiches sur cinq rendaient un balisage identique au caractère près ; un vocabulaire riche les sépare toutes les cinq. Les nombres vont mieux là où le moteur parle déjà en nombres, et c'est le modèle qui choisit l'amplitude au lieu d'une table de constantes.
+**Deux langages de marquage essayés, tous deux concluants.** Des balises dans la ligne et un petit objet de nombres :
+
+| famille | balise | ce qu'elle vaut |
+|---|---|---|
+| poids | `*mot*` · `**mot**` | durée ×1,4 et ×1,8, hauteur +0,5 et +1 |
+| | `_mot_` | durée ×1,6, hauteur inchangée — appuyer sans monter |
+| contour | `^mot` · `vmot` | hauteur ±1,5 — le doute, le verdict |
+| voix | `<<mot>>` · `!mot` | volume ×0,5 et ×1,5 |
+| temps | `\|` · `\|\|` | 200 ms · 500 ms |
+
+Les nombres, eux : un débit, une étendue de hauteur et un niveau pour la ligne, puis un poids, une hauteur et un volume par mot qui s'écarte.
+
+**Trois règles font tenir l'ensemble.** Le modèle marque **le sens** ; la fiche du personnage porte **la manière** — débit, étendue, niveau — et rien ne doit être réglable des deux côtés, sinon deux sources se disputent la même grandeur. La ponctuation fait déjà son travail et ne se balise pas.
+
+**Un vocabulaire pauvre ne sépare pas les personnages** : trois fiches sur cinq ont rendu un balisage identique au caractère près. Le riche les sépare toutes les cinq, et les nombres aussi. Les prompts, les quinze réponses et ce que la comparaison a montré sont dans `../../bench/marking/`.
+
+**Ce que les nombres ajoutent** : l'étendue de hauteur et le niveau, que nulle balise ne portait, et surtout **c'est le modèle qui choisit l'amplitude** au lieu d'une table de constantes écrite à la main.
+
+**Ce qui manque à ce test** : le témoin. Les mêmes répliques sans aucune marque, écoutées en aveugle avec les autres, diraient si le balisage porte quelque chose ou si le texte fait tout le travail. Les fichiers existent, l'écoute n'a pas été menée.
 
 ### Le mur
 
@@ -144,3 +162,16 @@ Il n'existe **aucun JETS multi-locuteurs publié** : LJSpeech en anglais, deux m
 **Les deux pistes restantes.** Prendre le VITS d'ESPnet, qui donne les voix et le rythme et laisse la hauteur au traitement après coup. Ou entraîner un JETS multi-voix, qui donnerait les trois.
 
 **Et une troisième, jamais essayée, qui ne coûte aucun téléchargement** : faire de `w_ceil` une **entrée** du fichier ONNX de Piper, comme son propre correctif en a fait une sortie. Si ça marche, c'est les 904 voix, le son propre et le rythme par phonème avec ce qui est déjà sur le disque.
+
+
+### Les sondes de la session, et où elles sont
+
+Écrites dans `../../tmp/`, donc **hors du dépôt et effaçables**. Nommées ici pour qu'une session suivante sache ce qui a existé et ce que ça coûterait de le refaire, plutôt que de le redécouvrir.
+
+- `jets-acting.py` — le montage complet sur JETS, et la seule pièce qui vaudrait d'être reprise. Ce qu'elle a de dur à retrouver : **des crochets sur les trois prédicteurs** du générateur, qui laissent leur fonction tourner intacte et n'échangent que les nombres au passage ; et une **phonémisation mot à mot vérifiée** contre celle de la phrase entière, sans quoi les marques se décalent d'un phonème en silence.
+- `plan-p.py` — Piper rendu une fois, puis retouché sur la ligne de temps aux positions que le correctif d'alignement rapporte. Le correctif est un utilitaire de Piper (`python -m piper.patch_voice_with_alignment`), pas un bricolage.
+- `render-marks.py`, `fastspeech-b-probe.py` — FastSpeech2, l'injection par phonème et les trois vocodeurs.
+- `sibilance.py` — dé-esseur et remplacement de la bande sifflante par du bruit. Verdict rendu : ça aide et ça ne suffit pas.
+- `fastspeech-probe.py`, `jets-probe.py`, `fastspeech-b-probe.py` — les sondes qui ont dit lequel accepte quoi.
+
+Le banc de créatures, lui, est au dépôt (`../../bench/creature.py`) : sept boutons de filtre, des balayages à un bouton et des mélanges nommés.

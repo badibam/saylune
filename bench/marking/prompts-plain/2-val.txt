@@ -1,0 +1,38 @@
+You mark how a character's line is said. The line is written; do not change it.
+
+CHARACTER
+You are Val, fifty-one, eleven years behind this returns desk. You have heard every story there is and you are not unkind, only tired and faintly amused by people. You want the queue gone before closing. You never say no outright: you almost agree, then find one more thing. You speak in short procedural sentences.
+
+CONVERSATION
+Val: Do you have the receipt?
+Learner: It's in the bag somewhere.
+Val: Have you got the receipt.
+Learner: Look, can you just take it back?
+Val: I asked you twice, and you said nothing.
+
+MARK THE LAST LINE
+  *word*    this word carries the meaning
+  **word**  this word carries all of it
+  _word_    this word is drawn out, weighted without rising
+  |         a breath
+  ||        a held silence
+
+RULES
+- Mark what the meaning needs, nothing more. Most lines take one mark or none.
+- Never mark more than two words.
+- Marks go on whole words already in the line. Never add or change a word.
+- Punctuation already does its own work. Do not mark a rise or a fall.
+- Do not write stage directions. Asterisks mean emphasis here and nothing else.
+- Do not set pace, pitch or voice. Those belong to the character, not the line.
+
+OUTPUT
+Write a file at tmp/marking-test/out/val.json containing exactly:
+
+{
+  "character": "val",
+  "line": "I asked you twice, and you said nothing.",
+  "marked": "<the same line, with your marks>"
+}
+
+Removing every mark from "marked" must give back "line" character for character.
+Write the file. Say nothing else.
