@@ -22,6 +22,10 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `phrases.py` | les phrases du jeu, dans leur forme correcte — le modèle est toujours ce qui aurait dû être dit |
 | `synth.py` | rendu d'une phrase par n'importe quelle voix candidate, toujours en wav 16 kHz mono |
 | `take.py` | une session d'enregistrement guidée : naturel, calque GB, calque US |
+| `stumbles.py` | le jeu des hésitations : vingt-quatre phrases dont l'hésitation est écrite, et douze questions à répondre à froid |
+| `record.py` | la session d'enregistrement de ces deux blocs — une passe, aucun modèle à copier |
+| `verbatim.py` | écrit la référence verbatim d'une réponse spontanée : l'oreille contre le brouillon d'un modèle, la prise jouée avant chaque ligne |
+| `fidelity.py` | ce qu'une reconnaissance écrit d'une hésitation, compté par sorte — remplissage, mot coupé, répétition |
 | `pull.py` | tire les poids acoustiques et dit ce qu'ils valent — la seule brique qui touche le réseau |
 | `matrix.py` | un audio → sa répartition sur les sons toutes les 20 ms, sa grille, l'alignement d'une seconde prise dessus |
 | `overlap.py` | le recouvrement de deux répartitions, son par son — de combien deux voix s'écartent |
