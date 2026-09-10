@@ -196,22 +196,33 @@ fun ConversationScreen(
         if (capture.recording) pipeline.ticking(capture.elapsedMs, capture.silenceMs)
     }
 
-    // **The mic never arms before the AI has finished answering**, and it never arms on its
-    // own while nothing may be opened -- which is what recreates the press a passage closes on.
+    // **The mic arms on the character having finished, and on nothing else.**
     //
-    // **It is the big button's own condition and not a second one.** Arming automatically is
-    // what stands in for that press at the two automatic positions, so anything that greys the
-    // button has to stop the arming: the sitting over, a passage waiting for a repair in
-    // *waits*, and a turn nobody read holding the conversation. Written twice, the two would
-    // drift, and the mic would open on a turn the engine then refuses.
+    // It used to arm on whatever made the screen compose, which is not a moment in the
+    // conversation: walking in on a thread left yesterday opened the mic over somebody reading
+    // it back, and the clocks ran on the room -- five seconds of quiet at the third position,
+    // the turn's whole length at the second -- so a turn nobody said went out, was paid for and
+    // was answered. What it follows is [ConversationState.armsOn]: the run ends on the
+    // character, and the mic has not already armed on that turn.
+    //
+    // **And it is the big button's own condition besides.** Arming stands in for that press at
+    // the two automatic positions, so anything that greys the button has to stop the arming:
+    // the sitting over, a passage waiting for a repair in *waits*, and a turn nobody read
+    // holding the conversation. Written twice, the two would drift, and the mic would open on a
+    // turn the engine then refuses.
     val opens = turn.closes()
-    LaunchedEffect(arms, busyOf(turn.phase), opens, turn.utterances.size) {
-        if (!arms || !opens || turn.phase != Phase.Idle) return@LaunchedEffect
+    val armsOn = turn.armsOn
+    LaunchedEffect(arms, busyOf(turn.phase), opens, armsOn?.id) {
+        if (!arms || !opens || armsOn == null) return@LaunchedEffect
+        if (turn.phase != Phase.Idle) return@LaunchedEffect
         if (capture.recording || capture.hasAudio) return@LaunchedEffect
         // The preparation: the time between the end of the AI's answer and the mic being
         // armed. It lives outside the turn, so it touches no measure.
         val wait = (turn.positions.of(Levers.PREPARATION.key) as? Count)?.n?.times(1000) ?: 0
         if (wait > 0) kotlinx.coroutines.delay(wait.toLong())
+        // Before the mic and not after: what this says is that this answer has had its arming,
+        // and leaving the screen between the two would otherwise lose the fact.
+        pipeline.armed(armsOn.id)
         onRepeating(null)
         recorder.open(scope, settings)
     }

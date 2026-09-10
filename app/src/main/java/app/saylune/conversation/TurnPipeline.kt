@@ -448,6 +448,19 @@ data class ConversationState(
      * because it is not a fact about what was said -- it is where a lever stands.
      */
     val replayed: Map<String, Int> = emptyMap(),
+    /**
+     * The AI turn the microphone has already armed on, or null while it has armed on none.
+     *
+     * **What it stops is the mic opening because a screen appeared.** Arming stands in for the
+     * press that opens a turn, so what it follows is the conversation advancing -- the
+     * character has finished, your turn -- and never a composition. Without it, walking out to
+     * the passage's notes and back armed again on the same answer, and at the third position
+     * that sends a turn of room noise five seconds later.
+     *
+     * In memory and never stored, like every effective position: a sitting picked up again
+     * arms on whatever the character says on the way back in, which is a turn of its own.
+     */
+    val armedOn: String? = null,
 ) {
 
     /**
@@ -498,6 +511,17 @@ data class ConversationState(
     fun modelOf(of: String): File? = utterances.firstOrNull { it.id == of }?.let { spoken ->
         spoken.model ?: spoken.repeats?.let { id -> utterances.firstOrNull { it.id == id }?.model }
     }
+
+    /**
+     * The AI turn the microphone is owed to, or null when it is owed to none.
+     *
+     * **The run has to end on the character**, which is the whole rule: an answer has just been
+     * given and nobody has spoken since, so the next thing to happen is the learner speaking. A
+     * turn of the learner at the end means a take was just sent or an exercise just done, and
+     * neither is a moment to open the mic by itself.
+     */
+    val armsOn: Utterance? get() = utterances.lastOrNull()
+        ?.takeIf { !it.speaker.isLearner && it.id != armedOn }
 
     /**
      * Whether the sitting is over, which is a fact about the activity and not about the turn.
@@ -805,6 +829,16 @@ class TurnPipeline(
         _state.update { it.copy(analysis = readiness) }
     }
 
+    /**
+     * Write down that the microphone has armed on the AI turn [of].
+     *
+     * **It is the app's own gesture and not the learner's**, which is why it is recorded rather
+     * than derived: nothing in the run says whether the mic was opened for the answer sitting at
+     * its end, so without this the screen re-arms every time it comes back into composition --
+     * on the way back from the notes, from the prompt, from anywhere pushed above it.
+     */
+    fun armed(of: String) = _state.update { it.copy(armedOn = of) }
+
     /** So a second call does not open a second conversation while the first is loading. */
     private var opened = false
 
@@ -861,6 +895,8 @@ class TurnPipeline(
                 pending = null,
                 unjudged = null,
                 failure = null,
+                // The run is another one's, so the turn the mic last armed on is not in it.
+                armedOn = null,
             )
         }
         Trace.add("conversation: opened", "activity" to activity.id,
@@ -948,6 +984,7 @@ class TurnPipeline(
                 pending = null,
                 unjudged = null,
                 failure = null,
+                armedOn = null,
             )
         }
         Trace.add("conversation: begun", "activity" to fresh.id)
