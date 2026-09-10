@@ -53,7 +53,7 @@ internal class ReplicateConversation(
         }
 
         val input = JSONObject()
-            .put("system_prompt", ConversationPrompt.system(scene, present) + ConversationPrompt.JSON_ONLY)
+            .put("system_prompt", ConversationPrompt.system(scene) + ConversationPrompt.JSON_ONLY)
             .put("messages", messages)
             // The whole point of this route. The task is judgement against a written
             // instruction, not a problem to work through, and the measurements say the

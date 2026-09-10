@@ -29,12 +29,22 @@ import org.json.JSONObject
  * 2. [activity] -- frozen at launch: the brief, the cast, what earlier scenes answered.
  * 3. the history -- past turns, replies only, stable at the head and growing at the tail.
  * 4. [present] -- rebuilt every turn: the instructions in force, the state of the levers the
- *    model holds, the message a rule has just laid, the menu if there is one.
+ *    model holds, the message a rule has just laid, the questions of this turn.
+ *
+ * **1 and 2 are the system message; 3 is the message list; 4 rides on the last message**,
+ * in front of the turn it governs. Parts 1 and 2 are what a provider's cache can keep, and the
+ * history grows at the tail behind them, so a call shares almost all of the one before it.
  *
  * **The instructions are in 4 and not in 3**, though they change a handful of times a sitting
  * and so look semi-stable. Laid before the history, they would be buried under thirty turns at
  * the very moment they have to govern the next one. What is lost is a cached prefix, counted
  * in thousandths; what is gained is an instruction read where it applies.
+ *
+ * **Part 4 used to be glued onto the system message**, so it sat in front of the history and
+ * broke the stable head every turn -- the opposite of what this list said, and never weighed:
+ * it was written inside [system] the day it was invented. What it cost is recorded on
+ * [PROVOKED], where a model followed the last message and dropped a field part 4 had asked
+ * for two thousand tokens earlier. Moved to the tail on 2026-09-10.
  */
 internal object ConversationPrompt {
 
@@ -335,38 +345,48 @@ internal object ConversationPrompt {
     }
 
     /**
-     * The whole instruction: part 1, then part 2, then part 4. Part 3 is the message list.
+     * The stable head: part 1, then part 2. Part 3 is the message list, part 4 rides on [turn].
+     *
+     * **It is the same text from the first turn of a sitting to its last**, which is what makes
+     * it worth caching at a provider that caches prefixes. Nothing rebuilt each turn belongs
+     * here.
      *
      * What the learner asked to be steered around goes between 1 and 2 -- after everything
      * that is the same for everybody, before anything that is this scene's, and inside the
      * stable head either way.
      */
-    fun system(scene: Scene, present: Present = Present()): String =
+    fun system(scene: Scene): String =
         listOf(
             APP,
             scene.avoid.trim().takeIf { it.isNotEmpty() }?.let { avoiding(it) }.orEmpty(),
             activity(scene),
-            present(present),
         )
             .filter { it.isNotBlank() }
             .joinToString("\n\n")
 
     /**
-     * What goes in as the turn being answered: the transcript, or the line that says there
-     * was none.
+     * The last message: part 4, then the turn being answered.
      *
-     * **The override sits in the last message and not in part 1**, for two reasons that agree.
-     * Part 1 is the permanent prefix every call shares, and rewriting it for one turn would
-     * throw away the cached prefix on exactly the turn that has no history to save. And what
-     * governs a turn belongs closest to it, which is where the app already puts everything
-     * else that is rebuilt each time.
+     * **Everything rebuilt each turn is here and nowhere else**, which is what leaves parts 1
+     * and 2 stable behind the history. What governs a turn is then read where it applies,
+     * immediately in front of the words it governs, rather than thirty turns upstream.
+     *
+     * The transcript carries a line naming it, which a bare message did not need: it is no
+     * longer alone in its message, and an unannounced sentence after a list of instructions
+     * would read as one more instruction.
      *
      * **Something is always sent as the last message.** A call ending on the character's own
      * previous answer is a shape not every provider accepts, and the one thing the app can
      * truthfully put there is that nobody spoke.
      */
     fun turn(transcript: String, present: Present): String =
-        if (present.provoked) PROVOKED else transcript
+        listOf(
+            present(present),
+            if (present.provoked) PROVOKED
+            else "What they just said, as the recogniser heard it:\n\n$transcript",
+        )
+            .filter { it.isNotBlank() }
+            .joinToString("\n\n")
 
     /**
      * The turn nobody prompted, said to the model in the app's own voice.
@@ -377,9 +397,8 @@ internal object ConversationPrompt {
      * there is no slip where there is no sentence.
      *
      * **What it must not do is say *`spoken` alone*.** It did, and that took the questions of
-     * the opening down with it: the questions are put in part 4 and this is the last message,
-     * so this is what the model follows, and it answered without the field it had just been
-     * asked for. What has nothing to attach to is named; nothing else is forbidden.
+     * the opening down with it: the model answered without a field it had just been asked for.
+     * What has nothing to attach to is named; nothing else is forbidden.
      */
     val PROVOKED = """
         Nobody has spoken to you this turn. You are taking it of your own accord, on the

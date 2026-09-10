@@ -41,13 +41,13 @@ internal object ChatCompletions {
         val transcript = heard.joinToString(" ") { it.text }
         Trace.add(
             say,
-            "system prompt" to ConversationPrompt.system(scene, present),
+            "system prompt" to ConversationPrompt.system(scene),
             "turns of history" to history.size.toString(),
             "transcript" to transcript,
         )
 
         val messages = JSONArray().apply {
-            put(ConversationPrompt.message("system", ConversationPrompt.system(scene, present)))
+            put(ConversationPrompt.message("system", ConversationPrompt.system(scene)))
             history.forEachIndexed { at, exchange ->
                 if (exchange.fromLearner) put(ConversationPrompt.message("user", exchange.text))
                 else put(ConversationPrompt.message("assistant", ConversationPrompt.answered(history, at)))
