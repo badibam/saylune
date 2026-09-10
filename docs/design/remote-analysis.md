@@ -36,11 +36,56 @@ Même graphe, même préparation, même runtime des trois côtés ; seule la mac
 
 **Le ré-export ne coûte rien à la comparabilité.** Le graphe a été refabriqué sur le serveur plutôt qu'envoyé, et `export.py` s'est prouvé lui-même : préparation numpy contre l'extracteur à 0,00e+00, graphe flottant contre la lecture PyTorch à 4,05e-06 — sous la barre de 1e-3 qu'il refuse de franchir —, et les mêmes tailles de fichier au mégaoctet près. Les versions de bibliothèque diffèrent pourtant (torch 2.14 et transformers 5.17 sur le serveur, 2.13 et 5.15 sur le poste).
 
+## La latence, mesurée sur l'appareil
+
+Le montage a tourné en vrai le 2026-09-10 : l'app parle au serveur, les deux audios d'un tour y passent, les marques reviennent. Ce que ça coûte, lu dans la trace du téléphone contre le journal du serveur :
+
+| | audio | passe serveur | total | réseau |
+|---|---|---|---|---|
+| tour court, redite | 2,1 + 2,6 s | 0,44 s | 4,9 s | ~4,5 s |
+| tour long | 8,5 + 21,3 s | 3,65 s | 32,5 s | ~28,8 s |
+| tour long, redite | 8,5 + 13,2 s | 2,32 s | 54,9 s | ~52,6 s |
+
+**Le calcul tient la promesse du banc — ×0,10 de la durée de l'audio — et il ne pèse que 4 à 7 % du temps.** Tout le reste est du transfert, sur un lien montant mesuré entre 120 et 300 kbit/s. En prolongeant les chiffres du téléphone, le tour long aurait coûté ~14,6 s en local contre 32,5 s ici : **le distant est aujourd'hui deux à six fois plus lent que l'appareil qu'il devait soulager.**
+
+Ça ne condamne pas le montage, ça déplace ce qu'il faut travailler : **l'envoi, jamais les cœurs.** Trois choses s'y attaquent, elles se cumulent, et aucune ne touche à ce que le réseau entend.
+
+### 1. Envoyer pendant que la personne parle
+
+Aujourd'hui l'envoi commence quand le tour est fini, alors que le lien montant n'a rien fait pendant les vingt secondes de parole. Expédié au fil de l'enregistrement, l'audio est déjà là quand la phrase se termine — la passe ne peut toujours pas commencer avant la fin, mais **le transfert sort du chemin critique**. Aucun octet économisé, presque toute l'attente supprimée, et rien à trancher côté doctrine.
+
+Deux prix, à écrire maintenant. Une prise qu'on jette aura été envoyée pour rien, ce qui est un levier existant qui devient payant. Et le silence part au réseau comme le reste, ce que le tuyau A assume déjà.
+
+### 2. Garder la matrice du modèle avec sa synthèse
+
+Le modèle est réexpédié à chaque redite : mesuré, `8,5 s → 0,92 s` puis `8,5 s → 0,88 s` pour le même audio. Le cache des synthèses est indexé par le texte, la voix et le dialecte ; lui adjoindre **la matrice à côté du wav** supprime la moitié des octets d'un tour redit, sans rien changer d'autre. La matrice porte déjà l'estampille de ce qui l'a produite, donc une matrice calculée ici et une calculée là-bas ne se confondront pas.
+
+### 3. μ-law 8 bits sur ce qui monte
+
+Deux fois moins d'octets, et c'est le seul mécanisme de perte qui a survécu à la mesure.
+
+**Opus tombe, à tous les débits testés.** La bande vide qui sépare la plus faible faute du pire témoin s'effondre de 0,028 à 0,002 — fautes et témoins se rapprochent d'un facteur dix, donc la mesure cesse de trancher ce qu'elle existe pour trancher. La cause est nommable : un codec de parole jette le détail spectral fin, qui est exactement ce que ce réseau lit.
+
+**Le μ-law tient**, parce qu'il ne fait rien de tel — une loi d'échelle échantillon par échantillon, sans transformée, sans bande supprimée, dont l'erreur est un bruit large bande. Il n'a en plus ni rééchantillonnage ni amorce, donc l'audio revient sur les échantillons dont il est parti.
+
+Lu sur le jeu d'essai étiqueté, ce que la profondeur coûte, plancher des témoins en tête parce que c'est le seul chiffre monotone :
+
+| | pire témoin | plus faible faute | bande vide |
+|---|---|---|---|
+| PCM 16 bits | 0,003 | 0,031 | 0,028 |
+| μ-law 8 bits | 0,004 | 0,021–0,027 | 0,017–0,023 |
+| μ-law 7 bits | 0,010 | 0,011–0,017 | 0,001–0,007 |
+| μ-law 6 bits | 0,013 | 0,026–0,154 | 0,012–0,141 |
+
+**Huit bits est le point de fonctionnement, et sept ne l'est pas** : à 8 bits le plancher reste dix fois sous la plus faible faute, à 7 il la touche et il n'y a plus de bande.
+
+Trois réserves, écrites parce qu'elles se prendraient pour des promesses. La mesure **normalise chaque fichier sur son maximum** avant de quantifier, ce qui est un gain par fichier donc un traitement — le μ-law téléphonique travaille à échelle fixe, et c'est à cette échelle-là qu'il faudra remesurer. Le **linéaire 8 bits laisse le même plancher** (0,003), donc la loi n'est pas ce qui achète le résultat et le choix entre les deux n'est pas tranché. Et **`09-walkin` est perdue dans toutes les variantes**, y compris linéaire : elle était déjà la plus faible faute vue en référence, et toute réduction de bits l'emporte.
+
+**Écarté et parké** : couper les silences avant d'envoyer. `../analysis.md` en donne l'argument — au-dessus d'une demi-seconde on est hors du domaine des phonèmes — mais l'essai en a déjà été fait dans ce projet et s'est mal passé, et rien ne dit aujourd'hui si le seuil était en cause. À reprendre par le seuil, pas par le principe.
+
 ## Ce qui n'est pas mesuré, et qui décide autant
 
-**La latence réseau, entièrement.** Rien ci-dessus ne dit ce que coûte l'envoi de l'audio et le retour de la matrice depuis un téléphone en 4G. La mesure viendra des prises enregistrées avec le montage réel, pas d'un instrument à part.
-
-**Une conséquence qui n'est donc pas acquise, et qui oriente si elle se confirme** : une passe de 0,56 s pour un tour de 6 s est probablement plus courte que l'aller-retour qui l'entoure. Si c'est le cas, ce qui vaut d'être travaillé est la compression de l'audio envoyé, pas l'achat de cœurs. Ce n'est pas une conclusion, c'est ce que la mesure manquante trancherait.
+**Ce que les trois valent ensemble n'est pas mesuré**, et l'addition qu'on serait tenté d'en faire n'est pas une mesure : le premier déplace du temps sans retirer d'octets, les deux autres retirent des octets sans changer le chemin. Elles se lisent une fois écrites, sur les mêmes prises.
 
 **Et rien ici ne dit ce que le déterminisme devient à distance.** L'exigence 4 d'`../reference.md` — deux lectures du même fichier rendent les mêmes octets — a été vérifiée sur l'appareil, jamais sur une machine louée dont on ne choisit pas le matériel d'une instance à l'autre.
 
