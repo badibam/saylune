@@ -75,6 +75,7 @@
     <string name="phase_measuring">Measuring your turn…</string>
     <string name="turn_retry">Try again</string>
     <string name="turn_failed">The chain gave way: %1$s. Your turn is kept — nothing to say again.</string>
+    <string name="turn_unread">The chain gave way: %1$s. Your turn was answered and nothing read it — the conversation is held until it is.</string>
     <string name="setting_cache_cap">Voice cache, in MB</string>
     <string name="setting_cache_cap_help">Rendered model sentences kept for replay. Over this, the least recently used go first. Blank uses %1$s MB.</string>
     <string name="setting_cache_title">Voice cache</string>

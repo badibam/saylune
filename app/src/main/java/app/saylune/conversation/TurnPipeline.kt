@@ -240,6 +240,18 @@ data class Utterance(
      * concerned with nowhere to be marked. One notch per group of words settles both.
      */
     val judged: Judgement? = null,
+    /**
+     * Whether the chain answered this turn and no judgement ever came back.
+     *
+     * **[judged] cannot carry it**, which is why this is a field and not a reading of that
+     * one: null there is also what a repeat has -- nothing judges a repeat, by construction --
+     * and what every turn stored before the column existed has. Only a turn a judge gave way
+     * on is killed at the next opening, so what kills it has to name it exactly.
+     *
+     * It is true for as long as the failure stands: the retry that finally gets a judgement
+     * puts it back to false in the same gesture that writes the marking.
+     */
+    val unread: Boolean = false,
     /** The folder this take was written to on disk, or null when nothing was kept. */
     val take: String? = null,
     /**
@@ -496,6 +508,19 @@ data class ConversationState(
      */
     val over: Boolean get() = activity.status == Status.Finished
 
+    /**
+     * Whether the sitting is holding, which means **nothing more may be said in it**.
+     *
+     * A turn was answered and nobody read it, so the passage is held until the judgement is
+     * asked for again -- and the only gesture that moves is the button under the failure.
+     * Read by everything that could open a turn: the big button, the small one, and the arming
+     * that stands in for the big one at the two automatic capture positions.
+     *
+     * **It is not a fifth standing.** A standing says what a passage owes; this says the app
+     * is missing a reading of it, which is a fact about the app and not about the sentence.
+     */
+    val holding: Boolean get() = unjudged != null
+
     /** Every passage of this run, oldest first. Derived, and never stored. */
     fun passages(): List<Passage> = Passage.of(utterances)
 
@@ -537,7 +562,7 @@ data class ConversationState(
      * challenge aiming only at pronunciation keeps its behaviour on the words' side whatever
      * happens, and with one lever neither of the two could be written.
      */
-    fun closes(): Boolean = if (over) false else when (standing()) {
+    fun closes(): Boolean = if (over || holding) false else when (standing()) {
         Standing.ToReword -> !waits(Levers.ADVANCE_WORDS.key)
         Standing.ToSayAgain -> !waits(Levers.ADVANCE_SOUND.key)
         else -> true
@@ -814,7 +839,7 @@ class TurnPipeline(
             // fact about that release, not a stand-in for something missing.
         } ?: free
         opened = true
-        val run = archive.utterances(activity.id).map { it.utterance() }
+        val run = forgetUnread(archive.utterances(activity.id).map { it.utterance() })
         _state.update {
             it.copy(
                 activity = activity,
@@ -828,14 +853,60 @@ class TurnPipeline(
                 notices = emptyList(),
                 // The run is another conversation's now, so anything that pointed into the
                 // old one has to go: a retry of a recording from the conversation just left
-                // would send it into this one.
+                // would send it into this one. **The held turn goes with it, and it is the
+                // worse of the two left standing**: a hold survives into whatever is opened
+                // next and holds that, its retry cannot find the turn it names, and the
+                // failure that said why has just been cleared -- so the conversation refuses
+                // every take with nothing on screen at all.
                 pending = null,
+                unjudged = null,
                 failure = null,
             )
         }
         Trace.add("conversation: opened", "activity" to activity.id,
                   "utterances" to _state.value.utterances.size.toString())
         return true
+    }
+
+    /**
+     * Drop the turns nobody read, and the answers made to them, before [run] is picked up.
+     *
+     * **The retry lives as long as the sitting is open and no longer.** What the second call
+     * takes -- the conversation as it stood before the turn, the instructions in force -- is
+     * held in memory beside the effective state, which does not survive a reopening either; and
+     * asking for a judgement on a turn one has walked away from is the deferred analysis the
+     * doc rules out, marks landing in front of somebody who has stopped talking about it.
+     *
+     * So the turn is killed rather than left standing unread. Leaving it would put a turn on
+     * screen that nothing read, drawn exactly like one read clean, in a conversation that has
+     * no way left to read it -- and the character has already answered it, so the model's
+     * history would carry a reply to a sentence the app has given up on. **The answer goes with
+     * it** and the conversation picks up from before both, which is where it was still whole.
+     *
+     * This is the one thing in the app that erases a turn, and it is worth saying why it is not
+     * the rule elsewhere: a superseded reply and an earlier attempt stay in the store because
+     * they are what was actually said and something still reads them -- a bench, a measure. A
+     * turn nobody read carries no mark, no measure and no note, so nothing will ever read it.
+     *
+     * The recording it named becomes a file the base does not name, which the sweep at startup
+     * collects. Nothing is deleted here but the rows: the sweep has one moment on purpose, the
+     * one where nothing is in flight (`store/Recordings.kt`).
+     */
+    private suspend fun forgetUnread(run: List<Utterance>): List<Utterance> {
+        val unread = run.filter { it.unread }.map { it.id }.toSet()
+        if (unread.isEmpty()) return run
+        val gone = unread + run.filter { it.answers in unread }.map { it.id }
+        Trace.add("conversation: a turn nobody read is dropped, and the answer to it",
+                  "turns" to gone.size.toString())
+        // **They leave the run whether or not the rows went**, and that is not the delete
+        // being optional: a write that gave way leaves them to be dropped again at the next
+        // opening, where a run carrying them meanwhile would put back on screen the very turn
+        // this exists to take off it.
+        runCatching { archive.forget(gone.toList()) }.onFailure {
+            Trace.fail("conversation: the rows would not go, they are dropped from the run",
+                       "why" to it.message)
+        }
+        return run.filterNot { it.id in gone }
     }
 
     /**
@@ -875,6 +946,7 @@ class TurnPipeline(
                 effective = null,
                 notices = emptyList(),
                 pending = null,
+                unjudged = null,
                 failure = null,
             )
         }
@@ -1260,7 +1332,14 @@ class TurnPipeline(
                     // Read on the one channel it has: the text, with nothing marked on it.
                     // The failure above is what says why, and the sound analysis does not run
                     // -- it measures a sentence a judgement has let through, and there is none.
-                    update(said.id) { it.copy(marking = TurnMarking.wordsOnly(intended)) }
+                    //
+                    // **And the line says nobody read it**, which the marking cannot: a turn
+                    // whose gate closed carries exactly this marking too, and it was read.
+                    // Written now rather than at the next opening, because the process can
+                    // die between the two and the fact would go with it.
+                    update(said.id) {
+                        it.copy(marking = TurnMarking.wordsOnly(intended), unread = true)
+                    }
                     write(said.id)
                 } else {
                     measure(said, judged, turn, heard, closing, groundless)
@@ -1336,7 +1415,11 @@ class TurnPipeline(
      * second copy would be a second thing to keep in step.
      */
     private suspend fun read(said: Utterance, judged: Judgement): Pair<Closing?, Boolean> {
-        update(said.id) { it.copy(judged = judged) }
+        // **And it is no longer unread**, which matters on the one caller that reaches this
+        // twice: a turn whose judge gave way was written down as unread, and a retry that
+        // lands has to lift that in the same gesture, or the next opening would kill a turn
+        // that has its judgement.
+        update(said.id) { it.copy(judged = judged, unread = false) }
         write(said.id)
         val groundless = judged.words().correctness.any { it.notch == Gates.UNSAYABLE }
         return wordsGate(said, judged, groundless) to groundless

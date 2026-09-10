@@ -139,6 +139,17 @@ data class UtteranceRow(
     val model: String?,
     /** What the language model marked, as it came. Null when nothing judged this. */
     val judged: String?,
+    /**
+     * Whether the chain answered this turn and no judgement ever came back.
+     *
+     * **[judged] cannot say it on its own**, and that is the whole reason this is a column.
+     * Null there means *nothing judged this*, which is true of three quite different rows: a
+     * turn a judge gave way on, a repeat -- which nothing judges, by construction -- and every
+     * turn stored before the column existed, the migration that added it having written null
+     * across the table. Only the first is a turn to be killed at the next opening, and telling
+     * it apart is what this records.
+     */
+    val unread: Boolean,
     val take: String?,
     /** The identity of the utterance this says again. */
     val repeats: String?,
@@ -193,6 +204,18 @@ interface ArchiveDao {
     suspend fun utterances(activity: String): List<UtteranceRow>
 
     /**
+     * Drop these utterances for good.
+     *
+     * **The one thing in the app that erases a turn**, and it is not the store's decision: a
+     * turn nobody read and the answer made to it are dropped when the sitting is reopened, so
+     * the conversation picks up from before them. Everything else that leaves the screen --
+     * a superseded reply, an earlier attempt -- stays in the table, where it is still what
+     * was actually said.
+     */
+    @Query("DELETE FROM utterances WHERE id IN (:ids)")
+    suspend fun forget(ids: List<String>)
+
+    /**
      * How many passages each sitting holds, which is what a tile shows.
      *
      * **A count of rows and nothing stored** (`docs/ui.md`): a passage is a turn of the
@@ -206,7 +229,7 @@ interface ArchiveDao {
     fun passages(learner: String = "learner"): Flow<List<PassageCount>>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 13)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 14)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -666,6 +689,27 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * The turn a judge gave way on says so on its own line.
+         *
+         * `judged` was the only thing that could be asked and it cannot answer: null there
+         * covers a repeat, which nothing judges by construction, and every row the migration
+         * that added the column wrote null across. The one case that has to be told apart is
+         * a turn the chain answered and nobody read, which is dropped at the next opening --
+         * so it is a fact of its own, and it is written down rather than guessed at.
+         *
+         * **False on everything already stored, which is what is true of them**: a turn from
+         * before this column either was read, or belongs to an era where the question could
+         * not be asked. Killing either on a guess would erase a sitting nobody could get back.
+         */
+        private val UNREAD_TURN = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `utterances` ADD COLUMN `unread` INTEGER NOT NULL DEFAULT 0",
+                )
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
@@ -674,7 +718,7 @@ abstract class Archive : RoomDatabase() {
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
                     SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH, CAST_ON_THE_LINE,
                     NAMED_BY_ITS_DEFINITION, FIGURES_ON_THE_LINE, RECORDING_LENGTH,
-                    ESTABLISHED_ON_THE_TURN)
+                    ESTABLISHED_ON_THE_TURN, UNREAD_TURN)
                 .build().also { instance = it }
         }
     }

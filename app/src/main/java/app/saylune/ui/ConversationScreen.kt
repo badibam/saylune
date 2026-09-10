@@ -197,13 +197,16 @@ fun ConversationScreen(
     }
 
     // **The mic never arms before the AI has finished answering**, and it never arms on its
-    // own while a passage waits for a repair -- which is what recreates the press a passage
-    // closes on. **The second half is not wired**: `Standing` carries the four states, and
-    // nothing here reads them, so this stays false and nothing ever waits. Written down as
-    // owed (`../../../../../../TODO.md`).
-    val repairWaits = false
-    LaunchedEffect(arms, busyOf(turn.phase), repairWaits, turn.over, turn.utterances.size) {
-        if (!arms || repairWaits || turn.over || turn.phase != Phase.Idle) return@LaunchedEffect
+    // own while nothing may be opened -- which is what recreates the press a passage closes on.
+    //
+    // **It is the big button's own condition and not a second one.** Arming automatically is
+    // what stands in for that press at the two automatic positions, so anything that greys the
+    // button has to stop the arming: the sitting over, a passage waiting for a repair in
+    // *waits*, and a turn nobody read holding the conversation. Written twice, the two would
+    // drift, and the mic would open on a turn the engine then refuses.
+    val opens = turn.closes()
+    LaunchedEffect(arms, busyOf(turn.phase), opens, turn.utterances.size) {
+        if (!arms || !opens || turn.phase != Phase.Idle) return@LaunchedEffect
         if (capture.recording || capture.hasAudio) return@LaunchedEffect
         // The preparation: the time between the end of the AI's answer and the mic being
         // armed. It lives outside the turn, so it touches no measure.
@@ -269,7 +272,10 @@ fun ConversationScreen(
             Standing.ToSayAgain -> Attempt.Repeat
             else -> null
         }
-        val retakes = open != null &&
+        // **And nothing at all is said while the sitting holds.** A turn nobody read holds
+        // it, and its own passage has no marking and no model to hear -- so the small button
+        // would open the recorder on a gesture the engine drops without a word.
+        val retakes = open != null && !turn.holding &&
             (retaking == null || open.spare(retaking, turn.positions))
         // What the AI's turn shows, which is a lever's position and never a preference: the
         // scrambled text by default, the ear being the main channel and a legible text
@@ -341,9 +347,17 @@ fun ConversationScreen(
             )
         }
 
+        // **What gave way settles what the line says, and the button stays one.** The
+        // learner has one question -- it did not work, do it again -- and which call is
+        // missing is the app's to know. What differs is what is owed meanwhile: a chain that
+        // gave way before the character answered leaves a recording to send and nothing else
+        // stopped; a judgement that gave way after it holds the conversation, and the line has
+        // to say so or the greyed button below reads as a bug in the app.
         turn.failure?.let { said ->
             Text(
-                stringResource(R.string.turn_failed, said),
+                stringResource(
+                    if (turn.holding) R.string.turn_unread else R.string.turn_failed, said,
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
             )
@@ -365,8 +379,9 @@ fun ConversationScreen(
       Buttons(
           myTurn = stringResource(R.string.capture_my_turn),
           send = stringResource(R.string.capture_send),
-          // `closes` is false once the sitting is over, so nothing more opens either.
-          mayOpen = !busy && !recordingSomething && turn.closes(),
+          // `closes` is false once the sitting is over, and while a turn nobody read holds
+          // it, so nothing more opens in either case.
+          mayOpen = !busy && !recordingSomething && opens,
           // **The pause exists at the first capture position and nowhere else**, the one
           // position that has a pause at all. Greyed at the other two rather than gone: what
           // has no object for the whole sitting still keeps its place in a row whose shape
