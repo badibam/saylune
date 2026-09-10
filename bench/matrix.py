@@ -127,8 +127,19 @@ ONNX = os.environ.get("RUNTIME") == "onnx"
 # every brick of the bench run on it unchanged -- the question "does the verdict
 # hold on the device" is then asked by the same script that asks it here.
 BORROWED = os.environ.get("READING")
+
+# Opus, in kbit/s, applied to every audio before it is read -- 0 for none.
+#
+# It exists because deporting the pass is dominated by the upload and not by the
+# arithmetic: what a turn can travel in is a measurement, and it has to be made
+# on the verdict rather than on a matrix. Set here rather than in one brick so
+# that every reading above -- faults, boundaries, accent -- can be run under it
+# without being told how, and so that the slug carries it: a squeezed reading
+# and a plain one are two eras of measurement and must never share a cache.
+SQUEEZED = os.environ.get("SQUEEZE", "")
 SLUG = BORROWED or (CHOSEN + ("-onnx" if ONNX else "")
-                    + ("-int8" if QUANTISED else ""))
+                    + ("-int8" if QUANTISED else "")
+                    + (f"-{SQUEEZED}" if SQUEEZED else ""))
 SAMPLE_RATE = 16000
 
 HERE = Path(__file__).resolve().parent
@@ -467,6 +478,101 @@ def stale(wav, held):
     return len(held["probabilities"]) != frames_for(sf.info(wav).frames)
 
 
+def companded(audio, bits=8, mu=255.0):
+    """The waveform through G.711 mu-law and back, at [bits] bits a sample.
+
+    **A different family of loss from a codec, which is the whole reason to read
+    it.** Opus throws away fine spectral detail, and fine spectral detail is
+    exactly what this network reads; mu-law throws away nothing of the kind. It
+    is a scale, sample by sample -- no transform, no bands, no frames -- so what
+    it leaves behind is broadband quantisation noise rather than a hole.
+
+    And it has no delay. There is no resampling and no encoder priming, so the
+    audio comes back on the same samples it left on, which is what the Opus
+    reading could not promise (`../docs/design/remote-analysis.md`).
+    """
+    audio = np.asarray(audio, dtype=np.float64)
+    peak = np.abs(audio).max()
+    if peak <= 0:
+        return audio.astype(np.float32)
+    # Normalised in and back out, so the companding law sees the full scale it
+    # was written for whatever the take was recorded at.
+    x = audio / peak
+    compressed = np.sign(x) * np.log1p(mu * np.abs(x)) / np.log1p(mu)
+    steps = 2 ** (bits - 1)
+    quantised = np.round(compressed * steps) / steps
+    expanded = np.sign(quantised) * ((1 + mu) ** np.abs(quantised) - 1) / mu
+    return (expanded * peak).astype(np.float32)
+
+
+def rounded_off(audio, bits):
+    """The waveform quantised to [bits] linear, for what plain depth costs.
+
+    The control beside [companded]: same number of bits, no law. What separates
+    the two readings is the law and nothing else.
+    """
+    audio = np.asarray(audio, dtype=np.float64)
+    peak = np.abs(audio).max()
+    if peak <= 0:
+        return audio.astype(np.float32)
+    steps = 2 ** (bits - 1)
+    return (np.round(audio / peak * steps) / steps * peak).astype(np.float32)
+
+
+def squeezed(audio):
+    """The waveform through whatever [SQUEEZED] names, and back.
+
+    `ulaw` and `ulawN` are the companding law; `linN` is plain depth; a bare
+    number is Opus at that many kbit/s.
+    """
+    if SQUEEZED.startswith("ulaw"):
+        return companded(audio, bits=int(SQUEEZED[4:] or 8))
+    if SQUEEZED.startswith("lin"):
+        return rounded_off(audio, bits=int(SQUEEZED[3:]))
+    return through_opus(audio, int(SQUEEZED))
+
+
+def through_opus(audio, rate):
+    """The waveform through Opus and back, at [rate] kbit/s.
+
+    **Both audios of a turn go through it, which is the whole of why it may be
+    considered at all.** A codec is a treatment, and the montage forbids any
+    treatment applied to one side alone -- the gap would then be partly
+    manufactured. Applied to both, its bias is the same twice and cancels, the
+    same argument that lets two machines disagree a little.
+
+    That argument is not a permission, only what makes the question askable: a
+    render is clean and a take is a room with a microphone in it, so the same
+    encoder does not do the same thing to them, and only the verdict on the
+    labelled set says whether what is left still finds the faults.
+
+    Opus resamples to 48 kHz on the way in and is brought back to 16, which
+    keeps the length, so the matrix has the same rows as the plain one.
+    """
+    import subprocess
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as room:
+        room = Path(room)
+        plain, small, back = room / "a.wav", room / "b.opus", room / "c.wav"
+        sf.write(plain, np.asarray(audio, dtype=np.float32), SAMPLE_RATE)
+        for command in (
+            ["ffmpeg", "-y", "-i", str(plain), "-c:a", "libopus",
+             "-b:a", f"{rate}k", "-application", "voip", str(small)],
+            ["ffmpeg", "-y", "-i", str(small), "-ar", str(SAMPLE_RATE),
+             "-ac", "1", str(back)],
+        ):
+            done = subprocess.run(command, capture_output=True, text=True)
+            if done.returncode != 0:
+                raise SystemExit(f"ffmpeg a échoué :\n{done.stderr[-600:]}")
+        got, rate = sf.read(back, dtype="float32")
+        if rate != SAMPLE_RATE:
+            raise SystemExit(f"l'audio revient à {rate} Hz")
+    # Trimmed rather than padded: the codec may hand back a frame more, and a
+    # matrix with a row the plain one does not have compares to nothing.
+    return got[:len(audio)]
+
+
 def probabilities(wav, cache=None):
     """The matrix of `wav`: one row per 20 ms, one column per sound, summing to 1."""
     wav = Path(wav)
@@ -491,6 +597,8 @@ def probabilities(wav, cache=None):
     audio, rate = sf.read(wav)
     if rate != SAMPLE_RATE:
         raise SystemExit(f"{wav} is at {rate} Hz, expected {SAMPLE_RATE}")
+    if SQUEEZED:
+        audio = squeezed(audio)
     values = prepared(audio)
     if ONNX:
         # The softmax lives inside the exported graph, so what comes out is the
