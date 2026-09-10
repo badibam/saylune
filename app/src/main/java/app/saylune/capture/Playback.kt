@@ -6,6 +6,7 @@ import android.media.AudioTrack
 import android.media.MediaPlayer
 import android.media.PlaybackParams
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -24,6 +25,11 @@ import kotlin.math.roundToInt
  * An error resumes rather than throws. A model that will not play is a disappointment and
  * not a broken turn, and the caller has nothing useful to do about it that it would not do
  * anyway.
+ *
+ * **Everything here goes through [Loudspeaker]**, which holds the rule that only one sound
+ * plays at a time and who yields to whom. It is taken here rather than at the call sites so
+ * that a gesture written later cannot forget it -- and the default rank is the one that
+ * yields, so forgetting to name a rank is never how the conversation gets cut off.
  */
 object Playback {
 
@@ -37,28 +43,31 @@ object Playback {
     suspend fun play(
         wav: File,
         speed: Float = 1f,
+        by: Loudspeaker.By = Loudspeaker.By.Hand,
         started: () -> Unit = {},
-    ) = withContext(Dispatchers.Main) {
-        suspendCancellableCoroutine { continuation ->
-            val player = MediaPlayer()
-            player.setOnCompletionListener {
-                it.release()
-                if (continuation.isActive) continuation.resume(Unit)
+    ) = Loudspeaker.take(by) {
+        withContext(Dispatchers.Main) {
+            suspendCancellableCoroutine { continuation ->
+                val player = MediaPlayer()
+                player.setOnCompletionListener {
+                    it.release()
+                    if (continuation.isActive) continuation.resume(Unit)
+                }
+                player.setOnErrorListener { p, _, _ ->
+                    p.release()
+                    if (continuation.isActive) continuation.resume(Unit)
+                    true
+                }
+                continuation.invokeOnCancellation { runCatching { player.release() } }
+                player.setDataSource(wav.path)
+                player.prepare()
+                // Slower without dropping the pitch, which is the only slowing worth
+                // having: resampling would take the formants down with the rate and turn
+                // `ɪ` into a vowel nobody said. This stretches time and leaves pitch alone.
+                if (speed != 1f) player.playbackParams = PlaybackParams().setSpeed(speed)
+                player.start()
+                started()
             }
-            player.setOnErrorListener { p, _, _ ->
-                p.release()
-                if (continuation.isActive) continuation.resume(Unit)
-                true
-            }
-            continuation.invokeOnCancellation { runCatching { player.release() } }
-            player.setDataSource(wav.path)
-            player.prepare()
-            // Slower without dropping the pitch, which is the only slowing worth
-            // having: resampling would take the formants down with the rate and turn
-            // `ɪ` into a vowel nobody said. This stretches time and leaves pitch alone.
-            if (speed != 1f) player.playbackParams = PlaybackParams().setSpeed(speed)
-            player.start()
-            started()
         }
     }
 
@@ -84,7 +93,8 @@ object Playback {
         toMs: Int,
         speed: Float = 1f,
         marginMs: Int = SOUND_MARGIN_MS,
-    ) =
+        by: Loudspeaker.By = Loudspeaker.By.Hand,
+    ) = Loudspeaker.take(by) {
         withContext(Dispatchers.IO) {
             val samples = pcm(wav) ?: return@withContext
             val rate = WavFile.SAMPLE_RATE
@@ -94,6 +104,7 @@ object Playback {
             if (stop - start < 2) return@withContext
             faded(samples.copyOfRange(start, stop), rate, speed)
         }
+    }
 
     /** The samples of a 16-bit mono wav, or null when the file is not one. */
     private fun pcm(wav: File): ShortArray? {
@@ -118,8 +129,15 @@ object Playback {
         return null
     }
 
-    /** The stretch played once, its ends ramped so neither edge is a click of its own. */
-    private fun faded(slice: ShortArray, rate: Int, speed: Float) {
+    /**
+     * The stretch played once, its ends ramped so neither edge is a click of its own.
+     *
+     * **The wait is a `delay` and not a sleep**, so that something else taking the speaker
+     * stops this within a frame rather than at the end of the stretch. A sleeping thread
+     * ignores cancellation, and the track would go on playing to nobody while the next sound
+     * started over it.
+     */
+    private suspend fun faded(slice: ShortArray, rate: Int, speed: Float) {
         val ramp = (FADE_MS * rate / 1000).coerceAtMost(slice.size / 2)
         for (index in 0 until ramp) {
             val gain = (1.0 - cos(Math.PI * index / ramp)) / 2.0
@@ -144,17 +162,20 @@ object Playback {
             .setBufferSizeInBytes(slice.size * 2)
             .setTransferMode(AudioTrack.MODE_STATIC)
             .build()
-        runCatching {
-            track.write(slice, 0, slice.size)
-            // Time stretched, pitch left alone -- see the note in the whole-file `play`.
-            if (speed != 1f) track.playbackParams = PlaybackParams().setSpeed(speed)
-            track.play()
+        try {
+            runCatching {
+                track.write(slice, 0, slice.size)
+                // Time stretched, pitch left alone -- see the note in the whole-file `play`.
+                if (speed != 1f) track.playbackParams = PlaybackParams().setSpeed(speed)
+                track.play()
+            }
             // MODE_STATIC plays the whole buffer once; the wait is its own length over the
             // speed, which is known exactly here and costs no listener.
-            Thread.sleep((slice.size * 1000L / rate / speed).toLong() + 60)
+            delay((slice.size * 1000L / rate / speed).toLong() + 60)
+        } finally {
+            runCatching { track.stop() }
+            track.release()
         }
-        runCatching { track.stop() }
-        track.release()
     }
 
     /**

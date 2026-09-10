@@ -169,6 +169,8 @@ Un extrait de son ne se coupe jamais à ses bornes exactes : ce qui identifie un
 
 **Le son isolé est un niveau d'écoute.** L'objection tenait à la production — un son réussi seul se rate encore dans le mot, parce que ce qui coince est la transition — et elle ne porte pas sur l'écoute, qui ne demande rien à la bouche. Il s'entend à deux titres : **le son du modèle à sa place dans la phrase**, qui dit comment il fallait dire *ici* et sort du calcul déjà fait ; et **un enregistrement du symbole seul**, qui dit ce que `ʃ` veut dire en général. Le second est une légende et ne juge rien — même classe de fichier extérieur que la table d'affinité, qui dit où peindre et non ce qui est correct.
 
+**Un seul son à la fois, et deux rangs pour dire qui cède** (tranché le 2026-09-10, `capture/Loudspeaker.kt`). Un écran de conversation offre autant de façons de faire du bruit qu'il a de passages : la réponse de l'IA, le triangle de chaque réponse au-dessus, la phrase entière d'un tour, un mot, un son, un son ajouté, la légende enregistrée d'un symbole. Ce que l'app dit d'elle-même prend le haut-parleur à ce qu'un geste a lancé ; un geste le prend à un autre geste, chacun de ces gestes voulant dire *fais-moi entendre ça plutôt que ce que j'entends* ; et **un geste ne coupe jamais la parole de l'app** — le tap est abandonné, pas mis en attente, un son qui arriverait plus tard sans raison visible étant pire que rien.
+
 **Les audios de synthèse sont gardés en cache**, indexés par le texte, la voix et le dialecte. Une même synthèse sert alors trois fois : d'étalon pour la mesure, de modèle à écouter, et de modèle à réécouter autant de fois qu'on redit.
 
 ## Redire sur place

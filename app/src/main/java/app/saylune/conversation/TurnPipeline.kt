@@ -17,6 +17,7 @@ import app.saylune.activity.Question
 import app.saylune.activity.Settled
 import app.saylune.activity.Status
 import app.saylune.capture.Ending
+import app.saylune.capture.Loudspeaker
 import app.saylune.capture.Playback
 import app.saylune.analysis.Analysed
 import app.saylune.analysis.AnalysedSound
@@ -1046,7 +1047,7 @@ class TurnPipeline(
                 Trace.add("turn: the echo is played, the continuation is held")
                 _state.update { it.copy(held = reply.spoken) }
             }
-            Playback.play(synthesis.speak(spoken, synthesis.voice())) {
+            Playback.play(synthesis.speak(spoken, synthesis.voice()), by = Loudspeaker.By.App) {
                 // The number the doc puts on the chain, and the only one the learner feels.
                 Trace.add("turn: first sound")
             }
@@ -1262,7 +1263,7 @@ class TurnPipeline(
         _state.value.held?.let { continuation ->
             Trace.add("passage: the attempts ran out, the held continuation is played")
             _state.update { it.copy(phase = Phase.Speaking, held = null) }
-            Playback.play(synthesis.speak(continuation, synthesis.voice()))
+            Playback.play(synthesis.speak(continuation, synthesis.voice()), by = Loudspeaker.By.App)
             // The thread follows the voice here too: the echo was what was heard, and the
             // continuation is what is heard now, so it is the reply that stands.
             _state.value.open()?.last?.id?.let { attempt ->
@@ -1879,7 +1880,7 @@ class TurnPipeline(
                 it.copy(utterances = it.utterances + answer, phase = Phase.Speaking)
             }
             write(answer.id)
-            Playback.play(synthesis.speak(reply.spoken, synthesis.voice()))
+            Playback.play(synthesis.speak(reply.spoken, synthesis.voice()), by = Loudspeaker.By.App)
         } catch (failure: ChainFailure) {
             Trace.fail("turn: the character had a turn to take and the link gave way",
                        "why" to failure.message)
