@@ -51,7 +51,7 @@ Deux régimes et deux états de la fiche, donc quatre viviers, et rien d'autre :
 
 **L'accent n'est jamais écrit dans une fiche hors du mode payant**, et il l'est dedans seulement comme critère du vivier ou comme coordonnée d'une ligne. Ce que la fiche déclare s'impose, ce qu'elle laisse ouvert suit le réglage — même forme que le genre, donc aucune question de priorité à trancher.
 
-**Un filtre peut vider la liste.** On relâche alors l'accent d'abord, le genre ensuite ; une liste encore vide est un `ChainFailure` et jamais un tirage dans une autre langue. L'ordre dit ce qui compte : le genre est dit au personnage dans sa mise en scène, donc un désaccord s'entend comme une faute de l'app, là où un accent qui diverge est une nuance dont `activity.md` fait même un levier de compréhension. **L'ordre de relâchement est défini dans l'app et porte sur les axes** ; l'ordre d'écriture des tags dans une fiche n'a aucun effet, sans quoi un auteur qui réordonne changerait le comportement sans le voir.
+**Un filtre peut vider la liste.** On relâche alors l'accent d'abord, le genre ensuite ; une liste encore vide est un `ChainFailure` et jamais un tirage dans une autre langue. L'ordre dit ce qui compte : le genre est dit au personnage dans sa mise en scène, donc un désaccord s'entend comme une faute de l'app, là où un accent qui diverge est une nuance. **L'ordre de relâchement est défini dans l'app et porte sur les axes** ; l'ordre d'écriture des tags dans une fiche n'a aucun effet, sans quoi un auteur qui réordonne changerait le comportement sans le voir.
 
 **Un tirage par personnage, sans remise** : deux personnages d'une même scène ne peuvent pas recevoir la même voix, sinon rien ne dit plus qui parle.
 
