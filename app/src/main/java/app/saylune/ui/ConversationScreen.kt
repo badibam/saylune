@@ -347,7 +347,7 @@ fun ConversationScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
             )
-            Button(onClick = { pipeline.turns.launch { pipeline.submit() } }) {
+            Button(onClick = { pipeline.turns.launch { pipeline.retry() } }) {
                 Text(stringResource(R.string.turn_retry))
             }
         }

@@ -292,6 +292,30 @@ data class Utterance(
  */
 data class Pending(val take: File, val capture: String?, val ending: Ending?)
 
+/**
+ * A turn that was said and never marked, and everything the second call would need.
+ *
+ * **It exists because the recording cannot be sent again.** Where the whole chain gave way,
+ * the fix is to resend the kept audio; here the character has already answered, so resending
+ * would have it answer twice. What is missing is one call, and everything that call takes is
+ * already in hand -- so it is held rather than rebuilt, the conversation having moved on by
+ * the time anyone presses the button.
+ *
+ * [before] is the conversation as it stood before this turn, kept for the same reason it is
+ * read once at the call: asked again later it would carry the turn and the reply, which reach
+ * the judge at the tail under their own names.
+ */
+data class Unjudged(
+    val of: String,
+    val said: String,
+    val answered: String,
+    val before: List<Exchange>,
+    val instructions: List<Instructing>,
+    val ending: Ending?,
+    val take: File,
+    val heard: List<Word>,
+)
+
 data class ConversationState(
     /**
      * The conversation itself, which is an activity like any other.
@@ -322,6 +346,16 @@ data class ConversationState(
     val failure: String? = null,
     /** Kept so a failed send is retried without saying the sentence again. */
     val pending: Pending? = null,
+    /**
+     * A turn nobody marked, kept so the judgement alone can be asked for again.
+     *
+     * **While it stands, the passage is held**: nothing new is sent until this turn has been
+     * marked. A turn that was spoken to and never read would otherwise slip into the past
+     * behind two or three others, and marks arriving on it then would land in front of
+     * somebody talking about something else -- which is what the doc refuses when it rules
+     * out any deferred analysis.
+     */
+    val unjudged: Unjudged? = null,
     /**
      * Which recording a manual gesture plays: the voice being imitated, or one's own.
      *
@@ -898,6 +932,54 @@ class TurnPipeline(
     ) = writing.withLock { submitLocked(audio, capture, ending) }
 
     /**
+     * Take up whatever gave way, which is not always the same thing.
+     *
+     * **One button on screen, because the learner has one question**: it did not work, do it
+     * again. What did not work is the app's to know -- a chain that gave way before the
+     * character answered leaves a recording to send again; a judgement that gave way after it
+     * answered leaves a call to make again, and no recording to send, since sending it would
+     * have the character answer twice.
+     */
+    suspend fun retry() = writing.withLock {
+        if (_state.value.unjudged != null) judgeAgainLocked() else submitLocked(null, null, null)
+    }
+
+    /**
+     * Ask for the judgement of a turn that was said and never marked.
+     *
+     * **The voice is long out and nothing here plays anything.** What is missing is the
+     * marking, the gate it feeds and the sound analysis behind it -- so this picks the turn up
+     * where the verdict would have arrived, and runs the same two steps the first call runs.
+     *
+     * A turn the learner recorded while the passage was held is sent as soon as it is free:
+     * they asked for it, it was kept rather than dropped, and there is nothing left holding it.
+     */
+    private suspend fun judgeAgainLocked() {
+        val waiting = _state.value.unjudged ?: return
+        val said = _state.value.utterances.firstOrNull { it.id == waiting.of } ?: return
+        Trace.turn()
+        Trace.add("turn: asking for the judgement alone", "said" to waiting.said)
+        _state.update { it.copy(phase = Phase.Measuring, failure = null) }
+        try {
+            val verdict = conversation.judge(
+                waiting.before,
+                said = waiting.said,
+                answered = waiting.answered,
+                situation = _state.value.activity.brief?.situation.orEmpty(),
+                present = Present(instructions = waiting.instructions, ending = waiting.ending),
+            )
+            _state.update { it.copy(unjudged = null) }
+            val (closing, groundless) = read(said, verdict.judgement)
+            measure(said, verdict.judgement, waiting.take, waiting.heard, closing, groundless)
+            _state.update { it.copy(phase = Phase.Idle) }
+            if (_state.value.pending != null) submitLocked(null, null, null)
+        } catch (failure: ChainFailure) {
+            Trace.fail("turn: still nothing judged it", "why" to failure.message)
+            _state.update { it.copy(phase = Phase.Idle, failure = failure.message) }
+        }
+    }
+
+    /**
      * Say the open passage differently -- **a rewording, which remakes the exchange**.
      *
      * In *waits* the AI has only played an echo and its answer is built on the corrected
@@ -922,6 +1004,17 @@ class TurnPipeline(
         // gesture; refusing it here too is what makes that a property of the sitting rather
         // than a convention of one screen.
         if (_state.value.over) return
+        // **A turn nobody marked holds the conversation, and the recording is kept.** The
+        // failure standing on screen is what says why, and the button under it asks for the
+        // judgement rather than for this turn. Nothing is dropped: the take goes where a
+        // failed send's take goes, so the same button sends it once the passage is free.
+        _state.value.unjudged?.let {
+            val take = audio ?: return
+            Trace.add("turn: the passage is held, the turn before it was never marked",
+                      "file" to take.path)
+            _state.update { state -> state.copy(pending = Pending(take, capture, ending)) }
+            return
+        }
         val held = _state.value.pending
         val take = audio ?: held?.take ?: return
         // The turn as it was said, blanks and all: it is what is stored, what the analysis
@@ -1100,20 +1193,29 @@ class TurnPipeline(
                 val judged = runCatching { judging.await().judgement }.getOrElse { failure ->
                     Trace.fail("turn: nothing judged it, and the turn stands",
                                "why" to failure.message)
-                    _state.update { it.copy(failure = failure.message) }
+                    _state.update {
+                        it.copy(
+                            failure = failure.message,
+                            // Everything the missing call takes, so it can be asked for on
+                            // its own. The passage is held meanwhile.
+                            unjudged = Unjudged(
+                                of = said.id,
+                                said = intended,
+                                answered = compose(reply.echo, reply.spoken),
+                                before = before,
+                                instructions = door.instructions,
+                                ending = closedBy,
+                                take = turn,
+                                heard = heard,
+                            ),
+                        )
+                    }
                     null
                 }
 
-                val marked = judged?.words()
-                val groundless =
-                    marked?.correctness?.any { it.notch == Gates.UNSAYABLE } ?: false
-                // **The words' gate is the first of the two moments**, and it is read as soon
-                // as there is a judgement to read it from.
-                val closing = judged?.let {
-                    update(said.id) { spoken -> spoken.copy(judged = it) }
-                    write(said.id)
-                    wordsGate(said, it, groundless)
-                }
+                val read = judged?.let { read(said, it) }
+                val closing = read?.first
+                val groundless = read?.second ?: false
 
                 if (speaking != null) speaking.await() else {
                     // **The echo and the continuation are two portions of one utterance, and
@@ -1160,38 +1262,8 @@ class TurnPipeline(
                     // -- it measures a sentence a judgement has let through, and there is none.
                     update(said.id) { it.copy(marking = TurnMarking.wordsOnly(intended)) }
                     write(said.id)
-                } else if (closing != null || groundless) {
-                    Trace.add(
-                        "turn: no sound analysis",
-                        "why" to if (groundless) "a word does not exist in the language"
-                                 else "the words' gate closed",
-                        "in cause" to (closing as? Closing.Aptitudes)?.names?.joinToString(),
-                        "said" to judged.intended,
-                    )
-                    // **And it is read all the same, on the one channel it has.** The sound
-                    // analysis does not run, but what the judge marked is exactly what has to
-                    // be seen -- it is the reason the passage is being sent back, and a turn
-                    // shown as plain text leaves the learner told to say it differently with
-                    // nothing on screen saying what was wrong. So a marking with the text and
-                    // no sound in it, which is the truth about this turn; and it is what makes
-                    // the passage's row of commands appear, a reading being what the run is
-                    // walked for.
-                    update(said.id) { it.copy(marking = TurnMarking.wordsOnly(judged.intended)) }
-                    write(said.id)
-                    // Kept even so, and especially so: a turn like this is a real learner fault
-                    // the recognition could not have guessed, which is what the fidelity bench
-                    // is short of.
-                    keep(said.id, Takes.keep(context, turn, null, heard, judged.intended, true,
-                                             null, stumbling = judged.stumbling,
-                                             turn = turnOf(said.id),
-                                             attempt = attemptOf(said.id)))
                 } else {
-                    examine(
-                        of = said.id, said = turn, heard = heard,
-                        text = judged.intended,
-                        kept = Kept.of(judged.intended, judged.stumbling),
-                        stumbling = judged.stumbling,
-                    )
+                    measure(said, judged, turn, heard, closing, groundless)
                 }
             }
             _state.update { it.copy(phase = Phase.Idle) }
@@ -1255,6 +1327,62 @@ class TurnPipeline(
      */
     private fun compose(echo: String?, continuation: String): String =
         if (echo == null) continuation else "$echo $continuation"
+
+    /**
+     * What a verdict settles the moment it arrives: the marking on the turn, then the gate.
+     *
+     * **One place, because two callers reach it** -- the turn that has just been spoken, and a
+     * turn whose judgement gave way and was asked for again. What it does is the same, and a
+     * second copy would be a second thing to keep in step.
+     */
+    private suspend fun read(said: Utterance, judged: Judgement): Pair<Closing?, Boolean> {
+        update(said.id) { it.copy(judged = judged) }
+        write(said.id)
+        val groundless = judged.words().correctness.any { it.notch == Gates.UNSAYABLE }
+        return wordsGate(said, judged, groundless) to groundless
+    }
+
+    /**
+     * What follows a verdict: the sound analysis, or the reason it does not run.
+     *
+     * [audio] is the recording of the turn, which the analysis reads and the take keeps.
+     */
+    private suspend fun measure(
+        said: Utterance, judged: Judgement, audio: File, heard: List<Word>,
+        closing: Closing?, groundless: Boolean,
+    ) {
+        if (closing != null || groundless) {
+            Trace.add(
+                "turn: no sound analysis",
+                "why" to if (groundless) "a word does not exist in the language"
+                         else "the words' gate closed",
+                "in cause" to (closing as? Closing.Aptitudes)?.names?.joinToString(),
+                "said" to judged.intended,
+            )
+            // **And it is read all the same, on the one channel it has.** The sound analysis
+            // does not run, but what the judge marked is exactly what has to be seen -- it is
+            // the reason the passage is being sent back, and a turn shown as plain text leaves
+            // the learner told to say it differently with nothing on screen saying what was
+            // wrong. So a marking with the text and no sound in it, which is the truth about
+            // this turn; and it is what makes the passage's row of commands appear, a reading
+            // being what the run is walked for.
+            update(said.id) { it.copy(marking = TurnMarking.wordsOnly(judged.intended)) }
+            write(said.id)
+            // Kept even so, and especially so: a turn like this is a real learner fault the
+            // recognition could not have guessed, which is what the fidelity bench is short of.
+            keep(said.id, Takes.keep(context, audio, null, heard, judged.intended, true,
+                                     null, stumbling = judged.stumbling,
+                                     turn = turnOf(said.id),
+                                     attempt = attemptOf(said.id)))
+        } else {
+            examine(
+                of = said.id, said = audio, heard = heard,
+                text = judged.intended,
+                kept = Kept.of(judged.intended, judged.stumbling),
+                stumbling = judged.stumbling,
+            )
+        }
+    }
 
     /**
      * **The first of the two moments: the words' gate, read as soon as a judgement exists.**
