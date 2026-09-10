@@ -45,6 +45,15 @@ CANDIDATES = {
                            None, "repo"),
     "timit": Candidate("excalibur12/wav2vec2-large-lv60_phoneme-timit"
                        "_english_timit-4k_simplified", None, "repo"),
+    # Base-sized ears fine-tuned on TIMIT, read to ask one question only: does a
+    # 95 M encoder still hold a spread around its peak, or does it collapse the
+    # way gruut does. Both are demonstration fine-tunes of unknown recipe, so
+    # they answer that and rank nothing. Their inventory is the raw TIMIT 61 --
+    # whole sounds, but closures and silences among them -- which the certainty
+    # gate reads unchanged and every labelled reading would need folded first.
+    "base-oosawy": Candidate("oosawy/wav2vec2-base-timit-phoneme", None, "repo"),
+    "base-colab": Candidate("bihungba1101/wav2vec2-base-timit-phoneme"
+                            "-demo-google-colab", None, "repo"),
     # Fine-tuned here: a directory rather than a repo. The weights are ours, the
     # vocabulary stays vitouphy's -- that is what makes the reading before and
     # after a comparison at iso-alphabet -- and the checkpoint carries no
