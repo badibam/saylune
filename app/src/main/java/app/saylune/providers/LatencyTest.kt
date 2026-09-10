@@ -86,7 +86,7 @@ internal object LatencyTest {
      * compares two things at once.
      */
     private fun efforts(provider: Provider, task: Task): List<Effort?> =
-        if (task == Task.Conversation && provider.efforts.isNotEmpty()) provider.efforts
+        if (task.effort != null && provider.efforts.isNotEmpty()) provider.efforts
         else listOf(null)
 
     /**
@@ -173,6 +173,15 @@ internal object LatencyTest {
                     // Unnamed, as a first turn is. The bench times one call and holds
                     // nothing between them, so there is no conversation here to name.
                     scene = Scene(),
+                )
+                // The same sentence, marked instead of answered. The reply it is shown is one
+                // short line and the situation is empty: a longer context would be timing a
+                // different call, and what is wanted here is the two links side by side.
+                Task.Judging -> conversationBy(store, provider, model, effort).judge(
+                    emptyList(),
+                    said = text.trim('.'),
+                    answered = "Right, I see.",
+                    situation = "",
                 )
                 Task.Synthesis -> {
                     val speaking = voice ?: error("no voice was listed for $model")

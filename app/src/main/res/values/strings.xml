@@ -38,6 +38,7 @@
     <string name="task_recognition">Recognition</string>
     <string name="task_conversation">Conversation</string>
     <string name="task_synthesis">Voice</string>
+    <string name="task_judgement">Judgement</string>
     <string name="task_no_provider">No provider can do this yet: fill in a key above.</string>
     <string name="setting_provider">Provider</string>
     <string name="setting_model">Model</string>

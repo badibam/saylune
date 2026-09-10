@@ -33,6 +33,7 @@
     <string name="task_recognition">Reconnaissance</string>
     <string name="task_conversation">Conversation</string>
     <string name="task_synthesis">Voix</string>
+    <string name="task_judgement">Jugement</string>
     <string name="task_no_provider">Aucun fournisseur ne sait encore faire ça : saisir une clé plus haut.</string>
     <string name="setting_provider">Fournisseur</string>
     <string name="setting_model">Modèle</string>

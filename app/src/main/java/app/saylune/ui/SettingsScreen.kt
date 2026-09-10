@@ -441,16 +441,19 @@ private fun TaskSection(task: Task, store: SecretStore, stored: Map<Secret, Stri
             )
         }
 
-        // The reasoning level of the language link. It is a setting and not a silence:
+        // The reasoning level of a language link. It is a setting and not a silence:
         // DeepSeek runs thinking at `high` unless told otherwise, so the app names a level on
-        // every call and this is where that level is chosen.
+        // every call and this is where that level is chosen. **It is written under the link
+        // this row is for**: two links reason, and one entry for both would have the judge's
+        // menu set what the character spends.
         val efforts = chosen?.efforts.orEmpty()
-        if (efforts.isNotEmpty()) {
+        val spending = task.effort
+        if (efforts.isNotEmpty() && spending != null) {
             Picker(
                 label = stringResource(R.string.setting_effort),
                 options = efforts.map { it.id to stringResource(it.label) },
-                selected = chosen?.let { effortFor(it, stored) }?.id,
-                onPick = { id -> scope.launch { store.write(Secret.ConversationEffort, id) } },
+                selected = chosen?.let { effortFor(it, task, stored) }?.id,
+                onPick = { id -> scope.launch { store.write(spending, id) } },
             )
         }
 

@@ -31,7 +31,11 @@ enum class Effort(val id: String, @StringRes val label: Int) {
 }
 
 /**
- * The effort in force for [provider], or the one the app asks for when nothing was chosen.
+ * The effort in force for [provider] on [task], or the one the app asks for when nothing
+ * was chosen.
+ *
+ * **Per link and not per provider**: the same key may open two links, and what the one
+ * who speaks is worth spending is not what the one who judges is.
  *
  * **The default is the most sparing level the provider offers**, and it is a decision rather
  * than an absence: the language link is the project's first defect, the measurement of
@@ -46,9 +50,9 @@ enum class Effort(val id: String, @StringRes val label: Int) {
  * A provider that has no notion of effort gets null and is sent nothing, which for it is not
  * a default but the absence of the parameter.
  */
-fun effortFor(provider: Provider, values: Map<app.saylune.keys.Secret, String>): Effort? {
+fun effortFor(provider: Provider, task: Task, values: Map<app.saylune.keys.Secret, String>): Effort? {
     val offered = provider.efforts
+    val stored = task.effort ?: return null
     if (offered.isEmpty()) return null
-    return Effort.of(values[app.saylune.keys.Secret.ConversationEffort])?.takeIf { it in offered }
-        ?: offered.first()
+    return Effort.of(values[stored])?.takeIf { it in offered } ?: offered.first()
 }

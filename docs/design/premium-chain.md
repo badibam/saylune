@@ -137,7 +137,9 @@ Deux choses que ce doc n'avait pas vues, tranchées en l'écrivant.
 
 **Un juge qui donne sa langue au chat après que la voix est partie ne coûte plus le tour.** En un appel, un échec renvoyait l'enregistrement gardé ; ici le personnage a déjà répondu, et le renvoyer le ferait répondre deux fois. Le tour reste donc, avec son texte et sans marque, et il dit pourquoi ; sans jugement il n'y a pas de porte, donc le passage n'est pas retenu — la vérité d'un tour que personne n'a jugé. Ce qui manque est de **redemander le jugement seul** (`../../TODO.md`).
 
-**4c — le juge gagne son propre sélecteur.** Une entrée de plus au catalogue, pour qu'il vive chez un autre fournisseur que la voix, ce que ce doc veut. 4a et 4b le laissent chez le fournisseur de conversation.
+**4c — le juge gagne son propre sélecteur.** Fait le 2026-09-10. Une entrée de plus au catalogue, pour qu'il vive chez un autre fournisseur que la voix, ce que ce doc veut.
+
+**Rien ne se replie sur le choix de la conversation** : un jugement non réglé est un maillon non réglé, et il échoue en le disant, comme les trois autres. Le prix est qu'une installation qui portait les anciens réglages a une ligne de plus à remplir avant de pouvoir parler. Et **l'effort se stocke par maillon** : le répondeur peut être pris pour sa vitesse, le juge pour son soin, et une seule entrée pour les deux aurait fait régler par le menu de l'un ce que l'autre dépense.
 
 ### Ce que 4a touche, relevé sur le code
 

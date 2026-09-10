@@ -64,6 +64,16 @@ enum class Secret(
     ConversationProvider("task.llm.provider", R.string.task_conversation, masked = false),
     ConversationModel("task.llm.model", R.string.setting_model, masked = false),
     ConversationEffort("task.llm.effort", R.string.setting_effort, masked = false),
+    /**
+     * The judge's own three, and they are its own because the two calls are two choices.
+     *
+     * The one who speaks may be picked for its voice or its speed; the one who judges is the
+     * careful one, and the same key can open both -- so what identifies each is its provider,
+     * its model and what it spends, per link (`../../../../../docs/design/premium-chain.md`).
+     */
+    JudgementProvider("task.judge.provider", R.string.task_judgement, masked = false),
+    JudgementModel("task.judge.model", R.string.setting_model, masked = false),
+    JudgementEffort("task.judge.effort", R.string.setting_effort, masked = false),
     SparePalette("view.palette.spare", R.string.setting_palette, masked = false),
 
     /**

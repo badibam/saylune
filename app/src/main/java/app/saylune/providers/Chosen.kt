@@ -54,7 +54,8 @@ class ChosenConversation(private val store: SecretStore) : Conversation {
         // wants steered around is a setting, and this is where the settings already are: the
         // pipeline would have had to hold the store to pass it, and every provider below would
         // have had to take one more argument to hand it on unchanged.
-        return conversationBy(store, provider, model, effortFor(provider, values))
+        return conversationBy(store, provider, model,
+                              effortFor(provider, Task.Conversation, values))
             .reply(
                 history,
                 heard,
@@ -64,20 +65,24 @@ class ChosenConversation(private val store: SecretStore) : Conversation {
     }
 
     /**
-     * The judge, picked the same way and, for now, from the same setting.
+     * The judge, picked on **its own link**.
      *
-     * **It is the conversation's provider that answers here**, which is what leaves the two
-     * calls at one provider until the judge gets a selector of its own. Nothing of the scene
-     * travels: `judge` takes the situation and nothing else, so the staging and what the
-     * learner asked to be steered around have no way through.
+     * **Nothing falls back to the conversation's choice.** A judgement setting left empty is a
+     * link that is not set, and it fails saying so, exactly as the other three do -- the same
+     * rule that keeps a missing recognition provider from quietly becoming somebody else's.
+     * What it costs is that an install carrying the earlier settings has one more row to fill
+     * before it can talk, and the screen is where that is said.
+     *
+     * Nothing of the scene travels: `judge` takes the situation and nothing else, so the
+     * staging and what the learner asked to be steered around have no way through.
      */
     override suspend fun judge(
         history: List<Exchange>, said: String, answered: String, situation: String,
         present: Present,
     ): Verdict {
         val values = store.values().first()
-        val (provider, model) = pick(Task.Conversation, values)
-        return conversationBy(store, provider, model, effortFor(provider, values))
+        val (provider, model) = pick(Task.Judging, values)
+        return conversationBy(store, provider, model, effortFor(provider, Task.Judging, values))
             .judge(history, said, answered, situation, present)
     }
 }

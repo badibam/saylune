@@ -21,9 +21,19 @@ enum class Task(
     val provider: Secret,
     val model: Secret,
     val voice: Secret?,
+    /** Where this link's reasoning level is stored, or null where it has no notion of one. */
+    val effort: Secret? = null,
 ) {
     Recognition(R.string.task_recognition, Secret.RecognitionProvider, Secret.RecognitionModel, null),
-    Conversation(R.string.task_conversation, Secret.ConversationProvider, Secret.ConversationModel, null),
+    Conversation(R.string.task_conversation, Secret.ConversationProvider, Secret.ConversationModel,
+                 null, Secret.ConversationEffort),
+    /**
+     * **The fourth link, and it is a link and not a variant of the third.** The judge marks
+     * while the character speaks, the two calls can live at two providers, and that is the
+     * point: one may be picked for its voice or its speed, the other for its care.
+     */
+    Judging(R.string.task_judgement, Secret.JudgementProvider, Secret.JudgementModel,
+            null, Secret.JudgementEffort),
     Synthesis(R.string.task_synthesis, Secret.SynthesisProvider, Secret.SynthesisModel, Secret.SynthesisVoice),
     ;
 
@@ -67,8 +77,11 @@ enum class Provider(
     val does: Set<Task>,
     val models: Map<Task, List<String>>,
     /**
-     * The reasoning levels this provider accepts on the conversation link, most sparing
+     * The reasoning levels this provider accepts on its language links, most sparing
      * first. Empty where it has no notion of one, in which case nothing is sent.
+     *
+     * One list for both: what a model accepts is the model's, and the same model answers
+     * on either link. Which level is asked for is per link, and is stored per link.
      */
     val efforts: List<Effort> = emptyList(),
 ) {
@@ -76,7 +89,7 @@ enum class Provider(
         id = "replicate",
         label = "Replicate",
         needs = listOf(Secret.ReplicateApiKey, Secret.ReplicateEndpoint),
-        does = setOf(Task.Recognition, Task.Conversation, Task.Synthesis),
+        does = setOf(Task.Recognition, Task.Conversation, Task.Judging, Task.Synthesis),
         models = mapOf(
             // A second route to a language model, for two reasons the measurements gave.
             // One key fewer at the BYOK wall, since this one already carries two links; and
@@ -84,6 +97,7 @@ enum class Provider(
             // the learner waits for. Named with their namespace, which is what tells
             // `openai/gpt-5-mini` reached this way from a `gpt-5-mini` reached direct.
             Task.Conversation to listOf("openai/gpt-5-mini", "openai/gpt-5-nano"),
+            Task.Judging to listOf("openai/gpt-5-mini", "openai/gpt-5-nano"),
             // whisperx first because it is the one that gives word spans. whisper is kept
             // beside it precisely because it does not: the app has to hold up without them,
             // and the seam's own contract allows a word with no bounds.
@@ -109,7 +123,7 @@ enum class Provider(
         id = "inworld",
         label = "Inworld",
         needs = listOf(Secret.InworldApiKey, Secret.InworldEndpoint),
-        does = setOf(Task.Recognition, Task.Conversation, Task.Synthesis),
+        does = setOf(Task.Recognition, Task.Conversation, Task.Judging, Task.Synthesis),
         // The second provider to carry all three links, and the only one whose three are its
         // own rather than other people's hosted side by side. One key at the BYOK wall
         // instead of three is the whole reason it is offered.
@@ -119,6 +133,7 @@ enum class Provider(
             // unmeasured**, like Replicate's beside it: what belongs here is what has been
             // put through the judge's bench, and nothing has yet.
             Task.Conversation to listOf("openai/gpt-4o-mini"),
+            Task.Judging to listOf("openai/gpt-4o-mini"),
             // Whisper large-v3 through Groq is the accuracy ceiling the bench wants named
             // (`../../../../../../TODO.md`, chantier 2), and reaching it on this key means
             // the ceiling and the candidate are one account apart.
@@ -158,11 +173,14 @@ enum class Provider(
         id = "deepseek",
         label = "DeepSeek",
         needs = listOf(Secret.DeepseekApiKey, Secret.DeepseekEndpoint),
-        does = setOf(Task.Conversation),
+        does = setOf(Task.Conversation, Task.Judging),
         // Named outright, never by an alias: `deepseek-chat` was measured being served by
         // `deepseek-v4-flash`, which the trace showed and nothing else would have. A measure
         // is worth what the model behind it is known to be.
-        models = mapOf(Task.Conversation to listOf("deepseek-v4-pro", "deepseek-v4-flash")),
+        models = mapOf(
+            Task.Conversation to listOf("deepseek-v4-pro", "deepseek-v4-flash"),
+            Task.Judging to listOf("deepseek-v4-pro", "deepseek-v4-flash"),
+        ),
         // What the OpenAI-shaped endpoint takes: `thinking` on or off, and `reasoning_effort`
         // over low, high and max. Read 2026-09-06 on
         // https://api-docs.deepseek.com/guides/thinking_mode, which also states that thinking
@@ -174,11 +192,14 @@ enum class Provider(
         id = "openai",
         label = "OpenAI",
         needs = listOf(Secret.OpenaiApiKey, Secret.OpenaiEndpoint),
-        does = setOf(Task.Conversation),
+        does = setOf(Task.Conversation, Task.Judging),
         // The same two models Replicate offers, on purpose: the point of this route is that
         // one model be reachable both ways, so what the detour costs stops being a deduction
         // (`../../../../../../TODO.md`).
-        models = mapOf(Task.Conversation to listOf("gpt-5-nano", "gpt-5-mini")),
+        models = mapOf(
+            Task.Conversation to listOf("gpt-5-nano", "gpt-5-mini"),
+            Task.Judging to listOf("gpt-5-nano", "gpt-5-mini"),
+        ),
         // **Not what these models accept, but what can be vouched for.** OpenAI publishes no
         // capability on `/v1/models` -- id, created and owner, nothing else -- and its
         // reasoning guide says only that "some models support only a subset of these values,
