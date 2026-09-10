@@ -127,9 +127,15 @@ Un paramètre « écris seulement » a été envisagé pour l'éviter, et il est
 
 ### L'étape 4, en trois
 
-**4a — deux prompts, deux appels, même ordonnancement.** Le juge est appelé juste après le répondeur, tout avant la lecture. Rien d'observable ne change sauf le nombre d'appels, donc c'est l'étape qui **prouve que les deux prompts tiennent** sans rien devoir à l'ordre.
+**4a — deux prompts, deux appels, même ordonnancement.** Fait le 2026-09-10. Le juge est appelé juste après le répondeur, tout avant la lecture. Rien d'observable ne change sauf le nombre d'appels, donc c'est l'étape qui **prouve que les deux prompts tiennent** sans rien devoir à l'ordre.
 
-**4b — le juge passe pendant l'écoute.** C'est le gain de latence, et c'est là que l'ordre porte / joue / marque bouge. Se juge seul, et se défait seul.
+**4b — le juge passe pendant l'écoute.** Fait le 2026-09-10. C'est le gain de latence, et c'est là que l'ordre porte / joue / marque bouge. Se juge seul, et se défait seul.
+
+Deux choses que ce doc n'avait pas vues, tranchées en l'écrivant.
+
+**Le juge ne peut pas passer sous l'écoute quand la conversation attend.** Ce qui se joue alors est ce que la note désigne — écho seul si le passage est à reformuler et qu'il reste des tentatives —, donc la note doit être là avant le premier son. À l'inverse, quand elle poursuit, le tableau plus haut joue l'écho et la continuation quel que soit le cran : rien de ce que le juge dit ne change ce qui s'entend. **C'est donc le levier d'avance qui décide si le jugement s'attend**, et le gain de latence est sur la position par défaut.
+
+**Un juge qui donne sa langue au chat après que la voix est partie ne coûte plus le tour.** En un appel, un échec renvoyait l'enregistrement gardé ; ici le personnage a déjà répondu, et le renvoyer le ferait répondre deux fois. Le tour reste donc, avec son texte et sans marque, et il dit pourquoi ; sans jugement il n'y a pas de porte, donc le passage n'est pas retenu — la vérité d'un tour que personne n'a jugé. Ce qui manque est de **redemander le jugement seul** (`../../TODO.md`).
 
 **4c — le juge gagne son propre sélecteur.** Une entrée de plus au catalogue, pour qu'il vive chez un autre fournisseur que la voix, ce que ce doc veut. 4a et 4b le laissent chez le fournisseur de conversation.
 
