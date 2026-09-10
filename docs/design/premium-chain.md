@@ -95,7 +95,19 @@ Retirer cet échafaudage au répondeur casse deux choses. Il peut répondre à c
 
 ## La fusion langue + voix
 
-Le Router fait **modèle de langue et synthèse en une requête** : le même `POST /v1/chat/completions`, avec un paramètre `audio` nommant la voix. La réponse rend les deux séparément — le texte dans `delta.audio.transcript`, l'audio PCM dans `delta.audio.data` — en flux, découpés indépendamment.
+Le Router fait **modèle de langue et synthèse en une requête** : le même `POST /v1/chat/completions`, avec un paramètre `audio` nommant la voix et le modèle de synthèse. La réponse rend les deux séparément — le texte dans `message.audio.transcript`, l'audio PCM dans `message.audio.data` en base64 — hors flux comme en flux, où ce sont les mêmes champs sous `delta`. PCM 16 bits mono à 48 kHz.
+
+**Et c'est là que la coupe et la fusion se heurtent, ce que ce doc n'avait pas vu.** Lu le 2026-09-10 sur `docs.inworld.ai/router/guides/llm-plus-tts` : le Router **synthétise la sortie du modèle en entier**, et rien ne permet de désigner la portion à dire — pas de champ, pas de balise, pas de convention. Le `transcript` n'est pas un texte à côté de l'audio, c'est **le texte qui a été dit**. La page ne dit rien non plus de `response_format` ni de sortie structurée à côté d'`audio`.
+
+Or celui qui parle rend un objet JSON : `intended`, `established`, `echo`, `spoken`. Sous fusion, la voix dirait cet objet. Donc **la fusion exige que celui qui parle rende de la prose nue**, et `intended` et `established` n'ont plus de véhicule — alors que faire écrire `intended` par celui qui parle est précisément ce que l'étape 4a a tranché, contre le cas où la voix modèle prononce un mot que personne n'a dit.
+
+Trois issues, et aucune ne se choisit sans que ce doc le dise :
+
+- **`intended` repart chez le juge.** La fusion est possible telle quelle, et on rouvre ce que 4a a fermé.
+- **Le contrat passe par `tools`.** Un appel d'outil est une sortie structurée qui n'est pas du texte d'assistant, donc il n'a aucune raison d'être synthétisé — `tools` est documenté sur cette page. Mais qu'un tour porte à la fois de l'audio et un appel d'outil n'est écrit nulle part : c'est une hypothèse, pas un fait.
+- **La fusion tombe.** Le point de décision était déjà prévu après l'étape 6, et tout ce qui précède est acquis dans les deux cas.
+
+Ce qui suit décrit la fusion telle qu'elle avait été pensée, et reste vrai de ce qu'elle achèterait.
 
 **Ce qu'elle achète n'est pas un appel de moins, c'est du temps.** L'audio part pendant que la réplique s'écrit, au lieu d'être livré fini ; et le jugement, qui passait avant le premier son, passe pendant l'écoute.
 
@@ -120,7 +132,7 @@ Un paramètre « écris seulement » a été envisagé pour l'éviter, et il est
 2. **Fait le 2026-09-10.** `echo` / `continuation` dans le contrat, la règle de composition dans l'app, la sortie d'un passage bloqué réparée avec.
 3. **Fait le 2026-09-10.** Inworld sur les trois maillons. Trois faits y reposent sur de la doc et pas sur un appel, inscrits au `../TODO.md`.
 4. **Couper l'appel en deux**, et ça se coupe en trois parce que ce sont trois intentions.
-5. La fusion : l'appel qui parle prend `audio`.
+5. La fusion : l'appel qui parle prend `audio`. **Bloquée le 2026-09-10** sur ce que la synthèse dit du texte entier — trois issues plus haut, à trancher avant d'écrire une ligne.
 6. Mesurer — le banc du juge (`grammar-test-set.md`, écrit, jamais tourné) dans les deux montages, et la latence jusqu'au premier son.
 
 **Point de décision après 6** : la fusion reste ou tombe. Tout ce qui précède est acquis dans les deux cas.
