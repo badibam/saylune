@@ -13,6 +13,7 @@ are in it; what a second simultaneous request would add is the part above them.
     ACOUSTIC_MODEL=timit-ipa python3 cost.py                    # int8, four threads
     ACOUSTIC_MODEL=timit-ipa python3 cost.py --precision float  # what the rounding buys
     ACOUSTIC_MODEL=timit-ipa python3 cost.py --threads 1        # the per-core figure
+    ACOUSTIC_MODEL=timit-ipa python3 cost.py --audio some.wav   # off a machine with no corpus
 
 Threads are the interesting knob on a server: logical threads over shared cores
 slow the pass down rather than speed it up, so what is being sized is physical
@@ -37,16 +38,31 @@ LENGTHS = [3, 6, 12, 20, 30]
 TAKES = Path(__file__).resolve().parent / "out" / "takes"
 
 
-def speech(seconds):
-    """Real speech of the wanted length, taken from the bench's own recordings.
+def sources(where):
+    """The recordings to build a turn out of: a directory of them, or one file.
+
+    A rented machine carries neither the bench's corpus nor a way to record, so
+    what it is pointed at is whatever wav was sent up with the scripts.
+    """
+    where = Path(where)
+    if where.is_dir():
+        return sorted(where.rglob("*.wav"))
+    if where.is_file():
+        return [where]
+    raise SystemExit(f"{where} n'existe pas — --audio veut un wav ou un dossier")
+
+
+def speech(seconds, where):
+    """Real speech of the wanted length, from the recordings at hand.
 
     Silence would time the same -- the network spends the same arithmetic on
     every frame -- but a pass fed with real speech is one less thing to explain
-    when a number surprises.
+    when a number surprises. A single short file is repeated to reach the
+    length, which changes nothing to the arithmetic and keeps the input speech.
     """
     wanted = int(seconds * matrix.SAMPLE_RATE)
     chunks, held = [], 0
-    for wav in sorted(TAKES.rglob("*.wav")):
+    for wav in sources(where):
         audio, rate = sf.read(wav, dtype="float32")
         if rate != matrix.SAMPLE_RATE:
             continue
@@ -56,8 +72,15 @@ def speech(seconds):
         held += len(audio)
         if held >= wanted:
             break
-    if held < wanted:
-        raise SystemExit(f"{TAKES} ne porte pas {seconds} s d'audio à 16 kHz")
+    if not chunks:
+        raise SystemExit(f"aucun wav à {matrix.SAMPLE_RATE} Hz sous {where}")
+    gathered = list(chunks)
+    turn = 0
+    while held < wanted:
+        again = gathered[turn % len(gathered)]
+        chunks.append(again)
+        held += len(again)
+        turn += 1
     return np.concatenate(chunks)[:wanted]
 
 
@@ -74,6 +97,8 @@ def main(argv=None):
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--lengths", type=int, nargs="*", default=LENGTHS,
                         help="durées de tour à mesurer, en secondes")
+    parser.add_argument("--audio", default=TAKES,
+                        help="où prendre la parole — un wav ou un dossier")
     options = parser.parse_args(argv)
 
     import onnxruntime
@@ -100,7 +125,7 @@ def main(argv=None):
     print(f"chargement {load:.2f} s\n")
     print(f"{'tour':>6} {'passe':>9} {'rapport':>9} {'pic':>10}")
     for seconds in options.lengths:
-        values = matrix.prepared(speech(seconds))
+        values = matrix.prepared(speech(seconds, options.audio))
         gc.collect()
         times = []
         for _ in range(options.repeats):
