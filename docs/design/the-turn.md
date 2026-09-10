@@ -1,10 +1,29 @@
 # Le tour : une suite d'énoncés, et ce qui suit un tour
 
-Doc transitoire, ouvert le 2026-09-10. Il porte quatre choses qui se sont révélées être une seule : ce qu'un tour de l'IA contient, ce qui va au fil et ce qui va en notification, ce que l'armement automatique suit, et ce qu'une reprise rejoue. Il s'élague quand le code est en place et que `activity.md`, `ui.md` et `reference.md` ont repris ce qui leur revient. Les voix de ceux qui parlent sont dans `voices.md`.
+Doc transitoire, ouvert le 2026-09-10. Il portait quatre choses qui se sont révélées être une seule : ce qu'un tour de l'IA contient, ce qui va au fil et ce qui va en notification, ce que l'armement automatique suit, et ce qu'une reprise rejoue. **La moitié est en place** ; ce qui est fait a été élagué d'ici et vit dans les commits, qui sont la carte. Reste ce qui suit. Les voix de ceux qui parlent sont dans `voices.md` (pas implémenté).
 
-**Pourquoi les quatre tiennent ensemble.** On a d'abord cru à quatre chantiers séparés. Ils partagent un instant : *la fin de la parole de l'app*. C'est là que la notification s'affiche, c'est là que le micro s'arme, c'est là qu'une séquence se termine, et c'est ce qu'une reprise doit recréer. Les traiter séparément recrée le trou qu'on vient de trouver.
+**Pourquoi les morceaux tiennent ensemble.** Ils partagent un instant : *la fin de la parole de l'app*. C'est là que la notification s'affiche, c'est là que le micro s'arme, c'est là qu'une séquence se termine, et c'est ce qu'une reprise doit recréer.
 
-## La coupure : le fil et la notification
+## Ce qui est en place
+
+Six commits, du 2026-09-10, et rien ici n'est à relire pour comprendre le code — le code se lit.
+
+- **Le retour à `Idle` est structurel**, un `withPhase(phase) { … }` en `try`/`finally`. Dix-neuf affectations de phase dispersées sont tombées à cinq, et le seul `Idle` du fichier est celui du `finally`. Ça tue toute la classe des conversations gelées.
+- **Ce qui annulait l'appelant est trouvé**, et sans instrument : l'app s'annulait elle-même. Le juge et la voix étaient deux `async` dans un `coroutineScope`, donc un juge qui lâche annulait celui qui parlait. La prise est passée *dans* l'`async` — une panne rendue comme valeur n'emporte pas ses voisins. Les deux symptômes observés (la parole coupée net, puis plus rien) étaient un seul incident.
+- **L'armement suit un événement**, écrit à un seul instant : l'app a fini de parler. Rien ne le dérive, donc un écran qui s'ouvre, un plantage et une reprise le trouvent vide. **Et l'événement ferme le passage** — l'appui qu'il remplace faisait deux choses et l'armement n'en rejouait qu'une, donc `Moment.PassageClosed` ne tombait jamais aux deux positions armées. Ce qui a rendu un second défaut atteignable : un passage reste le passage ouvert tant que l'apprenant n'a pas reparlé, donc deux fermetures sans rien dire entre les deux tombaient dessus deux fois. La fermeture est une fois par passage.
+- **La reprise rejoue le dernier tour de l'IA, en entier**, au lieu d'appeler le modèle. Rien n'est inventé, seule la synthèse retravaille. `Provoked` perd son second cas et le prompt perd `RESUMED`.
+- **Un tour est une suite d'énoncés**, chacun avec son type — parole ou didascalie — et sa clé de personnage, le narrateur étant un membre réservé de la distribution. L'écho ouvre la première **parole** et jamais une didascalie. **Une seule prise du haut-parleur**, du premier mot au dernier. Deux nombres posés à la main et dits comme tels : six énoncés au plus, une seconde de silence entre deux. Le plafond **refuse au lieu de tronquer**.
+- **L'historique porte le tour entier**, sans quoi le modèle perdait sa propre narration de sa mémoire dès le passage suivant.
+
+Et le banc a été remis debout au passage : rien du dossier de test ne compilait, trois changements l'ayant dépassé. 268 tests.
+
+## Ce qui reste
+
+### L'affichage d'une didascalie
+
+**À l'écran** : chaque parole garde son cadre ; les didascalies ressortent autrement — elles ne sont pas dites *à* l'apprenant. Rien n'est fait : le fil dessine tout énoncé de l'IA de la même façon. Le champ qui les distingue est là (`Utterance.kind`), donc c'est un travail d'`ui.md` et rien d'autre.
+
+### La coupure : le fil et la notification
 
 Deux matières, deux surfaces, et on les confondait.
 
@@ -12,55 +31,9 @@ Deux matières, deux surfaces, et on les confondait.
 
 **La didascalie est de la matière de fiction.** Elle va **dans le fil**, elle peut être dite, et elle se place avant ou après la réplique d'un personnage.
 
-**Le drapeau `before` quitte la notification.** Il était sur `Staging` et le doc lui donnait un sens de place par rapport à la réplique, mais le code ne s'en servait que pour ordonner les lignes *à l'intérieur d'un seul bandeau*, lequel ne s'affiche qu'à un instant. Le « avant la réplique » n'existait donc pas. Ce n'était pas un bug d'implémentation : ce qu'on voulait placer avant n'était pas une notification, c'était une didascalie. Le drapeau devient une propriété de l'ordre de la séquence, et le trou se referme en changeant d'objet plutôt qu'en ajoutant un instant d'affichage.
+**Le drapeau `before` quitte la notification.** Il est sur `Staging` et le doc lui donnait un sens de place par rapport à la réplique, mais le code ne s'en sert que pour ordonner les lignes *à l'intérieur d'un seul bandeau*, lequel ne s'affiche qu'à un instant. Le « avant la réplique » n'existe donc pas. Ce n'est pas un bug d'implémentation : ce qu'on veut placer avant n'est pas une notification, c'est une didascalie. Le drapeau devient une propriété de l'ordre de la séquence — laquelle existe maintenant — et le trou se referme en changeant d'objet plutôt qu'en ajoutant un instant d'affichage.
 
-## Un tour est une suite d'énoncés
-
-Aujourd'hui le contrat rend `spoken` — une réplique — plus `echo` en option, qui n'est pas un second énoncé mais l'ouverture du même. Tous les tours sortent sous une seule identité.
-
-**Le modèle rend une liste.** Chaque énoncé porte son **type** — parole ou didascalie — et sa **clé de personnage**. Ils sont joués à la suite, chacun avec sa voix, une pause d'une seconde entre deux.
-
-**Aucun ordre n'est imposé.** Ce n'est pas *didascalie puis parole* : ce peut être une parole du personnage 1 puis une parole du personnage 2, une didascalie entre deux répliques, ou une réplique seule. La limitation n'est pas technique, elle est pratique — ne pas se retrouver avec quinze énoncés.
-
-**L'écho s'accroche à la première *parole*, jamais à une didascalie.** C'est la seule vraie contrainte sur l'ordre libre. L'écho se lit d'un seul souffle avec ce qui suit ; posé sur une ligne de narrateur, il devient une remarque du narrateur sur la grammaire de l'apprenant, ce que le projet refuse partout. Une séquence peut donc commencer par une didascalie, mais l'écho saute jusqu'à la première réplique.
-
-**Un plafond, généreux et déclaré.** Pas de restriction technique, mais un modèle qui part en vrille rend douze énoncés, donc douze synthèses et une minute de lecture. Ce qui se sent n'est pas la facture : c'est **l'attente avant que l'apprenant puisse parler**. Le projet borne partout — 45 caractères pour une remarque, 30 s pour un tour — et une borne qui porte sa raison vaut mieux qu'une dérive découverte à l'usage.
-
-**Deux nombres posés à la main** : le plafond et la pause d'une seconde. Dits comme tels, à revoir à l'oreille.
-
-**À l'écran** : chaque parole garde son cadre ; les didascalies ressortent autrement — elles ne sont pas dites *à* l'apprenant.
-
-**Le narrateur est un membre de la distribution à clé réservée**, comme l'apprenant. Sa voix est un réglage que l'utilisateur choisit et qu'une tuile peut remplacer, ce qui en fait un troisième régime à côté de l'étalon et du tirage (`voices.md`).
-
-## Le haut-parleur, et qui coupe qui
-
-Rien de ce qui précède ne tient sans dire qui tient le haut-parleur. Il est unique, il a **deux rangs et aucune file** (`capture/Loudspeaker.kt`), et une lecture perdue est finie, jamais reportée.
-
-**Un doigt ne coupe jamais la parole de l'app** : le geste est abandonné plutôt que retenu, un son qui arriverait plus tard sans raison visible étant pire que pas de son. C'est l'invariant connu.
-
-**Mais l'app coupe l'app.** La protection ne joue que dans un sens : tout second son joué au rang de l'app annule celui en cours. Et surtout, **le son meurt avec son appelant** — si le tour qui le jouait est abandonné, la lecture est annulée avec lui. C'est écrit et voulu : *« the turn dropped. The sound goes with it. »*
-
-**Observé le 2026-09-10** : la chaîne lâche pendant que l'IA parle, la parole est **coupée net, puis plus rien**. Ce sont deux symptômes d'un seul incident — le son est mort avec son appelant, et la phase est restée sur *Speaking*, donc rien ne pouvait repartir derrière. C'est pourquoi les deux réparations sont distinctes : `withPhase` rend la main à l'écran, il ne rend pas la parole.
-
-**Ce qu'on décide** : une panne d'arrière-plan ne coupe pas un énoncé commencé. Si un doigt n'a pas ce droit, une panne le justifie mal ; laisser la phrase finir coûte quelques secondes et évite l'app qui s'arrête au milieu d'un mot. L'annulation du tour porte sur **le dossier** — les énoncés sortent du fil, la prise de l'apprenant est gardée, on renvoie — et n'a jamais voulu dire couper un mot en deux.
-
-**Une séquence tient le haut-parleur d'un bloc.** Jouée énoncé par énoncé, elle est N prises successives, donc N fenêtres où un autre son de l'app peut le saisir — y compris dans les pauses d'une seconde. Un tour provoqué tombant entre le deuxième et le troisième énoncé couperait la séquence en deux. Une seule prise, du premier au dernier mot.
-
-## La panne : le tour entier tombe
-
-La chaîne lâche à l'énoncé 3 sur 5. **On annule le tour entier.**
-
-**Pourquoi pas garder ce qui a été dit.** Une séquence n'est pas une liste de phrases indépendantes : avec la seule didascalie d'ouverture lue, il n'y a pas d'histoire à suivre. Un demi-tour est moins lisible qu'un tour qui n'a pas eu lieu.
-
-**Pourquoi pas tout synthétiser avant de jouer.** L'idée rendrait l'annulation propre — la panne tomberait avant le premier son, donc rien à retirer de l'oreille. Elle est **refusée** : elle pousse toute la latence des synthèses avant le premier mot, et l'attente est précisément ce qu'on ne veut pas payer.
-
-**Donc le prix est assumé et nommé** : l'apprenant a entendu le début d'un tour qui n'aura pas lieu. Il réentendra un début différent au renvoi. C'est le moindre des deux maux, pas une élégance.
-
-**Ce qui se passe** est ce que fait n'importe quel maillon qui lâche : la réponse est jetée entière, **l'enregistrement de l'apprenant est gardé**, on renvoie. Et surtout : **ça se dit**. Ce qui est inacceptable aujourd'hui n'est pas l'interruption, c'est le silence qui l'accompagne.
-
-**Ce cas n'attend pas les séquences : il se produit déjà.** Ce qui change avec elles est le nombre d'occasions, pas la nature.
-
-## La notification, et son minuteur
+### La notification, et son minuteur
 
 **Après l'audio**, donc après la séquence entière.
 
@@ -68,61 +41,17 @@ La chaîne lâche à l'énoncé 3 sur 5. **On annule le tour entier.**
 
 **Un plancher plus un débit**, et non une durée strictement proportionnelle : une notification de quatre mots à durée proportionnelle clignote. Deux nombres de plus posés à la main.
 
-**Le minuteur n'existe qu'en armement automatique**, et **le décompte est le délai avant que le micro s'arme**. Ce n'est pas un second compteur à côté : c'est le même, montré.
+**Le minuteur n'existe qu'en armement automatique**, et **le décompte est le délai avant que le micro s'arme**. Ce n'est pas un second compteur à côté : c'est le même, montré. Le délai existe (le levier de préparation) ; ce qui manque est de le montrer.
 
-## L'armement suit un événement, pas une forme
+### Le piège à ne pas se prendre
 
-C'est le défaut central, et il explique deux bugs qu'on prenait pour trois.
-
-Aujourd'hui l'armement suit `armsOn`, qui vaut *le dernier énoncé du fil, s'il n'est pas de l'apprenant*. C'est une **forme**. Ce qu'il faut lire est un **événement** : *une réponse vient de finir*.
-
-La différence ne se voit pas en conversation courante et se voit partout ailleurs :
-
-- **à la reprise**, la forme est vraie et l'événement est faux — le fil finit bien sur le personnage, mais cette réponse-là a fini hier. Le micro s'armerait à l'apparition de l'écran, sur quelqu'un qui relit son fil ;
-- **après un crash**, `armedOn` ne survit pas, la forme redevient vraie et le même armement parasite repart ;
-- **avec une séquence**, si les énoncés arrivent au fil de leur synthèse, la forme est vraie dès le premier : le micro s'ouvrirait pendant que le narrateur parle encore.
-
-**L'événement est la fin de la séquence**, jamais l'arrivée d'un énoncé. Soit la séquence entre dans le fil d'un bloc, soit l'événement suit la fin de lecture — pas les deux à moitié.
-
-**Et l'événement ferme le passage.** L'armement remplace l'appui sur le gros bouton aux deux positions automatiques ; or cet appui fait **deux** choses — fermer le passage précédent et ouvrir le micro — et l'armement n'en rejoue qu'une. Conséquence mesurée : aux deux positions armées, `Moment.PassageClosed` ne se déclenche **jamais**, donc ni patch, ni fin de séance par règle, ni question posée à ce moment. Une tuile livrée en souffre déjà en silence — `the-last-train` déclare une question tous les cinq passages qui n'est jamais posée hors de la capture au doigt. Si l'événement est bien *le tour de l'apprenant s'ouvre*, il fait les deux.
-
-**Piège à éviter** : le moment de la fin de tentative court **deux fois** par tour, et `Engine.resolve` tient son ensemble `fired` par résolution et non par moment. L'événement ne doit pas être émis deux fois (voir `TODO.md`).
-
-## La reprise
-
-Aujourd'hui, rouvrir un fil déclenche **un appel au modèle** : le personnage invente une ligne qui reprend la conversation, et l'armement suit cette ligne. Ce n'est pas ce qu'on veut, et ça masquait le défaut ci-dessus plutôt que de le corriger — la provocation met la phase à *Thinking*, l'armement sort en occupé, et personne ne voit que la forme était fausse.
-
-**On rejoue le dernier tour de l'IA, en entier.** En entier parce qu'un tour n'est plus une réplique : ce peut être une parole du personnage 1 suivie d'une parole du personnage 2, et n'en rejouer que la dernière perdrait l'échange. Rien n'est inventé, rien ne part au modèle : le texte est au dossier, seule la synthèse retravaille. Les réponses du modèle n'ayant pas d'audio stocké, rejouer veut dire resynthétiser.
-
-**Puis l'événement tombe, et l'armement suit** — comme après n'importe quelle réponse.
-
-Trois gestes, donc : neutraliser l'armement périmé à l'ouverture, rejouer, émettre l'événement à la fin de la lecture. L'appel de reprise disparaît.
-
-## La fragilité, et ce qu'on en fait
-
-Le constat qui a ouvert cette section : *si la chaîne lâche pendant que l'IA parle, ça interrompt le tour*, et le système casse à beaucoup d'endroits.
-
-**Il y a déjà une machine à états** — `Phase { Idle, Hearing, Thinking, Speaking, Measuring }`. Le défaut n'est pas son absence : c'est qu'elle est **implicite et non totale**. Dix-neuf affectations de phase dispersées, quarante-deux mutations d'état, aucune table qui dise quelle transition est légale, et un retour à `Idle` qui est une **phrase en fin de fonction** plutôt qu'une **garantie**.
-
-```
-_state.update { phase = Speaking }
-Playback.play(synthesis.speak(...))   // la chaîne lâche ici
-_state.update { phase = Idle }        // ne s'exécute jamais
-```
-
-Tout l'écran lit `busy = phase != Idle`. La conversation est alors gelée pour de bon, sans un mot à l'écran. Trois chemins ont cette forme : `replay()`, `hear()`, et la continuation retenue de `close()`. Le bon motif existe pourtant déjà dans `provokeIfAsked()` — le `catch` couvre la lecture et le retour à `Idle` est hors du `try` — mais il ne rattrape que `ChainFailure`.
-
-**Ce qu'on fait** : rendre le retour à `Idle` **structurel**, un `withPhase(Speaking) { … }` en `try`/`finally`. Aucun chemin ne peut plus laisser une phase coincée. C'est mécanique, ça tue toute la classe des conversations gelées, et c'est dans le style du projet — un invariant écrit en prose devient une garantie de structure, sans vocabulaire neuf.
-
-**Ce qu'on ne fait pas** : une machine à états à l'échelle de l'app. Ce projet tient ses invariants en prose documentée, pas en types ; une grosse hiérarchie scellée se battrait contre ce style pour un coût sans rapport. Si les champs qui se contredisent — `pending`, `failure`, `held`, `unjudged` — veulent un jour un type somme, ce sera à l'échelle du **tour**.
-
-**L'ordre des travaux en découle** : `withPhase` **d'abord**, les séquences ensuite. Une séquence multiplie par cinq les occasions de lâcher en cours de route, chacune laissant aujourd'hui la phase coincée. Bâtir les séquences sur le socle actuel, c'est bâtir sur du sable.
+Le moment de la fin de tentative court **deux fois** par tour, et `Engine.resolve` tient son ensemble `fired` par résolution et non par moment. L'événement ne doit pas être émis deux fois (voir `TODO.md`). La fermeture du passage, elle, est déjà bornée à une fois par passage.
 
 ## Ce qui reste ouvert
 
-- **Couper une séquence : non, pas pour l'instant.** L'invariant *« un geste ne coupe jamais la parole de l'app »* tient tel quel — étant entendu qu'il ne dit rien de l'app se coupant elle-même, ce que la section sur le haut-parleur tranche à part. La question se rouvrira si une séquence longue devient pénible à l'usage ; la réponse préparée serait de sauter la séquence **entière** et jamais un énoncé sur cinq, sinon on retombe dans le cas que l'invariant interdit.
-- **`standingReply` est au singulier.** L'historique envoyé au modèle met une réponse par passage ; avec une séquence, le modèle perd sa propre narration de sa mémoire dès le passage suivant. C'est le vrai impact structurel du changement, plus que le contrat.
-- **Le contrat touche cinq fichiers de fournisseur** là où `spoken` + `echo` deviennent une liste.
+- **Couper une séquence : non, pas pour l'instant.** L'invariant *« un geste ne coupe jamais la parole de l'app »* tient tel quel — étant entendu qu'il ne dit rien de l'app se coupant elle-même. La question se rouvrira si une séquence longue devient pénible à l'usage ; la réponse préparée serait de sauter la séquence **entière** et jamais un énoncé sur cinq, sinon on retombe dans le cas que l'invariant interdit.
+- **Le contrat ne touchait pas cinq fichiers de fournisseur.** Ce doc l'annonçait ; c'est faux, et mesuré en le faisant : les prompts et les lecteurs vivent en un seul endroit, aucun fournisseur ne déclare de schéma, et le changement a touché `ConversationPrompt.kt` et `ReplyReader.kt` et rien d'autre côté fournisseurs.
 - **La fréquence des didascalies** se dit dans la fiche, en texte libre plus un préréglage (*au plus une par tour*, *une tous les trois tours*, *de temps en temps*). C'est une demande interprétée librement, pas une garantie : rien ne doit s'y adosser — aucune condition qui la lise, aucun banc qui l'éprouve, aucune phrase de l'app qui la présente à l'apprenant comme un fait. Un cran presque gratuit la rend tenable : donner au modèle **un fait** plutôt qu'une consigne seule — *« trois tours depuis la dernière didascalie »* — le contrat le faisant déjà pour le numéro de passage. Il compte très mal ses propres tours et très bien un nombre qu'on lui tend.
-- **Rien n'exerce encore le bandeau.** Aucune tuile livrée ne pose de patch, donc ni la notification ni son minuteur n'ont jamais eu de quoi s'afficher. C'est ce que l'enrichissement des tuiles refermera — et c'est là seulement que le minuteur pourra se régler à l'œil. En attendant on reste en conversation libre, donc sans règles, ce qui laisse quand même de la marge pour éprouver les séquences et le narrateur.
-- **Ce qui annule l'appelant reste à trouver.** La parole coupée net dit que la coroutine qui la jouait a été annulée, pas laquelle ni par quoi. C'est la première chose à instrumenter, avant d'écrire la moindre ligne : `withPhase` traite la conséquence, et la cause est encore une hypothèse.
+- **Le plafond et la pause n'ont jamais été entendus.** Six et une seconde sont posés à la main, et rien de livré ne fait encore parler deux personnages dans un tour.
+- **Rien n'exerce encore le bandeau.** Aucune tuile livrée ne pose de patch, donc ni la notification ni son minuteur n'ont jamais eu de quoi s'afficher. C'est ce que l'enrichissement des tuiles refermera — et c'est là seulement que le minuteur pourra se régler à l'œil.
+- **Le narrateur parle de la voix de tout le monde.** Sa clé est réservée et son régime de voix — un réglage que l'utilisateur choisit, qu'une tuile peut remplacer — attend `voices.md`, qui n'est pas implémenté.
