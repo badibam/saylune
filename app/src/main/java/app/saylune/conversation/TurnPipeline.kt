@@ -5,6 +5,7 @@ import app.saylune.chain.ChainFailure
 import app.saylune.chain.Conversation
 import app.saylune.chain.Exchange
 import app.saylune.chain.Present
+import app.saylune.chain.Provoked
 import app.saylune.chain.Recognition
 import app.saylune.chain.Reply
 import app.saylune.chain.Scene
@@ -848,7 +849,22 @@ class TurnPipeline(
      * Nothing has to have been closed for this: an activity that did not finish is one to
      * carry on with, and every conversation but the one being had is in that state.
      */
-    suspend fun open(id: String) = writing.withLock { openLocked(id) }
+    suspend fun open(id: String): Boolean = writing.withLock {
+        if (!openLocked(id)) return@withLock false
+        // **The character picks the thread back up, and this is the one door it happens at.**
+        // Not in [openLocked], which the launch also runs: there the title screen is what is
+        // showing, and a voice coming out of a conversation nobody has opened is the thing this
+        // app must not do. Here somebody has just asked to carry on.
+        //
+        // **Scheduled and not awaited, like the opening.** The call and the playback have to
+        // happen with the conversation on screen rather than before it; awaited, *carry on*
+        // would sit on the situation screen until the character had finished. It waits on the
+        // lock this still holds, so it begins the instant the sitting is loaded.
+        turns.launch {
+            writing.withLock { provokeIfAsked(why = Provoked.OnReturn) }
+        }
+        true
+    }
 
     /**
      * Whether it opened. False says the sitting is **there and cannot be carried on**.
@@ -2240,8 +2256,14 @@ class TurnPipeline(
      * and nothing to retry from, so it is said and the sitting carries on: refusing to go on
      * because a scene lost its opening line would be worse than the missing line.
      */
-    private suspend fun provokeIfAsked(sweeping: Boolean = false) {
-        if (messages.none { it.now } && !(sweeping && asking.isNotEmpty())) return
+    private suspend fun provokeIfAsked(
+        sweeping: Boolean = false, why: Provoked = Provoked.ByRule,
+    ) {
+        // **A return needs no message**, which is the one place a turn is taken with nothing
+        // laid in front of it: nobody asked, the learner has simply come back.
+        if (why == Provoked.ByRule &&
+            messages.none { it.now } && !(sweeping && asking.isNotEmpty())
+        ) return
         val door = frontDoor()
         _state.update { it.copy(phase = Phase.Thinking) }
         try {
@@ -2259,7 +2281,7 @@ class TurnPipeline(
                     passage = _state.value.passages().size + 1,
                     instructions = door.instructions,
                     said = door.prose,
-                    provoked = true,
+                    provoked = why,
                     asking = door.asked,
                 ),
             )

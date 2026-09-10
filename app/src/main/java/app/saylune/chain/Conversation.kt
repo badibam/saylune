@@ -90,6 +90,14 @@ interface Conversation {
  * would have the model's voice say a word nobody said, and every mark on the turn would land
  * beside its sound.
  */
+/**
+ * Why the character is taking a turn nobody spoke into.
+ *
+ * Two, and they differ in what the character has to go on. [ByRule] has the prose a rule has
+ * just laid in front of it; [OnReturn] has only the thread, which it is picking back up.
+ */
+enum class Provoked { ByRule, OnReturn }
+
 data class Present(
     val positions: Positions = Positions(),
     val ending: Ending? = null,
@@ -139,10 +147,15 @@ data class Present(
      * off an empty transcript: an emptiness is indistinguishable from a recording nobody spoke
      * into, and the two want opposite things.
      *
-     * **It falls only at the opening or at a passage's close**, never while somebody is
-     * recording: nothing cuts off a person who is still speaking.
+     * **It falls only at the opening, at a passage's close, or on the way back into a thread**,
+     * never while somebody is recording: nothing cuts off a person who is still speaking.
+     *
+     * **The reason is carried and not just the fact**, because the two are not the same turn to
+     * take. A rule asked for one and the character has an instruction in front of it; nobody
+     * asked for the other -- the learner has simply come back -- and a character told it is
+     * acting on an instruction it never got would invent one.
      */
-    val provoked: Boolean = false,
+    val provoked: Provoked? = null,
     /**
      * The questions the app is putting on this turn, whose answers are **required fields**.
      *
