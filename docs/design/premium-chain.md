@@ -52,13 +52,18 @@ Deux champs au lieu d'un texte de réponse. Ce ne sont pas deux phrases concurre
 
 **Le levier d'écho cesse d'être une consigne et devient une règle de composition dans l'app.** Il gouverne la formulation d'`echo`, ou le laisse vide ; il ne dit plus quoi jouer. C'est le levier d'**avance** qui décide.
 
-| avance | note | ce qui se joue |
-|---|---|---|
-| poursuit | A ou B | continuation (`echo` vide) |
-| poursuit | sous la barre | **écho + continuation** |
-| attend | A ou B | continuation (`echo` vide) |
-| attend | sous la barre, tentatives restantes | **écho seul** |
-| attend | sous la barre, épuisées | **écho + continuation** |
+**Et deux seuils entrent ici, qu'un premier tableau confondait** (corrigé le 2026-09-10). *S'être trompé* est jugé par **celui qui parle**, et c'est ce qui produit un écho ou non. *Tomber sous la barre* est jugé par **le juge**, avec les poids et la sévérité, et c'est ce qui ferme la porte des mots. Une petite faute dans une longue phrase, à sévérité clémente, fait les deux à la fois : un écho **et** une note qui passe — et c'est précisément le geste fondateur du projet, la reprise qui passe dans le fil sans rien arrêter. Le tableau porte donc les deux colonnes.
+
+| avance | écho | porte des mots | ce qui se joue |
+|---|---|---|---|
+| poursuit | absent | quelle qu'elle soit | la continuation |
+| poursuit | présent | quelle qu'elle soit | **écho + continuation** |
+| attend | absent | quelle qu'elle soit | la continuation |
+| attend | présent | ouverte | **écho + continuation** |
+| attend | présent | fermée, tentatives restantes | **écho seul** |
+| attend | présent | fermée, épuisées | **écho + continuation** |
+
+**Quand la conversation poursuit, la porte ne dit rien de ce qui s'entend** — l'écho est l'ouverture de la réplique et il se joue avec elle quel que soit le cran. C'est ce qui rend la position par défaut insensible à l'ordre des deux appels, et le tableau le montre en n'ayant que deux lignes là où l'autre position en a quatre.
 
 **Le dernier cas est un gain sur le montage actuel**, où la continuation nue se joue à l'épuisement : la conversation s'était arrêtée sur une phrase, les tentatives s'épuisent, et l'IA repart comme si de rien n'était. L'écho devant reconnaît la sortie avant de la franchir, et il est déjà là.
 
