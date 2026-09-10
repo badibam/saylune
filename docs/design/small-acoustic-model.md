@@ -26,6 +26,19 @@ Ce sont deux défauts d'entraînement. La mesure dit que ces deux modèles-là s
 
 **Ce que ce chiffre mesure, et rien de plus : un encodeur de 94 M affiné sur de la transcription phonétique faite à la main garde une répartition autour de son pic.** Le garde-fou qui aurait pu écarter la taille gratuitement ne l'écarte pas. Trois choses qu'il ne couvre pas, et aucune ne se déduit de lui : le second garde-fou, les témoins, qui attend le repliement ; les fautes vues, que rien n'a comptées ; et le fait qu'**une certitude basse n'est pas une qualité** — la barre exclut, elle ne classe pas, et 0,872 est aussi le chiffre d'`espeak`, qui voit 5 fautes sur 7.
 
+**Le second garde-fou est écrit, et `base-colab` tombe dessus** (2026-09-10). `bench/matrix.py` sait maintenant replier la répartition d'un candidat annoté en TIMIT 61 vers l'alphabet du sortant : la table Lee & Hon est lue depuis `train/timit.py` plutôt que recopiée, les colonnes qui se replient ensemble se somment — la masse sur `ih` et celle sur `ix` sont la masse sur un seul /ɪ/ —, et ce que la table laisse tomber part au blanc, les closures et les pauses parce qu'elles sont du silence, le coup de glotte parce que sa réalisation en est aussi. Un fait rencontré en l'écrivant : **un réseau est plus large que son vocabulaire**, `vocab_size` dépassant de deux les symboles que `vocab.json` nomme, sur ce candidat comme sur le sortant. Les lectures ne l'avaient jamais vu, indexant leurs colonnes par symbole sans jamais atteindre les dernières.
+
+| sur le jeu d'essai étiqueté | fautes vues | pire témoin |
+|---|---|---|
+| `timit-ipa`, voix `eleven-gb-daniel` | 6 / 7 | 0,002 |
+| `timit-ipa`, voix `eleven-us-eric` | 7 / 7 | 0,002 |
+| `base-colab`, voix `eleven-gb-daniel` | 0 / 4 | 0,863 |
+| `base-colab`, voix `eleven-us-eric` | 1 / 4 | 0,859 |
+
+**Un témoin à 0,863 est une prise étiquetée propre que l'app marquerait.** C'est l'échec de `charsiu`, en pire — et ce n'est pas un alignement cassé : sur `13-field-clean` la phrase entière a un médian de 0,056, donc elle s'aligne, et c'est le son déclaré propre qui diverge. Les dénominateurs, eux, tombent de 7 à 4 : trois à cinq prises par voix passent au-dessus de la barre de 0,2 de la brique 11, donc le décodage libre du candidat ne se pose pas où se pose celui de la voix modèle sur près d'une prise sur trois. Le repliement est une transformation que le sortant ne subit pas, et il fusionne des colonnes, donc il rapproche deux répartitions au lieu de les écarter — il ne peut pas avoir fabriqué l'écart. Ce qu'il déplace est le décodage libre, et sa part dans les prises hors comparaison n'est pas mesurée.
+
+**Ce que ça ne dit toujours pas est que la taille soit la cause.** Trois modèles de 94 M ont maintenant échoué ici, et les trois fois la cause écrite est une recette : une voix unique pour gruut, des alignements de dictionnaire pour charsiu, et pour celui-ci six époques de démonstration sans terme de prior, sur des cibles en TIMIT 61. L'isolat reste la seule chose qui répond à la question posée.
+
 ## Deux essais récents qui n'en sont pas
 
 `train/train.py` porte `facebook/wav2vec2-base-960h`, et c'est la **tête à lettres** du chantier de reconnaissance locale (`local-recognition.md`) : la transcription, pas l'analyse des sons. Ses deux affinages sur AMI sont revenus pires que le modèle de départ. Rien de tout ça ne touche la brique 2.

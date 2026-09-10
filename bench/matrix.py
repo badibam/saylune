@@ -34,7 +34,15 @@ import atomic
 # the standard one applies.
 ROOT = Path(__file__).resolve().parent.parent
 
-Candidate = namedtuple("Candidate", "model vocabulary extractor")
+Candidate = namedtuple("Candidate", "model vocabulary extractor fold")
+# `fold` names the inventory a candidate writes when it is not the outgoing one,
+# so its matrix can be read in the alphabet every other brick speaks. Defaulted,
+# because a candidate that already speaks it says nothing.
+Candidate.__new__.__defaults__ = (None,)
+
+# The alphabet the whole bench speaks, named once: a folded candidate answers in
+# it, which is what makes a reading before and after comparable at all.
+OUTGOING = "vitouphy/wav2vec2-xls-r-300m-timit-phoneme"
 
 CANDIDATES = {
     "espeak": Candidate("facebook/wav2vec2-lv-60-espeak-cv-ft", None, "repo"),
@@ -51,16 +59,17 @@ CANDIDATES = {
     # they answer that and rank nothing. Their inventory is the raw TIMIT 61 --
     # whole sounds, but closures and silences among them -- which the certainty
     # gate reads unchanged and every labelled reading would need folded first.
-    "base-oosawy": Candidate("oosawy/wav2vec2-base-timit-phoneme", None, "repo"),
+    "base-oosawy": Candidate("oosawy/wav2vec2-base-timit-phoneme",
+                             OUTGOING, "repo", "timit61"),
     "base-colab": Candidate("bihungba1101/wav2vec2-base-timit-phoneme"
-                            "-demo-google-colab", None, "repo"),
+                            "-demo-google-colab", OUTGOING, "repo", "timit61"),
     # Fine-tuned here: a directory rather than a repo. The weights are ours, the
     # vocabulary stays vitouphy's -- that is what makes the reading before and
     # after a comparison at iso-alphabet -- and the checkpoint carries no
     # preparation of its own, the standard one applying.
     **{f"v1-pw{weight}-e{epoch}": Candidate(
         str(ROOT / f"tmp/train/runs/v1-pw{weight}/epoch-{epoch:03d}"),
-        "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
+        OUTGOING, "standard")
        for weight, epoch in (("0.1", 9), ("0.1", 19), ("0.1", 29),
                              ("0.3", 29), ("1.0", 29))},
     # Second generation: the same staircase step re-run on the corrected loss
@@ -68,7 +77,7 @@ CANDIDATES = {
     # `v1-` checkpoints above, which the loss that produced them condemns.
     **{f"v1b-pw{weight}-e{epoch}": Candidate(
         str(ROOT / f"tmp/train/runs-v1b/v1b-pw{weight}/epoch-{epoch:03d}"),
-        "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
+        OUTGOING, "standard")
        for weight in ("0.0", "0.1", "0.3", "1.0")
        for epoch in (9, 19, 29)},
     # Third generation: the frozen ear is gone. Full fine-tune on the outgoing
@@ -76,7 +85,7 @@ CANDIDATES = {
     # same data, same backbone, same alphabet, our recipe on top.
     **{f"v3-pw{weight}-e{epoch}": Candidate(
         str(ROOT / f"tmp/train/runs-v3/v3-pw{weight}/epoch-{epoch:03d}"),
-        "vitouphy/wav2vec2-xls-r-300m-timit-phoneme", "standard")
+        OUTGOING, "standard")
        for weight in ("0.0", "0.1", "0.3")
        for epoch in (9, 19, 29)},
 }
@@ -286,6 +295,56 @@ def symbols():
     return _symbols
 
 
+def own_symbols():
+    """The symbol table the network itself writes, before any fold."""
+    vocab = json.load(open(cached()(MODEL, "vocab.json"), encoding="utf-8"))
+    table = [None] * len(vocab)
+    for token, index in vocab.items():
+        table[index] = token
+    return table
+
+
+_folding = None
+
+
+def folding():
+    """Where each column of a TIMIT-61 candidate lands in the outgoing alphabet.
+
+    The Lee & Hon table is read from `train/timit.py` rather than copied: it was
+    written to fold that corpus's 61 symbols onto exactly the vocabulary the
+    outgoing model writes, and a second copy here would be a second source for
+    one order of sounds.
+
+    Columns that fold together are **summed**, which is what folding means for a
+    spread: the mass on `ih` and the mass on `ix` are the mass on one /ɪ/.
+    Everything the table drops goes to the blank -- the closures and the pauses
+    because they are silence, and the glottal stop because its realisation is a
+    silence too, which is the reading `train/timit.py` already takes on targets.
+    That last one is the arguable column, and it is named here rather than
+    hidden: it lifts the silent mass of a frame, which `overlap.spread` reads to
+    decide a sound has nothing to compare.
+
+    **A network is wider than its vocabulary**, and the fold is the first thing
+    here to care. `config.vocab_size` runs past the symbols `vocab.json` names --
+    64 against 62 on this candidate, 44 against 42 on the outgoing model -- so a
+    table built on the names alone will not multiply. The readings never met it
+    because they index columns by symbol and simply never reach the last ones.
+    Those unnamed columns join the blank, having no sound to stand for.
+    """
+    global _folding
+    if _folding is None:
+        sys.path.insert(0, str(ROOT / "train"))
+        from timit import FOLD
+        source, target = own_symbols(), symbols()
+        table = np.zeros((configured()["vocab_size"], len(target)),
+                         dtype=np.float32)
+        for index in range(len(table)):
+            landing = FOLD.get(source[index]) if index < len(source) else None
+            table[index, target.index(landing) if landing else blank()] = 1.0
+        _folding = table
+    return _folding
+
+
 def blank():
     for name in PAD:
         if name in symbols():
@@ -434,6 +493,9 @@ def probabilities(wav, cache=None):
         _, net, _, torch = loaded()
         logits = net(torch.from_numpy(values)).logits[0]
         probabilities = torch.softmax(logits, dim=-1).numpy().astype(np.float32)
+
+    if CANDIDATE.fold:
+        probabilities = probabilities @ folding()
 
     if cache is not None:
         with atomic.opened(cache) as handle:
