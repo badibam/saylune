@@ -32,6 +32,20 @@ Aujourd'hui le contrat rend `spoken` — une réplique — plus `echo` en option
 
 **Le narrateur est un membre de la distribution à clé réservée**, comme l'apprenant. Sa voix est un réglage que l'utilisateur choisit et qu'une tuile peut remplacer, ce qui en fait un troisième régime à côté de l'étalon et du tirage (`voices.md`).
 
+## Le haut-parleur, et qui coupe qui
+
+Rien de ce qui précède ne tient sans dire qui tient le haut-parleur. Il est unique, il a **deux rangs et aucune file** (`capture/Loudspeaker.kt`), et une lecture perdue est finie, jamais reportée.
+
+**Un doigt ne coupe jamais la parole de l'app** : le geste est abandonné plutôt que retenu, un son qui arriverait plus tard sans raison visible étant pire que pas de son. C'est l'invariant connu.
+
+**Mais l'app coupe l'app.** La protection ne joue que dans un sens : tout second son joué au rang de l'app annule celui en cours. Et surtout, **le son meurt avec son appelant** — si le tour qui le jouait est abandonné, la lecture est annulée avec lui. C'est écrit et voulu : *« the turn dropped. The sound goes with it. »*
+
+**Observé le 2026-09-10** : la chaîne lâche pendant que l'IA parle, la parole est **coupée net, puis plus rien**. Ce sont deux symptômes d'un seul incident — le son est mort avec son appelant, et la phase est restée sur *Speaking*, donc rien ne pouvait repartir derrière. C'est pourquoi les deux réparations sont distinctes : `withPhase` rend la main à l'écran, il ne rend pas la parole.
+
+**Ce qu'on décide** : une panne d'arrière-plan ne coupe pas un énoncé commencé. Si un doigt n'a pas ce droit, une panne le justifie mal ; laisser la phrase finir coûte quelques secondes et évite l'app qui s'arrête au milieu d'un mot. L'annulation du tour porte sur **le dossier** — les énoncés sortent du fil, la prise de l'apprenant est gardée, on renvoie — et n'a jamais voulu dire couper un mot en deux.
+
+**Une séquence tient le haut-parleur d'un bloc.** Jouée énoncé par énoncé, elle est N prises successives, donc N fenêtres où un autre son de l'app peut le saisir — y compris dans les pauses d'une seconde. Un tour provoqué tombant entre le deuxième et le troisième énoncé couperait la séquence en deux. Une seule prise, du premier au dernier mot.
+
 ## La panne : le tour entier tombe
 
 La chaîne lâche à l'énoncé 3 sur 5. **On annule le tour entier.**
@@ -43,6 +57,8 @@ La chaîne lâche à l'énoncé 3 sur 5. **On annule le tour entier.**
 **Donc le prix est assumé et nommé** : l'apprenant a entendu le début d'un tour qui n'aura pas lieu. Il réentendra un début différent au renvoi. C'est le moindre des deux maux, pas une élégance.
 
 **Ce qui se passe** est ce que fait n'importe quel maillon qui lâche : la réponse est jetée entière, **l'enregistrement de l'apprenant est gardé**, on renvoie. Et surtout : **ça se dit**. Ce qui est inacceptable aujourd'hui n'est pas l'interruption, c'est le silence qui l'accompagne.
+
+**Ce cas n'attend pas les séquences : il se produit déjà.** Ce qui change avec elles est le nombre d'occasions, pas la nature.
 
 ## La notification, et son minuteur
 
@@ -104,8 +120,9 @@ Tout l'écran lit `busy = phase != Idle`. La conversation est alors gelée pour 
 
 ## Ce qui reste ouvert
 
-- **Couper une séquence : non, pas pour l'instant.** L'invariant *« un geste ne coupe jamais la parole de l'app »* tient tel quel. La question se rouvrira si une séquence longue devient pénible à l'usage ; la réponse préparée serait de sauter la séquence **entière** et jamais un énoncé sur cinq, sinon on retombe dans le cas que l'invariant interdit.
+- **Couper une séquence : non, pas pour l'instant.** L'invariant *« un geste ne coupe jamais la parole de l'app »* tient tel quel — étant entendu qu'il ne dit rien de l'app se coupant elle-même, ce que la section sur le haut-parleur tranche à part. La question se rouvrira si une séquence longue devient pénible à l'usage ; la réponse préparée serait de sauter la séquence **entière** et jamais un énoncé sur cinq, sinon on retombe dans le cas que l'invariant interdit.
 - **`standingReply` est au singulier.** L'historique envoyé au modèle met une réponse par passage ; avec une séquence, le modèle perd sa propre narration de sa mémoire dès le passage suivant. C'est le vrai impact structurel du changement, plus que le contrat.
 - **Le contrat touche cinq fichiers de fournisseur** là où `spoken` + `echo` deviennent une liste.
 - **La fréquence des didascalies** se dit dans la fiche, en texte libre plus un préréglage (*au plus une par tour*, *une tous les trois tours*, *de temps en temps*). C'est une demande interprétée librement, pas une garantie : rien ne doit s'y adosser — aucune condition qui la lise, aucun banc qui l'éprouve, aucune phrase de l'app qui la présente à l'apprenant comme un fait. Un cran presque gratuit la rend tenable : donner au modèle **un fait** plutôt qu'une consigne seule — *« trois tours depuis la dernière didascalie »* — le contrat le faisant déjà pour le numéro de passage. Il compte très mal ses propres tours et très bien un nombre qu'on lui tend.
 - **Rien n'exerce encore le bandeau.** Aucune tuile livrée ne pose de patch, donc ni la notification ni son minuteur n'ont jamais eu de quoi s'afficher. C'est ce que l'enrichissement des tuiles refermera — et c'est là seulement que le minuteur pourra se régler à l'œil. En attendant on reste en conversation libre, donc sans règles, ce qui laisse quand même de la marge pour éprouver les séquences et le narrateur.
+- **Ce qui annule l'appelant reste à trouver.** La parole coupée net dit que la coroutine qui la jouait a été annulée, pas laquelle ni par quoi. C'est la première chose à instrumenter, avant d'écrire la moindre ligne : `withPhase` traite la conséquence, et la cause est encore une hypothèse.
