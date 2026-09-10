@@ -1914,7 +1914,18 @@ class TurnPipeline(
         of: String, audio: File, capture: String? = null, ending: Ending? = null,
     ) = writing.withLock { redoLocked(of, audio, capture, ending) }
 
-    private suspend fun redoLocked(of: String, audio: File, capture: String?, ending: Ending?) {
+    private suspend fun redoLocked(
+        asked: String, audio: File, capture: String?, ending: Ending?,
+    ) {
+        // **A retake says the sentence as it now stands, never the one it replaced.**
+        // The gesture carries the identity of the turn it was tapped on, which stays the
+        // first version even after a rewording has taken its place -- and the first version
+        // is precisely the one that has no model to imitate, its analysis having been skipped
+        // when the words' gate closed. Measured on the device: the take was swallowed and the
+        // screen came back to its big button. [readings] already walks the attempts that
+        // still stand, from the last rewording on, so the last of them is the sentence on
+        // screen; resolving here rather than at the gesture keeps every caller right.
+        val of = _state.value.readings(asked).lastOrNull()?.id ?: asked
         // **Each way out says which one it was.** Silent, these three returned the screen to
         // its big button with the take swallowed and nothing anywhere saying why -- which is
         // the shape of defect this project refuses everywhere else: what does not happen
