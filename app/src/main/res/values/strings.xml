@@ -27,6 +27,8 @@
     <string name="secret_azure_key">Azure Speech — key</string>
     <string name="secret_azure_region">Azure Speech — region</string>
     <string name="secret_elevenlabs_key">ElevenLabs — API key</string>
+    <string name="secret_inworld_key">Inworld — API key</string>
+    <string name="secret_inworld_endpoint">Inworld — endpoint (leave empty for the default)</string>
     <string name="secret_deepseek_key">DeepSeek — API key</string>
     <string name="secret_deepseek_endpoint">DeepSeek — endpoint (leave empty for the default)</string>
     <string name="secret_replicate_key">Replicate — API token</string>

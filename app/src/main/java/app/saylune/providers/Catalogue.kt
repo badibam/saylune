@@ -105,6 +105,29 @@ enum class Provider(
         // no default of anyone's is being paid for silently -- what is missing is the
         // choice, not the value (`../../../../../../TODO.md`).
     ),
+    Inworld(
+        id = "inworld",
+        label = "Inworld",
+        needs = listOf(Secret.InworldApiKey, Secret.InworldEndpoint),
+        does = setOf(Task.Recognition, Task.Conversation, Task.Synthesis),
+        // The second provider to carry all three links, and the only one whose three are its
+        // own rather than other people's hosted side by side. One key at the BYOK wall
+        // instead of three is the whole reason it is offered.
+        models = mapOf(
+            // Their router fronts hundreds of models behind one OpenAI-shaped endpoint, and
+            // this list holds the one their own documentation names. **It is provisional and
+            // unmeasured**, like Replicate's beside it: what belongs here is what has been
+            // put through the judge's bench, and nothing has yet.
+            Task.Conversation to listOf("openai/gpt-4o-mini"),
+            // Whisper large-v3 through Groq is the accuracy ceiling the bench wants named
+            // (`../../../../../../TODO.md`, chantier 2), and reaching it on this key means
+            // the ceiling and the candidate are one account apart.
+            Task.Recognition to listOf("groq/whisper-large-v3", "inworld/inworld-stt-1"),
+            Task.Synthesis to listOf("inworld-tts-2"),
+        ),
+        // Empty, and a statement about what is known rather than about the models: nothing
+        // has read whether the router forwards a reasoning level to a model that takes one.
+    ),
     Azure(
         id = "azure",
         label = "Azure Speech",
@@ -199,6 +222,7 @@ enum class Provider(
             .map { VoiceOption(id = it, label = it) }
         Azure -> azureVoices(store)
         ElevenLabs -> elevenVoices(store)
+        Inworld -> inworldVoices(store)
         Deepseek, OpenAI -> throw ChainFailure("$label has no voices")
     }
 
@@ -237,6 +261,44 @@ enum class Provider(
      * a list that comes back is a key that works, and it is what *this* key unlocks rather
      * than what the plan advertises.
      */
+    /**
+     * Inworld's voice library, which is also the probe: a list that comes back is a key that
+     * works, and the list that came back is what *this* key really unlocks.
+     *
+     * **The path is inferred and not read**, and it is the one thing here that a real key has
+     * to confirm. Their published example clones a voice at `voices/v1/voices:clone`, which is
+     * the collection plus a verb in the style their whole API follows, so the collection
+     * itself is where a listing lives. Their reference page for it sits behind a login. If it
+     * is wrong the screen will say the key failed when the key is fine, which is the worst
+     * shape a wrong guess can take here -- so it is named rather than left to be discovered.
+     */
+    private suspend fun inworldVoices(store: SecretStore): List<VoiceOption> {
+        val values = store.values().first()
+        val answer = withContext(Dispatchers.IO) {
+            Http.get(
+                "${InworldApi.base(values)}/voices/v1/voices",
+                InworldApi.basic(InworldApi.key(values)),
+            ).decodeToString()
+        }
+        val listed = org.json.JSONObject(answer).optJSONArray("voices")
+            ?: throw ChainFailure("Inworld listed no voices")
+        return (0 until listed.length()).mapNotNull { at ->
+            val voice = listed.optJSONObject(at) ?: return@mapNotNull null
+            // Their own examples name a voice by a bare given name -- `Dennis`, `Olivia` --
+            // so the id is what is spoken and the display name may not even differ.
+            val id = voice.optString("voiceId").ifBlank { voice.optString("name") }
+            if (id.isBlank()) return@mapNotNull null
+            // The accent is the one thing anyone asks of a voice here, so it goes in front
+            // when it is known, exactly as it does for ElevenLabs.
+            val accent = voice.optString("accent").ifBlank { voice.optString("languageCode") }
+            val named = voice.optString("displayName").ifBlank { id }
+            VoiceOption(
+                id = id,
+                label = if (accent.isBlank()) named else "$accent \u00b7 $named",
+            )
+        }.sortedBy { it.label }
+    }
+
     private suspend fun elevenVoices(store: SecretStore): List<VoiceOption> {
         val key = store.values().first()[Secret.ElevenLabsApiKey]
             ?: throw ChainFailure("no ElevenLabs key has been entered")

@@ -120,6 +120,7 @@ internal fun recognitionBy(store: SecretStore, provider: Provider, model: String
         Provider.Replicate -> ReplicateRecognition(store, model)
         Provider.Azure -> AzureRecognition(store)
         Provider.ElevenLabs -> ElevenLabsRecognition(store, model)
+        Provider.Inworld -> InworldRecognition(store, model)
         Provider.Deepseek, Provider.OpenAI ->
             throw ChainFailure("${provider.label} does not transcribe")
     }
@@ -137,6 +138,7 @@ internal fun conversationBy(
     )
     Provider.OpenAI -> OpenaiConversation(store, model, effort)
     Provider.Replicate -> ReplicateConversation(ReplicateClient(store), model)
+    Provider.Inworld -> InworldConversation(store, model)
     // Named one by one and never closed with an `else`. The two seams beside this one are
     // exhaustive, and that is what made the compiler ask about OpenAI when it was added;
     // here an `else` answered for it, and a provider offered on screen threw at the moment
@@ -154,6 +156,7 @@ internal fun synthesisBy(
     Provider.Replicate -> ReplicateSynthesis(context, store, model)
     Provider.Azure -> AzureSynthesis(context, store)
     Provider.ElevenLabs -> ElevenLabsSynthesis(context, store, model)
+    Provider.Inworld -> InworldSynthesis(context, store, model)
     Provider.Deepseek, Provider.OpenAI ->
         throw ChainFailure("${provider.label} does not speak")
 }

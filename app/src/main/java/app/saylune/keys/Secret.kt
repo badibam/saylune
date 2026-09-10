@@ -48,6 +48,9 @@ enum class Secret(
     OpenaiApiKey("openai.api.key", R.string.secret_openai_key),
     OpenaiEndpoint("openai.endpoint", R.string.secret_openai_endpoint,
                    masked = false, overridable = true),
+    InworldApiKey("inworld.api.key", R.string.secret_inworld_key),
+    InworldEndpoint("inworld.endpoint", R.string.secret_inworld_endpoint,
+                    masked = false, overridable = true),
 
     /**
      * Which provider does each task, and with what.
