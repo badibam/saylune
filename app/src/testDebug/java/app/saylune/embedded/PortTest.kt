@@ -137,8 +137,12 @@ class PortTest {
         val modelHidden = floats(turn, "model.hidden")
         val saidHidden = floats(turn, "said.hidden")
         val spanOf = reading.gaps.associate { it.rank to (it.at to it.span) }
-        val flags = Stress.flags(cut, sounds, segments, spanOf, modelHidden,
-                                 saidHidden, probe)
+        // Whole, which is the form every figure in the docs was measured on: the pass
+        // folds the layer only where it cannot afford to keep it, and the bench is what
+        // says the two readings land on the same number.
+        val flags = Stress.flags(cut, sounds, segments, spanOf,
+                                 Layer.Whole(modelHidden, probe.mean.size),
+                                 Layer.Whole(saidHidden, probe.mean.size), probe)
         for (index in 0 until wantedCut.length()) {
             val row = wantedCut.getJSONObject(index)
             assertEquals("${turn.name}: syllable $index modelStressed",

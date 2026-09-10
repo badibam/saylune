@@ -21,7 +21,10 @@ class CatalogueTest {
             assertTrue(
                 "${provider.label} is not offered with " +
                     provider.needs.filter { it.overridable }.map { it.id } + " left blank",
-                provider.ready(filled),
+                // The weights granted, this being about what is typed in and not about what
+                // is downloaded: the one provider that asks for them asks for no credential
+                // at all, so left false it would fail here for the wrong reason.
+                provider.ready(filled, weights = true),
             )
         }
     }
@@ -42,16 +45,26 @@ class CatalogueTest {
     }
 
     /**
-     * **Every host is marked as one**, so none is required by accident.
+     * **Every host that replaces a published one is marked as one**, so none is required by
+     * accident.
      *
      * This is the one that catches the real mistake, and it is the only one here that does:
      * the two above read the flag, this one holds it against the naming, so a host added and
      * left unmarked fails here rather than on the screen where the provider is missing.
+     *
+     * **The analysis server is the exception, and it is one by construction.** Every other
+     * host stands in for an address the provider publishes, so blank is the ordinary case;
+     * that one has nothing behind it, and blank means the link is simply not offered. The
+     * address *is* the credential there, which is what keeps the app from being tied to one
+     * instance (`keys/Secret.kt`). Named rather than derived: a second host of that kind
+     * should have to be admitted here on purpose.
      */
     @Test
-    fun `every endpoint is marked overridable`() {
-        Secret.entries.filter { it.id.endsWith(".endpoint") }.forEach {
-            assertTrue("${it.id} is not marked overridable", it.overridable)
-        }
+    fun `every endpoint that stands in for a published one is marked overridable`() {
+        Secret.entries
+            .filter { it.id.endsWith(".endpoint") && it != Secret.AnalysisEndpoint }
+            .forEach {
+                assertTrue("${it.id} is not marked overridable", it.overridable)
+            }
     }
 }
