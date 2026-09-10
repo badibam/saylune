@@ -9,26 +9,35 @@ import app.saylune.levers.Positions
 import app.saylune.rules.Instructing
 
 /**
- * The language model: it answers, it decides what the learner meant, and it marks.
+ * The language model: one who speaks, one who judges.
  *
- * **One call does every job** -- playing the character, rebuilding `intended`, marking the
- * spans, judging the following, rating the difficulty of its own turn, and picking from the
- * menu when a rule offers one (`activity.md`). Price is not what settles it: a second
- * call would cost nothing in latency, the judgement only serving to show marks while the
- * answer is synthesised and played, and nothing in money either. What settles it is that a
- * well-structured prompt holds its boundaries -- so the boundaries are watched case by case
- * rather than walled off in advance against a wolf nobody has seen.
+ * **Two calls, because they are two jobs.** [reply] writes what the character says and nothing
+ * else; [judge] reads the turn that has just been said and marks it. The single call that did
+ * both is gone, and what it cost is the reason: the staging and what the learner asked to be
+ * steered around sat in the judge's context, where they have no business, and what held them
+ * at arm's length was a sentence of prompt that nothing checked. **They cannot reach the judge
+ * now**, there being no parameter that carries them -- the debt is closed rather than watched.
  *
- * **The order of the returned fields is the partition that stays free.** The model writes its
- * answer in sequence and each field written conditions the next, so `intended` drafted before
- * the character's voice is taken is worth more than the other way round.
+ * **The two may live at two providers**, and nothing here presumes they do not. What they
+ * share is the shape: a stable head, a history that grows only at the tail, and a short tail of
+ * its own for each call. A cached prefix belongs to one provider and one key, so it is each
+ * side that earns its own, from one turn to the next.
  *
- * *The cost in latency is not bounded.* The 0,16 s on file was measured to decide about
- * pipelining the synthesis, on the contract of that day -- one reply, `intended`, one boolean.
- * This one adds three markings, the difficulty, the echo and the menu choice, of which the
- * spans weigh about half the history again; in output, sequential by nature, that is latency
- * straight onto the link that is already the project's first defect. To be re-measured now
- * that it exists, before anything is stacked on it (`../../../../../../TODO.md`).
+ * **`intended` is written by the one who speaks and handed to the judge as it stands.** The
+ * contract has it drafted before the character's voice is taken, and that scaffolding is what
+ * makes the model commit to `aunt` rather than answer around `ant`. Were the judge to rebuild
+ * it on its own, a turn where the two disagreed would have the model voice say a word nobody
+ * spoke, and every mark of the turn would land beside its sound. So there is one `intended` in
+ * the whole system, produced where the scaffolding earns something, read by the judge and by
+ * the analysis. What it costs is written down: its quality now follows a model that may have
+ * been picked for its voice or its speed (`../../../../../../TODO.md`).
+ *
+ * **The judge is given the reply that has just been said**, at the end of its tail. That is the
+ * one defect the split introduces and the parade against it: in one call the spoken repair and
+ * the marks came out of the same act, so they agreed by construction; in two they can diverge.
+ * A repair heard with nothing on screen is exactly what `reference.md` writes against -- without
+ * the trace, the discretion turns on itself -- so the judge marks knowing what has already been
+ * picked up, and the divergence runs one way only.
  */
 interface Conversation {
 
@@ -36,12 +45,37 @@ interface Conversation {
      * Answer [heard] in the context of [history]. Throws [ChainFailure]; the caller retries
      * from the kept audio file rather than asking for the sentence again.
      *
-     * [scene] is what this activity is, frozen at launch: who is speaking and what is being
-     * played: who is speaking, and what is being played.
+     * [scene] is what this activity is, frozen at launch: who is speaking, and what is being
+     * played.
      */
     suspend fun reply(
         history: List<Exchange>, heard: List<Word>, scene: Scene, present: Present = Present(),
     ): Reply
+
+    /**
+     * Mark the turn [said] in the context of [history], knowing what was [answered] to it.
+     *
+     * **The signature is the contract.** Nothing of the character reaches here: not the
+     * staging, not the persona, not the passage number, not what the learner asked to be
+     * steered around. What does reach it is [situation] -- the half of the brief addressed to
+     * the learner, which carries the instruction -- because that is what relevance is judged
+     * against, and `reference.md` requires it: *"I'll go there"* is perfect English that a
+     * challenge to speak in the past makes off-target.
+     *
+     * [said] is `intended`, exactly as [reply] wrote it. [answered] is the reply that was
+     * given, echo and continuation joined as the learner heard them.
+     *
+     * **Never called on a provoked turn.** Nobody spoke into it, so there is no sentence to
+     * mark -- and the eight lines that used to tell the model to leave those fields out are
+     * gone with it, rather than being kept up.
+     */
+    suspend fun judge(
+        history: List<Exchange>,
+        said: String,
+        answered: String,
+        situation: String,
+        present: Present = Present(),
+    ): Verdict
 }
 
 /**
@@ -171,21 +205,23 @@ data class Exchange(
 )
 
 /**
- * What comes back: something to say, what the learner meant, and what was marked on it.
+ * What the one who speaks sends back: the learner's words settled, and what to say.
  *
- * `faulty` is gone, absorbed by the marking. It was a boolean over the whole turn, which
- * flattened the fact that a passage can carry several faults and made it impossible to mark
- * the portion concerned; one notch per group of words settles both.
+ * **Nothing marked is in here.** The markings are [Verdict]'s, and the two objects are the two
+ * jobs: this one is written by whoever takes the character's voice, and it is the only place
+ * `intended` is produced.
  */
 data class Reply(
     /**
-     * What the learner meant, and everything marked on it. **Null on a provoked turn.**
+     * The learner's own turn, written out, hesitations and all. **Null on a provoked turn**,
+     * where nobody spoke and there is nothing to write out.
      *
-     * Null is not *nothing was marked* -- that is a judgement with no spans in it. It is a
-     * turn with **nothing to judge**: nobody spoke into it, so there is no sentence to write
-     * out, no group of words to mark, and no answer whose uptake could be read.
+     * It is a repair of the **transcript** and never of the grammar, and it is drafted before
+     * the character's voice is taken: faced with *"my ant"*, the model has to settle on `aunt`
+     * or `ant` before it can answer either. It travels on to the judge and to the analysis
+     * unchanged, so there is one of it in the whole system.
      */
-    val judged: Judgement?,
+    val intended: String?,
     /**
      * What carries the conversation forward, in English, as it is to be said aloud.
      *
@@ -193,7 +229,7 @@ data class Reply(
      */
     val spoken: String,
     /**
-     * The short line that picks the slip up, or null when nothing was marked.
+     * The short line that picks the slip up, or null when there was nothing to pick up.
      *
      * **It is not a competing reply, it is the opening of one.** The call returns this and
      * [spoken] as one utterance cut in two, and the app composes them -- so nothing is ever
@@ -201,24 +237,47 @@ data class Reply(
      * do you work?"*, is the two of them joined.
      *
      * The app hears it **alone** in one case only: the passage is to reword and the
-     * conversation waits. It is only produced when something was marked, which makes it free
-     * on a clean passage.
+     * conversation waits.
+     *
+     * **Who decides there is a slip is now the one who speaks**, on the turn it is reading,
+     * and no longer a field it marked a moment earlier. That is what the split moves here, and
+     * the parade is on the judge's side: it is shown this line, so it marks knowing what has
+     * already been said back.
      */
     val echo: String?,
-    /**
-     * The key the model picked out of the menu a rule offered, or null when none was offered.
-     *
-     * Free prose on the way out, listed keys on the way back: the app declares what is
-     * available, the model **picks a key** and never invents one. Choosing from a list is what
-     * models do best; calibrating a fresh constraint is not.
-     */
-    val choice: String?,
     /**
      * What the model settled, by question key. Empty where the turn put none.
      *
      * **It comes before `spoken` in the object the model writes**, and that is not a detail of
      * order: the contract says each field written conditions the next, so the character speaks
      * knowing what has just been established and never the other way round.
+     *
+     * It stays with the one who speaks for that same reason. A question is a hole in the
+     * fiction, its answer is reread by another character, and it is the reply that has to be
+     * consistent with it -- none of which is the judge's business.
      */
     val established: Map<String, String> = emptyMap(),
+)
+
+/**
+ * What the one who judges sends back: the markings, and the key it picked from a menu.
+ *
+ * `faulty` is long gone, absorbed by the marking. It was a boolean over the whole turn, which
+ * flattened the fact that a passage can carry several faults and made it impossible to mark
+ * the portion concerned; one notch per group of words settles both.
+ */
+data class Verdict(
+    /** What was marked on the learner's turn, indexed into the `intended` it was given. */
+    val judgement: Judgement,
+    /**
+     * The key the model picked out of the menu a rule offered, or null when none was offered.
+     *
+     * Free prose on the way out, listed keys on the way back: the app declares what is
+     * available, the model **picks a key** and never invents one. Choosing from a list is what
+     * models do best; calibrating a fresh constraint is not.
+     *
+     * **It has no channel yet** -- no field of the contract asks for one -- and it is on this
+     * side because deciding is judging (`../../../../../../TODO.md`).
+     */
+    val choice: String?,
 )

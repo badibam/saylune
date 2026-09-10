@@ -5,6 +5,7 @@ import app.saylune.chain.Conversation
 import app.saylune.chain.Exchange
 import app.saylune.chain.Present
 import app.saylune.chain.Reply
+import app.saylune.chain.Verdict
 import app.saylune.chain.Word
 import app.saylune.chain.Scene
 import app.saylune.debug.Trace
@@ -52,8 +53,35 @@ internal class ReplicateConversation(
             put(ConversationPrompt.message("user", ConversationPrompt.turn(transcript, present)))
         }
 
+        val content = ask(ConversationPrompt.system(scene), messages)
+        return ReplyReader.read(content, transcript, present.provoked, present.asking)
+    }
+
+    /**
+     * The judge, in the same shape minus the roles: its whole context is one message.
+     *
+     * Which suits this route: the written record needs no alternating turns, so nothing here
+     * has to pretend a judge ever spoke.
+     */
+    override suspend fun judge(
+        history: List<Exchange>, said: String, answered: String, situation: String,
+        present: Present,
+    ): Verdict {
+        Trace.add(
+            "judgement: asking replicate/$model",
+            "turns of history" to history.size.toString(),
+            "intended" to said,
+        )
+        val messages = JSONArray().put(ConversationPrompt.message(
+            "user", ConversationPrompt.judged(history, said, answered, present),
+        ))
+        return VerdictReader.read(ask(ConversationPrompt.judging(situation), messages), said)
+    }
+
+    /** One prediction, unwrapped. The instruction is the only JSON guarantee on this route. */
+    private suspend fun ask(system: String, messages: JSONArray): String {
         val input = JSONObject()
-            .put("system_prompt", ConversationPrompt.system(scene) + ConversationPrompt.JSON_ONLY)
+            .put("system_prompt", system + ConversationPrompt.JSON_ONLY)
             .put("messages", messages)
             // The whole point of this route. The task is judgement against a written
             // instruction, not a problem to work through, and the measurements say the
@@ -71,8 +99,7 @@ internal class ReplicateConversation(
             Trace.fail("conversation: answered with nothing at all")
             throw ChainFailure("$model answered with nothing at all")
         }
-
-        return ReplyReader.read(unwrapped(content), transcript, present.provoked, present.asking)
+        return unwrapped(content)
     }
 
     /** Replicate hands text back in pieces as it is produced, or whole. Both are answers. */

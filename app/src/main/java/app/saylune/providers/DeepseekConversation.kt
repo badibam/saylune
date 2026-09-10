@@ -5,9 +5,9 @@ import app.saylune.chain.Conversation
 import app.saylune.chain.Exchange
 import app.saylune.chain.Present
 import app.saylune.chain.Reply
+import app.saylune.chain.Verdict
 import app.saylune.chain.Word
 import app.saylune.chain.Scene
-import app.saylune.debug.Trace
 import app.saylune.keys.Secret
 import app.saylune.keys.SecretStore
 import kotlinx.coroutines.Dispatchers
@@ -39,31 +39,46 @@ class DeepseekConversation(
 
     override suspend fun reply(
         history: List<Exchange>, heard: List<Word>, scene: Scene, present: Present,
-    ): Reply =
-        withContext(Dispatchers.IO) {
-            val values = store.values().first()
-            val key = values[Secret.DeepseekApiKey]
-                ?: throw ChainFailure("no DeepSeek key has been entered")
-            val base = (values[Secret.DeepseekEndpoint] ?: DEFAULT_BASE).trimEnd('/')
+    ): Reply = withContext(Dispatchers.IO) {
+        val (base, key) = reached()
+        ChatCompletions.reply(
+            base = base, key = key, model = model,
+            history = history, heard = heard, scene = scene, present = present,
+            say = "conversation: asking deepseek/$model at ${effort.id}",
+            extra = spending,
+        )
+    }
 
-            ChatCompletions.ask(
-                base = base,
-                key = key,
-                model = model,
-                history = history,
-                heard = heard,
-                scene = scene,
-                present = present,
-                say = "conversation: asking deepseek/$model at ${effort.id}",
-            ) {
-                put("thinking", JSONObject().put(
-                    "type", if (effort == Effort.None) "disabled" else "enabled",
-                ))
-                // Only alongside thinking that is on: with it off there is no effort to
-                // grade, and naming one would ask for two different things at once.
-                if (effort != Effort.None) put("reasoning_effort", effort.id)
-            }
-        }
+    override suspend fun judge(
+        history: List<Exchange>, said: String, answered: String, situation: String,
+        present: Present,
+    ): Verdict = withContext(Dispatchers.IO) {
+        val (base, key) = reached()
+        ChatCompletions.judge(
+            base = base, key = key, model = model,
+            history = history, said = said, answered = answered, situation = situation,
+            present = present,
+            say = "judgement: asking deepseek/$model at ${effort.id}",
+            extra = spending,
+        )
+    }
+
+    private suspend fun reached(): Pair<String, String> {
+        val values = store.values().first()
+        val key = values[Secret.DeepseekApiKey]
+            ?: throw ChainFailure("no DeepSeek key has been entered")
+        return (values[Secret.DeepseekEndpoint] ?: DEFAULT_BASE).trimEnd('/') to key
+    }
+
+    /** The reasoning fields, identical for both jobs: what a call spends is the provider's. */
+    private val spending: JSONObject.() -> Unit = {
+        put("thinking", JSONObject().put(
+            "type", if (effort == Effort.None) "disabled" else "enabled",
+        ))
+        // Only alongside thinking that is on: with it off there is no effort to
+        // grade, and naming one would ask for two different things at once.
+        if (effort != Effort.None) put("reasoning_effort", effort.id)
+    }
 
     private companion object {
         /**

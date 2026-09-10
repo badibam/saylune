@@ -5,6 +5,7 @@ import app.saylune.chain.Conversation
 import app.saylune.chain.Exchange
 import app.saylune.chain.Present
 import app.saylune.chain.Reply
+import app.saylune.chain.Verdict
 import app.saylune.chain.Word
 import app.saylune.chain.Scene
 import app.saylune.keys.Secret
@@ -12,6 +13,7 @@ import app.saylune.keys.SecretStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 /**
  * OpenAI, reached directly.
@@ -41,27 +43,38 @@ class OpenaiConversation(
 
     override suspend fun reply(
         history: List<Exchange>, heard: List<Word>, scene: Scene, present: Present,
-    ): Reply =
-        withContext(Dispatchers.IO) {
-            val values = store.values().first()
-            val key = values[Secret.OpenaiApiKey]
-                ?: throw ChainFailure("no OpenAI key has been entered")
-            val base = (values[Secret.OpenaiEndpoint] ?: DEFAULT_BASE).trimEnd('/')
+    ): Reply = withContext(Dispatchers.IO) {
+        val (base, key) = reached()
+        ChatCompletions.reply(
+            base = base, key = key, model = model,
+            history = history, heard = heard, scene = scene, present = present,
+            say = "conversation: asking openai/$model" + (effort?.let { " at ${it.id}" } ?: ""),
+            extra = spending,
+        )
+    }
 
-            ChatCompletions.ask(
-                base = base,
-                key = key,
-                model = model,
-                history = history,
-                heard = heard,
-                scene = scene,
-                present = present,
-                say = "conversation: asking openai/$model" +
-                    (effort?.let { " at ${it.id}" } ?: ""),
-            ) {
-                effort?.let { put("reasoning_effort", it.id) }
-            }
-        }
+    override suspend fun judge(
+        history: List<Exchange>, said: String, answered: String, situation: String,
+        present: Present,
+    ): Verdict = withContext(Dispatchers.IO) {
+        val (base, key) = reached()
+        ChatCompletions.judge(
+            base = base, key = key, model = model,
+            history = history, said = said, answered = answered, situation = situation,
+            present = present,
+            say = "judgement: asking openai/$model" + (effort?.let { " at ${it.id}" } ?: ""),
+            extra = spending,
+        )
+    }
+
+    private suspend fun reached(): Pair<String, String> {
+        val values = store.values().first()
+        val key = values[Secret.OpenaiApiKey]
+            ?: throw ChainFailure("no OpenAI key has been entered")
+        return (values[Secret.OpenaiEndpoint] ?: DEFAULT_BASE).trimEnd('/') to key
+    }
+
+    private val spending: JSONObject.() -> Unit = { effort?.let { put("reasoning_effort", it.id) } }
 
     private companion object {
         /** The host, with the user's override in front of it. */

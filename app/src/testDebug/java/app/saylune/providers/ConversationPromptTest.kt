@@ -32,14 +32,14 @@ class ConversationPromptTest {
     @Test
     fun `the permanent part carries no persona`() {
         listOf("warm", "curious", "friendly").forEach {
-            assertFalse(it, ConversationPrompt.APP.lowercase().contains(" $it"))
+            assertFalse(it, ConversationPrompt.SPEAKING.lowercase().contains(" $it"))
         }
     }
 
     /** What is permanent is the founding gesture, and that does stay. */
     @Test
     fun `the permanent part keeps what never changes`() {
-        assertTrue(ConversationPrompt.APP.contains("never interrupt"))
+        assertTrue(ConversationPrompt.SPEAKING.contains("never interrupt"))
     }
 
     // ── Part 2 is the scene ─────────────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ class ConversationPromptTest {
     /** It is a fact and not an instruction, and the permanent part is what says so. */
     @Test
     fun `what the passage number means is said once, in the permanent part`() {
-        assertTrue(ConversationPrompt.APP.contains("carries no instruction of its own"))
+        assertTrue(ConversationPrompt.SPEAKING.contains("carries no instruction of its own"))
     }
 
     // ── The questions the app puts ──────────────────────────────────────────────────────
@@ -125,8 +125,8 @@ class ConversationPromptTest {
     @Test
     fun `what is established is written before the character speaks`() {
         assertTrue(
-            ConversationPrompt.APP.indexOf("\n\"established\":") <
-                ConversationPrompt.APP.indexOf("\n\"spoken\":"),
+            ConversationPrompt.SPEAKING.indexOf("\n\"established\":") <
+                ConversationPrompt.SPEAKING.indexOf("\n\"spoken\":"),
         )
     }
 
@@ -140,9 +140,67 @@ class ConversationPromptTest {
     @Test
     fun `the echo is written before the continuation it opens`() {
         assertTrue(
-            ConversationPrompt.APP.indexOf("\n\"echo\":") <
-                ConversationPrompt.APP.indexOf("\n\"spoken\":"),
+            ConversationPrompt.SPEAKING.indexOf("\n\"echo\":") <
+                ConversationPrompt.SPEAKING.indexOf("\n\"spoken\":"),
         )
+    }
+
+    // ── The judge plays nobody ──────────────────────────────────────────────────────────
+
+    /**
+     * **What the split closes, and it closes by construction.** The staging addresses the
+     * character alone and used to ride in the judge's context, held at arm's length by a
+     * sentence of prose that nothing checked; the same went for what the learner asked to be
+     * steered around. Neither has a parameter to travel on now -- `judging` takes the
+     * situation and nothing else -- so this checks the head that is actually assembled.
+     */
+    @Test
+    fun `the judge is given the situation and nothing else of the scene`() {
+        val head = ConversationPrompt.judging("A hotel desk, late")
+        assertTrue(head.contains("A hotel desk, late"))
+        assertFalse(head.contains(staging))
+        assertFalse(head.contains("Vera"))
+    }
+
+    /** It marks; it does not answer. Nothing in its instruction asks it for a reply. */
+    @Test
+    fun `the judge is never asked for anything to say`() {
+        assertFalse(ConversationPrompt.JUDGING.contains("\"spoken\""))
+        assertFalse(ConversationPrompt.JUDGING.contains("\"echo\""))
+        assertTrue(ConversationPrompt.JUDGING.contains("take no part in it"))
+    }
+
+    /** And the one who speaks no longer marks: the four markings left with the second call. */
+    @Test
+    fun `the one who speaks is never asked for a marking`() {
+        listOf("\"spans\"", "\"stumbling\"", "\"following\"", "\"reach\"", "\"difficulty\"")
+            .forEach { assertFalse(it, ConversationPrompt.SPEAKING.contains(it)) }
+    }
+
+    /**
+     * The reply is the last thing the judge reads, and the parade against the one defect the
+     * split introduces: a repair heard with no mark on screen.
+     */
+    @Test
+    fun `the judge is shown the reply that was given, last`() {
+        val message = ConversationPrompt.judged(
+            history = emptyList(),
+            said = "I have twenty five years",
+            answered = "Ah, you're twenty-five! And where do you work?",
+            present = Present(),
+        )
+        assertTrue(message.contains("I have twenty five years"))
+        assertTrue(message.indexOf("I have twenty five years") <
+                       message.indexOf("Ah, you're twenty-five!"))
+    }
+
+    /** The passage number says how the character is to play, so it stops at the judge. */
+    @Test
+    fun `the judge is told nothing of how the character plays`() {
+        val message = ConversationPrompt.judged(
+            emptyList(), "I go there yesterday", "Ah, yesterday!", Present(passage = 6),
+        )
+        assertFalse(message.contains("passage 6"))
     }
 
     private fun character(key: String) = Character(key, Text(mapOf("en" to key)))

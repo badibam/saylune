@@ -7,6 +7,7 @@ import app.saylune.chain.Exchange
 import app.saylune.chain.Present
 import app.saylune.chain.Recognition
 import app.saylune.chain.Reply
+import app.saylune.chain.Verdict
 import app.saylune.chain.Synthesis
 import app.saylune.chain.Voice
 import app.saylune.chain.Word
@@ -60,6 +61,24 @@ class ChosenConversation(private val store: SecretStore) : Conversation {
                 scene.copy(avoid = values[Secret.Avoid].orEmpty()),
                 present,
             )
+    }
+
+    /**
+     * The judge, picked the same way and, for now, from the same setting.
+     *
+     * **It is the conversation's provider that answers here**, which is what leaves the two
+     * calls at one provider until the judge gets a selector of its own. Nothing of the scene
+     * travels: `judge` takes the situation and nothing else, so the staging and what the
+     * learner asked to be steered around have no way through.
+     */
+    override suspend fun judge(
+        history: List<Exchange>, said: String, answered: String, situation: String,
+        present: Present,
+    ): Verdict {
+        val values = store.values().first()
+        val (provider, model) = pick(Task.Conversation, values)
+        return conversationBy(store, provider, model, effortFor(provider, values))
+            .judge(history, said, answered, situation, present)
     }
 }
 

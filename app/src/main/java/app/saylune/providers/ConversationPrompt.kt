@@ -15,17 +15,22 @@ import app.saylune.sheets.Sheets
 import org.json.JSONObject
 
 /**
- * The instruction every conversation provider is given, and the shape of the history.
+ * The two instructions every conversation provider is given, and the shape of the history.
  *
  * Held in one place because it **is** the division of labour the project rests on -- the
  * recognition transcribes the mouth, the language model decides the intention -- and a
  * second copy beside a second provider would be a second source that drifts from the first.
  * What differs between providers is how the JSON is guaranteed, never what is asked.
  *
+ * **Two calls since 2026-09-10, so two instructions**: [SPEAKING] for the one who takes the
+ * character's voice, [JUDGING] for the one who marks. They are laid out below in the shape the
+ * speaker has kept; the judge's is simpler -- a head, then one written record -- and the
+ * reasons are on [judged].
+ *
  * **Four parts, ordered by how often they change**, which is also the order in which an
  * instruction is best followed: what governs the turn sits closest to it.
  *
- * 1. [APP] -- permanent, identical for every activity and every user.
+ * 1. [SPEAKING] -- permanent, identical for every activity and every user.
  * 2. [activity] -- frozen at launch: the brief, the cast, what earlier scenes answered.
  * 3. the history -- past turns, replies only, stable at the head and growing at the tail.
  * 4. [present] -- rebuilt every turn: the instructions in force, the state of the levers the
@@ -49,25 +54,20 @@ import org.json.JSONObject
 internal object ConversationPrompt {
 
     /**
-     * Part 1: what the app is, what to send back, and the invariants that never move.
+     * Part 1 for **the one who speaks**: what the app is, what to say back, and the
+     * invariants that never move.
      *
      * **No persona here.** *Warm and curious* used to open this text, and it was a trait of
      * character sitting in the part every activity shares: it governed the hostile bouncer
      * and the bored receptionist too, and no definition could get out from under it. Who is
      * speaking is part 2's, out of the definition, where an author writes someone else.
      *
-     * The **norm of correctness** lives here and nowhere else, because it has to be identical
-     * for every activity: that invariance is what makes correctness checkable at the bench on
-     * isolated sentences. It asks one question and one only -- is the sentence built right --
-     * and it knows nothing of variety or register. `Gonna try?` and `I ain't got none` are
-     * English people speak, so they pass. What a challenge wants to demand of the variety or
-     * the register is an instruction on **relevance**, which is where situation is judged.
-     *
-     * **The origin of the span offsets is spelled out** because a worked example implying it
-     * was not enough: a turn came back with every bound one too high but the first, which is
-     * what counting from one gives, and the marking was refused (2026-09-08).
+     * **No marking here either, since 2026-09-10.** The three markings, the following, the
+     * reach, the remarks and the difficulty went to [JUDGING] with the call that reads them.
+     * What is left is the character's own work, and `intended`, which stays because the
+     * scaffolding is what makes the model settle the learner's words before it answers them.
      */
-    val APP = """
+    val SPEAKING = """
         You are talking with someone who is practising spoken English. Whoever you are
         playing is said below; here is what never changes, whoever that is. You are having
         a conversation, not running a lesson, and you never interrupt: the app marks what
@@ -102,8 +102,68 @@ internal object ConversationPrompt {
         off -- never finish it for them; the voice would then say a word nobody spoke and
         every mark on the turn would land beside its sound. And if the turn is entirely
         filler and abandoned starts, or is not in English at all, write down what they
-        actually said and invent nothing: there is no sentence to rebuild, and the app
-        reads that from the markings below.
+        actually said and invent nothing: there is no sentence to rebuild, and nothing
+        here asks you to make one.
+
+        "established": include this field only when the instruction for this turn lists
+        questions to settle. An object whose keys are exactly the keys listed there and
+        whose values are your answers, one per question and none left out. Each question
+        says what shape its answer takes and how far you may go. What the conversation has
+        already established always wins; how far you may go only says what to do when it
+        does not settle the matter. Write an answer the way the situation is written: the
+        learner is "you", everybody else is named or spoken of in the third person -- these
+        answers are reread later by another character, and by the learner, so a "I am still
+        stung" would have lost its subject by then.
+
+        "echo": include this field only when they got something wrong and there is
+        something to pick up. One short line that picks the slip up and hands the sentence
+        back, in your own voice, the way a native speaker would. To "I have twenty five
+        years": "Ah, you're twenty-five!". It is the **opening of what you say**: "spoken"
+        follows it with no pause between them, so write the two to read as one utterance.
+        Leave the field out entirely when there was nothing to pick up.
+
+        "spoken": what carries the conversation forward, in English, as it should be said
+        aloud. **Never pick the slip up here** -- that is what "echo" is for, and it has
+        just been said. After "Ah, you're twenty-five!", this field is "And where do you
+        work?", never "Ah, you're twenty-five! And where do you work?".
+    """.trimIndent()
+
+    /**
+     * Part 1 for **the one who judges**: what to mark, and against what.
+     *
+     * **It plays nobody.** The first line says so, and the signature of `Conversation.judge`
+     * makes it true: the staging, the persona and what the learner asked to be steered around
+     * have no parameter to travel on. That is the point of the split -- these used to sit in
+     * this context, and what held them at arm's length was a sentence of prose nobody checked.
+     *
+     * The **norm of correctness** lives here and nowhere else, because it has to be identical
+     * for every activity: that invariance is what makes correctness checkable at the bench on
+     * isolated sentences. It asks one question and one only -- is the sentence built right --
+     * and it knows nothing of variety or register. `Gonna try?` and `I ain't got none` are
+     * English people speak, so they pass. What a challenge wants to demand of the variety or
+     * the register is an instruction on **relevance**, which is where situation is judged.
+     *
+     * **The origin of the span offsets is spelled out** because a worked example implying it
+     * was not enough: a turn came back with every bound one too high but the first, which is
+     * what counting from one gives, and the marking was refused (2026-09-08).
+     *
+     * **"intended" keeps its name here although this call does not write it.** It is handed
+     * over instead, under that name, so every line about offsets reads exactly as it did when
+     * one call did both jobs -- and prompt prose is material the bench measures, so what does
+     * not have to move does not move.
+     */
+    val JUDGING = """
+        You are marking one turn of a conversation in which somebody is practising spoken
+        English. You take no part in it: you never write a reply and you never speak as
+        anybody in it. You are shown the conversation so far, the turn the learner has
+        just taken, and what was said back to them.
+
+        The learner's turn is handed to you written out, under the name "intended". It is
+        theirs as they said it: a wrong tense, a missing article, a clumsy turn of phrase
+        are what you are here to mark, so never rewrite it and never mark against a
+        repaired version of it. Every offset below counts into that string.
+
+        Answer with a JSON object holding these fields, in this order.
 
         "spans": the groups of words worth marking, as a list. Each is
         {"from": <int>, "to": <int>, "correctness": <notch>, "relevance": <notch>} where
@@ -147,14 +207,14 @@ internal object ConversationPrompt {
         is kept, "it was, I mean, hard" is filler.
 
         "following": one notch for the whole turn, saying what their answer proves they
-        took in from your last turn. "implied" answers what was implied and not
-        said; "precise" picks up something only somebody who heard could pick up;
-        "on-point" answers what the turn said without picking up a detail;
-        "on-topic" catches the topic and not the turn; "vague" would have worked
-        whatever you had said; "off-target" answers something else. Judge what the answer shows
+        took in from the turn spoken to them just before it. "implied" answers what was
+        implied and not said; "precise" picks up something only somebody who heard could
+        pick up; "on-point" answers what that turn said without picking up a detail;
+        "on-topic" catches the topic and not the turn; "vague" would have worked whatever
+        had been said; "off-target" answers something else. Judge what the answer shows
         they took in, never how well it was said: a badly built sentence can be perfectly
-        on point. If your last turn does not exist, use "off-target" only if they really are
-        off; a first turn has nothing to follow.
+        on point. If there is no turn before theirs, use "off-target" only if they really
+        are off; a first turn has nothing to follow.
 
         "reach": one notch for the whole turn, saying how much of a sentence they built,
         and nothing else. "built" is a sentence whose structure carries the meaning -- a
@@ -179,31 +239,10 @@ internal object ConversationPrompt {
         and "Answers, but never asks anything back" are remarks; "the past tense is wrong
         in the second clause" is not.
 
-        "established": include this field only when the instruction for this turn lists
-        questions to settle. An object whose keys are exactly the keys listed there and
-        whose values are your answers, one per question and none left out. Each question
-        says what shape its answer takes and how far you may go. What the conversation has
-        already established always wins; how far you may go only says what to do when it
-        does not settle the matter. Write an answer the way the situation is written: the
-        learner is "you", everybody else is named or spoken of in the third person -- these
-        answers are reread later by another character, and by the learner, so a "I am still
-        stung" would have lost its subject by then.
-
-        "echo": include this field only when you marked something in "spans". One short
-        line that picks the slip up and hands the sentence back, in your own voice, the way
-        a native speaker would. To "I have twenty five years": "Ah, you're twenty-five!".
-        It is the **opening of what you say**: "spoken" follows it with no pause between
-        them, so write the two to read as one utterance. Leave the field out entirely when
-        nothing was marked.
-
-        "spoken": what carries the conversation forward, in English, as it should be said
-        aloud. **Never pick the slip up here** -- that is what "echo" is for, and it has
-        just been said. After "Ah, you're twenty-five!", this field is "And where do you
-        work?", never "Ah, you're twenty-five! And where do you work?".
-
-        "difficulty": one notch for the turn you have just written, weighing its length,
-        its vocabulary and its structure together: "very-easy", "easy", "medium",
-        "hard", "very-hard".
+        "difficulty": one notch for the reply that was said back to them, weighing its
+        length, its vocabulary and its structure together: "very-easy", "easy", "medium",
+        "hard", "very-hard". It says how hard that reply is to follow, and nothing about
+        the learner.
     """.trimIndent()
 
     /**
@@ -357,7 +396,7 @@ internal object ConversationPrompt {
      */
     fun system(scene: Scene): String =
         listOf(
-            APP,
+            SPEAKING,
             scene.avoid.trim().takeIf { it.isNotEmpty() }?.let { avoiding(it) }.orEmpty(),
             activity(scene),
         )
@@ -391,10 +430,14 @@ internal object ConversationPrompt {
     /**
      * The turn nobody prompted, said to the model in the app's own voice.
      *
-     * It names **what is missing** rather than asking for a shorter answer: those fields all
-     * hang off a learner turn, so with none there is nothing for them to attach to, and a
-     * model told that works out the rest. The echo goes with them -- it picks up a slip, and
-     * there is no slip where there is no sentence.
+     * It names **what is missing** rather than asking for a shorter answer: those fields hang
+     * off a learner turn, so with none there is nothing for them to attach to, and a model
+     * told that works out the rest. The echo goes with them -- it picks up a slip, and there
+     * is no slip where there is no sentence.
+     *
+     * **It named eight fields and now names two**, and nothing was decided to shrink it: six
+     * of them left with the marking, and a turn nobody prompted simply does not call the
+     * judge. What had to be kept up is gone instead.
      *
      * **What it must not do is say *`spoken` alone*.** It did, and that took the questions of
      * the opening down with it: the model answered without a field it had just been asked for.
@@ -403,10 +446,87 @@ internal object ConversationPrompt {
     val PROVOKED = """
         Nobody has spoken to you this turn. You are taking it of your own accord, on the
         instruction you have just been given. There is no learner turn to read, so
-        "intended", "spans", "stumbling", "following", "reach", "remarks", "difficulty" and
-        "echo" have nothing to attach to: leave those eight out. Answer with "spoken", and
-        with "established" as well if the instruction for this turn lists questions to settle.
+        "intended" and "echo" have nothing to attach to: leave those two out. Answer with
+        "spoken", and with "established" as well if the instruction for this turn lists
+        questions to settle.
     """.trimIndent()
+
+    // ── The one who judges: its head, and its one message ───────────────────────────────
+
+    /**
+     * The judge's stable head: part 1, then the situation, and nothing else of the scene.
+     *
+     * **The staging is not here and cannot be.** It addresses the character alone, it is never
+     * shown to the learner, and it has no business shaping a mark; the same goes for what the
+     * learner asked to be steered around. Both used to ride in this context under a sentence
+     * of prose that told the model to mark against the instruction and nothing else -- watched,
+     * never checked. There is now no parameter that carries them here.
+     *
+     * **The situation stays**, and it is required rather than tolerated: relevance is judged
+     * against what the activity asked for, and *"I'll go there"* is faultless English that a
+     * challenge to speak in the past makes off-target (`docs/reference.md`).
+     */
+    fun judging(situation: String): String =
+        listOf(JUDGING, situation.trim().takeIf { it.isNotEmpty() }?.let { "The situation: $it" })
+            .filterNotNull()
+            .joinToString("\n\n")
+
+    /**
+     * Everything else the judge is given, as **one message**.
+     *
+     * **The dialogue is written out rather than replayed as roles**, and that is the fork the
+     * design left open. The judge emits verdicts, so a replay in the assistant role could only
+     * be its own past verdicts -- and a model shown its last twenty verdicts becomes consistent
+     * with them rather than with the turn it is reading, which is measured and is the one thing
+     * this must not do. Replaying the character's replies there instead would show it an
+     * assistant that speaks, which it never does. So it is one written record: an observer's
+     * shape, and one the two providers that have no chat roles take unchanged.
+     *
+     * It still grows only at the tail, so a provider that caches prefixes keeps all of it but
+     * the last turn from one call to the next.
+     *
+     * The instructions in force sit between the record and the turn, where they govern; the
+     * reply comes last because it is the newest thing said.
+     */
+    fun judged(
+        history: List<Exchange>, said: String, answered: String, present: Present,
+    ): String = listOf(
+        record(history),
+        judgeTail(present),
+        "The learner's turn, written out. This is \"intended\":\n\n$said",
+        "What was said back to them:\n\n$answered",
+    )
+        .filter { it.isNotBlank() }
+        .joinToString("\n\n")
+
+    /** The conversation up to this turn, said plainly, the learner's side named as theirs. */
+    private fun record(history: List<Exchange>): String =
+        if (history.isEmpty()) ""
+        else "The conversation so far:\n\n" + history.joinToString("\n") {
+            (if (it.fromLearner) "Learner: " else "Character: ") + it.text
+        }
+
+    /**
+     * Part 4 for the judge: the instructions in force, and how the recording stopped.
+     *
+     * **Everything else of the turn stays out.** The passage number, the prose a rule has just
+     * laid and the levers the model holds all say how the character is to play; the questions
+     * of the turn are answered by whoever speaks. What is left is what a mark is read against:
+     * the instruction, which relevance is judged on, and a turn cut off by a clock, which is
+     * not a sentence somebody chose to leave unfinished.
+     */
+    private fun judgeTail(present: Present): String {
+        val lines = present.instructions.mapNotNull { it.text }.toMutableList()
+        present.ending?.let {
+            lines += when (it) {
+                Ending.ByLength -> "The turn was cut off: the recording reached the time it " +
+                    "was allowed. Treat it as unfinished."
+                Ending.BySilence -> "The turn was sent because the learner fell silent. It " +
+                    "may be unfinished; mark it as it stands."
+            }
+        }
+        return if (lines.isEmpty()) "" else "For this turn:\n" + lines.joinToString("\n") { "- $it" }
+    }
 
     /**
      * Said again to a provider that has no JSON mode to enforce the shape.

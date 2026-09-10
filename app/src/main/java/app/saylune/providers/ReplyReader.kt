@@ -5,6 +5,7 @@ import app.saylune.activity.Question
 import app.saylune.activity.Rung
 import app.saylune.chain.ChainFailure
 import app.saylune.chain.Reply
+import app.saylune.chain.Verdict
 import app.saylune.debug.Trace
 import app.saylune.judged.Judgement
 import app.saylune.judged.Marked
@@ -17,10 +18,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * The enriched contract, read back and checked at the seam.
+ * The two contracts, read back and checked at their seams.
  *
- * One reader for every provider, for the reason the prompt is held in one place: what differs
- * between providers is how the JSON is guaranteed, never what is asked or how it is read.
+ * One pair of readers for every provider, for the reason the prompts are held in one place:
+ * what differs between providers is how the JSON is guaranteed, never what is asked or how it
+ * is read.
  *
  * **Nothing here falls back to a plausible value.** A field the contract requires and the model
  * left out is the model breaking its contract, which is a failure like any other and says so.
@@ -30,10 +32,10 @@ import org.json.JSONObject
 internal object ReplyReader {
 
     /**
-     * [provoked] says there was **no learner turn**, so there is nothing to judge: the model
-     * was asked for what it says and nothing else, and asking for the rest back would be
-     * asking it to invent a sentence nobody spoke. Everything the reader checks is a field
-     * about that turn, so on this path only `spoken` is required.
+     * What the one who speaks sent back.
+     *
+     * [provoked] says there was **no learner turn**: nobody spoke into it, so there is no
+     * sentence to write out and no slip to pick up, and only `spoken` is required.
      */
     fun read(
         content: String,
@@ -41,12 +43,7 @@ internal object ReplyReader {
         provoked: Boolean = false,
         asking: List<Question> = emptyList(),
     ): Reply {
-        val parsed = runCatching { JSONObject(content) }.getOrElse {
-            // The raw answer goes in the trace: a model that breaks its format is only
-            // fixable by someone who can read what it actually wrote.
-            Trace.fail("conversation: not the JSON it was asked for", "content" to content)
-            throw ChainFailure("the model did not answer with the JSON it was asked for")
-        }
+        val parsed = parsed(content)
 
         val spoken = parsed.optString("spoken")
         if (spoken.isBlank()) {
@@ -54,91 +51,28 @@ internal object ReplyReader {
             throw ChainFailure("the model returned nothing to say")
         }
 
-        val choice = parsed.optString("choice").trim().ifBlank { null }
         val established = established(parsed, asking, content)
 
         if (provoked) {
             Trace.add("conversation: spoke of its own accord", "spoken" to spoken,
-                      "picked from the menu" to choice,
                       "settled" to established.keys.joinToString().ifEmpty { null })
-            return Reply(
-                judged = null, spoken = spoken, echo = null, choice = choice,
-                established = established,
-            )
+            return Reply(intended = null, spoken = spoken, echo = null, established = established)
         }
 
         val intended = parsed.optString("intended").ifBlank { transcript }
-
-        val spans = parsed.optJSONArray("spans").objects().map { span ->
-            Span(
-                from = span.getInt("from"),
-                to = span.getInt("to"),
-                correctness = span.getString("correctness"),
-                relevance = span.getString("relevance"),
-            )
-        }
-        val stumbling = parsed.optJSONArray("stumbling").objects().map { part ->
-            Marked(part.getInt("from"), part.getInt("to"), part.getString("notch"))
-        }
-
-        val following = parsed.required("following", content)
-        val reach = parsed.required("reach", content)
-        val difficulty = parsed.required("difficulty", content)
-        check(following, Sheets.columnOf("understanding/uptake"), "following", content)
-        check(reach, Sheets.columnOf("relevance/reach"), "reach", content)
-        check(difficulty, Sheets.DIFFICULTY, "difficulty", content)
-
-        // **Kept to the keys the contract names, and a stray one is dropped rather than fatal.**
-        // It is prose: nothing weighs it, nothing gates on it, so losing a line costs a line --
-        // where throwing would cost the turn, the recording and the reply with it.
-        val remarks = parsed.optJSONObject("remarks")?.let { written ->
-            ConversationPrompt.REMARKED
-                .mapNotNull { key ->
-                    written.optString(key).trim().ifBlank { null }
-                        ?.take(ConversationPrompt.REMARK_LIMIT)?.let { key to it }
-                }
-                .toMap()
-        } ?: emptyMap()
-
-        // Unfolding is where the bounds are checked against the words of `intended`, so it
-        // runs here rather than downstream: a span that misses a word boundary is a broken
-        // answer, and the place to say so is the seam that read it.
-        val judged =
-            Judgement(intended, spans, stumbling, following, reach, difficulty, remarks)
-        runCatching { judged.words() }.onFailure {
-            Trace.fail("conversation: a marking does not fit its own text",
-                       "why" to it.message, "content" to content)
-            // The two ways a marking is unreadable send whoever reads the failure to two
-            // different places, so they are not given the same sentence.
-            throw ChainFailure(
-                when ((it as? Unreadable)?.kind) {
-                    Unreadable.Kind.Notch -> "the model marked with a notch that does not exist"
-                    else -> "the model marked outside the words it wrote"
-                }
-            )
-        }
-
         val echo = parsed.optString("echo").trim().ifBlank { null }
 
         Trace.add(
             "conversation: answered",
             "spoken" to spoken,
             "intended" to intended,
-            "spans" to spans.size.toString(),
-            "stumbling" to stumbling.size.toString(),
-            "following" to following,
-            "reach" to reach,
-            "difficulty" to difficulty,
-            "remarks" to remarks.entries.joinToString("; ") { "${it.key}: ${it.value}" }
-                .ifEmpty { null },
             "echo" to echo,
-            "picked from the menu" to choice,
+            "settled" to established.keys.joinToString().ifEmpty { null },
             "intended fell back to the transcript" to
                 if (parsed.optString("intended").isBlank()) "yes" else null,
         )
         return Reply(
-            judged = judged, spoken = spoken, echo = echo, choice = choice,
-            established = established,
+            intended = intended, spoken = spoken, echo = echo, established = established,
         )
     }
 
@@ -184,27 +118,115 @@ internal object ReplyReader {
     private fun allowed(among: Answers.OneOf, question: Question): List<String> =
         among.keys + if (question.rung == Rung.FromTheTalk) listOf(Question.DONT_KNOW)
         else emptyList()
-
-    private fun JSONObject.required(field: String, content: String): String {
-        val value = optString(field).trim()
-        if (value.isBlank()) {
-            Trace.fail("conversation: no $field", "content" to content)
-            throw ChainFailure("the model left out \"$field\"")
-        }
-        return value
-    }
-
-    private fun check(notch: String, column: Reading.Column, field: String, content: String) {
-        if (column.notches.none { it.name == notch }) {
-            Trace.fail("conversation: a notch the catalogue does not declare",
-                       field to notch, "content" to content)
-            throw ChainFailure("the model answered \"$notch\" for \"$field\"")
-        }
-    }
-
-    private fun JSONArray?.objects(): List<JSONObject> =
-        if (this == null) emptyList() else (0 until length()).map { getJSONObject(it) }
 }
+
+/**
+ * What the one who judges sent back, checked against the `intended` it was given.
+ *
+ * **It never sees the transcript and never writes `intended`**, so there is nothing to fall
+ * back to here: the string the marks index into came out of the other call, and the app hands
+ * it straight to [Judgement].
+ */
+internal object VerdictReader {
+
+    fun read(content: String, intended: String): Verdict {
+        val parsed = parsed(content)
+
+        val spans = parsed.optJSONArray("spans").objects().map { span ->
+            Span(
+                from = span.getInt("from"),
+                to = span.getInt("to"),
+                correctness = span.getString("correctness"),
+                relevance = span.getString("relevance"),
+            )
+        }
+        val stumbling = parsed.optJSONArray("stumbling").objects().map { part ->
+            Marked(part.getInt("from"), part.getInt("to"), part.getString("notch"))
+        }
+
+        val following = parsed.required("following", content)
+        val reach = parsed.required("reach", content)
+        val difficulty = parsed.required("difficulty", content)
+        check(following, Sheets.columnOf("understanding/uptake"), "following", content)
+        check(reach, Sheets.columnOf("relevance/reach"), "reach", content)
+        check(difficulty, Sheets.DIFFICULTY, "difficulty", content)
+
+        // **Kept to the keys the contract names, and a stray one is dropped rather than fatal.**
+        // It is prose: nothing weighs it, nothing gates on it, so losing a line costs a line --
+        // where throwing would cost the turn, the recording and the reply with it.
+        val remarks = parsed.optJSONObject("remarks")?.let { written ->
+            ConversationPrompt.REMARKED
+                .mapNotNull { key ->
+                    written.optString(key).trim().ifBlank { null }
+                        ?.take(ConversationPrompt.REMARK_LIMIT)?.let { key to it }
+                }
+                .toMap()
+        } ?: emptyMap()
+
+        // Unfolding is where the bounds are checked against the words of `intended`, so it
+        // runs here rather than downstream: a span that misses a word boundary is a broken
+        // answer, and the place to say so is the seam that read it.
+        val judged =
+            Judgement(intended, spans, stumbling, following, reach, difficulty, remarks)
+        runCatching { judged.words() }.onFailure {
+            Trace.fail("judgement: a marking does not fit the turn it was given",
+                       "why" to it.message, "content" to content)
+            // The two ways a marking is unreadable send whoever reads the failure to two
+            // different places, so they are not given the same sentence.
+            throw ChainFailure(
+                when ((it as? Unreadable)?.kind) {
+                    Unreadable.Kind.Notch -> "the model marked with a notch that does not exist"
+                    else -> "the model marked outside the words it was given"
+                }
+            )
+        }
+
+        val choice = parsed.optString("choice").trim().ifBlank { null }
+
+        Trace.add(
+            "judgement: marked",
+            "intended" to intended,
+            "spans" to spans.size.toString(),
+            "stumbling" to stumbling.size.toString(),
+            "following" to following,
+            "reach" to reach,
+            "difficulty" to difficulty,
+            "remarks" to remarks.entries.joinToString("; ") { "${it.key}: ${it.value}" }
+                .ifEmpty { null },
+            "picked from the menu" to choice,
+        )
+        return Verdict(judgement = judged, choice = choice)
+    }
+}
+
+/** The object the model was asked for, or the failure that says it did not send one. */
+private fun parsed(content: String): JSONObject =
+    runCatching { JSONObject(content) }.getOrElse {
+        // The raw answer goes in the trace: a model that breaks its format is only
+        // fixable by someone who can read what it actually wrote.
+        Trace.fail("conversation: not the JSON it was asked for", "content" to content)
+        throw ChainFailure("the model did not answer with the JSON it was asked for")
+    }
+
+private fun JSONObject.required(field: String, content: String): String {
+    val value = optString(field).trim()
+    if (value.isBlank()) {
+        Trace.fail("conversation: no $field", "content" to content)
+        throw ChainFailure("the model left out \"$field\"")
+    }
+    return value
+}
+
+private fun check(notch: String, column: Reading.Column, field: String, content: String) {
+    if (column.notches.none { it.name == notch }) {
+        Trace.fail("conversation: a notch the catalogue does not declare",
+                   field to notch, "content" to content)
+        throw ChainFailure("the model answered \"$notch\" for \"$field\"")
+    }
+}
+
+private fun JSONArray?.objects(): List<JSONObject> =
+    if (this == null) emptyList() else (0 until length()).map { getJSONObject(it) }
 
 /**
  * The three markings unfolded onto the words of `intended`, each word carrying one notch.

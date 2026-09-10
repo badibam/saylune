@@ -4,6 +4,7 @@ import app.saylune.chain.Conversation
 import app.saylune.chain.Exchange
 import app.saylune.chain.Present
 import app.saylune.chain.Reply
+import app.saylune.chain.Verdict
 import app.saylune.chain.Scene
 import app.saylune.chain.Word
 import app.saylune.keys.SecretStore
@@ -38,15 +39,27 @@ class InworldConversation(
         history: List<Exchange>, heard: List<Word>, scene: Scene, present: Present,
     ): Reply = withContext(Dispatchers.IO) {
         val values = store.values().first()
-        ChatCompletions.ask(
+        ChatCompletions.reply(
             base = "${InworldApi.base(values)}/v1",
             key = InworldApi.key(values),
             model = model,
-            history = history,
-            heard = heard,
-            scene = scene,
-            present = present,
+            history = history, heard = heard, scene = scene, present = present,
             say = "conversation: asking inworld/$model",
+        ) {}
+    }
+
+    override suspend fun judge(
+        history: List<Exchange>, said: String, answered: String, situation: String,
+        present: Present,
+    ): Verdict = withContext(Dispatchers.IO) {
+        val values = store.values().first()
+        ChatCompletions.judge(
+            base = "${InworldApi.base(values)}/v1",
+            key = InworldApi.key(values),
+            model = model,
+            history = history, said = said, answered = answered, situation = situation,
+            present = present,
+            say = "judgement: asking inworld/$model",
         ) {}
     }
 }

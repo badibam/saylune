@@ -977,12 +977,34 @@ class TurnPipeline(
                 },
             )
 
-            // **A turn nobody prompted has nothing to judge, and this is not one.** The
-            // reader hands back a judgement on every path but the provoked one, so this can
-            // only be a provider that broke its contract -- which is a failure like any
-            // other, and the recording is kept for another go at it.
-            val judged = reply.judged
-                ?: throw ChainFailure("the model judged nothing of what was said")
+            // **A turn nobody prompted has no words to write out, and this is not one.** The
+            // reader hands `intended` back on every path but the provoked one, so a null here
+            // can only be a provider that broke its contract -- a failure like any other, and
+            // the recording is kept for another go at it.
+            val intended = reply.intended
+                ?: throw ChainFailure("the model did not write out what was said")
+
+            // **The second call, and for now it is here: right after the first, before a
+            // sound is played.** Nothing observable changes but the number of calls, which is
+            // what makes this the step that says whether the two instructions hold on their
+            // own. Moving it under the listening is the next one, and it undoes on its own.
+            //
+            // What it is given as the reply is the **whole utterance as the model wrote it**,
+            // echo and continuation joined. Which part the learner ends up hearing is decided
+            // below, by a gate this call has not answered yet; and what the parade is for is
+            // the repair, which is in the echo and so is always in there.
+            val verdict = conversation.judge(
+                _state.value.history(),
+                said = intended,
+                answered = compose(reply.echo, reply.spoken),
+                // The half of the brief addressed to the learner, and the only thing of the
+                // scene the judge is given. The staging has no parameter to travel on.
+                situation = _state.value.activity.brief?.situation.orEmpty(),
+                // What a mark is read against: the instructions in force, and a turn a clock
+                // cut off. Nothing of how the character was told to play.
+                present = Present(instructions = door.instructions, ending = closedBy),
+            )
+            val judged = verdict.judgement
 
             // The two utterances are held by identity from here on. Their place in the run is
             // where they happen to sit, and it is not what addresses them: everything that

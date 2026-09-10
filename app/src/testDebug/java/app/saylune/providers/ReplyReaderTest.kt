@@ -5,50 +5,37 @@ import app.saylune.activity.Question
 import app.saylune.activity.Rung
 import app.saylune.activity.Text
 import app.saylune.chain.ChainFailure
-import app.saylune.chain.Reply
 import app.saylune.rules.Trigger
-import app.saylune.judged.Judgement
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The enriched contract, read back and checked at the seam.
+ * What the one who speaks sends back, read at the seam.
  *
  * Nothing here falls back to a plausible value: a field the contract requires and the model
- * left out is the model breaking its contract, which is a failure like any other.
+ * left out is the model breaking its contract, which is a failure like any other. The one
+ * exception is `intended`, and it is tested below.
  */
 class ReplyReaderTest {
 
-    private fun answer(
-        intended: String = "I go there yesterday",
-        spans: String = "[]",
-        stumbling: String = "[]",
-        following: String = "\"precise\"",
-        reach: String = "\"extended\"",
-        difficulty: String = "\"medium\"",
-        extra: String = "",
-    ) = """
-        {"intended": "$intended", "spans": $spans, "stumbling": $stumbling,
-         "following": $following, "reach": $reach, "spoken": "Ah, yesterday!",
-         "difficulty": $difficulty$extra}
+    private fun answer(intended: String = "I go there yesterday", extra: String = "") = """
+        {"intended": "$intended", "spoken": "Ah, yesterday!"$extra}
     """.trimIndent()
 
-    /**
-     * What was judged, on a path where there is a judgement.
-     *
-     * It is null only on a provoked turn, which has nothing to judge; every case below sends
-     * a learner turn in, so a null here would be the reader breaking its own contract.
-     */
-    private val Reply.marked: Judgement get() = judged ?: error("nothing was judged")
-
-    @Test fun `a turn nobody prompted comes back with nothing judged`() {
+    @Test fun `a turn nobody prompted comes back with nothing written out`() {
         val reply = ReplyReader.read("""{"spoken": "Ah, there you are."}""", "", provoked = true)
         assertEquals("Ah, there you are.", reply.spoken)
-        // Not "nothing was marked" -- there was nothing to mark, nobody having spoken.
-        assertNull(reply.judged)
+        // Not "nothing was said" -- there was nothing to write out, nobody having spoken.
+        assertNull(reply.intended)
         assertNull(reply.echo)
+    }
+
+    @Test fun `a reply with nothing to say is the contract broken`() {
+        assertTrue(runCatching {
+            ReplyReader.read("""{"intended": "I go there yesterday"}""", "x")
+        }.exceptionOrNull() is ChainFailure)
     }
 
     // ── The questions the app puts ──────────────────────────────────────────────────────
@@ -111,94 +98,36 @@ class ReplyReaderTest {
         }.exceptionOrNull() is ChainFailure)
     }
 
+    // ── What comes back ─────────────────────────────────────────────────────────────────
+
     @Test fun `a clean answer reads back whole`() {
         val reply = ReplyReader.read(answer(), "i go there yesterday")
         assertEquals("Ah, yesterday!", reply.spoken)
-        assertEquals("I go there yesterday", reply.marked.intended)
-        assertEquals("precise", reply.marked.following)
-        assertEquals("medium", reply.marked.difficulty)
-        // Absent is the ordinary answer for both, and means "there is none".
+        assertEquals("I go there yesterday", reply.intended)
+        // Absent is the ordinary answer, and means "there is none".
         assertNull(reply.echo)
-        assertNull(reply.choice)
     }
 
-    @Test fun `a span unfolds onto the words it names`() {
-        val reply = ReplyReader.read(
-            answer(spans = """[{"from":0,"to":4,"correctness":"malformed","relevance":"ok"}]"""),
-            "i go there yesterday",
-        )
-        assertEquals(listOf("malformed", "malformed", "ok", "ok"),
-                     reply.marked.words().correctness.map { it.notch })
-        // The two scales cover the same words, so one span carries both notches.
-        assertTrue(reply.marked.words().relevance.all { it.notch == "ok" })
-    }
-
-    @Test fun `the kept words are what the stumbling leaves alone`() {
-        val reply = ReplyReader.read(
-            answer(intended = "It was um nice",
-                   stumbling = """[{"from":7,"to":9,"notch":"filler"}]"""),
-            "it was um nice",
-        )
-        val words = reply.marked.words()
-        assertEquals(listOf("kept", "kept", "filler", "kept"),
-                     words.stumbling.map { it.notch })
-        assertEquals(listOf(0..1, 3..5, 10..13), words.kept)
-    }
-
-    @Test fun `intended falls back to the transcript, and nothing else does`() {
+    @Test fun `intended falls back to the transcript, and it is the only thing that does`() {
         // The one documented fallback: the analysis then measures against exactly what was
         // heard, which is harmless.
         val reply = ReplyReader.read(answer(intended = ""), "i go there yesterday")
-        assertEquals("i go there yesterday", reply.marked.intended)
-
-        // A missing notch is the contract broken, and it says so.
-        assertTrue(runCatching {
-            ReplyReader.read(answer(following = "\"\""), "x")
-        }.isFailure)
-        assertTrue(runCatching {
-            ReplyReader.read(answer(difficulty = "\"\""), "x")
-        }.isFailure)
+        assertEquals("i go there yesterday", reply.intended)
     }
 
-    @Test fun `a notch the catalogue does not declare is a failure`() {
-        assertTrue(runCatching {
-            ReplyReader.read(answer(following = "\"bof\""), "x")
-        }.isFailure)
-        assertTrue(runCatching {
-            ReplyReader.read(answer(difficulty = "\"impossible\""), "x")
-        }.isFailure)
-    }
-
-    @Test fun `bounds that cut a word in half are a failure at the seam`() {
-        // Read downstream, a mark sliding inside a word would be indistinguishable from a
-        // mark the judge meant. The place to say so is the seam that read it.
-        assertTrue(runCatching {
-            ReplyReader.read(
-                answer(spans = """[{"from":0,"to":3,"correctness":"malformed","relevance":"ok"}]"""),
-                "i go there yesterday",
-            )
-        }.isFailure)
-    }
-
-    @Test fun `a bound beside the word it names is settled onto it`() {
-        // Measured on the device: the model stops before the full stop, or runs on to the
-        // next word. Neither names a different set of words, so the seam settles the bound
-        // instead of throwing the whole turn away over one character.
+    /**
+     * The echo is the opening of the reply, and the one who speaks decides there is one.
+     *
+     * It used to be tied to a span it had marked a moment earlier; with the marking gone to
+     * the other call, what makes it appear is the slip itself. What keeps the two from
+     * drifting apart is on the judge's side, which is shown this line.
+     */
+    @Test fun `an echo comes back as the opening of the reply`() {
         val reply = ReplyReader.read(
-            answer(intended = "I go there yesterday.",
-                   spans = """[{"from":0,"to":5,"correctness":"malformed","relevance":"ok"}]"""),
-            "i go there yesterday",
-        )
-        assertEquals(listOf("malformed", "malformed", "ok", "ok"),
-                     reply.marked.words().correctness.map { it.notch })
-    }
-
-    @Test fun `an echo comes back only when something was marked`() {
-        val reply = ReplyReader.read(
-            answer(spans = """[{"from":0,"to":4,"correctness":"malformed","relevance":"ok"}]""",
-                   extra = ""","echo": "Ah, you went there yesterday!""""),
+            answer(extra = ""","echo": "Ah, you went there yesterday!""""),
             "i go there yesterday",
         )
         assertEquals("Ah, you went there yesterday!", reply.echo)
+        assertEquals("Ah, yesterday!", reply.spoken)
     }
 }
