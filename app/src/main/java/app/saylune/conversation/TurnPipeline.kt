@@ -1298,8 +1298,17 @@ class TurnPipeline(
                     // it**, echo and continuation joined. In the one case where the learner hears
                     // less than that, what he hears is the echo -- and the echo is the repair,
                     // which is what this call is shown it for.
+                    //
+                    // **It is caught inside the `async` and not at the await**, which is what
+                    // stops a judge giving way from cutting the voice off mid-word. Structured
+                    // concurrency cancels the siblings the instant a child throws: the catch at
+                    // the await ran, said the right thing and kept the turn -- but by then the
+                    // one saying the answer had already been cancelled, and the sentence stopped
+                    // in the middle. Observed on the device, and read as two faults for want of
+                    // the link between them. A failure carried back as a value has no siblings
+                    // to take with it.
                     val judging = async {
-                        conversation.judge(
+                        runCatching { conversation.judge(
                             before,
                             said = intended,
                             answered = compose(reply.echo, reply.spoken),
@@ -1309,8 +1318,10 @@ class TurnPipeline(
                             situation = _state.value.activity.brief?.situation.orEmpty(),
                             // What a mark is read against: the instructions in force, and a turn
                             // a clock cut off. Nothing of how the character was told to play.
-                            present = Present(instructions = door.instructions, ending = closedBy),
-                        )
+                            present = Present(
+                                instructions = door.instructions, ending = closedBy,
+                            ),
+                        ) }
                     }
 
                     // **The thread carries what was heard.** Where the conversation carries on
@@ -1349,7 +1360,7 @@ class TurnPipeline(
                     // silently let through either -- with no judgement there is no gate, so the
                     // passage is not held, which is the truth about a turn nobody judged
                     // (`../../../../../../TODO.md`).
-                    val judged = runCatching { judging.await().judgement }.getOrElse { failure ->
+                    val judged = judging.await().map { it.judgement }.getOrElse { failure ->
                         Trace.fail("turn: nothing judged it, and the turn stands",
                                    "why" to failure.message)
                         _state.update {
