@@ -450,18 +450,35 @@ data class ConversationState(
      */
     val replayed: Map<String, Int> = emptyMap(),
     /**
-     * The AI turn the microphone has already armed on, or null while it has armed on none.
+     * The answer that has just finished, and whose end has not yet opened the learner's turn.
      *
-     * **What it stops is the mic opening because a screen appeared.** Arming stands in for the
-     * press that opens a turn, so what it follows is the conversation advancing -- the
-     * character has finished, your turn -- and never a composition. Without it, walking out to
-     * the passage's notes and back armed again on the same answer, and at the third position
-     * that sends a turn of room noise five seconds later.
+     * **An event, and no longer a shape.** What it used to be was *the run ends on the
+     * character*, read off the thread -- and a shape is true whenever the thread has that
+     * form, not only at the instant it takes it. Walking in on a thread left yesterday, the
+     * shape held: the mic opened over somebody rereading it, the clocks ran on the room, and
+     * at the third position a turn nobody said went out, was paid for and was answered. A
+     * crash brought the same thing back, the note of what had already armed not surviving it.
+     * With a sequence it would be worse still -- the shape is true from the first utterance,
+     * so the mic would open while the narrator was still talking.
      *
-     * In memory and never stored, like every effective position: a sitting picked up again
-     * arms on whatever the character says on the way back in, which is a turn of its own.
+     * It is written at one instant only: the end of the app's speaking. Nothing derives it,
+     * so nothing can fabricate it -- an opening screen, a crash and a resume all find it
+     * empty, which is the truth about them.
+     *
+     * In memory and never stored, like every effective position.
      */
-    val armedOn: String? = null,
+    val opening: String? = null,
+    /**
+     * The passage whose close has already been fired, so it is fired once.
+     *
+     * The close is a moment of the rules -- the patches, the ramp, the lives, the end of the
+     * sitting -- and a passage is opened by the learner speaking, so it stays the open one
+     * until they speak again. Two closes with nothing said between them therefore used to
+     * fall on the same passage twice. Nobody met it while the only way to close was a press,
+     * and the arming makes it the ordinary case: the answer ends, the passage closes, a rule
+     * of the close asks the character to speak, that answer ends too.
+     */
+    val closedPassage: String? = null,
 ) {
 
     /**
@@ -512,17 +529,6 @@ data class ConversationState(
     fun modelOf(of: String): File? = utterances.firstOrNull { it.id == of }?.let { spoken ->
         spoken.model ?: spoken.repeats?.let { id -> utterances.firstOrNull { it.id == id }?.model }
     }
-
-    /**
-     * The AI turn the microphone is owed to, or null when it is owed to none.
-     *
-     * **The run has to end on the character**, which is the whole rule: an answer has just been
-     * given and nobody has spoken since, so the next thing to happen is the learner speaking. A
-     * turn of the learner at the end means a take was just sent or an exercise just done, and
-     * neither is a moment to open the mic by itself.
-     */
-    val armsOn: Utterance? get() = utterances.lastOrNull()
-        ?.takeIf { !it.speaker.isLearner && it.id != armedOn }
 
     /**
      * Whether the sitting is over, which is a fact about the activity and not about the turn.
@@ -832,14 +838,37 @@ class TurnPipeline(
     }
 
     /**
-     * Write down that the microphone has armed on the AI turn [of].
+     * Write down that the app has finished speaking [of], which is what opens a turn.
      *
-     * **It is the app's own gesture and not the learner's**, which is why it is recorded rather
-     * than derived: nothing in the run says whether the mic was opened for the answer sitting at
-     * its end, so without this the screen re-arms every time it comes back into composition --
-     * on the way back from the notes, from the prompt, from anywhere pushed above it.
+     * The one place [ConversationState.opening] is written, and the reason it can be trusted:
+     * it is said by whoever has just stopped speaking, at that instant, and derived from
+     * nothing. Every path that says something the learner is to answer calls it -- the
+     * answer to a turn, the held continuation of a close, and a turn the character takes of
+     * its own accord.
      */
-    fun armed(of: String) = _state.update { it.copy(armedOn = of) }
+    private fun spoke(of: String) = _state.update { it.copy(opening = of) }
+
+    /**
+     * The learner's turn opens: the passage before it closes, and the event is spent.
+     *
+     * **The press on the big button did two things and the arming only ever did one.** It
+     * closes the passage *and* opens the mic; standing in for it, the arming opened the mic
+     * and left the close undone -- so at the two automatic positions [Moment.PassageClosed]
+     * never fired at all, and with it went the patches, the end of a sitting by rule, and any
+     * question the moment was to put. A tile shipped with the app suffers it in silence:
+     * `the-last-train` declares a question every five passages that is never asked outside
+     * capture by hand.
+     *
+     * So the arming calls this, and what it calls is the gesture itself rather than a copy of
+     * half of it. The screen opens the mic after it, exactly as the finger's path does.
+     */
+    suspend fun opens() {
+        // **Spent before the close and not after.** Closing a passage can send the character
+        // off to speak, and that answer ends like any other and writes its own event. Cleared
+        // afterwards, this would wipe the fresh one and that turn would never open the mic.
+        _state.update { it.copy(opening = null) }
+        close()
+    }
 
     /**
      * Run [body] in [phase], and come back to [Phase.Idle] whatever happens.
@@ -942,8 +971,10 @@ class TurnPipeline(
                 pending = null,
                 unjudged = null,
                 failure = null,
-                // The run is another one's, so the turn the mic last armed on is not in it.
-                armedOn = null,
+                // No answer has just finished: what is on screen is a thread being reread,
+                // however it ends.
+                opening = null,
+                closedPassage = null,
             )
         }
         Trace.add("conversation: opened", "activity" to activity.id,
@@ -1031,7 +1062,8 @@ class TurnPipeline(
                 pending = null,
                 unjudged = null,
                 failure = null,
-                armedOn = null,
+                opening = null,
+                closedPassage = null,
             )
         }
         Trace.add("conversation: begun", "activity" to fresh.id)
@@ -1489,6 +1521,9 @@ class TurnPipeline(
             // The number the doc puts on the chain, and the only one the learner feels.
             Trace.add("turn: first sound")
         }
+        // The answer has finished. Here and not at the append: what opens the learner's turn
+        // is the voice stopping, never a line arriving in the thread.
+        spoke(answer.id)
     }
 
     /**
@@ -1719,6 +1754,17 @@ class TurnPipeline(
      */
     suspend fun close() = writing.withLock {
         if (!_state.value.closes()) return@withLock
+        // **Once per passage.** A passage is opened by the learner speaking, so it stays the
+        // open one until they speak again, and two closes with nothing said between them fell
+        // on the same one twice -- every rule of the moment fired twice with it. Nobody met
+        // this while a press was the only way to close; the arming makes it the ordinary case,
+        // the answer's end closing the passage and a rule of that close asking the character
+        // to speak, whose end comes straight back here.
+        //
+        // Null is a sitting in which nothing has been said yet: there is no passage to close,
+        // and the opening line ends exactly like any other answer.
+        val opener = _state.value.open()?.opener?.id
+        if (opener == null || opener == _state.value.closedPassage) return@withLock
         _state.value.held?.let { continuation ->
             Trace.add("passage: the attempts ran out, the held continuation is played")
             _state.update { it.copy(held = null) }
@@ -1732,13 +1778,15 @@ class TurnPipeline(
                     _state.value.utterances.lastOrNull { it.answers == attempt }?.let { reply ->
                         update(reply.id) { it.copy(text = continuation) }
                         write(reply.id)
+                        // What was heard is an answer like any other, and it has just ended.
+                        spoke(reply.id)
                     }
                 }
             }
         }
         // The gates spoke about a passage that is over. What follows opens a fresh one, and
         // its own gates are read when its own call returns.
-        _state.update { it.copy(wordsGate = null, soundGate = null) }
+        _state.update { it.copy(wordsGate = null, soundGate = null, closedPassage = opener) }
         // **The passage's close, where everything else falls**: the patches, the ramp, the
         // lives, the end of the sitting. Its note is the last attempt's and the count of
         // attempts is known, which is what makes this the moment for them.
@@ -2376,6 +2424,7 @@ class TurnPipeline(
                 Playback.play(
                     synthesis.speak(reply.spoken, synthesis.voice()), by = Loudspeaker.By.App,
                 )
+                spoke(answer.id)
             } catch (failure: ChainFailure) {
                 Trace.fail("turn: the character had a turn to take and the link gave way",
                            "why" to failure.message)

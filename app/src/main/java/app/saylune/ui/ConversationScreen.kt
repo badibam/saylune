@@ -202,8 +202,9 @@ fun ConversationScreen(
     // conversation: walking in on a thread left yesterday opened the mic over somebody reading
     // it back, and the clocks ran on the room -- five seconds of quiet at the third position,
     // the turn's whole length at the second -- so a turn nobody said went out, was paid for and
-    // was answered. What it follows is [ConversationState.armsOn]: the run ends on the
-    // character, and the mic has not already armed on that turn.
+    // was answered. What it follows is [ConversationState.opening], which is written at the
+    // instant the app stops speaking and derived from nothing: a screen appearing, a crash and
+    // a resume all find it empty, which is the truth about them.
     //
     // **And it is the big button's own condition besides.** Arming stands in for that press at
     // the two automatic positions, so anything that greys the button has to stop the arming:
@@ -218,9 +219,9 @@ fun ConversationScreen(
     // reading away, and at the third position sends a turn five seconds later. The button stays
     // lit: pressing it is a finger, and going on without reading is the learner's to choose.
     val opens = turn.closes()
-    val armsOn = turn.armsOn
-    LaunchedEffect(arms, busyOf(turn.phase), opens, turn.notices.isEmpty(), armsOn?.id) {
-        if (!arms || !opens || armsOn == null) return@LaunchedEffect
+    val opening = turn.opening
+    LaunchedEffect(arms, busyOf(turn.phase), opens, turn.notices.isEmpty(), opening) {
+        if (!arms || !opens || opening == null) return@LaunchedEffect
         if (turn.notices.isNotEmpty()) return@LaunchedEffect
         if (turn.phase != Phase.Idle) return@LaunchedEffect
         if (capture.recording || capture.hasAudio) return@LaunchedEffect
@@ -228,9 +229,17 @@ fun ConversationScreen(
         // armed. It lives outside the turn, so it touches no measure.
         val wait = (turn.positions.of(Levers.PREPARATION.key) as? Count)?.n?.times(1000) ?: 0
         if (wait > 0) kotlinx.coroutines.delay(wait.toLong())
-        // Before the mic and not after: what this says is that this answer has had its arming,
-        // and leaving the screen between the two would otherwise lose the fact.
-        pipeline.armed(armsOn.id)
+        // **The whole gesture and not half of it.** The press this stands in for closes the
+        // passage as well as opening the mic, and the arming used to open the mic alone -- so
+        // at these two positions the close never fell, and the patches, the end of a sitting
+        // by rule and the questions of that moment went with it.
+        //
+        // In the pipeline's scope and not this screen's: closing a passage can send the
+        // character off to speak, and that is a turn like any other, which has no business
+        // dying because somebody stepped out to read their notes. Waited for all the same --
+        // the mic must not open over that character -- and leaving the screen meanwhile drops
+        // the wait, never the turn.
+        pipeline.turns.launch { pipeline.opens() }.join()
         onRepeating(null)
         recorder.open(scope, settings)
     }
