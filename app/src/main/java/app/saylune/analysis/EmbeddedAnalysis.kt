@@ -56,10 +56,12 @@ class EmbeddedAnalysis(
     /**
      * Where the choice of pass is read, or null to stay on this device without asking.
      *
-     * Read when the engine is built and not at every turn: the doc settles this once for a
-     * conversation, and a reading computed here is not interchangeable with one computed
-     * elsewhere -- switching mid-thread would put two eras of measurement in one fil
-     * (`docs/design/remote-analysis.md`).
+     * Re-read each time the analysis is re-checked, which is every turn, so a pick made in
+     * the settings takes hold from the next turn -- the same way the other three links
+     * resolve theirs. A reading computed here is not interchangeable with one computed
+     * elsewhere, which is why a change rebuilds the engine rather than papering over it:
+     * every reading a turn produces comes from one engine, and each turn carries that
+     * engine's stamp (`docs/design/remote-analysis.md`).
      */
     private val store: SecretStore? = null,
 ) : Analysis {

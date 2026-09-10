@@ -812,20 +812,21 @@ class TurnPipeline(
     }
 
     /**
-     * Ask again whether the marks can be produced, and keep an answer that says they can.
+     * Ask again whether the marks can be produced, and by what.
      *
-     * **An `On` is settled for the sitting, an `Off` is not.** The doc's rule is that a turn
-     * stays analysable as long as the conversation started with its model loaded -- it guards
-     * against *losing* the marks halfway, and says nothing about gaining them. Kept both ways,
-     * the refusal survived the model arriving: whoever brought the three files while the app
-     * was open was told no until the process was killed, on a screen that was at that moment
-     * declaring the same files verified.
+     * **An `Off` is re-asked every turn, and so is an `On` -- cheaply.** Where the pass runs
+     * is a setting like any other, and the other links resolve theirs at the moment they are
+     * used: the next turn uses it. Keeping an `On` settled for the sitting was right while the
+     * engine could not change, and it stopped being right the day a remote pass became a
+     * choice -- a learner who picks the server and speaks again must not be answered by an
+     * engine that was settled before the pick existed.
      *
-     * Cheap when the answer has not moved: the engine remembers its refusal against the files
-     * it refused over and only looks at them again when they change.
+     * The ask stays cheap when nothing moved: the engine compares the choice it was built for
+     * against the stored one, and a decrypted store costs one read. A change closes the old
+     * engine and builds the new one, so every reading a turn produces comes from one engine,
+     * and each turn carries that engine's stamp -- two eras never mix silently within a turn.
      */
     suspend fun recheckAnalysis() {
-        if (_state.value.analysis is Readiness.On) return
         val readiness = analysis.readiness()
         _state.update { it.copy(analysis = readiness) }
     }
