@@ -13,7 +13,6 @@ import app.saylune.chain.Present
 import app.saylune.chain.Said
 import app.saylune.chain.Scene
 import app.saylune.levers.Stepped
-import app.saylune.conversation.Speaker
 import app.saylune.sheets.Sheets
 import org.json.JSONArray
 import org.json.JSONObject
@@ -586,16 +585,19 @@ internal object ConversationPrompt {
                 facts.forEach { (key, answer) -> put(key, answer) }
             })
         }
-        // The same shape the contract asks for, so the record reads as a run of turns the
-        // model itself could have written. What each past turn holds is one text: the run it
-        // was said as is not what the model has to remember, and putting it back in pieces
-        // would show it a turn it did not write.
-        said.put("said", JSONArray().put(
-            JSONObject()
-                .put("kind", "speech")
-                .put("who", Speaker.SAYLUNE)
-                .put("text", history[at].text),
-        ))
+        // The same shape the contract asks for, and the whole run: what the model wrote is
+        // what it is shown again, so a turn of three utterances does not come back as one
+        // sentence a passage later.
+        said.put("said", JSONArray().apply {
+            history[at].said.forEach { one ->
+                put(
+                    JSONObject()
+                        .put("kind", if (one.isSpeech) "speech" else "stage")
+                        .put("who", one.who)
+                        .put("text", one.text),
+                )
+            }
+        })
         // `intended` belonged to the learner's turn just before, which is where the pipeline
         // always puts it. Written out only when it really is there.
         history.getOrNull(at - 1)?.takeIf { it.fromLearner }?.let { said.put("intended", it.text) }

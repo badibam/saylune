@@ -1,6 +1,7 @@
 package app.saylune.conversation
 
 import app.saylune.activity.Shipped
+import app.saylune.chain.Said
 import app.saylune.levers.At
 import app.saylune.levers.Count
 import app.saylune.levers.Positions
@@ -148,6 +149,44 @@ class PassageTest {
     fun `an unanswered passage carries no reply`() {
         val opener = said("hello")
         assertEquals(listOf("hello"), state(opener).history().map { it.text })
+    }
+
+    /**
+     * **A turn is a run, and the model gets its own narration back whole.**
+     *
+     * Carried as one line, a turn of three utterances came back to the model as one sentence
+     * from the passage after it -- it lost what it had itself narrated, out of its own memory.
+     */
+    @Test
+    fun `a turn of several utterances reaches the model whole`() {
+        val opener = said("we are here")
+        val turn = state(
+            opener,
+            replied(opener.id, "The train pulls in.").copy(
+                speaker = Speaker.Narrator, kind = Said.Kind.StageDirection,
+            ),
+            replied(opener.id, "Ticket, please."),
+        ).history().last()
+        assertEquals(
+            listOf("The train pulls in.", "Ticket, please."), turn.said.map { it.text },
+        )
+        assertEquals(listOf(false, true), turn.said.map { it.isSpeech })
+        assertEquals(listOf(Speaker.NARRATOR, Speaker.SAYLUNE), turn.said.map { it.who })
+    }
+
+    /** And a rewording supersedes the run whole, not just its last utterance. */
+    @Test
+    fun `a reworded passage drops every utterance of the superseded turn`() {
+        val opener = said("I have 25 years")
+        val stale = replied(opener.id, "How long")
+        val alsoStale = replied(opener.id, "have you had them?")
+        val again = said("I am 25", repeats = opener.id, attempt = Attempt.Rewording)
+        val fresh = replied(again.id, "Ah")
+        val run = state(opener, stale, alsoStale, again, fresh)
+        assertEquals(listOf("I am 25", "Ah"), run.history().map { it.text })
+        // The rewording itself is not drawn where it sits: it is one of the readings under
+        // the utterance it repeats, which is where the learner is looking.
+        assertEquals(listOf(opener.id, fresh.id), run.thread().map { it.id })
     }
 
     // ── The thread ──────────────────────────────────────────────────────────────────────

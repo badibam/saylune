@@ -5,6 +5,7 @@ import app.saylune.judged.Judgement
 import app.saylune.activity.Brief
 import app.saylune.activity.Character
 import app.saylune.activity.Question
+import app.saylune.conversation.Speaker
 import app.saylune.levers.Positions
 import app.saylune.rules.Instructing
 
@@ -213,11 +214,31 @@ data class Scene(
  * and which does not break the cached prefix, the history being stable at the head and growing
  * at the tail where a heading would grow in the middle.
  */
+/**
+ * One turn of the record the model is shown: whose it is, and what was said in it.
+ *
+ * **The app's own turn is a run and is carried as one.** It used to be a single line, so from
+ * the passage after it the model saw one sentence where it had written three -- it lost its
+ * own narration out of its own memory, which is the real structural cost of a turn being a
+ * run. What is put back is the shape it wrote.
+ *
+ * The learner's turn is one utterance by construction: one recording, one sentence.
+ */
 data class Exchange(
     val fromLearner: Boolean,
-    val text: String,
+    val said: List<Said>,
     val established: Map<String, String> = emptyMap(),
-)
+) {
+
+    /** The turn as one string, for whoever reads it whole rather than utterance by utterance. */
+    val text: String get() = said.joinToString(" ") { it.text }
+
+    companion object {
+        /** The learner's turn, which is always one speech of theirs. */
+        fun ofLearner(text: String) =
+            Exchange(true, listOf(Said(Said.Kind.Speech, Speaker.LEARNER, text)))
+    }
+}
 
 /**
  * One utterance of a turn: what kind it is, who it belongs to, and its words.

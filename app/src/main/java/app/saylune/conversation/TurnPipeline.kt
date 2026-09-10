@@ -649,36 +649,67 @@ data class ConversationState(
         val passages = passages()
         val out = mutableListOf<Exchange>()
         var next = 0
+        var provoked = mutableListOf<Utterance>()
+        fun flush() {
+            if (provoked.isNotEmpty()) out += asTurn(provoked)
+            provoked = mutableListOf()
+        }
         utterances.forEach { one ->
             // **A provoked turn answers nobody and belongs to no passage**, so what says when
             // it was said is its place in the run and nothing else. It falls between passages
             // by construction -- at the opening, or at a passage's close -- so putting each
             // passage out whole at its opener keeps the two in the order they happened.
+            //
+            // **Gathered while they run together**, a turn being a run of utterances now:
+            // they are appended in one go, so a turn is exactly a stretch of them. Two
+            // provoked turns back to back would read as one, and there is no such pair -- the
+            // opening's is followed by the learner, and a close provokes once per passage.
             if (!one.speaker.isLearner && one.answers == null) {
-                out += Exchange(false, one.text, one.established)
-            } else if (one.id == passages.getOrNull(next)?.opener?.id) {
-                out += exchangesOf(passages[next])
-                next++
+                provoked += one
+            } else {
+                flush()
+                if (one.id == passages.getOrNull(next)?.opener?.id) {
+                    out += exchangesOf(passages[next])
+                    next++
+                }
             }
         }
+        flush()
         return out
     }
 
     private fun exchangesOf(passage: Passage): List<Exchange> = listOfNotNull(
-        Exchange(fromLearner = true, text = passage.last.text),
-        standingReply(passage)?.let { Exchange(false, it.text, it.established) },
+        Exchange.ofLearner(passage.last.text),
+        standingReply(passage).takeIf { it.isNotEmpty() }?.let { asTurn(it) },
+    )
+
+    /** A run of the app's own utterances, as the model is shown it. */
+    private fun asTurn(run: List<Utterance>) = Exchange(
+        fromLearner = false,
+        said = run.map { Said(it.kind, it.speaker.key, it.text) },
+        // Written on the utterance that opens the turn, which is where the prompt lays it
+        // back: what the model settled belongs to the turn and not to one line of it.
+        established = run.first().established,
     )
 
     /**
-     * The reply that stands for [passage], or null before one has been made.
+     * The turn that stands for [passage], empty before one has been made.
      *
      * The last reply of the **passage**, and not the one answering the last attempt: a repeat
      * is never answered at all -- it is pipe B alone, on a text already settled -- so looking
      * it up by the last attempt would lose the reply the moment the learner said the sentence
      * again. A rewording, which does make a fresh call, is the case where the two coincide.
+     *
+     * **Whole, because a turn is a run.** The last utterance says which attempt was answered,
+     * and every utterance answering that one is the turn -- so the model keeps its own
+     * narration in its own memory instead of seeing one sentence where it wrote three.
      */
-    private fun standingReply(passage: Passage): Utterance? =
-        utterances.lastOrNull { reply -> passage.attempts.any { reply.answers == it.id } }
+    private fun standingReply(passage: Passage): List<Utterance> {
+        val answered = utterances.lastOrNull { reply ->
+            passage.attempts.any { reply.answers == it.id }
+        }?.answers ?: return emptyList()
+        return utterances.filter { it.answers == answered }
+    }
 
     /**
      * The run as the screen draws it: **what opens a passage, and the reply that stands**.
@@ -695,7 +726,7 @@ data class ConversationState(
      * which is what makes the two agree.
      */
     fun thread(): List<Utterance> {
-        val standing = passages().mapNotNull { standingReply(it)?.id }.toSet()
+        val standing = passages().flatMap { standingReply(it) }.map { it.id }.toSet()
         return utterances.filter {
             when {
                 it.speaker.isLearner -> it.repeats == null
