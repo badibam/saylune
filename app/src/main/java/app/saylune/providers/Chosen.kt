@@ -144,6 +144,11 @@ internal fun recognitionBy(store: SecretStore, provider: Provider, model: String
         Provider.Replicate -> ReplicateRecognition(store, model)
         Provider.Azure -> AzureRecognition(store)
         Provider.ElevenLabs -> ElevenLabsRecognition(store, model)
+        // The analysis providers do one link and it is not this one. Reached only if a
+        // stored choice outlived the list it came from, which is what `Task.chosen`
+        // already guards -- so this says so rather than falling through to anyone.
+        Provider.OnDevice, Provider.AnalysisServer ->
+            throw ChainFailure("$provider does not transcribe")
         Provider.Inworld -> InworldRecognition(store, model)
         Provider.Deepseek, Provider.OpenAI ->
             throw ChainFailure("${provider.label} does not transcribe")
@@ -167,7 +172,7 @@ internal fun conversationBy(
     // exhaustive, and that is what made the compiler ask about OpenAI when it was added;
     // here an `else` answered for it, and a provider offered on screen threw at the moment
     // the learner had already spoken.
-    Provider.Azure, Provider.ElevenLabs ->
+    Provider.Azure, Provider.ElevenLabs, Provider.OnDevice, Provider.AnalysisServer ->
         throw ChainFailure("${provider.label} does not hold a conversation")
 }
 
@@ -180,6 +185,8 @@ internal fun synthesisBy(
     Provider.Replicate -> ReplicateSynthesis(context, store, model)
     Provider.Azure -> AzureSynthesis(context, store)
     Provider.ElevenLabs -> ElevenLabsSynthesis(context, store, model)
+    Provider.OnDevice, Provider.AnalysisServer ->
+        throw ChainFailure("$provider does not speak")
     Provider.Inworld -> InworldSynthesis(context, store, model)
     Provider.Deepseek, Provider.OpenAI ->
         throw ChainFailure("${provider.label} does not speak")

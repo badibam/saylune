@@ -42,7 +42,7 @@ class Frames(val count: Int, val width: Int, private val values: FloatArray) {
     }
 
     companion object {
-        fun of(reading: AcousticMatrix.Reading) =
+        fun of(reading: PassReading) =
             Frames(reading.frames, reading.symbols, reading.values)
     }
 }

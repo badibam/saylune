@@ -113,7 +113,7 @@ class ProbeActivity : Activity() {
      * A format with nothing in it to get wrong, because what is being tested is
      * the network and not a serialiser. `bench/phone.py` holds the other half.
      */
-    private fun write(destination: File, reading: AcousticMatrix.Reading) {
+    private fun write(destination: File, reading: PassReading) {
         val buffer = ByteBuffer.allocate(8 + reading.values.size * 4)
             .order(ByteOrder.LITTLE_ENDIAN)
         buffer.putInt(reading.frames)

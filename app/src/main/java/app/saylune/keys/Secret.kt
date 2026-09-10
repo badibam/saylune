@@ -53,6 +53,19 @@ enum class Secret(
                     masked = false, overridable = true),
 
     /**
+     * The analysis server: where it is, and what opens it.
+     *
+     * The address is **not** overridable, unlike every other endpoint here: those replace a
+     * provider's published one and leaving them blank is the ordinary case, while this one
+     * has nothing behind it. Blank means the link is simply not offered, which is how the
+     * app is kept from being tied to one instance -- whoever runs their own puts it here
+     * (`docs/reference.md`).
+     */
+    AnalysisEndpoint("analysis.server.endpoint", R.string.secret_analysis_endpoint,
+                     masked = false),
+    AnalysisToken("analysis.server.token", R.string.secret_analysis_token),
+
+    /**
      * Which provider does each task, and with what.
      *
      * Configuration, not credentials, so they are not masked -- the user has to be able to
@@ -74,6 +87,14 @@ enum class Secret(
     JudgementProvider("task.judge.provider", R.string.task_judgement, masked = false),
     JudgementModel("task.judge.model", R.string.setting_model, masked = false),
     JudgementEffort("task.judge.effort", R.string.setting_effort, masked = false),
+    /**
+     * Who runs the acoustic pass, which is the one link that has a local answer.
+     *
+     * [AnalysisModel] is here because a task names three entries and this one has no model
+     * to name -- the network is the network. It stays empty, as Azure's does.
+     */
+    AnalysisProvider("task.analysis.provider", R.string.task_analysis, masked = false),
+    AnalysisModel("task.analysis.model", R.string.setting_model, masked = false),
     SparePalette("view.palette.spare", R.string.setting_palette, masked = false),
 
     /**

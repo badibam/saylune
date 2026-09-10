@@ -162,6 +162,10 @@ internal object LatencyTest {
         val began = System.nanoTime()
         try {
             when (task) {
+                // Not a remote call to time beside the other three: the acoustic pass is
+                // measured on its own, on the machine that runs it (`bench/cost.py`), and
+                // what a round trip adds is read off real turns rather than a sample.
+                Task.Analysis -> error("the analysis link is not timed here")
                 Task.Recognition -> {
                     val file = heard.files[size]
                         ?: error("no $size sample: " + (heard.why ?: "not rendered"))

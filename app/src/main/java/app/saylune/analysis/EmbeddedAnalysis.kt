@@ -4,6 +4,13 @@ import android.content.Context
 import app.saylune.BuildConfig
 import app.saylune.R
 import app.saylune.embedded.AcousticMatrix
+import app.saylune.embedded.AcousticPass
+import app.saylune.embedded.Layer
+import app.saylune.keys.Secret
+import app.saylune.keys.SecretStore
+import app.saylune.providers.Provider
+import app.saylune.providers.Task
+import kotlinx.coroutines.flow.first
 import app.saylune.embedded.Added
 import app.saylune.embedded.Affinity
 import app.saylune.embedded.Alphabet
@@ -44,7 +51,18 @@ import java.io.File
  * dictionary, no dialect lexicon, no reference of rightness. What decides whether a take is
  * at fault is the gap to the model, and nothing else.
  */
-class EmbeddedAnalysis(private val context: Context) : Analysis {
+class EmbeddedAnalysis(
+    private val context: Context,
+    /**
+     * Where the choice of pass is read, or null to stay on this device without asking.
+     *
+     * Read when the engine is built and not at every turn: the doc settles this once for a
+     * conversation, and a reading computed here is not interchangeable with one computed
+     * elsewhere -- switching mid-thread would put two eras of measurement in one fil
+     * (`docs/design/remote-analysis.md`).
+     */
+    private val store: SecretStore? = null,
+) : Analysis {
 
     private val lock = Mutex()
     private var engine: Engine? = null
@@ -64,7 +82,9 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
     private var refusedOver: String? = null
 
     private class Engine(
-        val matrix: AcousticMatrix,
+        /** Which pass this engine was built for, so a change of mind rebuilds it. */
+        val chosen: String,
+        val matrix: AcousticPass,
         val alphabet: Alphabet,
         val affinity: Affinity,
         val probe: Stress.Probe,
@@ -73,13 +93,21 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
     )
 
     override suspend fun readiness(): Readiness = lock.withLock {
-        engine?.let { return Readiness.On(it.version) }
-        val disk = Weights.onDisk(context)
+        val (chosen, remote) = choice()
+        engine?.let {
+            if (it.chosen == chosen) return Readiness.On(it.version)
+            // A different answer to "where does the pass run" is a different engine, and
+            // the old one holds a session worth hundreds of megabytes.
+            it.matrix.close()
+            engine = null
+            refused = null
+        }
+        val disk = "${Weights.onDisk(context)}|$chosen"
         refused?.let { if (refusedOver == disk) return it }
         // Settled once for the conversation and cached either way: the doc is explicit that
         // this is not a per-turn question, and a turn stays analysable as long as the
         // conversation started with its model loaded.
-        val outcome = runCatching { load() }
+        val outcome = runCatching { load(chosen, remote) }
         outcome.getOrNull()?.let {
             engine = it
             Trace.add("analysis: ready", "weights" to weights()?.name,
@@ -196,7 +224,7 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
             // already locates in the learner's recording.
             val melody = melody(
                 sounds, reading.gaps, segments, model, said,
-                modelReading.hidden, saidReading.hidden, engine.probe, step,
+                modelReading.layer, saidReading.layer, engine.probe, step,
             )
 
             Analysed(
@@ -265,8 +293,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         segments: List<Segment>,
         model: File,
         said: File,
-        modelHidden: FloatArray,
-        saidHidden: FloatArray,
+        modelLayer: Layer,
+        saidLayer: Layer,
         probe: Stress.Probe,
         step: Float,
     ): List<Syllable> {
@@ -292,8 +320,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
         val modelLine = Pitch.semitones(mine)
         val saidLine = Pitch.semitones(theirs)
-        val flags = Stress.flags(kept, sounds, segments, spanOf, modelHidden,
-                                 saidHidden, probe)
+        val flags = Stress.flags(kept, sounds, segments, spanOf, modelLayer,
+                                 saidLayer, probe)
         val out = kept.indices.mapNotNull { i ->
             // A model syllable nothing voiced has no contour to be departed from, so it is
             // no more a mark than a silence is: it drops out of both lines at once.
@@ -323,7 +351,24 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
         return out
     }
 
-    private fun load(): Engine {
+    /**
+     * Where the pass runs, and what identifies that choice.
+     *
+     * Nothing chosen means this device, which is not a default papering over a missing
+     * setting: it is the app's own answer, it needs no key and no network, and it is what
+     * `docs/reference.md` describes as the ordinary case.
+     */
+    private suspend fun choice(): Pair<String, RemoteMatrix?> {
+        val values = store?.values()?.first() ?: return HERE to null
+        if (Task.Analysis.chosen(values) != Provider.AnalysisServer) return HERE to null
+        val endpoint = values[Secret.AnalysisEndpoint].orEmpty()
+        val token = values[Secret.AnalysisToken].orEmpty()
+        if (endpoint.isBlank() || token.isBlank()) return HERE to null
+        val remote = RemoteMatrix(endpoint, token)
+        return remote.version to remote
+    }
+
+    private fun load(chosen: String, remote: RemoteMatrix?): Engine {
         // The reason names the directory and what is in it. "Nothing found" without saying
         // where it looked is the kind of message that costs an hour.
         val home = home()
@@ -356,8 +401,12 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
                     unknown.joinToString(" ")
             )
         }
-        return Engine(AcousticMatrix(weights, THREADS), alphabet, affinity, probe,
-                      version = stamp(weights, vocab, probeFile))
+        val here = stamp(weights, vocab, probeFile)
+        // The remote pass is not loaded here -- there is nothing to load -- and it costs
+        // neither the session nor the memory the local one holds.
+        val pass = remote ?: AcousticMatrix(weights, THREADS, here)
+        return Engine(chosen, pass, alphabet, affinity, probe,
+                      version = if (remote == null) here else "${remote.version}|$here")
     }
 
     /**
@@ -428,5 +477,8 @@ class EmbeddedAnalysis(private val context: Context) : Analysis {
 
         /** Stated rather than left to the machine: the reading has to be reproducible. */
         const val THREADS = 4
+
+        /** What the choice of this device is called, where a remote one is called by its address. */
+        const val HERE = "on-device"
     }
 }

@@ -112,7 +112,8 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
         Text(stringResource(R.string.settings_lead), style = MaterialTheme.typography.bodyMedium)
 
         Provider.entries.forEach { provider ->
-            Text(provider.label, style = MaterialTheme.typography.titleSmall)
+            Text(provider.labelRes?.let { stringResource(it) } ?: provider.label,
+                 style = MaterialTheme.typography.titleSmall)
             provider.needs.forEach { secret ->
                 OutlinedTextField(
                     value = edits[secret].orEmpty(),
@@ -426,7 +427,9 @@ private fun TaskSection(task: Task, store: SecretStore, stored: Map<Secret, Stri
 
         Picker(
             label = stringResource(R.string.setting_provider),
-            options = offered.map { it.id to it.label },
+            options = offered.map {
+                it.id to (it.labelRes?.let { named -> stringResource(named) } ?: it.label)
+            },
             selected = chosen?.id,
             onPick = { id -> scope.launch { store.write(task.provider, id) } },
         )

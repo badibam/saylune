@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
             recognition = ChosenRecognition(store),
             conversation = ChosenConversation(store),
             synthesis = ChosenSynthesis(applicationContext, store),
-            analysis = Analyses.onDevice(applicationContext),
+            analysis = Analyses.chosen(applicationContext, store),
             archive = Archive.of(applicationContext).dao(),
         )
         setContent {

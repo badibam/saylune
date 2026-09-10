@@ -35,6 +35,15 @@ enum class Task(
     Judging(R.string.task_judgement, Secret.JudgementProvider, Secret.JudgementModel,
             null, Secret.JudgementEffort),
     Synthesis(R.string.task_synthesis, Secret.SynthesisProvider, Secret.SynthesisModel, Secret.SynthesisVoice),
+    /**
+     * **The link that does not have to be remote, and that is what makes it a link.**
+     *
+     * The acoustic pass is the only expensive brick of the analysis, and everything above it
+     * is arithmetic over what it renders. What is chosen here is therefore where a
+     * computation runs -- never where a judgement is made: no text, no reference, no
+     * threshold and no verdict leaves the device by this door (`docs/design/remote-analysis.md`).
+     */
+    Analysis(R.string.task_analysis, Secret.AnalysisProvider, Secret.AnalysisModel, null),
     ;
 
     /**
@@ -84,6 +93,14 @@ enum class Provider(
      * on either link. Which level is asked for is per link, and is stored per link.
      */
     val efforts: List<Effort> = emptyList(),
+    /**
+     * A label to translate, for the one provider that is not a brand.
+     *
+     * Every other name here is somebody's company and reads the same in any language;
+     * "on this device" is a sentence, and a sentence in the code is a string nobody can
+     * translate.
+     */
+    @StringRes val labelRes: Int? = null,
 ) {
     Replicate(
         id = "replicate",
@@ -212,6 +229,38 @@ enum class Provider(
         // exists for latency. It goes back on the menu the day a model page lists its own.
         efforts = listOf(Effort.Low, Effort.Medium, Effort.High),
     ),
+
+    /**
+     * The pass on this very device, which needs nothing and is therefore always offered.
+     *
+     * `needs` is empty on purpose: readiness asks whether the keys are filled, and this one
+     * has none. It is the only provider in the list that costs nothing and that no network
+     * can take away.
+     */
+    OnDevice(
+        id = "on-device",
+        label = "on device",
+        needs = emptyList(),
+        does = setOf(Task.Analysis),
+        models = emptyMap(),
+        labelRes = R.string.provider_on_device,
+    ),
+
+    /**
+     * A machine running this project's own server (`server/serve.py`).
+     *
+     * Offered only once an address is written, which is the rule every provider here follows
+     * with its key -- and here it also keeps the app from being bound to one instance, since
+     * there is no address behind this one.
+     */
+    AnalysisServer(
+        id = "analysis-server",
+        label = "Saylune server",
+        needs = listOf(Secret.AnalysisEndpoint, Secret.AnalysisToken),
+        does = setOf(Task.Analysis),
+        models = emptyMap(),
+        labelRes = R.string.provider_analysis_server,
+    ),
     ;
 
     /**
@@ -244,7 +293,8 @@ enum class Provider(
         Azure -> azureVoices(store)
         ElevenLabs -> elevenVoices(store)
         Inworld -> inworldVoices(store)
-        Deepseek, OpenAI -> throw ChainFailure("$label has no voices")
+        Deepseek, OpenAI, OnDevice, AnalysisServer ->
+            throw ChainFailure("$label has no voices")
     }
 
     /** Azure publishes the whole voice list for a region, so it is read whole and filtered. */

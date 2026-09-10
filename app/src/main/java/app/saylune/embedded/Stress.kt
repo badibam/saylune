@@ -65,13 +65,18 @@ object Stress {
      * margin are read off. Null when a span runs past the layer, so the caller drops the
      * word rather than reading a short syllable: the same contract `probe.parts` holds.
      */
-    fun parts(hidden: FloatArray, places: List<IntRange>, probe: Probe): FloatArray? {
-        require(hidden.size % probe.mean.size == 0) {
-            "the hidden layer does not match the probe: ${hidden.size} frames "
-            "over ${probe.mean.size} columns leaves a remainder"
-        }
+    fun parts(layer: Layer, places: List<IntRange>, probe: Probe): FloatArray? {
         val width = probe.mean.size
-        val frames = hidden.size / width
+        val frames = when (layer) {
+            is Layer.Whole -> {
+                require(layer.hidden.size % width == 0) {
+                    "the hidden layer does not match the probe: ${layer.hidden.size} " +
+                        "over $width columns leaves a remainder"
+                }
+                layer.hidden.size / width
+            }
+            is Layer.Folded -> layer.perFrame.size
+        }
         val scores = FloatArray(places.size)
         for ((index, span) in places.withIndex()) {
             var last = span.last
@@ -81,17 +86,31 @@ object Stress {
             // `Frames.mean` gives: a running float sum drifts enough to move a
             // mark, and two implementations have to agree about the same
             // numbers, not about nearly the same ones.
-            val mean = DoubleArray(width)
-            for (frame in span.first until last) {
-                val base = frame * width
-                for (column in 0 until width) mean[column] += hidden[base + column]
-            }
             val count = (last - span.first).toDouble()
-            var dot = 0.0
-            for (column in 0 until width) {
-                val standardised = (mean[column] / count - probe.mean[column]) /
-                    probe.deviation[column]
-                dot += standardised * probe.weight[column]
+            val dot = when (layer) {
+                is Layer.Whole -> {
+                    val mean = DoubleArray(width)
+                    for (frame in span.first until last) {
+                        val base = frame * width
+                        for (column in 0 until width) {
+                            mean[column] += layer.hidden[base + column]
+                        }
+                    }
+                    var total = 0.0
+                    for (column in 0 until width) {
+                        val standardised = (mean[column] / count - probe.mean[column]) /
+                            probe.deviation[column]
+                        total += standardised * probe.weight[column]
+                    }
+                    total
+                }
+                // The projection already happened, one scalar a frame, so what is left
+                // of the same arithmetic is the average over the span.
+                is Layer.Folded -> {
+                    var total = 0.0
+                    for (frame in span.first until last) total += layer.perFrame[frame]
+                    total / count
+                }
             }
             scores[index] = (dot + probe.bias).toFloat()
         }
@@ -114,7 +133,7 @@ object Stress {
     /**
      * Which syllable carries the stress, on each side, for every syllable handed in.
      *
-     * The caller hands the cuts of the whole utterance and the two hidden layers; the
+     * The caller hands the cuts of the whole utterance and the two layers; the
      * words are regrouped here, as the bench regroups them (`bench/turn.py`): consecutive
      * cuts sharing a word are that word, read on the **nucleus** alone -- the model's own
      * segment on its side, and where that same sound sits in the take on the other, which
@@ -130,8 +149,8 @@ object Stress {
         sounds: List<Sound>,
         segments: List<Segment>,
         spanOf: Map<Int, Pair<IntRange, IntRange>>,
-        modelHidden: FloatArray,
-        saidHidden: FloatArray,
+        modelLayer: Layer,
+        saidLayer: Layer,
         probe: Probe,
     ): List<Pair<Boolean, Boolean>> {
         val out = MutableList(cuts.size) { false to false }
@@ -167,8 +186,8 @@ object Stress {
                 saidPlaces.add(span.second)
             }
             if (!broken) {
-                val theirs = parts(modelHidden, modelPlaces, probe)
-                val mine = parts(saidHidden, saidPlaces, probe)
+                val theirs = parts(modelLayer, modelPlaces, probe)
+                val mine = parts(saidLayer, saidPlaces, probe)
                 if (theirs != null && mine != null && margin(theirs) >= BAR) {
                     val modelAt = elected(theirs)
                     val saidAt = elected(mine)

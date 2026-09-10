@@ -39,6 +39,11 @@
     <string name="task_conversation">Conversation</string>
     <string name="task_synthesis">Voice</string>
     <string name="task_judgement">Judgement</string>
+    <string name="task_analysis">Sound analysis</string>
+    <string name="provider_on_device">On this device</string>
+    <string name="provider_analysis_server">Saylune server</string>
+    <string name="secret_analysis_endpoint">Analysis server — address (leave empty to keep the analysis on the device)</string>
+    <string name="secret_analysis_token">Analysis server — token</string>
     <string name="task_no_provider">No provider can do this yet: fill in a key above.</string>
     <string name="setting_provider">Provider</string>
     <string name="setting_model">Model</string>

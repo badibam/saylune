@@ -22,7 +22,8 @@ import java.nio.FloatBuffer
  * Debug-only on purpose. Which engine the app ships with is not decided, and a
  * release that carried a native dependency would be presuming the answer.
  */
-class AcousticMatrix(weights: File, threads: Int) {
+class AcousticMatrix(weights: File, threads: Int,
+                     override val version: String = "") : AcousticPass {
 
     private val environment: OrtEnvironment = OrtEnvironment.getEnvironment()
     private val session: OrtSession
@@ -41,15 +42,7 @@ class AcousticMatrix(weights: File, threads: Int) {
         loadMillis = (System.nanoTime() - started) / 1_000_000
     }
 
-    /**
-     * The matrix of one file, the hidden layer the stress probe reads, and what the pass
-     * cost. The graph renders both in one pass (`bench/export.py`), so nothing is computed
-     * twice and the layer rows line up with the matrix rows, frame for frame.
-     */
-    class Reading(val frames: Int, val symbols: Int, val values: FloatArray,
-                  val hidden: FloatArray, val millis: Long, val seconds: Float)
-
-    fun read(wav: File): Reading {
+    override fun read(wav: File): PassReading {
         val audio = samples(wav)
         val prepared = prepared(audio)
         val started = System.nanoTime()
@@ -81,13 +74,14 @@ class AcousticMatrix(weights: File, threads: Int) {
                     rows[frame].copyInto(values, frame * symbols)
                     hiddenRows[frame].copyInto(hidden, frame * width)
                 }
-                return Reading(rows.size, symbols, values, hidden, millis,
-                               audio.size / SAMPLE_RATE.toFloat())
+                return PassReading(rows.size, symbols, values,
+                                   Layer.Whole(hidden, width), millis,
+                                   audio.size / SAMPLE_RATE.toFloat())
             }
         }
     }
 
-    fun close() = session.close()
+    override fun close() = session.close()
 
     companion object {
         const val SAMPLE_RATE = 16000
