@@ -398,11 +398,11 @@ Le geste, les trois positions et ce que chacune permet de lire sont dans `captur
 
 ## L'audio
 
-**Un tour est une liste de segments** — une durée de silence, ou de l'audio —, et le silence n'est jamais stocké en échantillons (`capture/Segments.kt`). Chaque segment de parole garde une **marge de vrai audio** : ce qui identifie une occlusive vit dans la transition.
+**Un tour est un enregistrement d'un seul tenant**, gardé et envoyé tel que le micro l'a entendu (`capture/TurnRecorder.kt`). Il était découpé en segments, le silence gardé comme durée et jamais comme échantillons ; ce découpage reposait sur une barre de volume posée à la main, et il est abandonné (2026-09-10, `reference.md`).
 
 **Ce qu'on déduit de l'audio se stocke.** La purge efface l'audio ; une mesure qui ne se recalculerait plus après doit donc exister ailleurs. **L'audio n'est pas purgé par défaut, et la purge est à écrire** — à ne pas confondre avec le balayage des enregistrements que plus aucun énoncé ne nomme, qui est fait et n'est pas une purge (`reference.md`).
 
-**Ce que chaque mesure lit exactement** — l'audio brut, les segments, la reconstruction — est à préciser mesure par mesure.
+**Ce que chaque mesure lit exactement** est à préciser mesure par mesure ; toutes lisent le même fichier depuis que le tour n'est plus découpé.
 
 ## L'habillage rétro
 

@@ -63,12 +63,10 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 
 - **L'armement ne sait pas qu'une reprise attend.** `Standing` porte les quatre états du passage et rien ne les lit dans `ui/ConversationScreen.kt`, où `repairWaits` est écrit en dur à faux : rien n'attend donc jamais, et le micro s'arme sans l'ambiguïté que la suspension existe pour lever.
 - **Les deux positions armées n'ont jamais tourné.** L'armement automatique, les deux décomptes et les deux horloges qui ferment un tour ne se jugent qu'à la main, et compilent sans avoir été essayés. La première position, elle, a tourné sur le téléphone.
-- **Le seuil de niveau du retrait des plages vides est posé à la main** (`capture/Silence.kt`) et **dû au banc**, qui n'a pas de tours spontanés hésitants pour le lire : c'est le sol d'une pièce, un souffle et une voyelle tenue qui séparent une valeur qui marche d'une qui coupe la parole. Le seuil de durée, lui, est sûr.
-- **Le tour entier est stocké, pas les segments** : `Segments` rogne à l'envoi, le réseau ne reçoit que la parole, et ce qui est gardé sur le disque est le tour reconstruit. L'économie de disque appartient à la purge.
-- **`Take` fait deux fichiers là où il y en avait un** : la copie de parole s'efface dès que la chaîne est passée, mais un tour qui casse en laisse une jusqu'au balayage du démarrage suivant.
 - **Le silence initial d'une prise ouverte à la main se compte comme il vient** (tranché le 2026-09-06) : la même hésitation vaut deux chiffres très différents selon que le micro était armé ou qu'il a fallu appuyer, et rien à l'écran ne le dit. Le tour porte sa position de capture, donc le fait se relit plus tard.
 - **La purge de l'audio reste à écrire**, le design l'ayant détachée de la session sans la remplacer.
-- **Le plafond de capture à 30 s et le retrait des plages vides sautent ensemble** quand le fenêtrage de la passe d'analyse est tranché.
+- **Comment l'horloge de la troisième position lit le silence est une question ouverte** (le 2026-09-10). C'est le seul client qui reste de la barre de volume de `capture/Silence.kt` — le découpage des plages vides est abandonné, et la fluidité lit ses blancs de là où les mots tombent, jamais d'un niveau. Cette horloge, elle, doit trancher en direct, sans mots pour se repérer. Ce qu'on sait déjà : **une barre absolue ne peut pas tenir**, la source de micro étant demandée sans gain automatique, donc la même voix arrive d'un appareil à l'autre à des niveaux qui diffèrent de plus que la marge que `0.012` laisse — c'est ce qui a cassé le découpage, et l'horloge y est exposée à l'identique. Ce qui est en jeu ici est qu'elle envoie le tour pendant qu'on parle encore. Rien ne presse : **la position n'a jamais tourné**, et la barre en place ne peut plus rien abîmer d'autre.
+- **Le plafond de capture à 30 s saute** quand le fenêtrage de la passe d'analyse est tranché.
 - **Rien de ce que l'étape du passage et des portes a écrit n'a tourné sur le téléphone**, et c'est ce dont elle a le plus besoin : tout ce qu'elle écrit se juge en parlant.
 
 ### L'écran
@@ -134,7 +132,6 @@ Un seul chantier, à mener feuille par feuille, hors de l'app, sur des prises en
 - **Le délai de grâce d'une seconde** et **le seuil de la pause à 200 ms**, ce dernier à placer au-dessus de la plus longue fermeture d'occlusive. La mesure qui compte lit les blancs entre deux plages de mots du décodage libre, et aucune prise gardée ne porte encore ce placement.
 - **Les trois crans de pause** — 0,2 / 0,5 / 3 s — et **les deux seuils du débit**.
 - **Les bornes des cinq leviers à nombre** — la cadence de 50 à 300 % par 10, le seuil de silence de 1 à 30 s, le tour de 3 à 30 s, la préparation de 0 à 30 s.
-- **Le seuil de niveau du rognage des plages vides**, qui demande des tours spontanés hésitants que le banc n'a pas.
 
 ## Ce qui ne se sait qu'à l'usage
 

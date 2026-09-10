@@ -18,7 +18,6 @@ import app.saylune.activity.Settled
 import app.saylune.activity.Status
 import app.saylune.capture.Ending
 import app.saylune.capture.Playback
-import app.saylune.capture.Take
 import app.saylune.analysis.Analysed
 import app.saylune.analysis.AnalysedSound
 import app.saylune.analysis.timed
@@ -288,7 +287,7 @@ data class Utterance(
  * the sheet of the interrupted turn and the instruction that forbids completing an unfinished
  * sentence would both read something that never happened.
  */
-data class Pending(val take: Take, val capture: String?, val ending: Ending?)
+data class Pending(val take: File, val capture: String?, val ending: Ending?)
 
 data class ConversationState(
     /**
@@ -885,7 +884,7 @@ class TurnPipeline(
      * rather than a turn that looks hand-sent.
      */
     suspend fun submit(
-        audio: Take? = null, capture: String? = null, ending: Ending? = null,
+        audio: File? = null, capture: String? = null, ending: Ending? = null,
     ) = writing.withLock { submitLocked(audio, capture, ending) }
 
     /**
@@ -903,11 +902,11 @@ class TurnPipeline(
      * there is nothing new to answer. It stays what it was, an exercise -- [redo].
      */
     suspend fun reword(
-        of: String, audio: Take, capture: String? = null, ending: Ending? = null,
+        of: String, audio: File, capture: String? = null, ending: Ending? = null,
     ) = writing.withLock { submitLocked(audio, capture, ending, rewords = of) }
 
     private suspend fun submitLocked(
-        audio: Take?, capture: String?, ending: Ending?, rewords: String? = null,
+        audio: File?, capture: String?, ending: Ending?, rewords: String? = null,
     ) {
         // **Nothing more is said in a sitting that is over.** The screen already refuses the
         // gesture; refusing it here too is what makes that a property of the sitting rather
@@ -917,7 +916,7 @@ class TurnPipeline(
         val take = audio ?: held?.take ?: return
         // The turn as it was said, blanks and all: it is what is stored, what the analysis
         // reads, and what is played back. The recognition gets the other one.
-        val turn = take.whole
+        val turn = take
         // A retry carries the facts the take was recorded under, never fresh ones.
         val position = if (audio == null) held?.capture else capture
         val closedBy = if (audio == null) held?.ending else ending
@@ -926,7 +925,6 @@ class TurnPipeline(
             if (audio == null) "turn: sending again what was kept" else "turn: a new recording",
             "file" to turn.path,
             "bytes" to turn.length().toString(),
-            "sent to the recognition" to take.spoken.length().toString(),
         )
         _state.update {
             it.copy(phase = Phase.Hearing, failure = null,
@@ -938,9 +936,7 @@ class TurnPipeline(
         // put would simply never be asked, and nothing would say so.
         val door = frontDoor()
         try {
-            // **No silence goes to the network**: the recognition is given the speech
-            // alone, which is what it has any use for and what it charges for.
-            val heard = recognition.transcribe(take.spoken)
+            val heard = recognition.transcribe(take)
             if (heard.isEmpty()) {
                 Trace.add("turn: nothing was said, dropped")
                 putBack(door)
@@ -1011,11 +1007,6 @@ class TurnPipeline(
                     soundGate = null,
                 )
             }
-            // The speech-only copy was transport and nothing names it: it goes as soon as no
-            // retry can want it again. The startup sweep would get it too, and waiting for a
-            // launch to reclaim what is already spent is not a reason to leave it.
-            take.spoken.delete()
-
             write(said.id)
 
             val marked = judged.words()
@@ -1503,10 +1494,10 @@ class TurnPipeline(
      * first -- and the earlier reading stays where it was rather than being overwritten.
      */
     suspend fun redo(
-        of: String, audio: Take, capture: String? = null, ending: Ending? = null,
+        of: String, audio: File, capture: String? = null, ending: Ending? = null,
     ) = writing.withLock { redoLocked(of, audio, capture, ending) }
 
-    private suspend fun redoLocked(of: String, audio: Take, capture: String?, ending: Ending?) {
+    private suspend fun redoLocked(of: String, audio: File, capture: String?, ending: Ending?) {
         if (_state.value.over) return
         val spoken = _state.value.utterances.firstOrNull { it.id == of } ?: return
         val model = _state.value.modelOf(of) ?: return
@@ -1523,7 +1514,7 @@ class TurnPipeline(
             val kept = Kept.of(spoken.text, stumbling)
             // The whole take: a repeat is measured, and every measure reads the turn as it
             // was said rather than the speech cut out of it.
-            val said = audio.whole
+            val said = audio
             val analysed = analysis.examine(said, model, spoken.text, kept)
             val stamp = Takes.keep(context, said, model, emptyList(), spoken.text, false,
                                    analysed, redo = true, stumbling = stumbling,

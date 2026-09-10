@@ -6,13 +6,12 @@ package app.saylune.capture
  * **This is a reading of the recording and never a measure of the learner.** Nothing scored
  * reads it: the fluency sheets take their silences from where the two recordings put each
  * word, through the network, which is the reading that knows a word boundary from a stop
- * closure. What this one does is govern two things the microphone owes an answer to right
- * now, while somebody is speaking -- the clock that sends a turn at the third capture
- * position, and the empty stretches that are not kept as samples.
+ * closure.
  *
- * So the two definitions of silence in the app do not have to agree, and they are not two
- * sources that drift: one is a live reading of a level and the other is a reading of speech,
- * and neither is ever asked what the other says.
+ * **And it has one client left**, since the trimming of empty stretches was given up
+ * (2026-09-10): the clock that sends a turn by itself at the third capture position. That
+ * clock has to decide while somebody is speaking, with no words yet to go by, which is the
+ * one place a level is the only thing there is to read.
  */
 object Silence {
 
@@ -20,15 +19,12 @@ object Silence {
      * Under this, in the fraction of full scale a root-mean-square gives, the samples are
      * taken for silence.
      *
-     * **Set by hand, and owed to the calibration bench** (`../../../../../../TODO.md`). The
-     * bench has no hesitant spontaneous turns to read it off, and it is the one number here
-     * that wants them: a room's floor, a breath and a held vowel are what separate a value
-     * that works from one that clips speech.
-     *
-     * What bounds the cost of being wrong is where it is used. Too low, silence is kept and
-     * it costs bytes; too high, a breath is cut, and the margin of real audio each stretch of
-     * speech keeps is written for exactly that. The clock at the third position is the case
-     * that bites, and it bites the same way a threshold set a little short would.
+     * **Set by hand, and it is an open question rather than a number owed to the bench**
+     * (`../../../../../../TODO.md`). An absolute bar cannot hold across devices: the app asks
+     * for the microphone source with no automatic gain, so the same voice arrives at levels
+     * that differ by more than the whole margin this bar leaves. That is what broke the
+     * trimming, and the trimming is gone; what is left to decide is what this clock reads
+     * instead, on the position of capture that has never yet been used.
      */
     const val LEVEL = 0.012f
 
