@@ -841,6 +841,36 @@ class TurnPipeline(
      */
     fun armed(of: String) = _state.update { it.copy(armedOn = of) }
 
+    /**
+     * Run [body] in [phase], and come back to [Phase.Idle] whatever happens.
+     *
+     * **The return to idle is structural rather than a sentence at the end of a function.**
+     * It was written as one, and a link giving way in the middle skipped it:
+     *
+     * ```
+     * _state.update { phase = Speaking }
+     * Playback.play(synthesis.speak(...))   // the link gives way here
+     * _state.update { phase = Idle }        // never runs
+     * ```
+     *
+     * The whole screen reads `busy = phase != Idle`, so what that leaves is a conversation
+     * frozen for good with not a word on screen to say why. Three paths had that shape --
+     * saying an answer again, hearing a model, and the held continuation of a close -- and
+     * `submitLocked` had it for anything that is not a [ChainFailure], which its catch names
+     * and nothing else does. A `finally` closes the whole class of them at once.
+     *
+     * It says nothing about what went wrong: reporting is the caller's, which knows what it
+     * was doing. This only makes sure the caller is still reachable to do it.
+     */
+    private suspend fun <T> withPhase(phase: Phase, body: suspend () -> T): T {
+        _state.update { it.copy(phase = phase) }
+        try {
+            return body()
+        } finally {
+            _state.update { it.copy(phase = Phase.Idle) }
+        }
+    }
+
     /** So a second call does not open a second conversation while the first is loading. */
     private var opened = false
 
@@ -1085,23 +1115,26 @@ class TurnPipeline(
         val said = _state.value.utterances.firstOrNull { it.id == waiting.of } ?: return
         Trace.turn()
         Trace.add("turn: asking for the judgement alone", "said" to waiting.said)
-        _state.update { it.copy(phase = Phase.Measuring, failure = null) }
-        try {
-            val verdict = conversation.judge(
-                waiting.before,
-                said = waiting.said,
-                answered = waiting.answered,
-                situation = _state.value.activity.brief?.situation.orEmpty(),
-                present = Present(instructions = waiting.instructions, ending = waiting.ending),
-            )
-            _state.update { it.copy(unjudged = null) }
-            val (closing, groundless) = read(said, verdict.judgement)
-            measure(said, verdict.judgement, waiting.take, waiting.heard, closing, groundless)
-            _state.update { it.copy(phase = Phase.Idle) }
-            if (_state.value.pending != null) submitLocked(null, null, null)
-        } catch (failure: ChainFailure) {
-            Trace.fail("turn: still nothing judged it", "why" to failure.message)
-            _state.update { it.copy(phase = Phase.Idle, failure = failure.message) }
+        _state.update { it.copy(failure = null) }
+        withPhase(Phase.Measuring) {
+            try {
+                val verdict = conversation.judge(
+                    waiting.before,
+                    said = waiting.said,
+                    answered = waiting.answered,
+                    situation = _state.value.activity.brief?.situation.orEmpty(),
+                    present = Present(
+                        instructions = waiting.instructions, ending = waiting.ending,
+                    ),
+                )
+                _state.update { it.copy(unjudged = null) }
+                val (closing, groundless) = read(said, verdict.judgement)
+                measure(said, verdict.judgement, waiting.take, waiting.heard, closing, groundless)
+                if (_state.value.pending != null) submitLocked(null, null, null)
+            } catch (failure: ChainFailure) {
+                Trace.fail("turn: still nothing judged it", "why" to failure.message)
+                _state.update { it.copy(failure = failure.message) }
+            }
         }
     }
 
@@ -1156,259 +1189,258 @@ class TurnPipeline(
             "bytes" to turn.length().toString(),
         )
         _state.update {
-            it.copy(phase = Phase.Hearing, failure = null,
-                    pending = Pending(take, position, closedBy))
+            it.copy(failure = null, pending = Pending(take, position, closedBy))
         }
         // **Taken before the call and put back if the call gives way.** What the front door
         // carries is a rule's message and the questions of the moment just past, and the call
         // is what delivers them: dropped on a link that gave way, a question the app chose to
         // put would simply never be asked, and nothing would say so.
         val door = frontDoor()
-        try {
-            val heard = recognition.transcribe(take)
-            if (heard.isEmpty()) {
-                Trace.add("turn: nothing was said, dropped")
-                putBack(door)
-                // Holding the button by accident is not a failure and must not read as one.
-                _state.update { it.copy(phase = Phase.Idle, pending = null) }
-                return
-            }
+        withPhase(Phase.Hearing) {
+            try {
+                val heard = recognition.transcribe(take)
+                if (heard.isEmpty()) {
+                    Trace.add("turn: nothing was said, dropped")
+                    putBack(door)
+                    // Holding the button by accident is not a failure and must not read as one.
+                    _state.update { it.copy(pending = null) }
+                    return@withPhase
+                }
 
-            _state.update { it.copy(phase = Phase.Thinking) }
-            // **The conversation as it stood before this turn, read once and given to both
-            // calls.** Read twice it would not be the same thing: between them the learner's
-            // turn joins the run, and the reply joins it from another coroutine, so the judge
-            // would see the sentence it is being handed a second time inside the record --
-            // and the reply, or not, depending on which coroutine got there first.
-            val before = _state.value.history()
-            val reply = conversation.reply(
-                before, heard,
-                scene = Scene(
-                    brief = _state.value.activity.brief,
-                    cast = _state.value.activity.cast,
-                ),
-                // What governs this turn: the levers the model holds, and how the recording
-                // stopped -- which the app knows and does not leave it to guess.
-                present = door.let {
-                    Present(
-                        _state.value.positions, closedBy,
-                        // A rewording is another attempt at the passage that is already open;
-                        // a turn that rewords nothing opens the next one. Derived from the
-                        // run, like the passages themselves, so it cannot fall out of step
-                        // with it.
-                        passage = _state.value.passages().size + if (rewords == null) 1 else 0,
-                        instructions = it.instructions,
-                        said = it.prose,
-                        asking = it.asked,
-                    )
-                },
-            )
-
-            // **A turn nobody prompted has no words to write out, and this is not one.** The
-            // reader hands `intended` back on every path but the provoked one, so a null here
-            // can only be a provider that broke its contract -- a failure like any other, and
-            // the recording is kept for another go at it.
-            val intended = reply.intended
-                ?: throw ChainFailure("the model did not write out what was said")
-
-            // The two utterances are held by identity from here on. Their place in the run is
-            // where they happen to sit, and it is not what addresses them: everything that
-            // follows -- the take, the marks, the analysis -- names them by their id.
-            //
-            // **It enters the run unmarked**, and its text is `intended`, which the one who
-            // speaks has already written. The marking arrives when the judge does, which is
-            // now while the voice is playing: that is exactly what the learner sees, marks
-            // landing on a turn already on screen.
-            val said = Utterance(
-                speaker = Speaker.Learner,
-                activity = _state.value.activity.id,
-                text = intended,
-                said = turn,
-                capture = position,
-                ending = closedBy,
-                // A rewording is an attempt at the passage it points back at; a turn that
-                // rewords nothing opens one of its own.
-                repeats = rewords,
-                attempt = rewords?.let { Attempt.Rewording },
-            )
-            // The call that has just answered belongs to the passage this attempt is in, and
-            // the passage is named by the utterance that opened it: a rewording is an attempt
-            // at the one it points back at.
-            Trace.askedFor(rewords ?: said.id)
-            _state.update {
-                it.copy(
-                    utterances = it.utterances + said,
-                    pending = null,
-                    // Another attempt: what the gates said of the one before it is about to
-                    // be replaced, and holding it until then would leave the screen saying
-                    // *reword it* about a sentence already reworded.
-                    wordsGate = null,
-                    soundGate = null,
+                _state.update { it.copy(phase = Phase.Thinking) }
+                // **The conversation as it stood before this turn, read once and given to both
+                // calls.** Read twice it would not be the same thing: between them the learner's
+                // turn joins the run, and the reply joins it from another coroutine, so the judge
+                // would see the sentence it is being handed a second time inside the record --
+                // and the reply, or not, depending on which coroutine got there first.
+                val before = _state.value.history()
+                val reply = conversation.reply(
+                    before, heard,
+                    scene = Scene(
+                        brief = _state.value.activity.brief,
+                        cast = _state.value.activity.cast,
+                    ),
+                    // What governs this turn: the levers the model holds, and how the recording
+                    // stopped -- which the app knows and does not leave it to guess.
+                    present = door.let {
+                        Present(
+                            _state.value.positions, closedBy,
+                            // A rewording is another attempt at the passage that is already open;
+                            // a turn that rewords nothing opens the next one. Derived from the
+                            // run, like the passages themselves, so it cannot fall out of step
+                            // with it.
+                            passage = _state.value.passages().size + if (rewords == null) 1 else 0,
+                            instructions = it.instructions,
+                            said = it.prose,
+                            asking = it.asked,
+                        )
+                    },
                 )
-            }
-            write(said.id)
 
-            // **The advance settles whether the judge has to be waited for.** Where the
-            // conversation carries on, nothing it can say changes what is heard -- the echo
-            // is the opening of the reply and it plays with it whatever the note -- so the
-            // voice goes out first and the marks land under it. Where it waits, what is
-            // played is the note's to choose, so the verdict comes first.
-            val waits =
-                (_state.value.positions.of(Levers.ADVANCE_WORDS.key) as? At)?.name == "waits"
+                // **A turn nobody prompted has no words to write out, and this is not one.** The
+                // reader hands `intended` back on every path but the provoked one, so a null here
+                // can only be a provider that broke its contract -- a failure like any other, and
+                // the recording is kept for another go at it.
+                val intended = reply.intended
+                    ?: throw ChainFailure("the model did not write out what was said")
 
-            coroutineScope {
-                // **The second call, running beside the voice.** It was made right after the
-                // first, everything before a sound; what it costs the learner is now the
-                // slower of the two links instead of their sum.
+                // The two utterances are held by identity from here on. Their place in the run is
+                // where they happen to sit, and it is not what addresses them: everything that
+                // follows -- the take, the marks, the analysis -- names them by their id.
                 //
-                // What it is given as the reply is the **whole utterance as the model wrote
-                // it**, echo and continuation joined. In the one case where the learner hears
-                // less than that, what he hears is the echo -- and the echo is the repair,
-                // which is what this call is shown it for.
-                val judging = async {
-                    conversation.judge(
-                        before,
-                        said = intended,
-                        answered = compose(reply.echo, reply.spoken),
-                        // The half of the brief addressed to the learner, and the only thing
-                        // of the scene the judge is given. The staging has no parameter to
-                        // travel on.
-                        situation = _state.value.activity.brief?.situation.orEmpty(),
-                        // What a mark is read against: the instructions in force, and a turn
-                        // a clock cut off. Nothing of how the character was told to play.
-                        present = Present(instructions = door.instructions, ending = closedBy),
+                // **It enters the run unmarked**, and its text is `intended`, which the one who
+                // speaks has already written. The marking arrives when the judge does, which is
+                // now while the voice is playing: that is exactly what the learner sees, marks
+                // landing on a turn already on screen.
+                val said = Utterance(
+                    speaker = Speaker.Learner,
+                    activity = _state.value.activity.id,
+                    text = intended,
+                    said = turn,
+                    capture = position,
+                    ending = closedBy,
+                    // A rewording is an attempt at the passage it points back at; a turn that
+                    // rewords nothing opens one of its own.
+                    repeats = rewords,
+                    attempt = rewords?.let { Attempt.Rewording },
+                )
+                // The call that has just answered belongs to the passage this attempt is in, and
+                // the passage is named by the utterance that opened it: a rewording is an attempt
+                // at the one it points back at.
+                Trace.askedFor(rewords ?: said.id)
+                _state.update {
+                    it.copy(
+                        utterances = it.utterances + said,
+                        pending = null,
+                        // Another attempt: what the gates said of the one before it is about to
+                        // be replaced, and holding it until then would leave the screen saying
+                        // *reword it* about a sentence already reworded.
+                        wordsGate = null,
+                        soundGate = null,
                     )
                 }
+                write(said.id)
 
-                // **The thread carries what was heard.** Where the conversation carries on
-                // the whole utterance is heard, so it can be written and said at once; where
-                // it waits it cannot, and writing it early held the continuation while the
-                // echo was what played, so the screen ran ahead of the voice by a whole reply.
-                val speaking = if (waits) null else async {
-                    say(said.id, compose(reply.echo, reply.spoken), reply.established)
-                }
+                // **The advance settles whether the judge has to be waited for.** Where the
+                // conversation carries on, nothing it can say changes what is heard -- the echo
+                // is the opening of the reply and it plays with it whatever the note -- so the
+                // voice goes out first and the marks land under it. Where it waits, what is
+                // played is the note's to choose, so the verdict comes first.
+                val waits =
+                    (_state.value.positions.of(Levers.ADVANCE_WORDS.key) as? At)?.name == "waits"
 
-                // **Where it waits, the voice cannot go out yet -- but the render can.** The
-                // whole utterance is what is played in two of the three cases the advance
-                // leaves open: nothing was wrong, so there is no echo and this is the
-                // continuation; or something was, and the gate stayed open, which is the
-                // founding gesture. So it is worth having in hand, and rendering it here
-                // costs the wait of the slower link instead of the sum of the two.
-                //
-                // **The third case does not throw it away either.** The gate shuts, the echo
-                // alone is played, and this exact string is what is held for the way out --
-                // so if the attempts run out, `close()` asks for it by its text and the cache
-                // hands back this very file. It is wasted only where the learner rewords
-                // successfully, and what it costs there is characters billed, never a wait:
-                // it ran beside the judge.
-                //
-                // A render that gives way here is not a failure of the turn: the path below
-                // renders as it always did, and it is that one that reports.
-                val ahead = if (!waits) null else async {
-                    runCatching {
-                        synthesis.speak(compose(reply.echo, reply.spoken), synthesis.voice())
-                    }.getOrNull()
-                }
-
-                // **A judge that gives way no longer costs the turn.** The voice may already
-                // be out, and there is no sending the same recording again once a character
-                // has answered it: the turn stands, unmarked, and says why. Nothing is
-                // silently let through either -- with no judgement there is no gate, so the
-                // passage is not held, which is the truth about a turn nobody judged
-                // (`../../../../../../TODO.md`).
-                val judged = runCatching { judging.await().judgement }.getOrElse { failure ->
-                    Trace.fail("turn: nothing judged it, and the turn stands",
-                               "why" to failure.message)
-                    _state.update {
-                        it.copy(
-                            failure = failure.message,
-                            // Everything the missing call takes, so it can be asked for on
-                            // its own. The passage is held meanwhile.
-                            unjudged = Unjudged(
-                                of = said.id,
-                                said = intended,
-                                answered = compose(reply.echo, reply.spoken),
-                                before = before,
-                                instructions = door.instructions,
-                                ending = closedBy,
-                                take = turn,
-                                heard = heard,
-                            ),
+                coroutineScope {
+                    // **The second call, running beside the voice.** It was made right after the
+                    // first, everything before a sound; what it costs the learner is now the
+                    // slower of the two links instead of their sum.
+                    //
+                    // What it is given as the reply is the **whole utterance as the model wrote
+                    // it**, echo and continuation joined. In the one case where the learner hears
+                    // less than that, what he hears is the echo -- and the echo is the repair,
+                    // which is what this call is shown it for.
+                    val judging = async {
+                        conversation.judge(
+                            before,
+                            said = intended,
+                            answered = compose(reply.echo, reply.spoken),
+                            // The half of the brief addressed to the learner, and the only thing
+                            // of the scene the judge is given. The staging has no parameter to
+                            // travel on.
+                            situation = _state.value.activity.brief?.situation.orEmpty(),
+                            // What a mark is read against: the instructions in force, and a turn
+                            // a clock cut off. Nothing of how the character was told to play.
+                            present = Present(instructions = door.instructions, ending = closedBy),
                         )
                     }
-                    null
-                }
 
-                val read = judged?.let { read(said, it) }
-                val closing = read?.first
-                val groundless = read?.second ?: false
-
-                if (speaking != null) speaking.await() else {
-                    // **The echo and the continuation are two portions of one utterance, and
-                    // the app composes them.** They are not two candidate replies: the echo is
-                    // the opening -- *"Ah, you're twenty-five!"* -- and the continuation is
-                    // what follows it. So the model supplies the matter and the app settles
-                    // what is heard, and nothing is ever contradicted inside an attempt.
-                    //
-                    // The echo alone is heard here and nowhere else: the passage is to reword
-                    // **and** the conversation waits, which forces the repair, so nothing may
-                    // carry on until it is made.
-                    val echoing = closing != null && reply.echo != null
-                    if (echoing) {
-                        Trace.add("turn: the echo is played, the continuation is held")
-                        // **Held composed, not bare.** The way out of a blocked passage used
-                        // to play the continuation on its own, so the conversation stopped on
-                        // a sentence, the attempts ran out, and the character carried on as if
-                        // nothing had happened. With the echo in front, the way out is
-                        // acknowledged before it is taken -- and it costs nothing, the echo
-                        // being already in hand.
-                        _state.update { it.copy(held = compose(reply.echo, reply.spoken)) }
+                    // **The thread carries what was heard.** Where the conversation carries on
+                    // the whole utterance is heard, so it can be written and said at once; where
+                    // it waits it cannot, and writing it early held the continuation while the
+                    // echo was what played, so the screen ran ahead of the voice by a whole reply.
+                    val speaking = if (waits) null else async {
+                        say(said.id, compose(reply.echo, reply.spoken), reply.established)
                     }
-                    // The echo alone is a text of its own, so it is rendered on its own; the
-                    // whole utterance was rendered ahead and is taken as it is.
-                    if (echoing) say(said.id, reply.echo!!, reply.established)
-                    else say(said.id, compose(reply.echo, reply.spoken), reply.established,
-                             ahead?.await())
-                }
-                Trace.add("turn: said, and done")
 
-                // **The turn is not idle because the voice has stopped.** What follows still
-                // decides whether the passage may be left -- the sound's gate is read at the
-                // very end of the analysis -- and idle here would light the big button on an
-                // answer nobody has yet, the press then waiting on the lock with nothing on
-                // screen saying why. Idle is said once there is something to say it about.
-                _state.update { it.copy(phase = Phase.Measuring) }
-
-                // A new name arrives only when there is a reason for one; any other turn
-                // leaves the conversation called what it was called.
-
-                if (judged == null) {
-                    // Read on the one channel it has: the text, with nothing marked on it.
-                    // The failure above is what says why, and the sound analysis does not run
-                    // -- it measures a sentence a judgement has let through, and there is none.
+                    // **Where it waits, the voice cannot go out yet -- but the render can.** The
+                    // whole utterance is what is played in two of the three cases the advance
+                    // leaves open: nothing was wrong, so there is no echo and this is the
+                    // continuation; or something was, and the gate stayed open, which is the
+                    // founding gesture. So it is worth having in hand, and rendering it here
+                    // costs the wait of the slower link instead of the sum of the two.
                     //
-                    // **And the line says nobody read it**, which the marking cannot: a turn
-                    // whose gate closed carries exactly this marking too, and it was read.
-                    // Written now rather than at the next opening, because the process can
-                    // die between the two and the fact would go with it.
-                    update(said.id) {
-                        it.copy(marking = TurnMarking.wordsOnly(intended), unread = true)
+                    // **The third case does not throw it away either.** The gate shuts, the echo
+                    // alone is played, and this exact string is what is held for the way out --
+                    // so if the attempts run out, `close()` asks for it by its text and the cache
+                    // hands back this very file. It is wasted only where the learner rewords
+                    // successfully, and what it costs there is characters billed, never a wait:
+                    // it ran beside the judge.
+                    //
+                    // A render that gives way here is not a failure of the turn: the path below
+                    // renders as it always did, and it is that one that reports.
+                    val ahead = if (!waits) null else async {
+                        runCatching {
+                            synthesis.speak(compose(reply.echo, reply.spoken), synthesis.voice())
+                        }.getOrNull()
                     }
-                    write(said.id)
-                } else {
-                    measure(said, judged, turn, heard, closing, groundless)
+
+                    // **A judge that gives way no longer costs the turn.** The voice may already
+                    // be out, and there is no sending the same recording again once a character
+                    // has answered it: the turn stands, unmarked, and says why. Nothing is
+                    // silently let through either -- with no judgement there is no gate, so the
+                    // passage is not held, which is the truth about a turn nobody judged
+                    // (`../../../../../../TODO.md`).
+                    val judged = runCatching { judging.await().judgement }.getOrElse { failure ->
+                        Trace.fail("turn: nothing judged it, and the turn stands",
+                                   "why" to failure.message)
+                        _state.update {
+                            it.copy(
+                                failure = failure.message,
+                                // Everything the missing call takes, so it can be asked for on
+                                // its own. The passage is held meanwhile.
+                                unjudged = Unjudged(
+                                    of = said.id,
+                                    said = intended,
+                                    answered = compose(reply.echo, reply.spoken),
+                                    before = before,
+                                    instructions = door.instructions,
+                                    ending = closedBy,
+                                    take = turn,
+                                    heard = heard,
+                                ),
+                            )
+                        }
+                        null
+                    }
+
+                    val read = judged?.let { read(said, it) }
+                    val closing = read?.first
+                    val groundless = read?.second ?: false
+
+                    if (speaking != null) speaking.await() else {
+                        // **The echo and the continuation are two portions of one utterance, and
+                        // the app composes them.** They are not two candidate replies: the echo is
+                        // the opening -- *"Ah, you're twenty-five!"* -- and the continuation is
+                        // what follows it. So the model supplies the matter and the app settles
+                        // what is heard, and nothing is ever contradicted inside an attempt.
+                        //
+                        // The echo alone is heard here and nowhere else: the passage is to reword
+                        // **and** the conversation waits, which forces the repair, so nothing may
+                        // carry on until it is made.
+                        val echoing = closing != null && reply.echo != null
+                        if (echoing) {
+                            Trace.add("turn: the echo is played, the continuation is held")
+                            // **Held composed, not bare.** The way out of a blocked passage used
+                            // to play the continuation on its own, so the conversation stopped on
+                            // a sentence, the attempts ran out, and the character carried on as if
+                            // nothing had happened. With the echo in front, the way out is
+                            // acknowledged before it is taken -- and it costs nothing, the echo
+                            // being already in hand.
+                            _state.update { it.copy(held = compose(reply.echo, reply.spoken)) }
+                        }
+                        // The echo alone is a text of its own, so it is rendered on its own; the
+                        // whole utterance was rendered ahead and is taken as it is.
+                        if (echoing) say(said.id, reply.echo!!, reply.established)
+                        else say(said.id, compose(reply.echo, reply.spoken), reply.established,
+                                 ahead?.await())
+                    }
+                    Trace.add("turn: said, and done")
+
+                    // **The turn is not idle because the voice has stopped.** What follows still
+                    // decides whether the passage may be left -- the sound's gate is read at the
+                    // very end of the analysis -- and idle here would light the big button on an
+                    // answer nobody has yet, the press then waiting on the lock with nothing on
+                    // screen saying why. Idle is said once there is something to say it about.
+                    _state.update { it.copy(phase = Phase.Measuring) }
+
+                    // A new name arrives only when there is a reason for one; any other turn
+                    // leaves the conversation called what it was called.
+
+                    if (judged == null) {
+                        // Read on the one channel it has: the text, with nothing marked on it.
+                        // The failure above is what says why, and the sound analysis does not run
+                        // -- it measures a sentence a judgement has let through, and there is none.
+                        //
+                        // **And the line says nobody read it**, which the marking cannot: a turn
+                        // whose gate closed carries exactly this marking too, and it was read.
+                        // Written now rather than at the next opening, because the process can
+                        // die between the two and the fact would go with it.
+                        update(said.id) {
+                            it.copy(marking = TurnMarking.wordsOnly(intended), unread = true)
+                        }
+                        write(said.id)
+                    } else {
+                        measure(said, judged, turn, heard, closing, groundless)
+                    }
                 }
-            }
-            _state.update { it.copy(phase = Phase.Idle) }
-        } catch (failure: ChainFailure) {
-            Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
-            putBack(door)
-            _state.update {
-                it.copy(
-                    phase = Phase.Idle,
-                    failure = failure.message,
-                    pending = Pending(take, position, closedBy),
-                )
+            } catch (failure: ChainFailure) {
+                Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
+                putBack(door)
+                _state.update {
+                    it.copy(
+                        failure = failure.message,
+                        pending = Pending(take, position, closedBy),
+                    )
+                }
             }
         }
     }
@@ -1678,17 +1710,20 @@ class TurnPipeline(
         if (!_state.value.closes()) return@withLock
         _state.value.held?.let { continuation ->
             Trace.add("passage: the attempts ran out, the held continuation is played")
-            _state.update { it.copy(phase = Phase.Speaking, held = null) }
-            Playback.play(synthesis.speak(continuation, synthesis.voice()), by = Loudspeaker.By.App)
-            // The thread follows the voice here too: the echo was what was heard, and the
-            // continuation is what is heard now, so it is the reply that stands.
-            _state.value.open()?.last?.id?.let { attempt ->
-                _state.value.utterances.lastOrNull { it.answers == attempt }?.let { reply ->
-                    update(reply.id) { it.copy(text = continuation) }
-                    write(reply.id)
+            _state.update { it.copy(held = null) }
+            withPhase(Phase.Speaking) {
+                Playback.play(
+                    synthesis.speak(continuation, synthesis.voice()), by = Loudspeaker.By.App,
+                )
+                // The thread follows the voice here too: the echo was what was heard, and the
+                // continuation is what is heard now, so it is the reply that stands.
+                _state.value.open()?.last?.id?.let { attempt ->
+                    _state.value.utterances.lastOrNull { it.answers == attempt }?.let { reply ->
+                        update(reply.id) { it.copy(text = continuation) }
+                        write(reply.id)
+                    }
                 }
             }
-            _state.update { it.copy(phase = Phase.Idle) }
         }
         // The gates spoke about a passage that is over. What follows opens a fresh one, and
         // its own gates are read when its own call returns.
@@ -1794,13 +1829,11 @@ class TurnPipeline(
         val spoken = _state.value.utterances.firstOrNull { it.id == of } ?: return@withLock
         if (spoken.speaker.isLearner) return@withLock
         _state.update {
-            it.copy(
-                phase = Phase.Speaking,
-                replayed = it.replayed + (of to (it.replayed[of] ?: 0) + 1),
-            )
+            it.copy(replayed = it.replayed + (of to (it.replayed[of] ?: 0) + 1))
         }
-        Playback.play(synthesis.speak(spoken.text, synthesis.voice()), _state.value.speed)
-        _state.update { it.copy(phase = Phase.Idle) }
+        withPhase(Phase.Speaking) {
+            Playback.play(synthesis.speak(spoken.text, synthesis.voice()), _state.value.speed)
+        }
     }
 
     /** How many replays the utterance [of] has left, or null where the lever bounds none. */
@@ -1820,9 +1853,7 @@ class TurnPipeline(
      */
     suspend fun hear(of: String) = writing.withLock {
         val wav = chosen(of) ?: return@withLock
-        _state.update { it.copy(phase = Phase.Speaking) }
-        Playback.play(wav, _state.value.speed)
-        _state.update { it.copy(phase = Phase.Idle) }
+        withPhase(Phase.Speaking) { Playback.play(wav, _state.value.speed) }
     }
 
     /**
@@ -2295,50 +2326,52 @@ class TurnPipeline(
             messages.none { it.now } && !(sweeping && asking.isNotEmpty())
         ) return
         val door = frontDoor()
-        _state.update { it.copy(phase = Phase.Thinking) }
-        try {
-            val reply = conversation.reply(
-                _state.value.history(), heard = emptyList(),
-                scene = Scene(
-                    brief = _state.value.activity.brief,
-                    cast = _state.value.activity.cast,
-                ),
-                present = Present(
-                    _state.value.positions,
-                    ending = null,
-                    // The one being spoken into, which is the one nobody has opened yet: a
-                    // provoked turn falls between passages, never inside one.
-                    passage = _state.value.passages().size + 1,
-                    instructions = door.instructions,
-                    said = door.prose,
-                    provoked = why,
-                    asking = door.asked,
-                ),
-            )
-            val answer = Utterance(
-                speaker = Speaker.Ai,
-                activity = _state.value.activity.id,
-                text = reply.spoken,
-                // It answers nobody, and that is what tells it from every other AI turn.
-                answers = null,
-                established = reply.established,
-            )
-            // Keyed by the utterance itself, there being no passage to key it by. Nothing
-            // opens it from the screen; what this is for is clearing the body, which would
-            // otherwise show up under the next passage as though it had been sent for it.
-            Trace.askedFor(answer.id)
-            _state.update {
-                it.copy(utterances = it.utterances + answer, phase = Phase.Speaking)
+        withPhase(Phase.Thinking) {
+            try {
+                val reply = conversation.reply(
+                    _state.value.history(), heard = emptyList(),
+                    scene = Scene(
+                        brief = _state.value.activity.brief,
+                        cast = _state.value.activity.cast,
+                    ),
+                    present = Present(
+                        _state.value.positions,
+                        ending = null,
+                        // The one being spoken into, which is the one nobody has opened yet: a
+                        // provoked turn falls between passages, never inside one.
+                        passage = _state.value.passages().size + 1,
+                        instructions = door.instructions,
+                        said = door.prose,
+                        provoked = why,
+                        asking = door.asked,
+                    ),
+                )
+                val answer = Utterance(
+                    speaker = Speaker.Ai,
+                    activity = _state.value.activity.id,
+                    text = reply.spoken,
+                    // It answers nobody, and that is what tells it from every other AI turn.
+                    answers = null,
+                    established = reply.established,
+                )
+                // Keyed by the utterance itself, there being no passage to key it by. Nothing
+                // opens it from the screen; what this is for is clearing the body, which would
+                // otherwise show up under the next passage as though it had been sent for it.
+                Trace.askedFor(answer.id)
+                _state.update {
+                    it.copy(utterances = it.utterances + answer, phase = Phase.Speaking)
+                }
+                write(answer.id)
+                Playback.play(
+                    synthesis.speak(reply.spoken, synthesis.voice()), by = Loudspeaker.By.App,
+                )
+            } catch (failure: ChainFailure) {
+                Trace.fail("turn: the character had a turn to take and the link gave way",
+                           "why" to failure.message)
+                putBack(door)
+                _state.update { it.copy(failure = failure.message) }
             }
-            write(answer.id)
-            Playback.play(synthesis.speak(reply.spoken, synthesis.voice()), by = Loudspeaker.By.App)
-        } catch (failure: ChainFailure) {
-            Trace.fail("turn: the character had a turn to take and the link gave way",
-                       "why" to failure.message)
-            putBack(door)
-            _state.update { it.copy(failure = failure.message) }
         }
-        _state.update { it.copy(phase = Phase.Idle) }
     }
 
     /**
