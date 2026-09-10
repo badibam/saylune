@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application>
+    <application android:networkSecurityConfig="@xml/network_security_config">
 
         <!-- Exported so the bench can start it: the probe is driven by
              bench/phone.py, not by tapping. Debug only, so it exists in no

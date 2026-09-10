@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Debug only: a release stays on the platform default, which refuses plain
+    HTTP. What this opens is the door to any server the user typed in plain,
+    because the analysis link's address is the user's, and while it is being tried it
+    is a bare IP over HTTP, like the one running now. A token on the wire in
+    clear is the price of that trial, and it is a debug-only price.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
