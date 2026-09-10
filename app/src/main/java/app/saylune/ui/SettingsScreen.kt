@@ -162,8 +162,18 @@ fun SettingsScreen(store: SecretStore, modifier: Modifier = Modifier) {
         Text(stringResource(R.string.tasks_title), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.tasks_lead), style = MaterialTheme.typography.bodyMedium)
 
+        // Whether the weights are down is to the local pass what a filled key is to
+        // everyone else, so the link's menu needs to know before it draws. Re-read as a
+        // download advances, so finishing one makes the provider appear without a visit.
+        val fetching by Weights.progress.collectAsState()
+        var weightsReady by remember { mutableStateOf(false) }
+        val here = LocalContext.current
+        LaunchedEffect(fetching) {
+            weightsReady = Weights.state(here) is Weights.State.Ready
+        }
+
         Task.entries.forEach { task ->
-            TaskSection(task, store, stored)
+            TaskSection(task, store, stored, weightsReady)
         }
 
         HorizontalDivider()
@@ -386,12 +396,17 @@ private fun LatencySection(store: SecretStore) {
  * app rather than as a key they have not entered.
  */
 @Composable
-private fun TaskSection(task: Task, store: SecretStore, stored: Map<Secret, String>) {
+private fun TaskSection(
+    task: Task,
+    store: SecretStore,
+    stored: Map<Secret, String>,
+    weights: Boolean,
+) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val sample = stringResource(R.string.setting_sample)
-    val offered = task.offered(stored)
-    val chosen = task.chosen(stored)
+    val offered = task.offered(stored, weights)
+    val chosen = task.chosen(stored, weights)
     val model = chosen?.let { modelFor(task, it, stored) }
 
     var voices by remember { mutableStateOf<List<VoiceOption>>(emptyList()) }

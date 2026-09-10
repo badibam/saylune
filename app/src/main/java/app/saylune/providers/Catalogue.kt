@@ -54,13 +54,13 @@ enum class Task(
      * the second is the probe's business, and a key that is present but refused stays in the
      * list with its task turned off and saying why (`docs/reference.md`).
      */
-    fun offered(values: Map<Secret, String>): List<Provider> =
-        Provider.entries.filter { this in it.does && it.ready(values) }
+    fun offered(values: Map<Secret, String>, weights: Boolean = false): List<Provider> =
+        Provider.entries.filter { this in it.does && it.ready(values, weights) }
 
     /** Who is doing this task, or nothing when the choice has not been made or has lapsed. */
-    fun chosen(values: Map<Secret, String>): Provider? =
+    fun chosen(values: Map<Secret, String>, weights: Boolean = false): Provider? =
         values[provider]?.let { id -> Provider.entries.firstOrNull { it.id == id } }
-            ?.takeIf { this in it.does && it.ready(values) }
+            ?.takeIf { this in it.does && it.ready(values, weights) }
 }
 
 /**
@@ -101,6 +101,16 @@ enum class Provider(
      * translate.
      */
     @StringRes val labelRes: Int? = null,
+    /**
+     * True for the one provider whose "key" is a file on this device.
+     *
+     * The acoustic weights are to the local pass what an API key is to everyone else: what
+     * it takes to work, and what decides whether it is offered at all. Declared here rather
+     * than checked wherever the choice is read, so the rule stays where every other
+     * provider's is -- a link offers only what is ready, and it is a local filter with no
+     * call in it.
+     */
+    val needsWeights: Boolean = false,
 ) {
     Replicate(
         id = "replicate",
@@ -233,9 +243,10 @@ enum class Provider(
     /**
      * The pass on this very device, which needs nothing and is therefore always offered.
      *
-     * `needs` is empty on purpose: readiness asks whether the keys are filled, and this one
-     * has none. It is the only provider in the list that costs nothing and that no network
-     * can take away.
+     * `needs` is empty because it has no key to fill -- what it needs instead is the acoustic
+     * weights on this device, which [needsWeights] declares and readiness asks about. So it
+     * follows the same rule as everyone else here: offered once what it takes is there, and
+     * absent rather than broken when it is not.
      */
     OnDevice(
         id = "on-device",
@@ -244,6 +255,7 @@ enum class Provider(
         does = setOf(Task.Analysis),
         models = emptyMap(),
         labelRes = R.string.provider_on_device,
+        needsWeights = true,
     ),
 
     /**
@@ -269,8 +281,9 @@ enum class Provider(
      * An overridable entry does not count: it is a host with a default behind it, so leaving
      * it empty is the ordinary case and not an omission.
      */
-    fun ready(values: Map<Secret, String>): Boolean =
-        needs.filterNot { it.overridable }.all { !values[it].isNullOrBlank() }
+    fun ready(values: Map<Secret, String>, weights: Boolean = false): Boolean =
+        needs.filterNot { it.overridable }.all { !values[it].isNullOrBlank() } &&
+            (!needsWeights || weights)
 
     /**
      * The voices this provider offers for [model], asked of the provider itself.

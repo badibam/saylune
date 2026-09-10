@@ -360,7 +360,13 @@ class EmbeddedAnalysis(
      */
     private suspend fun choice(): Pair<String, RemoteMatrix?> {
         val values = store?.values()?.first() ?: return HERE to null
-        if (Task.Analysis.chosen(values) != Provider.AnalysisServer) return HERE to null
+        // The same question the settings screen asks before it draws the menu: the local
+        // pass is offered only where its weights are, exactly as a provider is offered only
+        // where its key is.
+        val weights = weights() != null
+        if (Task.Analysis.chosen(values, weights) != Provider.AnalysisServer) {
+            return HERE to null
+        }
         val endpoint = values[Secret.AnalysisEndpoint].orEmpty()
         val token = values[Secret.AnalysisToken].orEmpty()
         if (endpoint.isBlank() || token.isBlank()) return HERE to null
@@ -372,16 +378,23 @@ class EmbeddedAnalysis(
         // The reason names the directory and what is in it. "Nothing found" without saying
         // where it looked is the kind of message that costs an hour.
         val home = home()
-        val weights = weights() ?: throw IllegalStateException(
+        // The network is what the local pass needs, and only it: a remote pass has nothing
+        // to load here, so demanding 358 MB of it would shut the door this link exists to
+        // open -- the device that cannot hold the model is the one the server is for.
+        val weights = weights()
+        if (remote == null && weights == null) throw IllegalStateException(
             "no .onnx in $home (it holds: " +
                 (home.list()?.joinToString(", ")?.ifEmpty { "nothing" }
                     ?: if (home.isDirectory) "unreadable" else "no such directory") + ")"
         )
-        val vocab = File(weights.parentFile, VOCAB)
-        if (!vocab.isFile) throw IllegalStateException("$VOCAB is missing beside $weights")
-        val probeFile = File(weights.parentFile, PROBE)
+        // Named from the directory and not from the network file, which a remote pass does
+        // not have: these two are needed either way -- the alphabet cuts the grid, and the
+        // probe's bias closes the stress score whichever machine projected it.
+        val vocab = File(home, VOCAB)
+        if (!vocab.isFile) throw IllegalStateException("$VOCAB is missing in $home")
+        val probeFile = File(home, PROBE)
         if (!probeFile.isFile) throw IllegalStateException(
-            "$PROBE is missing beside $weights -- bench/probe.py --json writes it"
+            "$PROBE is missing in $home -- bench/probe.py --json writes it"
         )
 
         val alphabet = Alphabet.read(vocab)
@@ -404,7 +417,8 @@ class EmbeddedAnalysis(
         val here = stamp(weights, vocab, probeFile)
         // The remote pass is not loaded here -- there is nothing to load -- and it costs
         // neither the session nor the memory the local one holds.
-        val pass = remote ?: AcousticMatrix(weights, THREADS, here)
+        val pass = remote
+            ?: AcousticMatrix(requireNotNull(weights), THREADS, here)
         return Engine(chosen, pass, alphabet, affinity, probe,
                       version = if (remote == null) here else "${remote.version}|$here")
     }
@@ -426,11 +440,16 @@ class EmbeddedAnalysis(
      * file, and it changes without the bytes changing -- the wisdom is explicit that identity
      * is the content.
      */
-    private fun stamp(weights: File, vocab: File, probeFile: File): String {
-        val head = ByteArray(HEAD_BYTES)
-        val read = weights.inputStream().use { it.read(head) }.coerceAtLeast(0)
+    private fun stamp(weights: File?, vocab: File, probeFile: File): String {
+        // No network here means the pass ran elsewhere, and what ran it is named by
+        // the caller instead: what must never happen is two eras sharing one stamp.
+        val network = weights?.let {
+            val head = ByteArray(HEAD_BYTES)
+            val read = it.inputStream().use { file -> file.read(head) }.coerceAtLeast(0)
+            "w:${it.length()}-${digest(head.copyOf(read))}"
+        } ?: "w:elsewhere"
         return listOf(
-            "w:${weights.length()}-${digest(head.copyOf(read))}",
+            network,
             "a:${digest(vocab.readBytes())}",
             // Small enough to hash whole, and it decides the stress marks as
             // surely as the weights decide the sounds.
