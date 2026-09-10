@@ -1915,9 +1915,27 @@ class TurnPipeline(
     ) = writing.withLock { redoLocked(of, audio, capture, ending) }
 
     private suspend fun redoLocked(of: String, audio: File, capture: String?, ending: Ending?) {
-        if (_state.value.over) return
-        val spoken = _state.value.utterances.firstOrNull { it.id == of } ?: return
-        val model = _state.value.modelOf(of) ?: return
+        // **Each way out says which one it was.** Silent, these three returned the screen to
+        // its big button with the take swallowed and nothing anywhere saying why -- which is
+        // the shape of defect this project refuses everywhere else: what does not happen
+        // carries its reason. The missing model is the one that bites, and it has a cause a
+        // turn earlier: a turn whose analysis did not run stores no model to imitate, so
+        // saying it again has nothing to be measured against.
+        if (_state.value.over) {
+            Trace.fail("redo: refused, the sitting is finished")
+            return
+        }
+        val spoken = _state.value.utterances.firstOrNull { it.id == of }
+        if (spoken == null) {
+            Trace.fail("redo: refused, no such utterance", "of" to of)
+            return
+        }
+        val model = _state.value.modelOf(of)
+        if (model == null) {
+            Trace.fail("redo: refused, no model to imitate", "of" to of,
+                       "repeats" to spoken.repeats)
+            return
+        }
         // Its own clock: this is pipe B alone, and timing it from the conversation turn it
         // repeats would add every second of that turn to a chain that never ran here.
         Trace.turn("— redo —")
