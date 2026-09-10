@@ -10,9 +10,12 @@ import app.saylune.activity.Question
 import app.saylune.activity.Rung
 import app.saylune.chain.Provoked
 import app.saylune.chain.Present
+import app.saylune.chain.Said
 import app.saylune.chain.Scene
 import app.saylune.levers.Stepped
+import app.saylune.conversation.Speaker
 import app.saylune.sheets.Sheets
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -119,14 +122,32 @@ internal object ConversationPrompt {
         "echo": include this field only when they got something wrong and there is
         something to pick up. One short line that picks the slip up and hands the sentence
         back, in your own voice, the way a native speaker would. To "I have twenty five
-        years": "Ah, you're twenty-five!". It is the **opening of what you say**: "spoken"
-        follows it with no pause between them, so write the two to read as one utterance.
-        Leave the field out entirely when there was nothing to pick up.
+        years": "Ah, you're twenty-five!". It is the **opening of what you say**: the app
+        lays it in front of the first speech of "said", with no pause between them, so
+        write the two to read as one utterance. It never opens a stage direction, a
+        narrator remarking on somebody's grammar being no part of this. Leave the field
+        out entirely when there was nothing to pick up.
 
-        "spoken": what carries the conversation forward, in English, as it should be said
-        aloud. **Never pick the slip up here** -- that is what "echo" is for, and it has
-        just been said. After "Ah, you're twenty-five!", this field is "And where do you
-        work?", never "Ah, you're twenty-five! And where do you work?".
+        "said": your turn, as a list of utterances played one after another. Never empty,
+        and at most ${Said.CEILING} of them. Each is an object with three fields:
+
+          "kind": "speech" for somebody talking, "stage" for a stage direction.
+          "who": the key of whoever it belongs to, from the cast above, or "narrator".
+          "text": the words, in English, as they should be said aloud.
+
+        A speech is somebody talking -- to the learner, or to another character. A stage
+        direction is matter of the story that is **not** said to the learner: what is
+        happening, what is seen, what someone does. It is played aloud like the rest.
+
+        No order is imposed. One reply on its own is the ordinary turn. A character may
+        speak and then a second character answer them. A stage direction may open the
+        turn, close it, or fall between two replies. Use several only when the scene
+        really has several beats: every one of them is time the learner waits before they
+        may speak.
+
+        **Never pick the slip up in here** -- that is what "echo" is for, and it has
+        already been said. After "Ah, you're twenty-five!", the first speech is "And where
+        do you work?", never "Ah, you're twenty-five! And where do you work?".
     """.trimIndent()
 
     /**
@@ -565,7 +586,16 @@ internal object ConversationPrompt {
                 facts.forEach { (key, answer) -> put(key, answer) }
             })
         }
-        said.put("spoken", history[at].text)
+        // The same shape the contract asks for, so the record reads as a run of turns the
+        // model itself could have written. What each past turn holds is one text: the run it
+        // was said as is not what the model has to remember, and putting it back in pieces
+        // would show it a turn it did not write.
+        said.put("said", JSONArray().put(
+            JSONObject()
+                .put("kind", "speech")
+                .put("who", Speaker.SAYLUNE)
+                .put("text", history[at].text),
+        ))
         // `intended` belonged to the learner's turn just before, which is where the pipeline
         // always puts it. Written out only when it really is there.
         history.getOrNull(at - 1)?.takeIf { it.fromLearner }?.let { said.put("intended", it.text) }

@@ -120,13 +120,13 @@ class ConversationPromptTest {
      * The field is declared once, in the permanent part, and it comes before the reply.
      *
      * Anchored on the declaration and not on its wording: a field is declared at the head of
-     * its own line, where "spoken" is also named mid-sentence by the echo's description.
+     * its own line, where "said" is also named mid-sentence by the echo's description.
      */
     @Test
     fun `what is established is written before the character speaks`() {
         assertTrue(
             ConversationPrompt.SPEAKING.indexOf("\n\"established\":") <
-                ConversationPrompt.SPEAKING.indexOf("\n\"spoken\":"),
+                ConversationPrompt.SPEAKING.indexOf("\n\"said\":"),
         )
     }
 
@@ -141,7 +141,7 @@ class ConversationPromptTest {
     fun `the echo is written before the continuation it opens`() {
         assertTrue(
             ConversationPrompt.SPEAKING.indexOf("\n\"echo\":") <
-                ConversationPrompt.SPEAKING.indexOf("\n\"spoken\":"),
+                ConversationPrompt.SPEAKING.indexOf("\n\"said\":"),
         )
     }
 

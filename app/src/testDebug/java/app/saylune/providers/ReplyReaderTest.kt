@@ -5,6 +5,7 @@ import app.saylune.activity.Question
 import app.saylune.activity.Rung
 import app.saylune.activity.Text
 import app.saylune.chain.ChainFailure
+import app.saylune.chain.Said
 import app.saylune.rules.Trigger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -21,12 +22,18 @@ import org.junit.Test
 class ReplyReaderTest {
 
     private fun answer(intended: String = "I go there yesterday", extra: String = "") = """
-        {"intended": "$intended", "spoken": "Ah, yesterday!"$extra}
+        {"intended": "$intended", "said": [$SPEECH]$extra}
     """.trimIndent()
 
+    /** One ordinary speech, which is what nearly every turn is. */
+    private val SPEECH = """{"kind": "speech", "who": "saylune", "text": "Ah, yesterday!"}"""
+
     @Test fun `a turn nobody prompted comes back with nothing written out`() {
-        val reply = ReplyReader.read("""{"spoken": "Ah, there you are."}""", "", provoked = true)
-        assertEquals("Ah, there you are.", reply.spoken)
+        val reply = ReplyReader.read(
+            """{"said": [{"kind": "speech", "who": "saylune", "text": "Ah, there you are."}]}""",
+            "", provoked = true,
+        )
+        assertEquals("Ah, there you are.", reply.said.single().text)
         // Not "nothing was said" -- there was nothing to write out, nobody having spoken.
         assertNull(reply.intended)
         assertNull(reply.echo)
@@ -102,7 +109,7 @@ class ReplyReaderTest {
 
     @Test fun `a clean answer reads back whole`() {
         val reply = ReplyReader.read(answer(), "i go there yesterday")
-        assertEquals("Ah, yesterday!", reply.spoken)
+        assertEquals("Ah, yesterday!", reply.said.single().text)
         assertEquals("I go there yesterday", reply.intended)
         // Absent is the ordinary answer, and means "there is none".
         assertNull(reply.echo)
@@ -128,6 +135,66 @@ class ReplyReaderTest {
             "i go there yesterday",
         )
         assertEquals("Ah, you went there yesterday!", reply.echo)
-        assertEquals("Ah, yesterday!", reply.spoken)
+        assertEquals("Ah, yesterday!", reply.said.single().text)
+    }
+
+    // ── A turn is a run of utterances ───────────────────────────────────────────────────
+
+    private fun run(vararg said: String) =
+        ReplyReader.read("""{"intended": "x", "said": [${said.joinToString(",")}]}""", "x")
+
+    private fun one(kind: String, who: String, text: String) =
+        """{"kind": "$kind", "who": "$who", "text": "$text"}"""
+
+    /**
+     * **No order is imposed.** A stage direction may open the turn, two characters may speak
+     * in it, and each utterance keeps its own kind and its own speaker.
+     */
+    @Test fun `a turn carries several utterances, each with its kind and its speaker`() {
+        val said = run(
+            one("stage", "narrator", "The train pulls in."),
+            one("speech", "clerk", "Ticket, please."),
+            one("speech", "porter", "Let them through."),
+        ).said
+        assertEquals(3, said.size)
+        assertEquals(listOf(false, true, true), said.map { it.isSpeech })
+        assertEquals(listOf("narrator", "clerk", "porter"), said.map { it.who })
+    }
+
+    /**
+     * **The ceiling refuses rather than trims.** A run cut short is a scene missing its last
+     * lines, said as though it were whole, with nothing on screen to say so; a refusal keeps
+     * the recording and offers the button that sends it again.
+     */
+    @Test fun `more utterances than the ceiling allows is the contract broken`() {
+        val many = (0..Said.CEILING).map { one("speech", "saylune", "line $it") }
+        assertTrue(
+            runCatching { run(*many.toTypedArray()) }.exceptionOrNull() is ChainFailure,
+        )
+        // And exactly the ceiling is fine, or the test above would prove nothing.
+        assertEquals(Said.CEILING, run(*many.dropLast(1).toTypedArray()).said.size)
+    }
+
+    /**
+     * A kind the contract does not name is refused rather than guessed: reading it as speech
+     * would put a narrator's line in a character's mouth, which is the confusion the two
+     * kinds exist to prevent.
+     */
+    @Test fun `an utterance of no known kind is the contract broken`() {
+        assertTrue(runCatching {
+            run(one("aside", "saylune", "Hm."))
+        }.exceptionOrNull() is ChainFailure)
+    }
+
+    @Test fun `an utterance with no words is the contract broken`() {
+        assertTrue(runCatching {
+            run(one("speech", "saylune", ""))
+        }.exceptionOrNull() is ChainFailure)
+    }
+
+    @Test fun `an utterance nobody said is the contract broken`() {
+        assertTrue(runCatching {
+            run(one("speech", "", "Hm."))
+        }.exceptionOrNull() is ChainFailure)
     }
 }

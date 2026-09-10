@@ -220,6 +220,49 @@ data class Exchange(
 )
 
 /**
+ * One utterance of a turn: what kind it is, who it belongs to, and its words.
+ *
+ * [who] is a character's key, drawn from the cast the scene declares, or [Speaker.NARRATOR]
+ * for the one member no cast writes. It is the cheapest enumerated answer there is, and the
+ * synthesis takes a voice per utterance without being asked twice, the cache being keyed by
+ * text and voice.
+ */
+data class Said(val kind: Kind, val who: String, val text: String) {
+
+    /** Whether it is spoken **to** the learner, which is what an echo may open. */
+    val isSpeech: Boolean get() = kind == Kind.Speech
+
+    /** What an utterance of a turn is. */
+    enum class Kind {
+        /** A character speaking, to the learner or to another character. */
+        Speech,
+
+        /** Matter of the fiction, which is **not** said to the learner. */
+        StageDirection,
+    }
+
+    companion object {
+        /**
+         * How many utterances a turn may hold. **Set by hand, and to be revised by ear.**
+         *
+         * Not a limit of technique: it is the wait before the learner may speak. A model that
+         * runs away brings back a dozen, which is a dozen syntheses and a minute of listening.
+         * The project bounds everywhere -- 45 characters for a remark, 30 s for a turn -- and
+         * a bound carrying its reason beats a drift found in use.
+         */
+        const val CEILING = 6
+
+        /**
+         * The silence between two utterances of a turn, in milliseconds. **Set by hand.**
+         *
+         * The second of the two numbers this shape needed and neither was measured; both are
+         * to be revised by ear once a shipped tile exercises them.
+         */
+        const val PAUSE_MS = 1_000L
+    }
+}
+
+/**
  * What the one who speaks sends back: the learner's words settled, and what to say.
  *
  * **Nothing marked is in here.** The markings are [Verdict]'s, and the two objects are the two
@@ -238,18 +281,34 @@ data class Reply(
      */
     val intended: String?,
     /**
-     * What carries the conversation forward, in English, as it is to be said aloud.
+     * The turn: **a run of utterances**, said one after another, never empty.
      *
-     * **It never picks the slip up**: that is [echo]'s work, and [echo] is said just before it.
+     * It was one line, plus [echo] as the opening of that same line, and every turn went out
+     * under a single identity. A turn is a run because a scene is: one character speaks and
+     * then another, a stage direction falls between two replies, or a reply stands alone.
+     *
+     * **No order is imposed** -- not *stage direction then speech*, not one speaker per turn.
+     * What bounds it is [Said.CEILING], and what bounds it is not technique: a model that
+     * runs away brings back a dozen, which is a dozen syntheses and a minute of listening,
+     * and what is felt there is the wait before the learner may speak.
+     *
+     * **None of them picks the slip up**: that is [echo]'s work, and [echo] opens the first
+     * of them that is a speech.
      */
-    val spoken: String,
+    val said: List<Said>,
     /**
      * The short line that picks the slip up, or null when there was nothing to pick up.
      *
      * **It is not a competing reply, it is the opening of one.** The call returns this and
-     * [spoken] as one utterance cut in two, and the app composes them -- so nothing is ever
+     * the turn as one utterance cut in two, and the app composes them -- so nothing is ever
      * retracted, and the founding gesture of the project, *"Ah, you're twenty-five! And where
      * do you work?"*, is the two of them joined.
+     *
+     * **It opens the first *speech* of the turn and never a stage direction.** That is the one
+     * real constraint on the free order: it is read in one breath with what follows, and laid
+     * on a narrator's line it becomes the narrator remarking on the learner's grammar, which
+     * this project refuses everywhere. A turn may open on a stage direction all the same --
+     * the echo simply skips to the first reply.
      *
      * The app hears it **alone** in one case only: the passage is to reword and the
      * conversation waits.

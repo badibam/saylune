@@ -5,6 +5,7 @@ import app.saylune.activity.Question
 import app.saylune.activity.Rung
 import app.saylune.chain.ChainFailure
 import app.saylune.chain.Reply
+import app.saylune.chain.Said
 import app.saylune.chain.Verdict
 import app.saylune.debug.Trace
 import app.saylune.judged.Judgement
@@ -35,7 +36,7 @@ internal object ReplyReader {
      * What the one who speaks sent back.
      *
      * [provoked] says there was **no learner turn**: nobody spoke into it, so there is no
-     * sentence to write out and no slip to pick up, and only `spoken` is required.
+     * sentence to write out and no slip to pick up, and only `said` is required.
      */
     fun read(
         content: String,
@@ -45,18 +46,13 @@ internal object ReplyReader {
     ): Reply {
         val parsed = parsed(content)
 
-        val spoken = parsed.optString("spoken")
-        if (spoken.isBlank()) {
-            Trace.fail("conversation: nothing to say", "content" to content)
-            throw ChainFailure("the model returned nothing to say")
-        }
-
+        val turn = turn(parsed, content)
         val established = established(parsed, asking, content)
 
         if (provoked) {
-            Trace.add("conversation: spoke of its own accord", "spoken" to spoken,
+            Trace.add("conversation: spoke of its own accord", "said" to written(turn),
                       "settled" to established.keys.joinToString().ifEmpty { null })
-            return Reply(intended = null, spoken = spoken, echo = null, established = established)
+            return Reply(intended = null, said = turn, echo = null, established = established)
         }
 
         val intended = parsed.optString("intended").ifBlank { transcript }
@@ -64,7 +60,7 @@ internal object ReplyReader {
 
         Trace.add(
             "conversation: answered",
-            "spoken" to spoken,
+            "said" to written(turn),
             "intended" to intended,
             "echo" to echo,
             "settled" to established.keys.joinToString().ifEmpty { null },
@@ -72,9 +68,65 @@ internal object ReplyReader {
                 if (parsed.optString("intended").isBlank()) "yes" else null,
         )
         return Reply(
-            intended = intended, spoken = spoken, echo = echo, established = established,
+            intended = intended, said = turn, echo = echo, established = established,
         )
     }
+
+    /**
+     * The run of utterances the turn is, read and bounded.
+     *
+     * **The ceiling refuses rather than trims.** A run cut at six is a scene missing its last
+     * two lines, said as though it were whole, and nothing on screen would say so -- where a
+     * refusal keeps the recording and offers the button that sends it again. It is a contract
+     * broken like any other, and the trace carries what the model actually wrote.
+     *
+     * A kind the contract does not name is refused for the same reason: guessing *speech*
+     * would put a narrator's line in a character's mouth, which is exactly the confusion the
+     * two kinds exist to prevent.
+     */
+    private fun turn(parsed: JSONObject, content: String): List<Said> {
+        val written = parsed.optJSONArray("said").objects()
+        if (written.isEmpty()) {
+            Trace.fail("conversation: nothing to say", "content" to content)
+            throw ChainFailure("the model returned nothing to say")
+        }
+        if (written.size > Said.CEILING) {
+            Trace.fail("conversation: more utterances in one turn than the contract allows",
+                       "said" to written.size.toString(), "content" to content)
+            throw ChainFailure(
+                "the model answered with ${written.size} utterances in one turn, " +
+                    "where at most ${Said.CEILING} are allowed",
+            )
+        }
+        return written.map { one ->
+            val text = one.optString("text").trim()
+            if (text.isBlank()) {
+                Trace.fail("conversation: an utterance with no words", "content" to content)
+                throw ChainFailure("the model wrote an utterance with nothing in it")
+            }
+            val kind = when (one.optString("kind").trim()) {
+                "speech" -> Said.Kind.Speech
+                "stage" -> Said.Kind.StageDirection
+                else -> {
+                    Trace.fail("conversation: an utterance of no known kind",
+                               "kind" to one.optString("kind"), "content" to content)
+                    throw ChainFailure(
+                        "the model wrote an utterance of kind \"${one.optString("kind")}\"",
+                    )
+                }
+            }
+            val who = one.optString("who").trim()
+            if (who.isBlank()) {
+                Trace.fail("conversation: an utterance nobody said", "content" to content)
+                throw ChainFailure("the model wrote an utterance with no speaker")
+            }
+            Said(kind, who, text)
+        }
+    }
+
+    /** The run as one line of trace: who said what, in order. */
+    private fun written(turn: List<Said>): String =
+        turn.joinToString(" | ") { "${it.who}: ${it.text}" }
 
     /**
      * What the model settled, checked against what it was asked.

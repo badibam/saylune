@@ -8,6 +8,7 @@ import app.saylune.chain.Present
 import app.saylune.chain.Provoked
 import app.saylune.chain.Recognition
 import app.saylune.chain.Reply
+import app.saylune.chain.Said
 import app.saylune.chain.Scene
 import app.saylune.chain.Word
 import app.saylune.activity.Activity
@@ -26,6 +27,7 @@ import app.saylune.analysis.timed
 import app.saylune.analysis.Analysis
 import app.saylune.analysis.Readiness
 import app.saylune.debug.Trace
+import kotlinx.coroutines.delay
 import app.saylune.judged.Judgement
 import app.saylune.judged.Kept
 import app.saylune.judged.Marked
@@ -126,8 +128,20 @@ value class Speaker(val key: String) {
          */
         const val SAYLUNE = "saylune"
 
+        /**
+         * The narrator, who is a member of the cast with a reserved key, like the learner.
+         *
+         * No cast declares them and every scene may use them: what they say is matter of the
+         * fiction rather than something said *to* the learner. Their voice is a third regime
+         * beside the yardstick and the draw -- a setting the user picks, which a tile may
+         * replace -- and that regime is not written yet (`docs/design/voices.md`), so for now
+         * they speak in the same voice as everybody else.
+         */
+        const val NARRATOR = "narrator"
+
         val Learner = Speaker(LEARNER)
         val Ai = Speaker(SAYLUNE)
+        val Narrator = Speaker(NARRATOR)
     }
 }
 
@@ -146,6 +160,15 @@ value class Speaker(val key: String) {
 data class Utterance(
     val speaker: Speaker,
     val text: String,
+    /**
+     * Whether this is a speech or a stage direction.
+     *
+     * A stage direction is matter of the fiction: it goes in the thread, it may be said, and
+     * it is **not** addressed to the learner -- which is why an echo never opens one, and why
+     * the screen sets it apart from a reply. Everything the learner records is a speech, and
+     * so is every reply; the field earns its keep on the app's own turns.
+     */
+    val kind: Said.Kind = Said.Kind.Speech,
     /**
      * The activity this belongs to, and **always exactly one**.
      *
@@ -411,7 +434,7 @@ data class ConversationState(
      * It is the pair from the **last** attempt, never the first -- the first answered a
      * sentence that no longer exists.
      */
-    val held: String? = null,
+    val held: List<Said>? = null,
     /**
      * What the rules have made of the sitting: the **effective** positions, which rules are
      * armed, the instructions standing, and the outcome once something has ended it.
@@ -1376,7 +1399,7 @@ class TurnPipeline(
                         runCatching { conversation.judge(
                             before,
                             said = intended,
-                            answered = compose(reply.echo, reply.spoken),
+                            answered = joined(compose(reply.echo, reply.said)),
                             // The half of the brief addressed to the learner, and the only thing
                             // of the scene the judge is given. The staging has no parameter to
                             // travel on.
@@ -1394,7 +1417,7 @@ class TurnPipeline(
                     // it waits it cannot, and writing it early held the continuation while the
                     // echo was what played, so the screen ran ahead of the voice by a whole reply.
                     val speaking = if (waits) null else async {
-                        say(said.id, compose(reply.echo, reply.spoken), reply.established)
+                        say(said.id, compose(reply.echo, reply.said), reply.established)
                     }
 
                     // **Where it waits, the voice cannot go out yet -- but the render can.** The
@@ -1413,9 +1436,13 @@ class TurnPipeline(
                     //
                     // A render that gives way here is not a failure of the turn: the path below
                     // renders as it always did, and it is that one that reports.
-                    val ahead = if (!waits) null else async {
+                    // **Only where the turn is one utterance.** A run of several is rendered
+                    // one at a time as it is said, there being no single text to render.
+                    val ahead = if (!waits || reply.said.size != 1) null else async {
                         runCatching {
-                            synthesis.speak(compose(reply.echo, reply.spoken), synthesis.voice())
+                            synthesis.speak(
+                                compose(reply.echo, reply.said).single().text, synthesis.voice(),
+                            )
                         }.getOrNull()
                     }
 
@@ -1436,7 +1463,7 @@ class TurnPipeline(
                                 unjudged = Unjudged(
                                     of = said.id,
                                     said = intended,
-                                    answered = compose(reply.echo, reply.spoken),
+                                    answered = joined(compose(reply.echo, reply.said)),
                                     before = before,
                                     instructions = door.instructions,
                                     ending = closedBy,
@@ -1471,13 +1498,20 @@ class TurnPipeline(
                             // nothing had happened. With the echo in front, the way out is
                             // acknowledged before it is taken -- and it costs nothing, the echo
                             // being already in hand.
-                            _state.update { it.copy(held = compose(reply.echo, reply.spoken)) }
+                            _state.update { it.copy(held = compose(reply.echo, reply.said)) }
                         }
                         // The echo alone is a text of its own, so it is rendered on its own; the
                         // whole utterance was rendered ahead and is taken as it is.
-                        if (echoing) say(said.id, reply.echo!!, reply.established)
-                        else say(said.id, compose(reply.echo, reply.spoken), reply.established,
-                                 ahead?.await())
+                        if (echoing) {
+                            say(
+                                said.id,
+                                listOf(Said(Said.Kind.Speech, Speaker.SAYLUNE, reply.echo!!)),
+                                reply.established,
+                            )
+                        } else {
+                            say(said.id, compose(reply.echo, reply.said), reply.established,
+                                ahead?.await())
+                        }
                     }
                     Trace.add("turn: said, and done")
 
@@ -1532,31 +1566,52 @@ class TurnPipeline(
      * knew whether it would be played.
      */
     private suspend fun say(
-        answers: String, text: String, established: Map<String, String>, rendered: File? = null,
-    ) {
-        val answer = Utterance(
-            speaker = Speaker.Ai,
-            activity = _state.value.activity.id,
-            text = text,
-            answers = answers,
-            // On the turn that settled it, which is where the prompt puts it back and what
-            // dates it. Empty on nearly every turn.
-            established = established,
-        )
+        answers: String?, turn: List<Said>, established: Map<String, String>,
+        rendered: File? = null,
+    ): List<Utterance> {
+        // **The run enters the thread in one go, and the established goes on the first.**
+        // Arriving one at a time it would be a shape the arming could read before the turn
+        // was over, and the mic would open while the narrator was still talking. What the
+        // model settled belongs to the turn, and the turn is named by the utterance that
+        // opens it -- which is where the prompt puts it back and what dates it.
+        val entering = turn.mapIndexed { at, one ->
+            Utterance(
+                speaker = Speaker(one.who),
+                kind = one.kind,
+                activity = _state.value.activity.id,
+                text = one.text,
+                answers = answers,
+                established = if (at == 0) established else emptyMap(),
+            )
+        }
         _state.update {
-            it.copy(utterances = it.utterances + answer, phase = Phase.Speaking)
+            it.copy(utterances = it.utterances + entering, phase = Phase.Speaking)
         }
-        write(answer.id)
-        // [rendered] is the render started ahead of the verdict, where there was one to
-        // start. Null is the ordinary case and not a gap: it renders here, as it always did.
-        val wav = rendered ?: synthesis.speak(text, synthesis.voice())
-        Playback.play(wav, by = Loudspeaker.By.App) {
-            // The number the doc puts on the chain, and the only one the learner feels.
-            Trace.add("turn: first sound")
+        entering.forEach { write(it.id) }
+        // **One take of the speaker, from the first word to the last.** Played one at a time
+        // it would be N takes, so N windows -- the pauses included -- where another sound of
+        // the app could seize it, and a turn the rules provoked falling in one of them would
+        // cut the run in two.
+        Loudspeaker.take(Loudspeaker.By.App) {
+            entering.forEachIndexed { at, one ->
+                if (at > 0) delay(Said.PAUSE_MS)
+                // [rendered] is the render started ahead of the verdict, where there was one
+                // to start, and it is the whole turn's -- so it stands for the one utterance
+                // there is when there is one. Null is the ordinary case and not a gap.
+                val wav = rendered?.takeIf { entering.size == 1 }
+                    ?: synthesis.speak(one.text, synthesis.voice())
+                Playback.sound(wav) {
+                    // The number the doc puts on the chain, and the only one the learner
+                    // feels: the first sound of the turn, not of each utterance in it.
+                    if (at == 0) Trace.add("turn: first sound")
+                }
+            }
         }
-        // The answer has finished. Here and not at the append: what opens the learner's turn
-        // is the voice stopping, never a line arriving in the thread.
-        spoke(answer.id)
+        // The turn has finished. Here and not at the append: what opens the learner's turn is
+        // the voice stopping, and it is the **end of the run** -- never one utterance
+        // arriving in the thread.
+        spoke(entering.last().id)
+        return entering
     }
 
     /**
@@ -1569,8 +1624,20 @@ class TurnPipeline(
      *
      * Null echo is the ordinary turn: nothing was marked, so there is nothing to open with.
      */
-    private fun compose(echo: String?, continuation: String): String =
-        if (echo == null) continuation else "$echo $continuation"
+    private fun compose(echo: String?, turn: List<Said>): List<Said> {
+        if (echo == null) return turn
+        // The first **speech**, never a stage direction: laid on a narrator's line the echo
+        // becomes the narrator remarking on the learner's grammar. A turn may open on a stage
+        // direction, and the echo simply skips to the first reply.
+        val at = turn.indexOfFirst { it.isSpeech }
+        if (at < 0) return turn
+        return turn.mapIndexed { index, one ->
+            if (index == at) one.copy(text = "$echo ${one.text}") else one
+        }
+    }
+
+    /** The turn as one string, which is what the judge is shown and what the store holds. */
+    private fun joined(turn: List<Said>): String = turn.joinToString(" ") { it.text }
 
     /**
      * What a verdict settles the moment it arrives: the marking on the turn, then the gate.
@@ -1801,20 +1868,17 @@ class TurnPipeline(
         _state.value.held?.let { continuation ->
             Trace.add("passage: the attempts ran out, the held continuation is played")
             _state.update { it.copy(held = null) }
-            withPhase(Phase.Speaking) {
-                Playback.play(
-                    synthesis.speak(continuation, synthesis.voice()), by = Loudspeaker.By.App,
-                )
-                // The thread follows the voice here too: the echo was what was heard, and the
-                // continuation is what is heard now, so it is the reply that stands.
-                _state.value.open()?.last?.id?.let { attempt ->
-                    _state.value.utterances.lastOrNull { it.answers == attempt }?.let { reply ->
-                        update(reply.id) { it.copy(text = continuation) }
-                        write(reply.id)
-                        // What was heard is an answer like any other, and it has just ended.
-                        spoke(reply.id)
+            // The thread follows the voice here too: the echo was what was heard, and the
+            // continuation is what is heard now, so it is the reply that stands -- and it
+            // replaces the one utterance the echo went out as, whatever the run's length.
+            _state.value.open()?.last?.id?.let { attempt ->
+                _state.value.utterances.lastOrNull { it.answers == attempt }?.let { reply ->
+                    _state.update { state ->
+                        state.copy(utterances = state.utterances.filterNot { it.id == reply.id })
                     }
+                    archive.forget(listOf(reply.id))
                 }
+                withPhase(Phase.Speaking) { say(attempt, continuation, emptyMap()) }
             }
         }
         // The gates spoke about a passage that is over. What follows opens a fresh one, and
@@ -2438,26 +2502,17 @@ class TurnPipeline(
                         asking = door.asked,
                     ),
                 )
-                val answer = Utterance(
-                    speaker = Speaker.Ai,
-                    activity = _state.value.activity.id,
-                    text = reply.spoken,
-                    // It answers nobody, and that is what tells it from every other AI turn.
-                    answers = null,
-                    established = reply.established,
-                )
-                // Keyed by the utterance itself, there being no passage to key it by. Nothing
-                // opens it from the screen; what this is for is clearing the body, which would
-                // otherwise show up under the next passage as though it had been sent for it.
-                Trace.askedFor(answer.id)
-                _state.update {
-                    it.copy(utterances = it.utterances + answer, phase = Phase.Speaking)
+                // Through the same path as every other turn: it is a run of utterances, said
+                // in one take of the speaker, and it answers nobody -- which is the one thing
+                // that tells it from the rest.
+                val entering = withPhase(Phase.Speaking) {
+                    say(answers = null, turn = reply.said, established = reply.established)
                 }
-                write(answer.id)
-                Playback.play(
-                    synthesis.speak(reply.spoken, synthesis.voice()), by = Loudspeaker.By.App,
-                )
-                spoke(answer.id)
+                // Keyed by the utterance that opens it, there being no passage to key it by.
+                // Nothing opens it from the screen; what this is for is clearing the body,
+                // which would otherwise show up under the next passage as though it had been
+                // sent for it.
+                Trace.askedFor(entering.first().id)
             } catch (failure: ChainFailure) {
                 Trace.fail("turn: the character had a turn to take and the link gave way",
                            "why" to failure.message)

@@ -45,7 +45,24 @@ object Playback {
         speed: Float = 1f,
         by: Loudspeaker.By = Loudspeaker.By.Hand,
         started: () -> Unit = {},
-    ) = Loudspeaker.take(by) {
+    ) = Loudspeaker.take(by) { sound(wav, speed, started) }
+
+    /**
+     * The same wav, played **without taking the speaker**, for a caller that already holds it.
+     *
+     * A run of utterances is one turn and holds the speaker from the first word to the last.
+     * Played one [play] at a time it would be N takes instead, so N windows where another
+     * sound of the app could seize it -- the pauses between them included -- and a turn the
+     * rules provoked, falling between the second utterance and the third, would cut the run
+     * in two. Nesting [play] inside a take is not the way round it: the inner take would find
+     * the outer one standing at the same rank and cancel it, which is the caller cancelling
+     * itself.
+     *
+     * So the taking is the caller's and this is the playing. Nothing else may call it.
+     */
+    internal suspend fun sound(
+        wav: File, speed: Float = 1f, started: () -> Unit = {},
+    ) {
         withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { continuation ->
                 val player = MediaPlayer()
