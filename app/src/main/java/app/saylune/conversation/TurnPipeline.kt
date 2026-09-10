@@ -956,8 +956,14 @@ class TurnPipeline(
             }
 
             _state.update { it.copy(phase = Phase.Thinking) }
+            // **The conversation as it stood before this turn, read once and given to both
+            // calls.** Read twice it would not be the same thing: between them the learner's
+            // turn joins the run, and the reply joins it from another coroutine, so the judge
+            // would see the sentence it is being handed a second time inside the record --
+            // and the reply, or not, depending on which coroutine got there first.
+            val before = _state.value.history()
             val reply = conversation.reply(
-                _state.value.history(), heard,
+                before, heard,
                 scene = Scene(
                     brief = _state.value.activity.brief,
                     cast = _state.value.activity.cast,
@@ -1042,7 +1048,7 @@ class TurnPipeline(
                 // which is what this call is shown it for.
                 val judging = async {
                     conversation.judge(
-                        _state.value.history(),
+                        before,
                         said = intended,
                         answered = compose(reply.echo, reply.spoken),
                         // The half of the brief addressed to the learner, and the only thing
