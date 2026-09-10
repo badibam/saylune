@@ -279,7 +279,7 @@ Deux réglages, **tous deux opt-in, et aucun n'implique l'autre**.
 
 Le premier est un champ de texte libre dans les réglages de l'app : ce que l'apprenant préfère que la conversation évite, **dans ses mots à lui**. Il part dans la partie stable de l'instruction — après ce qui est identique pour tout le monde, avant ce qui est propre à la scène — avec la consigne qui va avec : contourner, et **ne jamais annoncer qu'on contourne**, un personnage qui dit ce dont il ne parlera pas en ayant parlé. De la prose et pas des cases, parce que ce qu'une personne a besoin qu'on écarte est à elle et ne sort pas d'un vocabulaire écrit par quelqu'un d'autre. Vide, rien n'est envoyé — ni section vide, ni phrase disant qu'il n'y a rien.
 
-C'est un **réglage qui atterrit dans le contexte du juge**, au même titre que la mise en scène, et le même connu s'applique : il ne peut déplacer aucune marque **par contrat**, et ce qui le tient à distance est la phrase disant que le juge marque contre la consigne. Vérifiable au banc, pas prouvé (`../TODO.md`).
+**Il n'atteint pas le juge**, et depuis le 2026-09-10 c'est vrai par construction : l'appel au modèle s'est coupé en un qui parle et un qui juge, celui qui juge ne reçoit que la situation, et ni ce champ ni la mise en scène n'ont de paramètre par où voyager. La parade était une phrase de prompt que rien ne vérifiait ; il n'y a plus rien à vérifier.
 
 Le second est l'affichage : une fiche **déclare ce qu'elle est faite pour faire**, avec une liste fermée de clés, et rien ne s'affiche tant que l'apprenant ne l'a pas demandé. **Décoché par défaut** — à qui n'a rien à écarter, c'est un résumé de ce que la scène contient, donc un gâchis de découverte que personne n'a demandé.
 

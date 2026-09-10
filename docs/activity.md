@@ -200,7 +200,7 @@ D'où la forme qui rend la liberté bon marché : **prose libre à l'aller, clé
 
 **Le détail par son ne se pose même pas** : un tour de quinze mots fait une cinquantaine de sons, plusieurs fois la taille du tour. Et tenir compte des sons pour répondre n'est pas le travail du personnage, c'est celui du prescripteur progression.
 
-**Le `brief` se coupe en deux, et pas plus** : la **situation**, que l'apprenant lit, et la **mise en scène**, qui ne s'adresse qu'au personnage et ne s'affiche jamais. **Ce qui les sépare est qui elles situent** — la situation situe **l'apprenant, à la deuxième personne**, la mise en scène situe le **personnage**. Aller plus loin empiéterait sur les consignes. Le prix de l'appel unique est ici, et il se dit une fois : la mise en scène est dans le contexte du juge, où elle n'a rien à faire, et ce qui l'en tient à distance est une phrase disant que son critère est la consigne. Ça se vérifie au banc, ça ne se prouve pas.
+**Le `brief` se coupe en deux, et pas plus** : la **situation**, que l'apprenant lit, et la **mise en scène**, qui ne s'adresse qu'au personnage et ne s'affiche jamais. **Ce qui les sépare est qui elles situent** — la situation situe **l'apprenant, à la deuxième personne**, la mise en scène situe le **personnage**. Aller plus loin empiéterait sur les consignes. **La mise en scène ne va plus au juge du tout** (le 2026-09-10) : l'appel s'est coupé en un qui parle et un qui juge, et celui qui juge ne reçoit que la situation — il n'y a aucun paramètre par où la mise en scène passerait. Ce qui était le prix de l'appel unique, tenu à distance par une phrase de prompt que rien ne vérifiait, a cessé d'exister.
 
 ## Le passage
 
