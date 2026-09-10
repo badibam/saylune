@@ -67,6 +67,8 @@ Deux champs au lieu d'un texte de réponse. Ce ne sont pas deux phrases concurre
 
 **Le dernier cas est un gain sur le montage actuel**, où la continuation nue se joue à l'épuisement : la conversation s'était arrêtée sur une phrase, les tentatives s'épuisent, et l'IA repart comme si de rien n'était. L'écho devant reconnaît la sortie avant de la franchir, et il est déjà là.
 
+**Où la conversation attend, la synthèse part quand même avant le verdict** (écrit le 2026-09-10). Ce qui se joue dépend de la porte, donc le verdict doit arriver avant le premier son — mais l'audio de `écho + continuation`, lui, se fabrique sans le savoir. Il sert dans les deux premières lignes d'« attend » ; dans la troisième il n'est pas joué, et il n'est pas perdu pour autant : c'est **exactement la chaîne mise de côté pour la sortie**, et le cache des synthèses étant indexé par le texte, l'épuisement la retrouve sur place. Le seul vrai déchet est l'apprenant qui reformule avec succès, et il se paie en caractères facturés, jamais en attente — la fabrication tournait à côté du juge. **Où la conversation poursuit, il n'y a rien à décider** : la synthèse et le juge tournent déjà côte à côte et rien n'est jamais jeté.
+
 **La continuation jouée à l'épuisement est celle de la dernière tentative**, jamais de la première — c'est la seule lecture compatible avec « rien n'est jamais contredit », jouer la première ferait répondre à une phrase qui n'existe plus.
 
 ### Ce que le prompt du juge perd, et les deux dettes qui se ferment

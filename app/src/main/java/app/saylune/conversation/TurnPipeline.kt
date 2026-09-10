@@ -1063,6 +1063,28 @@ class TurnPipeline(
                     say(said.id, compose(reply.echo, reply.spoken), reply.established)
                 }
 
+                // **Where it waits, the voice cannot go out yet -- but the render can.** The
+                // whole utterance is what is played in two of the three cases the advance
+                // leaves open: nothing was wrong, so there is no echo and this is the
+                // continuation; or something was, and the gate stayed open, which is the
+                // founding gesture. So it is worth having in hand, and rendering it here
+                // costs the wait of the slower link instead of the sum of the two.
+                //
+                // **The third case does not throw it away either.** The gate shuts, the echo
+                // alone is played, and this exact string is what is held for the way out --
+                // so if the attempts run out, `close()` asks for it by its text and the cache
+                // hands back this very file. It is wasted only where the learner rewords
+                // successfully, and what it costs there is characters billed, never a wait:
+                // it ran beside the judge.
+                //
+                // A render that gives way here is not a failure of the turn: the path below
+                // renders as it always did, and it is that one that reports.
+                val ahead = if (!waits) null else async {
+                    runCatching {
+                        synthesis.speak(compose(reply.echo, reply.spoken), synthesis.voice())
+                    }.getOrNull()
+                }
+
                 // **A judge that gives way no longer costs the turn.** The voice may already
                 // be out, and there is no sending the same recording again once a character
                 // has answered it: the turn stands, unmarked, and says why. Nothing is
@@ -1108,11 +1130,11 @@ class TurnPipeline(
                         // being already in hand.
                         _state.update { it.copy(held = compose(reply.echo, reply.spoken)) }
                     }
-                    say(
-                        said.id,
-                        if (echoing) reply.echo!! else compose(reply.echo, reply.spoken),
-                        reply.established,
-                    )
+                    // The echo alone is a text of its own, so it is rendered on its own; the
+                    // whole utterance was rendered ahead and is taken as it is.
+                    if (echoing) say(said.id, reply.echo!!, reply.established)
+                    else say(said.id, compose(reply.echo, reply.spoken), reply.established,
+                             ahead?.await())
                 }
                 Trace.add("turn: said, and done")
 
@@ -1186,9 +1208,12 @@ class TurnPipeline(
      * **One place, because the advance calls it from two**: where the conversation carries on
      * it runs beside the judge, where it waits it runs after -- and what it does is the same
      * either way, so a second copy would be a second thing to keep in step.
+     *
+     * [rendered] is an audio already made, for the one caller that could start it before it
+     * knew whether it would be played.
      */
     private suspend fun say(
-        answers: String, text: String, established: Map<String, String>,
+        answers: String, text: String, established: Map<String, String>, rendered: File? = null,
     ) {
         val answer = Utterance(
             speaker = Speaker.Ai,
@@ -1203,7 +1228,10 @@ class TurnPipeline(
             it.copy(utterances = it.utterances + answer, phase = Phase.Speaking)
         }
         write(answer.id)
-        Playback.play(synthesis.speak(text, synthesis.voice()), by = Loudspeaker.By.App) {
+        // [rendered] is the render started ahead of the verdict, where there was one to
+        // start. Null is the ordinary case and not a gap: it renders here, as it always did.
+        val wav = rendered ?: synthesis.speak(text, synthesis.voice())
+        Playback.play(wav, by = Loudspeaker.By.App) {
             // The number the doc puts on the chain, and the only one the learner feels.
             Trace.add("turn: first sound")
         }
