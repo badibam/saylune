@@ -93,31 +93,24 @@ Retirer cet échafaudage au répondeur casse deux choses. Il peut répondre à c
 
 **Ce que ça coûte est un point d'attention et non une dette** (`../TODO.md`) : la qualité d'`intended` dépend désormais du modèle choisi pour **parler**, qu'on aura peut-être pris pour sa voix ou sa vitesse plutôt que pour son soin ; et le juge perd la possibilité de rattraper une reconnaissance ratée que le répondeur aurait manquée.
 
-## La fusion langue + voix
+## La fusion langue + voix, écartée
 
-Le Router fait **modèle de langue et synthèse en une requête** : le même `POST /v1/chat/completions`, avec un paramètre `audio` nommant la voix et le modèle de synthèse. La réponse rend les deux séparément — le texte dans `message.audio.transcript`, l'audio PCM dans `message.audio.data` en base64 — hors flux comme en flux, où ce sont les mêmes champs sous `delta`. PCM 16 bits mono à 48 kHz.
+**Tranchée le 2026-09-10 : elle tombe.** Elle n'a jamais été écrite, et l'étape 5 disparaît du plan.
 
-**Et c'est là que la coupe et la fusion se heurtent, ce que ce doc n'avait pas vu.** Lu le 2026-09-10 sur `docs.inworld.ai/router/guides/llm-plus-tts` : le Router **synthétise la sortie du modèle en entier**, et rien ne permet de désigner la portion à dire — pas de champ, pas de balise, pas de convention. Le `transcript` n'est pas un texte à côté de l'audio, c'est **le texte qui a été dit**. La page ne dit rien non plus de `response_format` ni de sortie structurée à côté d'`audio`.
+Ce qu'elle était. Le Router fait **modèle de langue et synthèse en une requête** : le même `POST /v1/chat/completions`, avec un paramètre `audio` nommant la voix et le modèle de synthèse ; la réponse rend le texte dans `message.audio.transcript` et l'audio PCM dans `message.audio.data`. Ce qu'elle achetait n'était pas un appel de moins mais du temps — l'audio part pendant que la réplique s'écrit, au lieu d'être livré fini.
 
-Or celui qui parle rend un objet JSON : `intended`, `established`, `echo`, `spoken`. Sous fusion, la voix dirait cet objet. Donc **la fusion exige que celui qui parle rende de la prose nue**, et `intended` et `established` n'ont plus de véhicule — alors que faire écrire `intended` par celui qui parle est précisément ce que l'étape 4a a tranché, contre le cas où la voix modèle prononce un mot que personne n'a dit.
+**Ce qui la tue tient en une phrase de leur doc** (lue sur `docs.inworld.ai/router/guides/llm-plus-tts`) : le Router **synthétise la sortie du modèle en entier**, et rien ne permet de désigner la portion à dire — pas de champ, pas de balise, pas de convention. Le `transcript` n'est pas un texte posé à côté de l'audio, c'est le texte qui a été prononcé.
 
-Trois issues étaient ouvertes, il en reste deux :
+Or celui qui parle rend un objet JSON — `intended`, `established`, `echo`, `spoken` —, donc la voix dirait l'objet. La fusion exige de lui de la **prose nue**, et `intended` n'a alors plus de véhicule ; or le faire écrire par celui qui parle est ce que l'étape 4a a tranché, contre le cas où la voix modèle prononce un mot que personne n'a dit.
 
-- **`intended` repart chez le juge.** La fusion est possible telle quelle, et on rouvre ce que 4a a fermé.
-- ~~**Le contrat passe par `tools`.**~~ **Fermée le 2026-09-10, et c'est écrit noir sur blanc** : « quand le modèle décide d'appeler un outil, l'appel revient en `delta.tool_calls` ordinaires — **aucun audio n'est produit pour ce tour** ». Ce n'est donc pas que l'appel d'outil échappe à la synthèse, c'est qu'il l'éteint. La réplique parlée arriverait au tour d'après, une fois le résultat de l'outil renvoyé : un aller-retour de plus par tour, soit exactement l'appel que la fusion existe pour supprimer. La sortie structurée (`response_format`) ne sauve rien non plus — c'est toute la sortie qui devient l'objet, donc toute la sortie qui serait dite.
-- **La fusion tombe.** Le point de décision était déjà prévu après l'étape 6, et tout ce qui précède est acquis dans les deux cas.
+Les deux échappatoires cherchées, et pourquoi aucune ne tient :
 
-Ce qui suit décrit la fusion telle qu'elle avait été pensée, et reste vrai de ce qu'elle achèterait.
+- **Faire voyager le contrat par un appel d'outil.** Fermée par leur doc, qui dit que « quand le modèle décide d'appeler un outil, l'appel revient en `delta.tool_calls` ordinaires — **aucun audio n'est produit pour ce tour** ». L'appel d'outil n'échappe pas à la synthèse, il l'éteint : la réplique parlée arriverait au tour d'après, une fois le résultat renvoyé, soit un aller-retour de plus — exactement l'appel que la fusion existait pour supprimer. La sortie structurée (`response_format`) ne sauve rien non plus : c'est toute la sortie qui devient l'objet, donc toute la sortie qui serait dite.
+- **Rendre `intended` au juge.** Techniquement suffisant, et refusé : ça rouvre 4a, dont l'argument entier est que la réplique et la marque ne peuvent pas porter sur deux phrases différentes.
 
-**Ce qu'elle achète n'est pas un appel de moins, c'est du temps.** L'audio part pendant que la réplique s'écrit, au lieu d'être livré fini ; et le jugement, qui passait avant le premier son, passe pendant l'écoute.
+Deux choses que la chute rend caduques et qui valaient d'être notées tant qu'elle était vivante. La fusion aurait **jeté un audio par tour** dans le cas « attend, sous la barre, tentatives restantes », où il faut ne jouer que l'écho : on ne découpe jamais un écho, il a été prononcé dans un souffle qui appelle la suite, donc il faudrait resynthétiser. Et il aurait fallu un critère d'allumage automatique — conversation et synthèse chez le même fournisseur qui l'expose — donc une condition de plus dans la couche fournisseur. **En appels séparés, l'app ne synthétise que ce qu'elle joue**, et rien ne s'allume tout seul.
 
-**Elle s'allume seule, à une condition unique : conversation et synthèse chez le même fournisseur qui l'expose.** Le juge est ailleurs si l'utilisateur le veut, ça ne la regarde pas. **Le moteur de règles n'entre jamais dans la décision, et la couche fournisseur ne lit aucun levier** — elle rend un texte et son audio, l'app en fait ce qu'elle veut.
-
-L'appel fusionné écrit `echo` puis `continuation` **comme un seul texte** et le synthétise d'un trait : une synthèse, un audio, et l'intonation coule d'un morceau à l'autre parce que la voix n'a jamais su qu'il y avait deux morceaux.
-
-**Le cas « attend, sous la barre, tentatives restantes » est le seul qui paie.** Il faudrait ne jouer que le début ; on jette l'audio et on resynthétise l'écho seul. **On ne découpe jamais.** Leurs horodatages existent — `timestampType` à `WORD` ou `CHARACTER` — mais ils s'activent à la requête donc ils ralentiraient les quatre cas qui n'en ont pas besoin, rien ne dit qu'ils sont exposés sur l'appel fusionné, et surtout un écho coupé **pend** : il a été prononcé dans un souffle qui appelle la suite. Ce déchet n'existe **que sous fusion** — en appels séparés, l'app ne synthétise que ce qu'elle joue.
-
-Un paramètre « écris seulement » a été envisagé pour l'éviter, et il est écarté sur le compte : il coûte un appel de plus dans les deux autres cas d'« attend », et fait jeu égal dans celui qu'il devait réparer.
+Ce qui reste d'Inworld ne dépendait pas d'elle : le *voice design*, les contrôles de pause, le cache de préfixe, et les trois maillons sur une seule clé.
 
 ## Ce qui reste séparé quoi qu'il arrive
 
@@ -132,10 +125,9 @@ Un paramètre « écris seulement » a été envisagé pour l'éviter, et il est
 2. **Fait le 2026-09-10.** `echo` / `continuation` dans le contrat, la règle de composition dans l'app, la sortie d'un passage bloqué réparée avec.
 3. **Fait le 2026-09-10.** Inworld sur les trois maillons. Trois faits y reposent sur de la doc et pas sur un appel, inscrits au `../TODO.md`.
 4. **Couper l'appel en deux**, et ça se coupe en trois parce que ce sont trois intentions.
-5. La fusion : l'appel qui parle prend `audio`. **Bloquée le 2026-09-10** sur ce que la synthèse dit du texte entier — trois issues plus haut, à trancher avant d'écrire une ligne.
-6. Mesurer — le banc du juge (`grammar-test-set.md`, écrit, jamais tourné) dans les deux montages, et la latence jusqu'au premier son.
+5. Mesurer — le banc du juge (`grammar-test-set.md`, écrit, jamais tourné) dans les deux montages, et la latence jusqu'au premier son.
 
-**Point de décision après 6** : la fusion reste ou tombe. Tout ce qui précède est acquis dans les deux cas.
+**Il n'y a plus de point de décision au bout.** Il y en avait un — la fusion reste ou tombe — et elle est tombée avant d'être écrite. Ce qui reste à mesurer se mesure pour soi : que les deux prompts marquent comme le prompt unique marquait, et ce que la coupe a rendu de secondes.
 
 ### L'étape 4, en trois
 
@@ -170,16 +162,16 @@ Deux choses que ce doc n'avait pas vues, tranchées en l'écrivant.
 
 **Phase 2 — le service.**
 
-7. Serveur d'émission minimal : il émet, liste blanche, `client_reference_id` rempli dès le premier jeton. Éprouve la pochette, la durée de vie, et le jeton brûlé par un appel raté.
-8. Le décompte, quand leur rapport par jeton existe.
-9. Crédits et achat. **Question ouverte, non traitée** : ce que fait l'app quand le solde tombe à zéro en pleine conversation.
+6. Serveur d'émission minimal : il émet, liste blanche, `client_reference_id` rempli dès le premier jeton. Éprouve la pochette, la durée de vie, et le jeton brûlé par un appel raté.
+7. Le décompte, quand leur rapport par jeton existe.
+8. Crédits et achat. **Question ouverte, non traitée** : ce que fait l'app quand le solde tombe à zéro en pleine conversation.
 
 **Phase 3 — ce que ça sert.**
 
-10. Les trois modes et leur écran.
-11. Le contenu réservé : une fiche déclare ce qu'elle exige, et une tuile fermée **se voit et porte sa raison** — `reference.md` interdit d'en retirer une en silence.
+9. Les trois modes et leur écran.
+10. Le contenu réservé : une fiche déclare ce qu'elle exige, et une tuile fermée **se voit et porte sa raison** — `reference.md` interdit d'en retirer une en silence.
 
-**La coupure qui compte est entre 6 et 7** : avant, l'app s'améliore pour tout le monde sans engagement ; après, le projet tient un service.
+**La coupure qui compte est entre 5 et 6** : avant, l'app s'améliore pour tout le monde sans engagement ; après, le projet tient un service.
 
 ## Écarté en chemin
 
