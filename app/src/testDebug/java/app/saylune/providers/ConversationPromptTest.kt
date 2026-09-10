@@ -116,12 +116,32 @@ class ConversationPromptTest {
         assertFalse(put(Rung.MayExtrapolate).contains(Question.DONT_KNOW))
     }
 
-    /** The field is declared once, in the permanent part, and it comes before the reply. */
+    /**
+     * The field is declared once, in the permanent part, and it comes before the reply.
+     *
+     * Anchored on the declaration and not on its wording: a field is declared at the head of
+     * its own line, where "spoken" is also named mid-sentence by the echo's description.
+     */
     @Test
     fun `what is established is written before the character speaks`() {
         assertTrue(
-            ConversationPrompt.APP.indexOf("\"established\"") <
-                ConversationPrompt.APP.indexOf("\"spoken\": your reply"),
+            ConversationPrompt.APP.indexOf("\n\"established\":") <
+                ConversationPrompt.APP.indexOf("\n\"spoken\":"),
+        )
+    }
+
+    /**
+     * The echo is the opening of the utterance, so it is written before what follows it.
+     *
+     * The contract holds that each field written conditions the next, and these two are one
+     * utterance cut in two: asked for the continuation first, the model has to write an
+     * opening for a sentence it has already finished.
+     */
+    @Test
+    fun `the echo is written before the continuation it opens`() {
+        assertTrue(
+            ConversationPrompt.APP.indexOf("\n\"echo\":") <
+                ConversationPrompt.APP.indexOf("\n\"spoken\":"),
         )
     }
 

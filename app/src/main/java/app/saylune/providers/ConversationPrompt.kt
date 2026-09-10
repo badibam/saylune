@@ -179,16 +179,21 @@ internal object ConversationPrompt {
         answers are reread later by another character, and by the learner, so a "I am still
         stung" would have lost its subject by then.
 
-        "spoken": your reply, in English, as it should be said aloud.
+        "echo": include this field only when you marked something in "spans". One short
+        line that picks the slip up and hands the sentence back, in your own voice, the way
+        a native speaker would. To "I have twenty five years": "Ah, you're twenty-five!".
+        It is the **opening of what you say**: "spoken" follows it with no pause between
+        them, so write the two to read as one utterance. Leave the field out entirely when
+        nothing was marked.
+
+        "spoken": what carries the conversation forward, in English, as it should be said
+        aloud. **Never pick the slip up here** -- that is what "echo" is for, and it has
+        just been said. After "Ah, you're twenty-five!", this field is "And where do you
+        work?", never "Ah, you're twenty-five! And where do you work?".
 
         "difficulty": one notch for the turn you have just written, weighing its length,
         its vocabulary and its structure together: "very-easy", "easy", "medium",
         "hard", "very-hard".
-
-        "echo": include this field only when you marked something in "spans". One short
-        line that picks the slip up and hands the sentence back, in your own voice, the way
-        a native speaker would. To "I have twenty five years": "Ah, you're
-        twenty-five!". Leave the field out entirely when nothing was marked.
     """.trimIndent()
 
     /**

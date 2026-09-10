@@ -186,15 +186,23 @@ data class Reply(
      * out, no group of words to mark, and no answer whose uptake could be read.
      */
     val judged: Judgement?,
-    /** The reply, in English, as it is to be said aloud. */
+    /**
+     * What carries the conversation forward, in English, as it is to be said aloud.
+     *
+     * **It never picks the slip up**: that is [echo]'s work, and [echo] is said just before it.
+     */
     val spoken: String,
     /**
-     * A short line that picks the slip up, or null when nothing was marked.
+     * The short line that picks the slip up, or null when nothing was marked.
      *
-     * The call returns **the continuation and this together**, and the app plays one of the
-     * two: so nothing is ever retracted, and it is literally "the model plays, the app
-     * decides" -- the model supplies the matter of both outcomes without settling which.
-     * It is only produced when something was marked, which makes it free on a clean passage.
+     * **It is not a competing reply, it is the opening of one.** The call returns this and
+     * [spoken] as one utterance cut in two, and the app composes them -- so nothing is ever
+     * retracted, and the founding gesture of the project, *"Ah, you're twenty-five! And where
+     * do you work?"*, is the two of them joined.
+     *
+     * The app hears it **alone** in one case only: the passage is to reword and the
+     * conversation waits. It is only produced when something was marked, which makes it free
+     * on a clean passage.
      */
     val echo: String?,
     /**

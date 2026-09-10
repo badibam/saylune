@@ -348,12 +348,19 @@ data class ConversationState(
     val wordsGate: Closing? = null,
     val soundGate: Closing? = null,
     /**
-     * The continuation the app is holding because it played the echo instead.
+     * What the app is holding because it played the echo alone: the echo and its continuation,
+     * composed as they were written.
      *
      * **Nothing has to be refabricated for the way out of a blocked passage**: the call
-     * returned the continuation and the echo together, and in *waits* only the echo was played.
-     * When the rewordings run out, the app plays the continuation it was holding. No second
-     * call, nothing retracted -- which is what makes that way out free.
+     * returned the two together, and in *waits* only the echo was played. When the rewordings
+     * run out, the app plays the pair it was holding. No second call, nothing retracted --
+     * which is what makes that way out free.
+     *
+     * **The echo goes back in front rather than being dropped.** Played bare, the continuation
+     * had the character carry on as though the conversation had not just stopped on a
+     * sentence; the echo acknowledges the way out before it is taken, and it costs nothing.
+     * It is the pair from the **last** attempt, never the first -- the first answered a
+     * sentence that no longer exists.
      */
     val held: String? = null,
     /**
@@ -1016,16 +1023,19 @@ class TurnPipeline(
             // before anything is played, because what is played depends on it.
             val closing = wordsGate(said, judged, groundless)
 
-            // **The call returned the continuation and the echo together, and the app plays
-            // one.** So nothing is ever contradicted inside an attempt: it is literally *the
-            // model plays, the app decides*, the model supplying the matter of both outcomes
-            // without settling which. The echo is played only where the passage is to reword
-            // **and** the conversation waits -- *waits* forces the repair, so only an echo is
-            // heard until it is made; *carries on* offers it, and the conversation advances
-            // whatever happens.
+            // **The echo and the continuation are two portions of one utterance, and the app
+            // composes them.** They are not two candidate replies: the echo is the opening --
+            // *"Ah, you're twenty-five!"* -- and the continuation is what follows it. So the
+            // model supplies the matter and the app settles what is heard, and nothing is
+            // ever contradicted inside an attempt.
+            //
+            // The echo alone is heard in one case only: the passage is to reword **and** the
+            // conversation waits. *Waits* forces the repair, so nothing may carry on until it
+            // is made; *carries on* offers it, and the reply advances with the repair in
+            // front of it, which is the founding gesture of the project.
             val echoing = closing != null && reply.echo != null &&
                 (_state.value.positions.of(Levers.ADVANCE_WORDS.key) as? At)?.name == "waits"
-            val spoken = if (echoing) reply.echo!! else reply.spoken
+            val spoken = if (echoing) reply.echo else compose(reply.echo, reply.spoken)
             // **The thread carries what was heard**, which is why the reply is made after the
             // gate and not before it. Written before, it held the continuation while the echo
             // was what played, so the screen ran ahead of the voice by a whole reply -- and
@@ -1045,7 +1055,12 @@ class TurnPipeline(
             write(answer.id)
             if (echoing) {
                 Trace.add("turn: the echo is played, the continuation is held")
-                _state.update { it.copy(held = reply.spoken) }
+                // **Held composed, not bare.** The way out of a blocked passage used to play
+                // the continuation on its own, so the conversation stopped on a sentence, the
+                // attempts ran out, and the character carried on as if nothing had happened.
+                // With the echo in front, the way out is acknowledged before it is taken --
+                // and it costs nothing, the echo being already in hand.
+                _state.update { it.copy(held = compose(reply.echo, reply.spoken)) }
             }
             Playback.play(synthesis.speak(spoken, synthesis.voice()), by = Loudspeaker.By.App) {
                 // The number the doc puts on the chain, and the only one the learner feels.
@@ -1119,6 +1134,19 @@ class TurnPipeline(
      * **Nothing judged goes out when it closes.** Every judged sheet computes, since they are
      * what decide whether it closes; putting them out by their own decision would be circular.
      */
+    /**
+     * The echo laid in front of the continuation, which is how they were written.
+     *
+     * The model is asked for them as one utterance cut in two -- the echo picks the slip up
+     * and the continuation carries on from it, with no pause between -- so putting them back
+     * together is a join and not a decision. **The lever that decides is elsewhere**: what
+     * varies is whether the echo is heard alone, and that is read off the advance.
+     *
+     * Null echo is the ordinary turn: nothing was marked, so there is nothing to open with.
+     */
+    private fun compose(echo: String?, continuation: String): String =
+        if (echo == null) continuation else "$echo $continuation"
+
     private suspend fun wordsGate(
         said: Utterance, judged: Judgement, groundless: Boolean,
     ): Closing? {
