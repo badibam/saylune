@@ -35,10 +35,10 @@
     <string name="task_synthesis">Voix</string>
     <string name="task_judgement">Jugement</string>
     <string name="task_analysis">Analyse des sons</string>
-    <string name="provider_on_device">Sur l'appareil</string>
+    <string name="provider_on_device">Sur l\'appareil</string>
     <string name="provider_analysis_server">Serveur Saylune</string>
-    <string name="secret_analysis_endpoint">Serveur d'analyse — adresse (vide : l'analyse reste sur l'appareil)</string>
-    <string name="secret_analysis_token">Serveur d'analyse — jeton</string>
+    <string name="secret_analysis_endpoint">Serveur d\'analyse — adresse (vide : l\'analyse reste sur l\'appareil)</string>
+    <string name="secret_analysis_token">Serveur d\'analyse — jeton</string>
     <string name="task_no_provider">Aucun fournisseur ne sait encore faire ça : saisir une clé plus haut.</string>
     <string name="setting_provider">Fournisseur</string>
     <string name="setting_model">Modèle</string>
