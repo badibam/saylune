@@ -22,6 +22,8 @@ Le script prend une voie que le CLI Kaggle n'offre pas, parce que ses deux voies
 
 Le CLI s'installe dans le venv du projet (`tmp/venv/bin/pip install kaggle`) et s'authentifie par `kaggle auth login`, ou par un jeton déposé en `~/.kaggle/kaggle.json` en mode `600`.
 
+**Le notebook est `kaggle/phonemes.ipynb`**, à importer dans un notebook neuf. Il porte le régime de la quatrième génération — encodeur `wav2vec2-base`, pénalité de fréquence à zéro, tout le reste tenu comme `v3` — et il attend deux entrées : le dataset privé du code (`train/*.py`) et le notebook qui porte l'archive du corpus. Les trois autres notebooks de ce dossier sont ceux de la tête à lettres, sur AMI, et n'ont rien à voir avec celui-ci. Les générations `v1`, `v1b` et `v3` ont tourné sur des notebooks qui ne vivaient que chez Kaggle ; c'est ce qui a rendu la quatrième plus chère à préparer qu'à lancer.
+
 **Côté Kaggle, trois réglages qui ne se voient pas.** Le corpus se charge en **dataset privé** — TIMIT est sous licence LDC, pas librement redistribuable. La persistance de session se met sur « Files only », jamais « Variables » qui restaure l'état Python d'une session précédente ; elle retombe à « aucune » à chaque *Copy & Edit* et se repose à la main. Et `/kaggle/working` survit d'une session à l'autre, d'où un dossier de sortie **par run** — `train.py` refuse d'écrire dans un dossier qui porte déjà des checkpoints — et un ménage entre variantes. Ce que ce refus vise est **un dossier**, pas le répertoire de travail : la cellule qui débloque se place **juste avant celle qui entraîne**, et ne touche que la sortie du run.
 
 ```python
