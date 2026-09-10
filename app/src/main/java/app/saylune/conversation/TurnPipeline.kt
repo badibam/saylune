@@ -916,14 +916,47 @@ class TurnPipeline(
         // showing, and a voice coming out of a conversation nobody has opened is the thing this
         // app must not do. Here somebody has just asked to carry on.
         //
-        // **Scheduled and not awaited, like the opening.** The call and the playback have to
-        // happen with the conversation on screen rather than before it; awaited, *carry on*
-        // would sit on the situation screen until the character had finished. It waits on the
-        // lock this still holds, so it begins the instant the sitting is loaded.
+        // **Scheduled and not awaited, like the opening.** The playback has to happen with the
+        // conversation on screen rather than before it; awaited, *carry on* would sit on the
+        // situation screen until the character had finished. It waits on the lock this still
+        // holds, so it begins the instant the sitting is loaded.
         turns.launch {
-            writing.withLock { provokeIfAsked(why = Provoked.OnReturn) }
+            writing.withLock { sayTheLastTurnAgain() }
         }
         true
+    }
+
+    /**
+     * Say the AI's last turn again, whole, which is how a sitting is picked back up.
+     *
+     * **It used to ask the model for a line.** The character invented a sentence that picked
+     * the conversation up, and the mic armed on it -- which is what hid the arming's own
+     * defect rather than mending it: the call put the phase on *thinking*, the arming came out
+     * busy, and nobody saw that what it was following was a shape.
+     *
+     * Nothing is invented here and nothing goes to the model: the text is on file, and only
+     * the synthesis works again -- the model's answers keep no audio, so saying one again
+     * means rendering it again. The cache is keyed by text and voice, so the ordinary return
+     * costs the speaker and nothing else.
+     *
+     * **Whole, because a turn is not one reply.** It can be one character speaking and then
+     * another, and saying the last of them alone would lose the exchange. What is said again
+     * is the run of the app's own utterances at the end of the thread -- the learner's last
+     * word is where it stops.
+     *
+     * Then the event falls and the mic arms, exactly as after any other answer.
+     */
+    private suspend fun sayTheLastTurnAgain() {
+        val turn = _state.value.utterances.takeLastWhile { !it.speaker.isLearner }
+        if (turn.isEmpty()) return
+        withPhase(Phase.Speaking) {
+            for (said in turn) {
+                Playback.play(
+                    synthesis.speak(said.text, synthesis.voice()), by = Loudspeaker.By.App,
+                )
+            }
+        }
+        spoke(turn.last().id)
     }
 
     /**

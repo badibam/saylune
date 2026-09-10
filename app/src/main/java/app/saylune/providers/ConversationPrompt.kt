@@ -424,7 +424,6 @@ internal object ConversationPrompt {
             present(present),
             when (present.provoked) {
                 Provoked.ByRule -> PROVOKED
-                Provoked.OnReturn -> RESUMED
                 null -> "What they just said, as the recogniser heard it:\n\n$transcript"
             },
         )
@@ -447,24 +446,6 @@ internal object ConversationPrompt {
      * the opening down with it: the model answered without a field it had just been asked for.
      * What has nothing to attach to is named; nothing else is forbidden.
      */
-    /**
-     * The turn taken because the learner has come back, said in the app's own voice.
-     *
-     * **It names what is missing exactly as [PROVOKED] does, and then differs on one point**:
-     * there is no instruction. Told it was acting on one, a character would invent the one it
-     * never got -- and what it actually has is the thread, which is what it is asked to pick
-     * back up. What it must not do is comment on the absence: how long the learner was gone is
-     * not in the transcript and not knowable from it, so a line about it would be invented too.
-     */
-    val RESUMED = """
-        Nobody has spoken to you this turn. The learner has just come back to this
-        conversation, and you are picking it up where it stopped -- read the record above and
-        carry on from it, in a sentence or two. Nobody has instructed you to speak, so do not
-        act on an instruction, and do not remark on how long they were away: you have no way of
-        knowing. There is no learner turn to read, so "intended" and "echo" have nothing to
-        attach to: leave those two out. Answer with "spoken".
-    """.trimIndent()
-
     val PROVOKED = """
         Nobody has spoken to you this turn. You are taking it of your own accord, on the
         instruction you have just been given. There is no learner turn to read, so

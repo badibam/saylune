@@ -93,10 +93,11 @@ interface Conversation {
 /**
  * Why the character is taking a turn nobody spoke into.
  *
- * Two, and they differ in what the character has to go on. [ByRule] has the prose a rule has
- * just laid in front of it; [OnReturn] has only the thread, which it is picking back up.
+ * One, and it is a rule of the scene having laid some prose in front of the character. A
+ * sitting picked back up is not one of these: nothing is asked of the model there, the last
+ * turn being said again from what is on file.
  */
-enum class Provoked { ByRule, OnReturn }
+enum class Provoked { ByRule }
 
 data class Present(
     val positions: Positions = Positions(),
