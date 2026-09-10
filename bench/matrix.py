@@ -88,6 +88,14 @@ CANDIDATES = {
         OUTGOING, "standard")
        for weight in ("0.0", "0.1", "0.3")
        for epoch in (9, 19, 29)},
+    # Fourth generation: the same recipe again, on a base-sized ear. Registered
+    # ahead of the run so a checkpoint is readable the moment it lands, and it
+    # assumes v3's sweep -- a different one is a line here.
+    **{f"v4-pw{weight}-e{epoch}": Candidate(
+        str(ROOT / f"tmp/train/runs-v4/v4-pw{weight}/epoch-{epoch:03d}"),
+        OUTGOING, "standard")
+       for weight in ("0.0", "0.1", "0.3")
+       for epoch in (9, 19, 29)},
 }
 
 CHOSEN = os.environ.get("ACOUSTIC_MODEL", "espeak")
