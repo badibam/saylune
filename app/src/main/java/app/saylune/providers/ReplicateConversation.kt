@@ -54,7 +54,7 @@ internal class ReplicateConversation(
         }
 
         val content = ask(ConversationPrompt.system(scene), messages)
-        return ReplyReader.read(content, transcript, present.provoked, present.asking)
+        return ReplyReader.read(content, transcript, present.provoked != null, present.asking)
     }
 
     /**

@@ -210,10 +210,18 @@ fun ConversationScreen(
     // the sitting over, a passage waiting for a repair in *waits*, and a turn nobody read
     // holding the conversation. Written twice, the two would drift, and the mic would open on a
     // turn the engine then refuses.
+    //
+    // **And a receipt standing stops it too, which the button does not.** The implication runs
+    // one way: a notice is dismissed by the finger and never by a clock, precisely so that a
+    // change nobody saw cannot pass -- and the rules of the end of an attempt fire on every
+    // turn, so one lands exactly here, with the voice just finished. Arming over it takes the
+    // reading away, and at the third position sends a turn five seconds later. The button stays
+    // lit: pressing it is a finger, and going on without reading is the learner's to choose.
     val opens = turn.closes()
     val armsOn = turn.armsOn
-    LaunchedEffect(arms, busyOf(turn.phase), opens, armsOn?.id) {
+    LaunchedEffect(arms, busyOf(turn.phase), opens, turn.notices.isEmpty(), armsOn?.id) {
         if (!arms || !opens || armsOn == null) return@LaunchedEffect
+        if (turn.notices.isNotEmpty()) return@LaunchedEffect
         if (turn.phase != Phase.Idle) return@LaunchedEffect
         if (capture.recording || capture.hasAudio) return@LaunchedEffect
         // The preparation: the time between the end of the AI's answer and the mic being

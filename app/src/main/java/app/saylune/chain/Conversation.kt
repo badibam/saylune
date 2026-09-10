@@ -151,7 +151,8 @@ data class Present(
      * never while somebody is recording: nothing cuts off a person who is still speaking.
      *
      * **The reason is carried and not just the fact**, because the two are not the same turn to
-     * take. A rule asked for one and the character has an instruction in front of it; nobody
+     * take -- though what reads it back is the fact alone: the reader is told there was no
+     * learner turn, which both reasons share, and only the prompt cares which. A rule asked for one and the character has an instruction in front of it; nobody
      * asked for the other -- the learner has simply come back -- and a character told it is
      * acting on an instruction it never got would invent one.
      */

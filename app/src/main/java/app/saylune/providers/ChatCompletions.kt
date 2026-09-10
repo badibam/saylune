@@ -60,7 +60,7 @@ internal object ChatCompletions {
             put(ConversationPrompt.message("user", ConversationPrompt.turn(transcript, present)))
         }
         val content = post(base, key, model, ConversationPrompt.system(scene), turns, extra)
-        return ReplyReader.read(content, transcript, present.provoked, present.asking)
+        return ReplyReader.read(content, transcript, present.provoked != null, present.asking)
     }
 
     /**
