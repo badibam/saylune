@@ -1,4 +1,4 @@
-# Les voix : l'étalon se choisit, les personnages se tirent
+# Les voix : l'étalon se choisit, les personnages se tirent, le narrateur se règle
 
 Doc transitoire, ouvert le 2026-09-10. Il porte la séparation entre la voix qui sert de modèle à imiter et les voix de ceux qui parlent, le tirage qui donne les secondes, et le catalogue interne dont les fiches du mode payant nomment les entrées. Il s'élague quand le code est en place et que `activity.md` et `reference.md` ont repris ce qui leur revient. Le mode payant lui-même est décrit dans `premium-chain.md` et `distribution.md`.
 
@@ -53,9 +53,23 @@ Deux régimes et deux états de la fiche, donc quatre viviers, et rien d'autre :
 
 **Un filtre peut vider la liste.** On relâche alors l'accent d'abord, le genre ensuite ; une liste encore vide est un `ChainFailure` et jamais un tirage dans une autre langue. L'ordre dit ce qui compte : le genre est dit au personnage dans sa mise en scène, donc un désaccord s'entend comme une faute de l'app, là où un accent qui diverge est une nuance. **L'ordre de relâchement est défini dans l'app et porte sur les axes** ; l'ordre d'écriture des tags dans une fiche n'a aucun effet, sans quoi un auteur qui réordonne changerait le comportement sans le voir.
 
-**Un tirage par personnage, sans remise** : deux personnages d'une même scène ne peuvent pas recevoir la même voix, sinon rien ne dit plus qui parle.
+**Un tirage par personnage, sans remise** : deux personnages d'une même scène ne peuvent pas recevoir la même voix, sinon rien ne dit plus qui parle. Cette règle était une précaution quand un seul personnage parlait par tour ; elle devient **porteuse** depuis qu'un tour est une suite d'énoncés où deux personnages se répondent d'affilée (`the-turn.md`).
 
 **Ce qui est tiré entre au journal** (`Activity.chosen`), au même titre que le tirage de genre. C'est le critère du projet appliqué : ce qui dépend d'un aléa que rien ne reproduit se stocke.
+
+## Le narrateur, troisième régime
+
+Le narrateur dit les didascalies du fil (`the-turn.md`). Sa voix n'est **ni l'étalon ni un tirage**, et les deux raisons du tirage sont précisément celles qui ne mordent pas sur lui.
+
+Il ne porte **aucune mesure**, comme un personnage : il ne passe donc aucun test d'étalonnage, et rien ne le rapproche de la voix de référence. Mais le tirage sert **la rencontre** — croiser quelqu'un qu'on n'a pas choisi — et un narrateur n'est pas quelqu'un qu'on rencontre. Il parle en outre dans **toutes** les tuiles : tiré, il changerait à chaque séance, là où c'est la seule voix qui a une raison de rester la même d'une histoire à l'autre. C'est la voix du jeu et non celle d'un rôle.
+
+**Donc : un réglage, choisi par l'utilisateur avec les mêmes sélecteurs que le reste**, et un défaut. Son vivier par défaut a déjà un nom ici : le registre **de métier** — *humaine mais posée, radio, documentaire, annonce* — qui est la définition d'un narrateur, et qui existait avant qu'on ait besoin de lui.
+
+**Une tuile le remplace exactement comme un personnage**, et cette moitié-là n'invente rien : une entrée nommée, une liste ou un jeu de tags, avec le genre et l'accent, sont le mécanisme décrit plus haut sans un champ de plus. L'auteur déclare un narrateur quand l'immersion le demande et se tait sinon, comme il fait de tout le reste ; le drapeau de la fiche porte la promesse de la même façon.
+
+**Il est un membre de la distribution à clé réservée**, comme l'apprenant, et non un drapeau posé à côté de `main`. Tout lecteur pose déjà la même question à un énoncé — qui a dit ça — et une identité de plus n'oblige personne à prendre une branche neuve.
+
+**Sa voix sort du vivier avant que les personnages tirent.** Le tirage sans remise vaut contre lui aussi : un narrateur et un personnage qui partagent une voix, et plus rien ne dit qui parle — d'autant qu'ils s'enchaînent désormais dans un même tour. Comme sa voix est réglée et non tirée, l'ordre est forcé : on la retire du vivier, puis les personnages tirent dans ce qui reste.
 
 ## Ce qui est stocké, et quand une voix se retire
 
