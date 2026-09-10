@@ -116,14 +116,37 @@ Un paramètre « écris seulement » a été envisagé pour l'éviter, et il est
 
 **Phase 1 — dans l'app, sans rien de neuf dehors.** Chaque étape vaut seule.
 
-1. Rendre explicite et tenir la forme du prompt : tête stable, historique par la fin, queue courte.
-2. `echo` / `continuation` dans le contrat, et la règle de composition dans l'app.
-3. Inworld comme fournisseur, sur les trois maillons, dans l'écran des clés existant — le catalogue servant de sonde.
-4. Couper l'appel en deux, distillés d'un même état, chaque côté chez le fournisseur qu'on veut.
+1. **Fait.** `ConversationPrompt` porte déjà la forme voulue — tête stable, historique par la fin, consignes en queue — et la décision de poser les consignes *après* l'historique y est écrite avec son prix.
+2. **Fait le 2026-09-10.** `echo` / `continuation` dans le contrat, la règle de composition dans l'app, la sortie d'un passage bloqué réparée avec.
+3. **Fait le 2026-09-10.** Inworld sur les trois maillons. Trois faits y reposent sur de la doc et pas sur un appel, inscrits au `../TODO.md`.
+4. **Couper l'appel en deux**, et ça se coupe en trois parce que ce sont trois intentions.
 5. La fusion : l'appel qui parle prend `audio`.
 6. Mesurer — le banc du juge (`grammar-test-set.md`, écrit, jamais tourné) dans les deux montages, et la latence jusqu'au premier son.
 
 **Point de décision après 6** : la fusion reste ou tombe. Tout ce qui précède est acquis dans les deux cas.
+
+### L'étape 4, en trois
+
+**4a — deux prompts, deux appels, même ordonnancement.** Le juge est appelé juste après le répondeur, tout avant la lecture. Rien d'observable ne change sauf le nombre d'appels, donc c'est l'étape qui **prouve que les deux prompts tiennent** sans rien devoir à l'ordre.
+
+**4b — le juge passe pendant l'écoute.** C'est le gain de latence, et c'est là que l'ordre porte / joue / marque bouge. Se juge seul, et se défait seul.
+
+**4c — le juge gagne son propre sélecteur.** Une entrée de plus au catalogue, pour qu'il vive chez un autre fournisseur que la voix, ce que ce doc veut. 4a et 4b le laissent chez le fournisseur de conversation.
+
+### Ce que 4a touche, relevé sur le code
+
+- **`ConversationPrompt.APP`** — un seul texte porte les consignes de réponse *et* le contrat de marquage ; il se coupe en deux, plus deux assembleurs `system()` au lieu d'un. **C'est de la prose de prompt, donc du matériau qui se mesure** : la réécrire déplace ce qui produit les marques, et le banc du juge est ce qui le dira.
+- **`ReplyReader.read()`** — se scinde en deux lecteurs. Le contrôle des empans contre les mots d'`intended` reste côté juge, mais `intended` lui arrive d'ailleurs.
+- **`Reply`** perd son `judged`, que le juge rend à part.
+- **`Conversation`** gagne une seconde méthode, et quatre implémentations la suivent — dont Replicate, qui ne passe pas par `ChatCompletions`.
+- **`TurnPipeline`** fait deux appels.
+- **`ConversationPrompt.PROVOKED` et `answered()`**, qui supposent tous deux un appel unique.
+
+### Trois choses que la lecture du code a fait remonter
+
+- **Le tour provoqué se simplifie tout seul.** `PROVOKED` demande aujourd'hui au modèle de laisser tomber huit champs qui n'ont rien à quoi se rattacher. Avec la coupe, un tour que personne n'a provoqué **n'appelle pas le juge**, et ces huit lignes disparaissent au lieu d'être entretenues.
+- **La relecture de l'historique se dédouble, et ce n'est pas tranché.** `answered()` rejoue chaque tour passé comme l'objet que le modèle avait émis — `established`, puis `spoken`, puis l'`intended` du tour d'avant. Les deux côtés n'ont plus besoin des mêmes champs, donc chacun veut sa relecture. À décider en écrivant 4a.
+- **Deux mesures de la même journée sont à ne pas perdre** : rejouer les réponses passées en prose plutôt qu'en JSON fait revenir le troisième tour vide, et les marques restent hors de la relecture parce qu'un modèle à qui l'on montre ses vingt derniers verdicts devient cohérent avec eux plutôt qu'avec le tour qu'il lit. Les deux valent pour les deux côtés.
 
 **Phase 2 — le service.**
 
