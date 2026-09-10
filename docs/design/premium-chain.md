@@ -83,11 +83,15 @@ Sortent également la **persona** et le **numéro de passage**, qui règlent com
 
 La forme à tenir des deux côtés est celle que `ConversationPrompt` porte déjà : une tête stable, un historique qui ne grandit que par la fin, le tour de l'apprenant, une queue courte propre à l'appel. Le choix documenté de poser les consignes **après** l'historique — au plus près du tour qu'elles gouvernent, contre un préfixe caché compté en millièmes — reste valable, et chaque côté le tranche pour lui.
 
-### Une chose que la coupe retire au répondeur, et qui n'est pas mesurée
+### `intended` reste chez celui qui parle, et c'est lui qui le donne au juge
 
-`ConversationPrompt.APP` impose l'ordre des champs et dit pourquoi : `intended` s'écrit **avant** la réplique parce que « les mots de l'apprenant doivent être arrêtés avant qu'on prenne la voix du personnage ». Coupé, le répondeur perd cet échafaudage — il répond au transcript brut sans avoir écrit ce qu'il a compris.
+`ConversationPrompt.APP` impose l'ordre des champs et dit pourquoi : `intended` s'écrit **avant** la réplique parce que « les mots de l'apprenant doivent être arrêtés avant qu'on prenne la voix du personnage ». Devant `i had a nice conversation with my ant yesterday`, c'est ce champ qui force le modèle à s'engager sur `aunt` avant de répondre.
 
-Deux issues, non départagées : lui faire écrire `intended` quand même, court et jeté ensuite ; ou ne pas le lui faire écrire et mesurer si la réplique se dégrade. **À trancher au banc, pas ici.**
+Retirer cet échafaudage au répondeur casse deux choses. Il peut répondre à côté, et il ne peut plus épingler la faute que l'écho doit reprendre. Mais le vrai dégât est ailleurs : s'il devine `aunt` pendant que le juge écrit `ant`, **la voix modèle prononce un mot que personne n'a dit** et toutes les marques du tour tombent à côté.
+
+**Donc `intended` est écrit par celui qui parle, et l'app le passe au juge tel quel.** Un seul `intended` dans tout le système, produit là où l'échafaudage sert, consommé par le juge et par l'analyse ; le juge ne reconstruit plus, il reçoit. C'est le même sens unique que la réplique passée au juge, et c'est ce que `../TODO.md` anticipait déjà de sa propre coupe — « un modèle léger pour `intended`, un fort pour le jugement ». Le répondeur **est** ce modèle léger.
+
+**Ce que ça coûte est un point d'attention et non une dette** (`../TODO.md`) : la qualité d'`intended` dépend désormais du modèle choisi pour **parler**, qu'on aura peut-être pris pour sa voix ou sa vitesse plutôt que pour son soin ; et le juge perd la possibilité de rattraper une reconnaissance ratée que le répondeur aurait manquée.
 
 ## La fusion langue + voix
 
