@@ -101,10 +101,10 @@ Le Router fait **modèle de langue et synthèse en une requête** : le même `PO
 
 Or celui qui parle rend un objet JSON : `intended`, `established`, `echo`, `spoken`. Sous fusion, la voix dirait cet objet. Donc **la fusion exige que celui qui parle rende de la prose nue**, et `intended` et `established` n'ont plus de véhicule — alors que faire écrire `intended` par celui qui parle est précisément ce que l'étape 4a a tranché, contre le cas où la voix modèle prononce un mot que personne n'a dit.
 
-Trois issues, et aucune ne se choisit sans que ce doc le dise :
+Trois issues étaient ouvertes, il en reste deux :
 
 - **`intended` repart chez le juge.** La fusion est possible telle quelle, et on rouvre ce que 4a a fermé.
-- **Le contrat passe par `tools`.** Un appel d'outil est une sortie structurée qui n'est pas du texte d'assistant, donc il n'a aucune raison d'être synthétisé — `tools` est documenté sur cette page. Mais qu'un tour porte à la fois de l'audio et un appel d'outil n'est écrit nulle part : c'est une hypothèse, pas un fait.
+- ~~**Le contrat passe par `tools`.**~~ **Fermée le 2026-09-10, et c'est écrit noir sur blanc** : « quand le modèle décide d'appeler un outil, l'appel revient en `delta.tool_calls` ordinaires — **aucun audio n'est produit pour ce tour** ». Ce n'est donc pas que l'appel d'outil échappe à la synthèse, c'est qu'il l'éteint. La réplique parlée arriverait au tour d'après, une fois le résultat de l'outil renvoyé : un aller-retour de plus par tour, soit exactement l'appel que la fusion existe pour supprimer. La sortie structurée (`response_format`) ne sauve rien non plus — c'est toute la sortie qui devient l'objet, donc toute la sortie qui serait dite.
 - **La fusion tombe.** Le point de décision était déjà prévu après l'étape 6, et tout ce qui précède est acquis dans les deux cas.
 
 Ce qui suit décrit la fusion telle qu'elle avait été pensée, et reste vrai de ce qu'elle achèterait.
