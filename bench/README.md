@@ -47,6 +47,7 @@ L'analyse, elle, n'en demande aucune : elle tourne en local, du poids acoustique
 | `export.py` | le modèle en un fichier ONNX, forme sous laquelle il tourne sur le téléphone |
 | `concord.py` | deux machines lisant les mêmes poids disent-elles la même chose |
 | `phone.py` | pousse, mesure et rapatrie : l'appareil devient une lecture comme une autre |
+| `cost.py` | ce que coûte la passe sur la machine où on le lance, par durée de tour — la même colonne que le téléphone, pour une autre machine |
 | `turn.py` | un tour analysé au format que l'écran de marquage consomme — le tuyau du banc vers l'app |
 | `review.py` | écouter ce qui a été marqué, modèle puis prise, et écrire si c'est une faute |
 | `divergence.py` | écouter là où deux modèles ne nomment pas le même son, et écrire lequel a raison |
