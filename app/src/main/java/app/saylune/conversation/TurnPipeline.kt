@@ -493,6 +493,13 @@ data class ConversationState(
      */
     val opening: String? = null,
     /**
+     * When the arming opens the mic, while the preparation runs; null otherwise.
+     *
+     * Held here rather than on the screen because the status line is what shows it, and the
+     * status line is drawn above the conversation. In memory and never stored, like the event.
+     */
+    val armsAt: Long? = null,
+    /**
      * The passage whose close has already been fired, so it is fired once.
      *
      * The close is a moment of the rules -- the patches, the ramp, the lives, the end of the
@@ -930,6 +937,9 @@ class TurnPipeline(
 
     /** The arming has opened the mic on the end of [of], so that end opens nothing more. */
     fun spend(of: String) = _state.update { if (it.opening == of) it.copy(opening = null) else it }
+
+    /** The preparation runs until [at], or has stopped running when it is null. */
+    fun preparing(at: Long?) = _state.update { it.copy(armsAt = at) }
 
     /**
      * Run [body] in [phase], and come back to [Phase.Idle] whatever happens.

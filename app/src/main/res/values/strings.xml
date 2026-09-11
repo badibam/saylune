@@ -78,6 +78,7 @@
     <string name="phase_thinking">Thinking…</string>
     <string name="phase_speaking">Answering…</string>
     <string name="phase_measuring">Measuring your turn…</string>
+    <string name="capture_arms_in">Your turn in %1$d s</string>
     <string name="turn_retry">Try again</string>
     <string name="turn_failed">The chain gave way: %1$s. Your turn is kept — nothing to say again.</string>
     <string name="turn_unread">The chain gave way: %1$s. Your turn was answered and nothing read it — the conversation is held until it is.</string>

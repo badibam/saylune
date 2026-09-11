@@ -276,7 +276,16 @@ fun ConversationScreen(
         // which may have moved it.
         val positions = pipeline.state.value.positions
         val wait = (positions.of(Levers.PREPARATION.key) as? Count)?.n?.times(1000) ?: 0
-        if (wait > 0) kotlinx.coroutines.delay(wait.toLong())
+        // **Shown, in the status line**: a wait nobody can see is a mic that opens out of
+        // nowhere. Taken down however the wait ends, the finger's press included.
+        if (wait > 0) {
+            pipeline.preparing(System.currentTimeMillis() + wait)
+            try {
+                kotlinx.coroutines.delay(wait.toLong())
+            } finally {
+                pipeline.preparing(null)
+            }
+        }
         pipeline.spend(opening)
         onRepeating(null)
         recorder.open(scope, Capture.of(positions))
@@ -706,6 +715,7 @@ fun turnStatus(turn: ConversationState, capture: CaptureState, repeating: String
     turn.phase == Phase.Thinking -> stringResource(R.string.phase_thinking)
     turn.phase == Phase.Speaking -> stringResource(R.string.phase_speaking)
     turn.phase == Phase.Measuring -> stringResource(R.string.phase_measuring)
+    turn.armsAt != null -> armsIn(turn.armsAt)
     capture.recording && repeating != null ->
         stringResource(R.string.capture_repeat_running, clocks(turn, capture))
     capture.recording ->
@@ -757,6 +767,26 @@ private fun clocks(turn: ConversationState, capture: CaptureState): String {
 }
 
 private fun seconds(ms: Int): String = "%.1f s".format(ms / 1000f)
+
+/**
+ * The preparation counting down to [at], in whole seconds.
+ *
+ * **Where the countdowns belong is not settled**, like the capture clocks above: the status
+ * line is where this one is until the question is answered for all of them at once.
+ */
+@Composable
+private fun armsIn(at: Long): String {
+    val left by produceState(secondsUntil(at), at) {
+        while (true) {
+            value = secondsUntil(at)
+            kotlinx.coroutines.delay(200)
+        }
+    }
+    return stringResource(R.string.capture_arms_in, left)
+}
+
+private fun secondsUntil(at: Long): Int =
+    ((at - System.currentTimeMillis() + 999) / 1000).toInt().coerceAtLeast(0)
 
 /** Whether the chain holds the screen. Named so an effect can key on it. */
 private fun busyOf(phase: Phase): Boolean = phase != Phase.Idle

@@ -73,6 +73,7 @@
     <string name="phase_thinking">Réflexion…</string>
     <string name="phase_speaking">Réponse…</string>
     <string name="phase_measuring">Mesure du tour…</string>
+    <string name="capture_arms_in">À toi dans %1$d s</string>
     <string name="turn_retry">Réessayer</string>
     <string name="turn_failed">La chaîne a lâché : %1$s. Ton tour est conservé — rien à redire.</string>
     <string name="turn_unread">La chaîne a lâché : %1$s. Ton tour a reçu une réponse et rien ne l\'a lu — la conversation attend qu\'il le soit.</string>
