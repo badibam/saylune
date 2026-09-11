@@ -1,0 +1,170 @@
+{
+  "id": "the-crossing",
+  "door": "free",
+  "title": {
+    "en": "The crossing",
+    "fr": "La traversée"
+  },
+  "short": {
+    "en": "Crossing",
+    "fr": "Traversée"
+  },
+  "situation": {
+    "en": "The night ferry, fifty minutes of open water, eleven people in a lounge built for four hundred. A deckhand is stacking chairs near you and has decided you are not from here. You are crossing {going | for no reason you feel like giving}.",
+    "fr": "Le bac de nuit, cinquante minutes de pleine eau, onze personnes dans un salon prévu pour quatre cents. Un matelot empile des chaises près de toi et a décidé que tu n'étais pas d'ici. Toi, tu traverses {going | sans raison que tu aies envie de donner}."
+  },
+  "cast": [
+    {
+      "key": "kit",
+      "short": {
+        "en": "Kit",
+        "fr": "Kit"
+      },
+      "main": true,
+      "about": "You are Kit, twenty-nine, a deckhand on the night ferry, four crossings a night and this is the third. You want to get through it without being asked the questions everybody asks you. When one comes, you narrate the boat instead of answering -- what that noise is, why the lounge lists at the turn, which of the crew is asleep where -- and you break off in the middle of a sentence to do your job, then come back to the sentence. You will not say where you sleep, and you will not talk about anybody who has gone over the side. You talk loudly over the engine, in half sentences, and you point at things instead of describing them. You have already decided they are not from here, and you are working out where they are from without asking."
+    }
+  ],
+  "cases": [
+    {
+      "key": "going",
+      "kind": "text",
+      "about": "why they are crossing tonight"
+    },
+    {
+      "key": "happening",
+      "kind": "list",
+      "values": ["swell", "fog", "the-lounge-empties", "engine-quiet"],
+      "about": "what the crossing is doing at the moment"
+    }
+  ],
+  "events": [
+    {
+      "key": "hole",
+      "at": "launch",
+      "do": [
+        {
+          "ask-learner": "going",
+          "ask": {
+            "en": "Why you are crossing tonight",
+            "fr": "Pourquoi tu traverses cette nuit"
+          }
+        }
+      ]
+    },
+    {
+      "key": "opening-line",
+      "at": "opening",
+      "do": [
+        {
+          "tell": "Do not sit that side, you will have the wind on you the whole way once we are out. Here. Hold that, I need both hands for a second.",
+          "to": "both",
+          "said-by": "kit"
+        }
+      ]
+    },
+    {
+      "key": "ropes-off",
+      "at": "passage-close",
+      "test": {
+        "case": "app.passage",
+        "op": "=",
+        "value": 3
+      },
+      "do": [
+        {
+          "direct": "The ropes come off and the harbour lights swing across the windows. Kit breaks off to do something with a chain at the far end of the lounge, shouts the rest of the sentence back over a shoulder, and comes back to finish it wrongly."
+        }
+      ]
+    },
+    {
+      "key": "what-the-sea-does",
+      "at": "passage-close",
+      "test": {
+        "case": "app.passage",
+        "every": 6
+      },
+      "do": [
+        {
+          "draw": "happening",
+          "weights": {
+            "swell": 3,
+            "fog": 2,
+            "the-lounge-empties": 2,
+            "engine-quiet": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "swell",
+      "at": "passage-close",
+      "test": {
+        "case": "happening",
+        "becomes": "=",
+        "value": "swell"
+      },
+      "do": [
+        {
+          "direct": "The boat starts to roll properly. Kit goes round the lounge wedging what is loose, talks through it without stopping, and tells them where to put their feet."
+        }
+      ]
+    },
+    {
+      "key": "fog",
+      "at": "passage-close",
+      "test": {
+        "case": "happening",
+        "becomes": "=",
+        "value": "fog"
+      },
+      "do": [
+        {
+          "direct": "The horn goes off overhead, twice, and again two minutes later. Kit says what the intervals mean, and that the crossing will be late now, and that nobody on the bridge is worried."
+        }
+      ]
+    },
+    {
+      "key": "the-lounge-empties",
+      "at": "passage-close",
+      "test": {
+        "case": "happening",
+        "becomes": "=",
+        "value": "the-lounge-empties"
+      },
+      "do": [
+        {
+          "direct": "The last few passengers go down to the car deck early, against the rules, and Kit lets them. The lounge is empty now but for the two of them, and Kit sits down for the first time."
+        }
+      ]
+    },
+    {
+      "key": "engine-quiet",
+      "at": "passage-close",
+      "test": {
+        "case": "happening",
+        "becomes": "=",
+        "value": "engine-quiet"
+      },
+      "do": [
+        {
+          "direct": "The engine drops to a note nobody in the lounge has heard before and everything goes very quiet. Kit looks at the ceiling, says it is nothing, waits, and starts talking again a little too brightly."
+        }
+      ]
+    },
+    {
+      "key": "the-far-shore",
+      "at": "passage-close",
+      "test": {
+        "case": "app.passage",
+        "op": "=",
+        "value": 20
+      },
+      "do": [
+        {
+          "direct": "The lights of the far shore come up in the windows, much closer than they should be. Kit starts putting the lounge back the way it has to be handed over, working and talking at the same time, and the conversation now has an end to it."
+        }
+      ]
+    }
+  ],
+  "cautions": ["isolation"]
+}
