@@ -176,6 +176,8 @@ L'app le déplie au chargement en cases et en événements ; le moteur ne conna�
 
 **Rouvrir, c'est rejouer** : à chaque moment passé, l'app remet ce qui est stocké, recalcule le reste, fait tourner les événements, et arrive à l'état où la séance a été quittée — les lignes automatiques de la conversation du meneur se reconstruisent au passage. Stocker aussi les écritures des événements garderait deux fois la même chose, l'écriture et de quoi la refaire, et il faudrait choisir laquelle croire le jour où elles divergent. Une séance dont le moteur a changé de version ne se reprend pas, rejouer pouvant alors rendre autre chose (`store/Archive.kt`) ; c'est déjà la règle.
 
+**Dans une histoire, rouvrir une scène rejoue les scènes d'avant**, seul moyen de retrouver les cases de l'histoire telles qu'elle les a reçues. Garder leur valeur à la fin de chaque scène éviterait de tout rejouer, au prix d'une seconde source ; un moteur qui a changé rend donc l'histoire entière non reprenable, et c'est accepté.
+
 Aujourd'hui une séance rouverte repart des positions déclarées, faute d'avoir gardé ce que les règles ont lu (`TurnPipeline.kt`, `../../TODO.md`).
 
 ## La vérification
