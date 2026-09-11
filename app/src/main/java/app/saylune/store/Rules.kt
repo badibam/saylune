@@ -1,5 +1,6 @@
 package app.saylune.store
 
+import app.saylune.chain.Said
 import app.saylune.levers.At
 import app.saylune.levers.Count
 import app.saylune.levers.Position
@@ -139,11 +140,21 @@ internal object Rules {
             })
             .put("arming", JSONObject().apply { of.arming.forEach { (k, on) -> put(k, on) } })
             .put("staging", of.staging?.let {
-                JSONObject().put("text", it.text).put("before", it.before)
+                JSONObject().put("text", it.text)
             } ?: JSONObject.NULL)
         is Effect.Finish -> JSONObject().put("kind", "finish").put("outcome", of.outcome.name)
         is Effect.Message ->
             JSONObject().put("kind", "message").put("prose", of.prose).put("now", of.now)
+        // The same words for a line's kind as the contract with the model uses, so a scripted
+        // turn and a written one read alike to whoever opens the file.
+        is Effect.Script -> JSONObject().put("kind", "script").put("said", JSONArray().apply {
+            of.said.forEach {
+                put(JSONObject()
+                    .put("kind", if (it.isSpeech) "speech" else "stage")
+                    .put("who", it.who)
+                    .put("text", it.text))
+            }
+        })
     }
 
     private fun effect(json: JSONObject): Effect = when (val kind = json.getString("kind")) {
@@ -159,11 +170,23 @@ internal object Rules {
                 held.keys().asSequence().associateWith { held.getBoolean(it) }
             },
             staging = if (json.isNull("staging")) null else json.getJSONObject("staging").let {
-                Staging(it.getString("text"), it.getBoolean("before"))
+                Staging(it.getString("text"))
             },
         )
         "finish" -> Effect.Finish(Outcome.valueOf(json.getString("outcome")))
         "message" -> Effect.Message(json.getString("prose"), json.getBoolean("now"))
+        "script" -> Effect.Script(json.getJSONArray("said").objects().map {
+            val line = it.getString("kind")
+            Said(
+                kind = when (line) {
+                    "speech" -> Said.Kind.Speech
+                    "stage" -> Said.Kind.StageDirection
+                    else -> error("'$line' is not a kind of utterance this build knows")
+                },
+                who = it.getString("who"),
+                text = it.getString("text"),
+            )
+        })
         else -> error("'$kind' is not a kind of effect this build knows")
     }
 

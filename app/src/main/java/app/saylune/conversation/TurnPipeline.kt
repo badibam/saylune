@@ -2322,6 +2322,7 @@ class TurnPipeline(
         // rides with them**, since a message that declares it provokes a turn is what decides
         // there is a turn at all.
         messages += out.messages
+        scripts += out.scripts
         if (out.chosen.isNotEmpty()) {
             val at = System.currentTimeMillis()
             val journal = activity.journal + out.chosen.map {
@@ -2435,6 +2436,14 @@ class TurnPipeline(
     private var messages = mutableListOf<Effect.Message>()
 
     /**
+     * The turns the author wrote that a moment has laid and nobody has said yet.
+     *
+     * Held like the messages and for the same reason: they wait for a place where a turn may
+     * fall, which is the same place a provoked turn falls.
+     */
+    private var scripts = mutableListOf<Effect.Script>()
+
+    /**
      * The questions a moment has put and no call has carried yet.
      *
      * Held beside the messages and emptied by the same gesture, because they are the same kind
@@ -2523,11 +2532,23 @@ class TurnPipeline(
     ) {
         // **A return needs no message**, which is the one place a turn is taken with nothing
         // laid in front of it: nobody asked, the learner has simply come back.
-        if (why == Provoked.ByRule &&
-            messages.none { it.now } && !(sweeping && asking.isNotEmpty())
-        ) return
-        val door = frontDoor()
+        val asked = why != Provoked.ByRule ||
+            messages.any { it.now } || (sweeping && asking.isNotEmpty())
+        val scripted = scripts.toList()
+        scripts = mutableListOf()
+        if (scripted.isEmpty() && !asked) return
+        // **One phase around all of it**, so the mic cannot arm in the gap between a scripted
+        // turn ending and the model's turn being asked for.
         withPhase(Phase.Thinking) {
+            // What the author wrote goes first, and without a call: it is said as it stands,
+            // and the model reads it in its history if a turn of its own follows.
+            scripted.forEach { script ->
+                val entering = say(answers = null, turn = script.said, established = emptyMap())
+                Trace.add("turn: a scripted turn was said", "lines" to entering.size.toString())
+            }
+            if (!asked) return@withPhase
+            _state.update { it.copy(phase = Phase.Thinking) }
+            val door = frontDoor()
             try {
                 val reply = conversation.reply(
                     _state.value.history(), heard = emptyList(),

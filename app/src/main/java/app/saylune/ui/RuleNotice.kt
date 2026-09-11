@@ -55,10 +55,8 @@ fun RuleNotice(notices: List<Notice>, onSeen: () -> Unit, modifier: Modifier = M
     Box(modifier.fillMaxWidth().padding(grid.cell), contentAlignment = Alignment.Center) {
         Framed(Modifier.fillMaxWidth().clickable(onClick = onSeen)) {
             Column(Modifier.padding(vertical = grid.cell)) {
-                // The scene's lines that set the ground come first, the mechanical ones and the
-                // receipts after: *"a passer-by knocks into you"* stages the turn that follows,
-                // so read after the reply it would drop out of nowhere, where *"you have one
-                // life left"* states what has just happened.
+                // The fiction first and the rules after, which is the rhythm of a game:
+                // something happens in the story, then one sees what it changes.
                 said(notices).forEach { line ->
                     Text(
                         line,
@@ -71,14 +69,11 @@ fun RuleNotice(notices: List<Notice>, onSeen: () -> Unit, modifier: Modifier = M
     }
 }
 
-/** Every line of the notice, staging first, in the order the doc puts them. */
+/** Every line of the notice: the staging, then what moved. */
 @Composable
-private fun said(notices: List<Notice>): List<String> {
-    val before = notices.filterIsInstance<Notice.Staged>().filter { it.staging.before }
-    val after = notices.filterIsInstance<Notice.Staged>().filter { !it.staging.before }
-    val moved = notices.filterIsInstance<Notice.Moved>().map { phraseOf(it.move) }
-    return before.map { it.staging.text } + moved + after.map { it.staging.text }
-}
+private fun said(notices: List<Notice>): List<String> =
+    notices.filterIsInstance<Notice.Staged>().map { it.staging.text } +
+        notices.filterIsInstance<Notice.Moved>().map { phraseOf(it.move) }
 
 /**
  * What a move reads as: its lever's phrase for the position it arrived at, and which way it went.

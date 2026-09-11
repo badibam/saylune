@@ -31,8 +31,6 @@ Deux matières, deux surfaces, et on les confondait.
 
 **La didascalie est de la matière de fiction.** Elle va **dans le fil**, elle peut être dite, et elle se place avant ou après la réplique d'un personnage.
 
-**Le drapeau `before` quitte la notification.** Il est sur `Staging` et le doc lui donnait un sens de place par rapport à la réplique, mais le code ne s'en sert que pour ordonner les lignes *à l'intérieur d'un seul bandeau*, lequel ne s'affiche qu'à un instant. Le « avant la réplique » n'existe donc pas. Ce n'est pas un bug d'implémentation : ce qu'on veut placer avant n'est pas une notification, c'est une didascalie. Le drapeau devient une propriété de l'ordre de la séquence — laquelle existe maintenant — et le trou se referme en changeant d'objet plutôt qu'en ajoutant un instant d'affichage.
-
 ### La notification, et son minuteur
 
 **Après l'audio**, donc après la séquence entière.

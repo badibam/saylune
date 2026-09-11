@@ -67,6 +67,7 @@ class Engine(private val rules: List<Rule>) {
         val fired = spent.toMutableSet()
         val notices = mutableListOf<Notice>()
         val messages = mutableListOf<Effect.Message>()
+        val scripts = mutableListOf<Effect.Script>()
         val chosen = mutableListOf<Choice>()
         // What the wave just past moved. **A lever having moved is read here and not asked of
         // the outside**: it is a change this module made, and the one place that knows a
@@ -122,6 +123,7 @@ class Engine(private val rules: List<Rule>) {
             now = landed.state
             notices += landed.notices
             messages += landed.messages
+            scripts += landed.scripts
             justMoved = landed.moves
             finishing = finishing ?: landed.finishing
         }
@@ -135,7 +137,7 @@ class Engine(private val rules: List<Rule>) {
         // two kinds of ending that did not behave alike. Both now settle on the stabilised
         // state, and what a rule declared outright wins over what the lives say.
         val over = now.ended ?: finishing ?: endingOf(now)
-        return Resolution(now.copy(ended = over), notices, messages, chosen, fired)
+        return Resolution(now.copy(ended = over), notices, messages, chosen, fired, scripts)
     }
 
     /**
@@ -169,6 +171,7 @@ class Engine(private val rules: List<Rule>) {
         val moves = mutableListOf<Move>()
         val notices = mutableListOf<Notice>()
         val messages = mutableListOf<Effect.Message>()
+        val scripts = mutableListOf<Effect.Script>()
 
         effects.forEach { (_, effect) ->
             when (effect) {
@@ -209,12 +212,13 @@ class Engine(private val rules: List<Rule>) {
                 // wins, order inside a wave carrying no meaning anywhere else either.
                 is Effect.Finish -> finishing = finishing ?: effect.outcome
                 is Effect.Message -> messages += effect
+                is Effect.Script -> scripts += effect
             }
         }
         moves.forEach { notices += Notice.Moved(it) }
         return Landed(
             State(positions, armed, instructions, state.ended),
-            notices, messages, moves, finishing,
+            notices, messages, moves, finishing, scripts,
         )
     }
 
@@ -312,6 +316,8 @@ data class Resolution(
     val chosen: List<Choice>,
     /** Every rule that has fired in the moment so far, the [spent] it was given included. */
     val fired: Set<String>,
+    /** The turns the author wrote, in the order they landed, waiting for a place to be said. */
+    val scripts: List<Effect.Script>,
 )
 
 /** One rule, and which of its packs was taken. */
@@ -409,4 +415,5 @@ private data class Landed(
     val moves: List<Move>,
     /** What a rule of this wave asked to end, settled after every wave and not here. */
     val finishing: Outcome?,
+    val scripts: List<Effect.Script>,
 )

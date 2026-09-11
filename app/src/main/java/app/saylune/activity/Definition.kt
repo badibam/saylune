@@ -131,6 +131,18 @@ data class Definition(
             "$id: two questions, one key"
         }
         require(triggers.toSet().size == triggers.size) { "$id: the same caution twice" }
+        // **A scripted turn is said by somebody this scene has**: a member of the cast, the
+        // narrator, or the one voice of a scene with no cast. Checked here, where the file is
+        // read, rather than on a learner at the moment the line would be said.
+        val speakers = cast.map { it.key }.toSet() + Speaker.NARRATOR +
+            (if (cast.isEmpty()) setOf(Speaker.SAYLUNE) else emptySet())
+        rules.flatMap { it.choice }.flatMap { it.effects }
+            .filterIsInstance<app.saylune.rules.Effect.Script>().flatMap { it.said }
+            .forEach { line ->
+                require(line.who in speakers) {
+                    "$id: a scripted line said by '${line.who}', who is not in the scene"
+                }
+            }
     }
 
     companion object {

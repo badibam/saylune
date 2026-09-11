@@ -1,5 +1,6 @@
 package app.saylune.rules
 
+import app.saylune.chain.Said
 import app.saylune.levers.Position
 
 /**
@@ -59,7 +60,7 @@ data class Pack(val effects: List<Effect>) {
 }
 
 /**
- * What a rule does. **Three, and the list is closed.**
+ * What a rule does. **Four, and the list is closed.**
  *
  * Finishing cannot be a lever: it would need a hard end, and finishing is neither harder nor
  * easier than carrying on -- it is a door one goes through once, not a position. And putting
@@ -140,6 +141,29 @@ sealed interface Effect {
      * in as prose like any other; one with it up is what makes there be a turn at all.
      */
     data class Message(val prose: String, val now: Boolean = false) : Effect
+
+    /**
+     * A turn the author wrote, said as it stands -- *"a passer-by knocks into you"*, or a
+     * character's line that must be exactly this one.
+     *
+     * **The same shape as a turn the model writes**, a run of utterances each with its kind and
+     * its speaker, so a stage direction is not a case apart: it is one kind of line in the run.
+     * The model is never called for it. It enters the thread like any other turn, so the model
+     * reads it in its history at the next call and reacts to it without being told.
+     *
+     * **It falls where a provoked turn falls** -- the opening, a passage's close, the coda --
+     * and one fired at another moment waits for the next of those. Laid in the same moment as a
+     * [Message] asking for a turn, it is said first and the model's turn follows it: two takes
+     * of the speaker with the call between them, not one run.
+     */
+    data class Script(val said: List<Said>) : Effect {
+        init {
+            require(said.isNotEmpty()) { "a scripted turn with nothing said" }
+            require(said.size <= Said.CEILING) {
+                "a scripted turn of ${said.size} utterances, over the ceiling of ${Said.CEILING}"
+            }
+        }
+    }
 }
 
 /** What an ending opens. */
@@ -184,17 +208,16 @@ data class Instructing(
  * recruiter is waiting* in an interview. The face that plays the scene depends on the scene,
  * so it lives on the patch, in the rule that writes it.
  *
- * **The mechanical one is read after the reply and the narrative one says which of the two
- * places it takes.** They do different work: *"you have one life left"* states what has just
- * happened, so it is a receipt and comes after; *"a passer-by knocks into you"* sets the scene
- * for the turn that follows, so read after the reply it drops the passer-by out of nowhere.
+ * **It dresses a receipt and is read with it, after the audio.** A line that sets the scene
+ * for what follows is not this: it is matter of the fiction, so it is an [Effect.Script] and
+ * goes into the thread.
  *
  * **Both are shown, and the narrative never replaces the mechanical.** Whoever reads only
  * *"the barman seems in a hurry"* does not know their turn now goes on its own after five
  * seconds, and will take it for a bug the first time it happens -- and the whole value of the
  * mechanical phrase is that they can reconstruct why their note moved.
  */
-data class Staging(val text: String, val before: Boolean = false)
+data class Staging(val text: String)
 
 /**
  * When a rule fires. **Five moments, and they differ by what is computed at that instant**

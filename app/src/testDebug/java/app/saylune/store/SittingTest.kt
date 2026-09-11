@@ -125,8 +125,14 @@ class SittingTest {
                         moves = mapOf(Levers.SILENCE_THRESHOLD.key to 1),
                         instructions = listOf(Instructing("relevance", "speak in the past", 3)),
                         arming = mapOf("R1" to false, "R2" to true),
-                        staging = Staging("a passer-by knocks into you", before = true),
+                        staging = Staging("the barman seems in a hurry"),
                     ),
+                    Effect.Script(listOf(
+                        app.saylune.chain.Said(app.saylune.chain.Said.Kind.StageDirection,
+                                               "narrator", "A passer-by knocks into you."),
+                        app.saylune.chain.Said(app.saylune.chain.Said.Kind.Speech,
+                                               "frankie", "Careful!"),
+                    )),
                 ))),
             ),
             Rule(

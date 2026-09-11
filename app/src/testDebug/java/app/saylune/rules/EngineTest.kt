@@ -99,6 +99,21 @@ class EngineTest {
         assertTrue(second.notices.isEmpty())
     }
 
+    /** A scripted turn comes back whole and in the order it was written, for the caller to say. */
+    @Test
+    fun `a scripted turn lands as it was written`() {
+        val said = listOf(
+            app.saylune.chain.Said(app.saylune.chain.Said.Kind.StageDirection, "narrator",
+                                   "A passer-by knocks into you."),
+            app.saylune.chain.Said(app.saylune.chain.Said.Kind.Speech, "frankie", "Careful!"),
+        )
+        val engine = Engine(listOf(
+            Rule("A", Trigger.Passages(every = 1), listOf(Pack(listOf(Effect.Script(said))))),
+        ))
+        val out = engine.resolve(Moment.PassageClosed, start("A"), AtPassage(1))
+        assertEquals(listOf(said), out.scripts.map { it.said })
+    }
+
     // ── The writing error the form exists to expose ─────────────────────────────────────
 
     /**
