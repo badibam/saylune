@@ -41,9 +41,9 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 
 | V | porte | pression | moteur | trajectoire | initiative | savoir | durée | décision | voix | langue | fin | nom | scène | tient ? |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | défi | humeur | hasard | montée | interroge | secret perso | passage | rien | narr+un | temporaire | réussi/raté | | | |
+| 1 | défi | humeur | hasard | montée | interroge | secret perso | passage | rien | narr+un | temporaire | réussi/raté | le sphinx | un sphinx pose des énigmes, d'humeur tirée à chaque passage, la réponse cachée au meneur seul | T10 |
 | 2 | défi | mécanique | ce qui est dit | détente | monde | partagé | scène | choix bloque | un | toute la scène | fausse mort | le dégel | garde-frontière qui laisse de plus en plus de temps à mesure qu'il est rassuré | T1, T2, T9 |
-| 3 | histoire | aucune | hasard | plate | monde | secret apprenant | histoire | influence | trois+ | rien | embranchement | | | |
+| 3 | histoire | aucune | hasard | plate | monde | secret apprenant | histoire | influence | trois+ | rien | embranchement | le marché aux rumeurs | trois marchands se disputent la ville ; l'apprenant, héritier incognito, penche d'un côté sans le savoir | T11 |
 | 4 | arcade | mécanique | anglais | va-et-vient | apprenant | secret apprenant | passage | trou | deux | successives | la note | le mot glissé | jeu télévisé : glisser le mot choisi au lancement sans que les deux animateurs le repèrent | T3, T4 |
 | 5 | histoire | enjeu d'histoire | temps | seuil | apprenant | secret perso | histoire | choix suite | deux | toute la scène | embranchement | | | |
 | 6 | histoire | enjeu d'histoire | temps | plate | interroge | partagé | scène | choix bloque | trois+ | successives | réussi/raté | | | |
@@ -54,21 +54,21 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 | 11 | histoire | mécanique | anglais | montée | monde | secret perso | histoire | influence | un | rien | réussi/raté | | | |
 | 12 | histoire | enjeu d'histoire | hasard | va-et-vient | interroge | secret apprenant | scène | choix suite | narr+un | toute la scène | la note | | | |
 | 13 | histoire | mécanique | temps | seuil | monde | secret apprenant | histoire | rien | narr+un | temporaire | la note | | | |
-| 14 | histoire | humeur | hasard | détente | monde | secret perso | histoire | choix bloque | deux | successives | fausse mort | | | |
+| 14 | histoire | humeur | hasard | détente | monde | secret perso | histoire | choix bloque | deux | successives | fausse mort | l'aubergiste | une auberge sur trois scènes : le couple bougon se radoucit au hasard ; une seule grâce dans toute l'histoire | T12 ; la grâce unique tient |
 | 15 | défi | aucune | ce qui est dit | plate | interroge | partagé | passage | trou | un | toute la scène | la note | | | |
 | 16 | histoire | enjeu d'histoire | anglais | montée | apprenant | secret apprenant | passage | choix bloque | narr+un | rien | fausse mort | la corde | expédition, la crevasse : la corde s'use à chaque phrase à reprendre | T6, T7 |
 | 17 | libre | humeur | anglais | montée | interroge | partagé | passage | choix suite | deux | rien | jamais | | | |
 | 18 | histoire | humeur | temps | détente | interroge | secret apprenant | passage | influence | narr+un | toute la scène | embranchement | | | |
 | 19 | histoire | enjeu d'histoire | ce qui est dit | seuil | apprenant | secret apprenant | passage | influence | deux | successives | réussi/raté | | | |
 | 20 | histoire | mécanique | ce qui est dit | montée | interroge | secret apprenant | histoire | trou | trois+ | toute la scène | embranchement | | | |
-| 21 | libre | humeur | ce qui est dit | va-et-vient | monde | secret perso | scène | rien | un | rien | jamais | | | |
+| 21 | libre | humeur | ce qui est dit | va-et-vient | monde | secret perso | scène | rien | un | rien | jamais | la voisine | la vieille voisine qui parle d'elle-même, humeur au gré de ce qui est dit, un deuil qu'elle tait | T11 |
 | 22 | histoire | enjeu d'histoire | hasard | seuil | apprenant | partagé | scène | trou | un | temporaire | fausse mort | | | |
 | 23 | histoire | aucune | temps | plate | apprenant | secret perso | scène | choix suite | narr+un | successives | embranchement | | | |
 | 24 | histoire | enjeu d'histoire | anglais | détente | apprenant | partagé | histoire | rien | trois+ | toute la scène | fausse mort | | | |
 | 25 | histoire | humeur | temps | plate | interroge | secret perso | histoire | choix suite | trois+ | temporaire | fausse mort | | | |
 | 26 | défi | humeur | temps | montée | apprenant | partagé | scène | influence | un | successives | la note | | | |
 | 27 | histoire | humeur | ce qui est dit | détente | monde | secret perso | histoire | trou | narr+un | temporaire | réussi/raté | | | |
-| 28 | histoire | humeur | temps | va-et-vient | apprenant | secret apprenant | scène | choix bloque | trois+ | temporaire | embranchement | | | |
+| 28 | histoire | humeur | temps | va-et-vient | apprenant | secret apprenant | scène | choix bloque | trois+ | temporaire | embranchement | le dîner de famille | la tension monte aux disputes et retombe aux toasts ; l'apprenant sait les fiançailles rompues, et on lui demande de le dire | tient |
 | 29 | histoire | mécanique | hasard | va-et-vient | monde | partagé | histoire | choix suite | un | toute la scène | réussi/raté | | | |
 | 30 | libre | humeur | ce qui est dit | seuil | apprenant | secret perso | scène | choix bloque | trois+ | rien | jamais | | | |
 | 31 | libre | aucune | ce qui est dit | plate | interroge | secret perso | passage | influence | narr+un | rien | jamais | | | |
@@ -90,3 +90,8 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 - **T7 — tranché** (V16) : rouvrir une scène d'histoire rejoue les scènes d'avant ; un moteur qui a changé rend l'histoire non reprenable (`scene-state.md`).
 - **T8 — tranché** (V35) : une case vit aussi longtemps que ce qui la déclare, scène ou histoire, un levier comme une autre (`scene-state.md`).
 - **T9 — tranché** (V2) : une liste ordonnée se déplace d'un cran, un levier vers le dur ou le facile, une case de la fiche vers le haut ou le bas (`scene-state.md`).
+- **T10 — le hasard ne dit pas ses chances** (V1). Un sphinx irrité une fois sur trois demande un tirage pondéré ; le doc ne connaît que « parmi des valeurs données ». Proposition : chaque valeur d'un tirage peut porter un poids, égal par défaut.
+- **T11 — faire parler un personnage n'a que des textes écrits d'avance** (V3, V21). Le doc écarte un texte de l'IA au moment d'un événement parce qu'un appel de plus ferait attendre le micro ; les marchands qui se disputent entre eux, la voisine qui reprend d'elle-même, écrits d'avance, ignorent tout ce qui s'est dit. Proposition à trancher.
+- **T12 — un blocage ne dit pas ce qu'il retient** (V14). Pendant qu'un choix bloque, l'événement du passage 8 — l'aubergiste qui sort — part-il ? S'il part, l'histoire avance au-delà du choix ; s'il est retenu, rien ne dit jusqu'à quand.
+
+**Ce qui tient, au deuxième lot.** La grâce unique dans toute l'histoire (V14) s'écrit sans rien de neuf, les activations vivant à la scène : une case d'histoire `reprieve-used`, et à l'ouverture de chaque scène un événement qui, si elle est vraie, désactive la grâce. Le secret du sphinx (V1) protège l'apprenant comme prévu : le juge, qui ignore la réponse, ne marque pas une mauvaise réponse comme hors de propos. Au dîner (V28), la tension lue sur `app.passage` monte et descend sans rien de neuf, et le mensonge de l'apprenant sur ce qu'il sait n'est pas marqué, le juge voyant son secret.
