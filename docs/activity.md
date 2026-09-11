@@ -93,6 +93,8 @@ Ce qui se stocke, ce qui fait un levier et le catalogue complet sont dans `lever
 
 ## Les règles
 
+**Ce qui suit, et les questions plus bas, sont en cours de remplacement** par un seul modèle, conçu dans `design/scene-state.md` le 2026-09-11 et pas encore écrit dans le code.
+
 La forme — **quand**, **quoi**, **qui choisit** —, les huit sortes de déclencheur et les trois sortes d'effet sont dans `rules/Rule.kt` ; la résolution par vagues et sa preuve de terminaison dans `rules/Engine.kt` ; ce qu'une condition a le droit de lire dans `conversation/World.kt`. Ce qui suit est ce qui traverse.
 
 **Ce que la forme a replié.** La **rampe** cesse d'être un champ : c'est une règle dont le quand est « tous les N passages » et le quoi un cran de plus. Les **conditions** aussi : « une feuille sous la barre → une vie » est une règle dont le patch retire une vie. Deux champs deviennent une liste.

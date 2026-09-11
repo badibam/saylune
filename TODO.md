@@ -27,6 +27,7 @@ Ce que les étapes écrites ont laissé dû, rangé par sujet.
 
 ### Les règles et les définitions
 
+- **Réécrire le moteur des scènes selon `docs/design/scene-state.md`**, après l'avoir éprouvé sur papier sur les cas qu'il nomme. Plusieurs dettes de cette section tombent avec lui : le canal de `Judged` et du choix par l'IA, le drapeau replié sur l'armement, le oui d'une condition gardé nulle part.
 - **Le validateur est un stub** : le point d'appel existe (`Definitions.validate`) et ne vérifie rien. Tout ce que le doc dit « se voir à l'écriture » — deux patchs d'une même vague sur la même clé, une phrase de mise en scène manquante, une série à bords impossibles — se voit donc à l'exécution, sur un apprenant. Et **quand il passerait** n'est pas décidé : à l'écriture, au chargement, ou jamais.
 - **Une consigne retirée l'est pour tout ce que son marquage porte**, faute de savoir qui a posé quoi. En retirer une seule demanderait de suivre l'auteur de chaque consigne, et un auteur n'a aucun moyen d'en désigner une de l'extérieur. Franc et lisible plutôt que fin et indicible.
 - **L'état effectif ne survit pas à une reprise.** Les positions qu'un patch a déplacées vivent en mémoire ; les rejouer depuis le journal demande les faits contre lesquels chaque moment passé a été lu, et rien ne les garde. Une séance rouverte repart de ses positions déclarées. Le doc voit ce problème pour le changement de moteur, pas pour la reprise ordinaire.
