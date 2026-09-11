@@ -86,7 +86,7 @@ Certains événements ne testent rien que le moment : *à l'ouverture, Nico dit 
 
 ## Les effets
 
-**Changer une case** de la fiche ou un levier : lui donner une valeur (`patience` ← 3), ou la déplacer (`lever.lives` − 1) — un déplacement s'arrête à la limite sans erreur. Activer ou désactiver un événement. Terminer la scène, avec son issue : réussi, raté, ou la note décide.
+**Changer une case** de la fiche ou un levier : lui donner une valeur (`patience` ← 3), ou la déplacer (`lever.lives` − 1) — un déplacement s'arrête à la limite sans erreur. Une liste ordonnée se déplace d'un cran : un levier *plus dur* ou *plus facile*, par le côté dur qu'il déclare, donc sans que l'auteur sache que l'écho est le plus dur à son premier cran ; une case de la fiche *vers le haut* ou *vers le bas*, dans le sens qu'elle déclare. Activer ou désactiver un événement. Terminer la scène, avec son issue : réussi, raté, ou la note décide.
 
 **Quand un levier change, l'app affiche d'elle-même une notification** avec sa phrase mécanique (*« Il te reste 2 vies »*, *« Durée du tour : 10 s »*) ; si l'événement envoie aussi un texte à l'apprenant, il s'affiche dans la même notification (*« Le barman s'impatiente »*). Sans texte de l'auteur, la phrase mécanique suffit. Une case de la fiche qui change n'annonce rien.
 
@@ -190,7 +190,7 @@ Ce qui se vérifie :
 
 - **les cases** — un événement qui change une case de l'app ; une case que personne n'écrit et qui n'a pas de valeur de départ ; une liste réduite à *oui / non* ; une case cachée au meneur qu'un événement lui demande ou qu'un texte pour lui cite ;
 - **les tests** — sur un texte ; sur une valeur hors de la liste ou hors des limites ; sur une case à un moment où elle n'existe pas, `app.silence` à la fermeture du passage ;
-- **les effets** — activer un événement qui n'existe pas ; citer une case inconnue ; faire parler pendant un enregistrement ou à la fin d'une tentative ; une consigne sur un marquage inconnu ;
+- **les effets** — activer un événement qui n'existe pas ; déplacer une liste qui n'est pas ordonnée ; citer une case inconnue ; faire parler pendant un enregistrement ou à la fin d'une tentative ; une consigne sur un marquage inconnu ;
 - **Libre** — une fiche dont la porte est `free` ne touche aucun levier, ni au départ ni par un événement, ne déclare pas de poids, l'app mettant 1 partout, n'envoie aucune consigne, ne teste aucune case de l'app sauf `app.passage`, et ne termine jamais ;
 - **l'histoire** — une scène qui cite un personnage que l'histoire ne déclare pas ; un embranchement qui lit une case qui ne vit pas toute l'histoire ; une scène qui peut finir ratée sans que l'histoire dise ce qui suit ; une scène qui redéclare une case de l'histoire.
 

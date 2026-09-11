@@ -89,4 +89,4 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 - **T6 — tranché** (V16) : l'issue de chaque scène est une case de l'histoire, et une scène qui peut rater oblige l'histoire à dire ce qui suit (`scene-state.md`).
 - **T7 — tranché** (V16) : rouvrir une scène d'histoire rejoue les scènes d'avant ; un moteur qui a changé rend l'histoire non reprenable (`scene-state.md`).
 - **T8 — tranché** (V35) : une case vit aussi longtemps que ce qui la déclare, scène ou histoire, un levier comme une autre (`scene-state.md`).
-- **T9 — déplacer un levier à liste d'un cran n'est pas écrit** (V2). Le déplacement est dit des nombres ; pour une liste ordonnée, il faut dire vers le dur ou vers le facile, par le sens que le levier déclare.
+- **T9 — tranché** (V2) : une liste ordonnée se déplace d'un cran, un levier vers le dur ou le facile, une case de la fiche vers le haut ou le bas (`scene-state.md`).
