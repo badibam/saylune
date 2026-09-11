@@ -1,6 +1,6 @@
 # Le tour : une suite d'énoncés, et ce qui suit un tour
 
-Doc transitoire, ouvert le 2026-09-10. Il portait quatre choses qui se sont révélées être une seule : ce qu'un tour de l'IA contient, ce qui va au fil et ce qui va en notification, ce que l'armement automatique suit, et ce qu'une reprise rejoue. **La moitié est en place** ; ce qui est fait a été élagué d'ici et vit dans les commits, qui sont la carte. Reste ce qui suit. Les voix de ceux qui parlent sont dans `voices.md` (pas implémenté).
+Doc transitoire, ouvert le 2026-09-10. Il portait quatre choses qui se sont révélées être une seule : ce qu'un tour de l'IA contient, ce qui va au fil et ce qui va en notification, ce que l'armement automatique suit, et ce qu'une reprise rejoue. **Tout est en place sauf l'affichage d'une didascalie** ; ce qui est fait a été élagué d'ici et vit dans les commits, qui sont la carte. Les voix de ceux qui parlent sont dans `voices.md` (pas implémenté).
 
 **Pourquoi les morceaux tiennent ensemble.** Ils partagent un instant : *la fin de la parole de l'app*. C'est là que la notification s'affiche, c'est là que le micro s'arme, c'est là qu'une séquence se termine, et c'est ce qu'une reprise doit recréer.
 
@@ -22,24 +22,6 @@ Et le banc a été remis debout au passage : rien du dossier de test ne compilai
 ### L'affichage d'une didascalie
 
 **À l'écran** : chaque parole garde son cadre ; les didascalies ressortent autrement — elles ne sont pas dites *à* l'apprenant. Rien n'est fait : le fil dessine tout énoncé de l'IA de la même façon. Le champ qui les distingue est là (`Utterance.kind`), donc c'est un travail d'`ui.md` et rien d'autre.
-
-### La coupure : le fil et la notification
-
-Deux matières, deux surfaces, et on les confondait.
-
-**La notification est un reçu sur la machinerie.** *« Cinq secondes par tour désormais »*, plus la phrase de fiction qui l'habille, au même endroit et au même instant. C'est le rythme d'un jeu : il se passe quelque chose dans l'histoire, puis on voit ce que ça change côté règles. Elle vient donc **après l'audio, toujours** — c'est-à-dire après la séquence entière.
-
-**La didascalie est de la matière de fiction.** Elle va **dans le fil**, elle peut être dite, et elle se place avant ou après la réplique d'un personnage.
-
-### La notification, et son minuteur
-
-**Après l'audio**, donc après la séquence entière.
-
-**Elle se congédie au doigt, ou à l'horloge.** L'invariant écrit était *« dismissed by the finger and not by a clock : a notice nobody has seen is a change the learner cannot reconstruct »*. Il a été écrit contre une notification qui **s'évanouit sans être vue** — ce que le minuteur ne fait pas, dès lors que le décompte est visible. La portée est respectée ; ça vaut d'être noté ici, sinon la question se repose dans six mois.
-
-**Un plancher plus un débit**, et non une durée strictement proportionnelle : une notification de quatre mots à durée proportionnelle clignote. Deux nombres de plus posés à la main.
-
-**Le minuteur n'existe qu'en armement automatique**, et **le décompte est le délai avant que le micro s'arme**. Ce n'est pas un second compteur à côté : c'est le même, montré. Le délai existe (le levier de préparation) ; ce qui manque est de le montrer.
 
 ## Ce qui reste ouvert
 
