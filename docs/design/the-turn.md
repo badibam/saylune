@@ -43,10 +43,6 @@ Deux matières, deux surfaces, et on les confondait.
 
 **Le minuteur n'existe qu'en armement automatique**, et **le décompte est le délai avant que le micro s'arme**. Ce n'est pas un second compteur à côté : c'est le même, montré. Le délai existe (le levier de préparation) ; ce qui manque est de le montrer.
 
-### Le piège à ne pas se prendre
-
-Le moment de la fin de tentative court **deux fois** par tour, et `Engine.resolve` tient son ensemble `fired` par résolution et non par moment. L'événement ne doit pas être émis deux fois (voir `TODO.md`). La fermeture du passage, elle, est déjà bornée à une fois par passage.
-
 ## Ce qui reste ouvert
 
 - **Couper une séquence : non, pas pour l'instant.** L'invariant *« un geste ne coupe jamais la parole de l'app »* tient tel quel — étant entendu qu'il ne dit rien de l'app se coupant elle-même. La question se rouvrira si une séquence longue devient pénible à l'usage ; la réponse préparée serait de sauter la séquence **entière** et jamais un énoncé sur cinq, sinon on retombe dans le cas que l'invariant interdit.

@@ -77,6 +77,28 @@ class EngineTest {
         assertEquals(1, landed)
     }
 
+    /**
+     * **A moment cut into two instants is still one moment.** The end of an attempt runs when
+     * the call returns and again when the analysis finishes; a rule reading no sheet holds at
+     * both, so what fired at the first is handed back as spent to the second.
+     */
+    @Test
+    fun `a rule spent at the first run of a moment does not fire at the second`() {
+        val yes = object : Facts {
+            override fun judged(prose: String) = true
+        }
+        val engine = Engine(listOf(
+            Rule("A", Trigger.Judged("he oversteps", Moment.EndOfAttempt),
+                 listOf(patch(moves = mapOf(lives to 1)))),
+        ))
+        val first = engine.resolve(
+            Moment.EndOfAttempt, start("A", at = Positions(mapOf(lives to Count(3)))), yes,
+        )
+        val second = engine.resolve(Moment.EndOfAttempt, first.state, yes, first.fired)
+        assertEquals(Count(2), second.state.positions.of(lives))
+        assertTrue(second.notices.isEmpty())
+    }
+
     // ── The writing error the form exists to expose ─────────────────────────────────────
 
     /**

@@ -54,10 +54,17 @@ class Engine(private val rules: List<Rule>) {
      *
      * [facts] is re-read at each wave: a trigger reads what is true now, and what the previous
      * wave made true is exactly what opens this one.
+     *
+     * [spent] is the rules that already fired earlier in the same moment, which is how a
+     * moment cut into two instants stays one moment: the end of an attempt runs when the call
+     * returns and again when the analysis finishes, and a rule reading no sheet would hold at
+     * both -- a move of one would land as two.
      */
-    fun resolve(moment: Moment, state: State, facts: Facts): Resolution {
+    fun resolve(
+        moment: Moment, state: State, facts: Facts, spent: Set<String> = emptySet(),
+    ): Resolution {
         var now = state
-        val fired = mutableSetOf<String>()
+        val fired = spent.toMutableSet()
         val notices = mutableListOf<Notice>()
         val messages = mutableListOf<Effect.Message>()
         val chosen = mutableListOf<Choice>()
@@ -128,7 +135,7 @@ class Engine(private val rules: List<Rule>) {
         // two kinds of ending that did not behave alike. Both now settle on the stabilised
         // state, and what a rule declared outright wins over what the lives say.
         val over = now.ended ?: finishing ?: endingOf(now)
-        return Resolution(now.copy(ended = over), notices, messages, chosen)
+        return Resolution(now.copy(ended = over), notices, messages, chosen, fired)
     }
 
     /**
@@ -303,6 +310,8 @@ data class Resolution(
     val messages: List<Effect.Message>,
     /** What a draw or the AI took, for the journal. Empty when nothing had a choice to make. */
     val chosen: List<Choice>,
+    /** Every rule that has fired in the moment so far, the [spent] it was given included. */
+    val fired: Set<String>,
 )
 
 /** One rule, and which of its packs was taken. */

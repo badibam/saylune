@@ -1773,7 +1773,7 @@ class TurnPipeline(
         // readable with no tree at all. So the moment fires either way.
         _state.update { it.copy(wordsGate = closing) }
         endOfAttempt(
-            measured, scored,
+            said.id, measured, scored,
             Material(
                 correctness = marked.correctness,
                 relevance = marked.relevance,
@@ -1790,10 +1790,21 @@ class TurnPipeline(
      * language sheet exists from the moment the call returns, a sound sheet only once the
      * analysis has finished. So this runs twice, and each run sees the sheets that exist by
      * then -- which is the order of the two gates the doc already writes.
+     *
+     * **A rule fires once per attempt, not once per run.** Two runs are two instants of one
+     * moment, so what fired at the first is spent at the second: a rule reading no sheet would
+     * otherwise hold at both, a move of one landing as two. [attempt] names the utterance the
+     * attempt is, which is what keeps one attempt's spent rules off the next.
      */
-    private suspend fun endOfAttempt(measured: List<Measured>, scored: Scored, of: Material) {
-        fire(Moment.EndOfAttempt, world(measured, scored, of))
+    private suspend fun endOfAttempt(
+        attempt: String, measured: List<Measured>, scored: Scored, of: Material,
+    ) {
+        val spent = spentAtEnd?.takeIf { it.first == attempt }?.second.orEmpty()
+        spentAtEnd = attempt to fire(Moment.EndOfAttempt, world(measured, scored, of), spent)
     }
+
+    /** The rules the end of the last attempt has fired so far, and which attempt that was. */
+    private var spentAtEnd: Pair<String, Set<String>>? = null
 
     /** What the rules read of the sitting right now. */
     private fun world(
@@ -1987,7 +1998,7 @@ class TurnPipeline(
         // The second run of the moment, on the sheets that exist only now. Which instant a
         // rule falls on inside it follows from the sheet it reads, and is never declared.
         endOfAttempt(
-            measured, scored,
+            of, measured, scored,
             Material(
                 correctness = spoken.judged?.words()?.correctness.orEmpty(),
                 relevance = spoken.judged?.words()?.relevance.orEmpty(),
@@ -2288,13 +2299,15 @@ class TurnPipeline(
      * A sitting with no rules is the ordinary free conversation, and it returns without
      * building anything.
      */
-    private suspend fun fire(moment: Moment, world: World) {
+    private suspend fun fire(
+        moment: Moment, world: World, spent: Set<String> = emptySet(),
+    ): Set<String> {
         val activity = _state.value.activity
-        if (activity.rules.isEmpty()) return
+        if (activity.rules.isEmpty()) return spent
         // Whether it was already over when this moment began, which is what tells an ending
         // that has just fallen from one this moment inherited.
         val was = _state.value.standing.ended
-        val out = Engine(activity.rules).resolve(moment, _state.value.standing, world)
+        val out = Engine(activity.rules).resolve(moment, _state.value.standing, world, spent)
         _state.update { it.copy(effective = out.state, notices = it.notices + out.notices) }
         // **Which questions this moment puts.** They are read against the same world and the
         // same settled state the rules were, and against what this moment's waves moved -- a
@@ -2324,6 +2337,7 @@ class TurnPipeline(
         // its say -- and the coda runs then, never inside the moment that ended it.
         val ended = out.state.ended
         if (was == null && ended != null && moment != Moment.Closing) ending(ended)
+        return out.fired
     }
 
     /**
