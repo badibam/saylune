@@ -54,7 +54,7 @@ Tout ce qui peut changer pendant une scène est une case : un nom et une valeur.
 
 **Une case de la fiche porte une courte description en anglais** — *« the barman's patience »*, *« Val's mood »* —, qui sert à fabriquer les lignes que le meneur lit quand elle change (plus bas).
 
-**Une case vit aussi longtemps que ce à quoi elle appartient.** À la scène : les leviers, les activations, la fin, et les cases de l'app — celles-ci jamais au-delà, rien de ce qui a été mesuré ailleurs n'entrant dans la lecture d'un tour (`../reference.md`). À l'histoire : les cases que l'auteur veut garder d'une scène à l'autre.
+**Une case vit aussi longtemps que ce à quoi elle appartient.** À la scène : les leviers, les activations, la fin, et les cases de l'app — celles-ci jamais au-delà, rien de ce qui a été mesuré ailleurs n'entrant dans la lecture d'un tour (`../reference.md`). À l'histoire : les cases que l'auteur veut garder d'une scène à l'autre, et l'issue de chaque scène (plus bas, la fiche et l'histoire).
 
 **La voix et le genre d'un personnage ne sont pas des cases** : ce sont ses attributs, fixés par la fiche, sinon demandés à l'apprenant, sinon tirés, une fois, et gardés avec lui — donc toute l'histoire dans une histoire. Aucun événement ne les teste, et une voix vient du catalogue d'un fournisseur que l'auteur ne connaît pas.
 
@@ -188,7 +188,7 @@ Ce qui se vérifie :
 - **les tests** — sur un texte ; sur une valeur hors de la liste ou hors des limites ; sur une case à un moment où elle n'existe pas, `app.silence` à la fermeture du passage ;
 - **les effets** — activer un événement qui n'existe pas ; citer une case inconnue ; faire parler pendant un enregistrement ou à la fin d'une tentative ; une consigne sur un marquage inconnu ;
 - **Libre** — une fiche dont la porte est `free` ne touche aucun levier, ni au départ ni par un événement, ne déclare pas de poids, l'app mettant 1 partout, n'envoie aucune consigne, ne teste aucune case de l'app sauf `app.passage`, et ne termine jamais ;
-- **l'histoire** — une scène qui cite un personnage que l'histoire ne déclare pas ; un embranchement qui lit une case qui ne vit pas toute l'histoire.
+- **l'histoire** — une scène qui cite un personnage que l'histoire ne déclare pas ; un embranchement qui lit une case qui ne vit pas toute l'histoire ; une scène qui peut finir ratée sans que l'histoire dise ce qui suit.
 
 Restent invérifiables : qu'une consigne durcisse vraiment, et ce que le meneur fait de ce qu'on lui envoie.
 
@@ -233,6 +233,10 @@ Le **juge** écrit les marques. Rien d'autre.
 **Une fiche de scène déclare donc** ce qui ne bouge pas — le titre, le nom court, la situation, les avertissements, et dans une tuile Libre les personnages —, puis ses cases et ses événements.
 
 **Une histoire a son fichier**, que le bloc d'`activity.md` n'a jamais eu : l'ordre des scènes, les embranchements (un événement au niveau de l'histoire, *après la scène 4, si `has-key` est vrai, scène 5, sinon 5 bis*), les cases qui vivent toute l'histoire, et **les personnages, déclarés une seule fois** — nom, genre, voix, description. Une scène cite ceux qui sont présents par leur clé. La description d'un personnage lui appartient et part au meneur chaque fois qu'il est présent.
+
+**L'issue de chaque scène est une case de l'histoire**, `app.outcome.<scène>`, que l'app écrit quand la scène se termine : réussi, raté, ou vide si elle a été abandonnée. L'auteur ne la déclare pas, et un embranchement la lit comme toute case — *après la crevasse, si elle est ratée, le campement des blessés ; sinon, le sommet*. C'est la seule case de l'app qui passe la scène, n'étant pas une mesure mais le résultat, que `../reference.md` fait lire à la scène suivante.
+
+**Une scène qui peut finir ratée oblige l'histoire à dire ce qui suit** : un embranchement, la rejouer, ou la fin de l'histoire. Aucune suite par défaut : continuer viderait le raté de son sens, rejouer peut tourner en rond sur une scène trop dure, tout arrêter punit une longue histoire pour une scène. Ce que l'échec veut dire est à l'auteur.
 
 ## Le prompt du meneur
 
