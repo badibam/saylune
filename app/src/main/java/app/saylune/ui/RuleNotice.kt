@@ -44,11 +44,18 @@ import app.saylune.ui.theme.Saylune
  * lever are ordered and every lever knows which end is the hard one, so a move carries its
  * direction.
  *
- * **It is dismissed by the finger and not by a clock**: a notice nobody has seen is a change the
- * learner cannot reconstruct.
+ * **It is dismissed by the finger, or by a clock that shows itself.** What the doc refused is a
+ * notice that **vanishes unseen**: a change nobody has seen is one the learner cannot
+ * reconstruct. A countdown on the notice is not that, so at the two automatic capture positions
+ * it goes on its own once read, and the preparation starts then; by hand it waits for the
+ * finger, nothing else being due.
+ *
+ * [left] is the seconds left on that clock, null where there is none.
  */
 @Composable
-fun RuleNotice(notices: List<Notice>, onSeen: () -> Unit, modifier: Modifier = Modifier) {
+fun RuleNotice(
+    notices: List<Notice>, onSeen: () -> Unit, modifier: Modifier = Modifier, left: Int? = null,
+) {
     if (notices.isEmpty()) return
     val grid = Saylune.grid
     val palette = Saylune.palette
@@ -57,21 +64,36 @@ fun RuleNotice(notices: List<Notice>, onSeen: () -> Unit, modifier: Modifier = M
             Column(Modifier.padding(vertical = grid.cell)) {
                 // The fiction first and the rules after, which is the rhythm of a game:
                 // something happens in the story, then one sees what it changes.
-                said(notices).forEach { line ->
+                noticeLines(notices).forEach { line ->
                     Text(
                         line,
                         style = Saylune.type.text,
                         color = palette.ink.srgb,
                     )
                 }
+                left?.let {
+                    Text("$it s", style = Saylune.type.text, color = palette.dim.srgb)
+                }
             }
         }
     }
 }
 
+/**
+ * How long a notice stays up on its own: a floor, plus so much per character.
+ *
+ * **Not strictly proportional**: four words at a proportional rate would flicker. Both numbers
+ * are set by hand and to be revised by eye, once a shipped tile lays a patch -- none does yet.
+ */
+fun readingMs(lines: List<String>): Long =
+    NOTICE_FLOOR_MS + NOTICE_PER_CHARACTER_MS * lines.sumOf { it.length }
+
+private const val NOTICE_FLOOR_MS = 3_000L
+private const val NOTICE_PER_CHARACTER_MS = 60L
+
 /** Every line of the notice: the staging, then what moved. */
 @Composable
-private fun said(notices: List<Notice>): List<String> =
+fun noticeLines(notices: List<Notice>): List<String> =
     notices.filterIsInstance<Notice.Staged>().map { it.staging.text } +
         notices.filterIsInstance<Notice.Moved>().map { phraseOf(it.move) }
 

@@ -60,8 +60,12 @@ import app.saylune.conversation.Side
 import app.saylune.marking.AddedSound
 import app.saylune.marking.TurnMarking
 import app.saylune.ui.theme.Saylune
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * The turn, end to end: press to speak, pause to think, press again to carry on, send.
@@ -218,6 +222,23 @@ fun ConversationScreen(
     // mic opened. What it waits for is read off the flows instead. A fresh event -- a turn the
     // close provoked has ended -- restarts it, and the second close is spent at once, a
     // passage closing once.
+    // **What the notice shows, and never while the app is speaking**: a receipt comes after the
+    // audio, whichever moment laid it -- the end of an attempt fires while the voice still
+    // plays. Its reading time is worked out here, where its lines are, and handed to the arming
+    // with the notices it was worked out for.
+    val showing = if (turn.phase == Phase.Speaking) emptyList() else turn.notices
+    val lines = noticeLines(showing)
+    val reading by rememberUpdatedState(showing to readingMs(lines))
+    var noticeUntil by remember { mutableStateOf<Long?>(null) }
+    val noticeLeft by produceState<Int?>(null, noticeUntil) {
+        val until = noticeUntil
+        while (until != null) {
+            value = ((until - System.currentTimeMillis() + 999) / 1000).toInt().coerceAtLeast(0)
+            kotlinx.coroutines.delay(200)
+        }
+        value = null
+    }
+
     val opening = turn.opening
     LaunchedEffect(arms, opening) {
         if (!arms || opening == null) return@LaunchedEffect
@@ -236,8 +257,20 @@ fun ConversationScreen(
         pipeline.turns.launch { pipeline.close() }.join()
         pipeline.state.first { it.phase == Phase.Idle }
         if (pipeline.state.value.over) return@LaunchedEffect
-        // The receipts, until the finger has taken them.
-        pipeline.state.first { it.notices.isEmpty() }
+        // **The receipts, on a clock that shows itself**, and the preparation only after them:
+        // reading is not thinking, so the one does not eat into the other. The finger takes a
+        // notice down sooner, and the preparation starts then.
+        val standing = pipeline.state.value.notices
+        if (standing.isNotEmpty()) {
+            val ms = snapshotFlow { reading }.first { it.first == standing }.second
+            noticeUntil = System.currentTimeMillis() + ms
+            try {
+                withTimeoutOrNull(ms) { pipeline.state.first { it.notices.isEmpty() } }
+            } finally {
+                noticeUntil = null
+            }
+            pipeline.shown()
+        }
         // The preparation: the time between the end of the AI's answer and the mic being
         // armed. It lives outside the turn, so it touches no measure. Read after the close,
         // which may have moved it.
@@ -405,7 +438,7 @@ fun ConversationScreen(
       // **A receipt, and it goes when it has been read.** It sits between the thread and the
       // buttons rather than over them: what it says is why the buttons under it have just
       // changed, and covering them would hide the very thing it is explaining.
-      RuleNotice(turn.notices, onSeen = pipeline::shown)
+      RuleNotice(showing, onSeen = pipeline::shown, left = noticeLeft)
 
       val busy = turn.phase != Phase.Idle
       val recordingSomething = capture.recording || capture.hasAudio

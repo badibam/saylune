@@ -459,7 +459,8 @@ data class ConversationState(
     /**
      * What the last moment left to show, until the pop-up has shown it.
      *
-     * Cleared by the screen and not by a clock here: a notice nobody has seen is a change the
+     * Cleared by the screen -- by the finger, or at the automatic capture positions by a clock
+     * the notice shows -- and never here: a notice that vanished unseen would be a change the
      * learner cannot reconstruct, and the whole value of the mechanical phrase is that he can.
      */
     val notices: List<Notice> = emptyList(),
@@ -2290,9 +2291,9 @@ class TurnPipeline(
     /**
      * Take back what the screen has shown of the last moment.
      *
-     * The notices are cleared by whoever showed them and not by a clock here: a notice nobody
-     * saw is a change the learner cannot reconstruct, and being able to reconstruct why a note
-     * moved is the whole value of the mechanical phrase.
+     * The notices are cleared by whoever showed them and never here: a notice that vanished
+     * unseen is a change the learner cannot reconstruct, and being able to reconstruct why a
+     * note moved is the whole value of the mechanical phrase.
      */
     fun shown() {
         _state.update { it.copy(notices = emptyList()) }
