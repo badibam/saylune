@@ -1,6 +1,8 @@
 package app.saylune.analysis
 
+import app.saylune.capture.Flac
 import app.saylune.capture.Following
+import app.saylune.embedded.AcousticMatrix
 import app.saylune.chain.ChainFailure
 import app.saylune.debug.Trace
 import app.saylune.embedded.AcousticPass
@@ -68,11 +70,14 @@ class RemoteMatrix(
                     ?: ChainFailure("the streamed take could not be read", failure.cause)
             }
         }
+        // In FLAC: lossless, so the server reads the very samples, in about half the bytes
+        // for a render -- the one upload still on the critical path.
+        val samples = AcousticMatrix.samples(wav)
         val answer = Http.post(
             url = "${endpoint.trimEnd('/')}/matrix",
             headers = mapOf("Authorization" to "Bearer $token"),
-            contentType = "application/octet-stream",
-            body = wav.readBytes(),
+            contentType = "audio/flac",
+            body = Flac.encode(ShortArray(samples.size) { (samples[it] * 32768f).toInt().toShort() }),
         )
         return parsed(answer)
     }

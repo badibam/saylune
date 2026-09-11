@@ -107,7 +107,19 @@ La bande se lit sur `09-walkin` parce que c'est la seule faute lue dans toutes l
 
 **Et ce jeu ne peut pas juger l'échelle fixe pour un appareil faible.** Ses prises ont toutes leur crête entre −4,6 et −2,5 dBFS, donc presque la pleine échelle ; les rendus des deux voix sortent 10 dB plus bas en moyenne (−25,8 à −20,8 dBFS, contre −16,7 à −10,3). Que le plancher du μ-law monte de 0,004 à 0,006 alors que les prises ont à peine bougé d'échelle va dans le sens d'un côté modèle qui paie ; ce n'est pas isolé. Ce qui manque est le niveau des vraies prises du téléphone, capturées sans gain automatique, qui vivent sur l'appareil.
 
-**Ce que la compression achèterait a changé depuis les n° 1 et 2** (non mesuré) : la prise part pendant qu'on parle, et le modèle d'une redite ne repart pas. Ce qui reste sur le chemin critique est l'envoi du modèle au premier tour d'une phrase. Et **`09-walkin` n'est pas une victime de la compression**, contrairement à ce que ce doc a d'abord écrit : la voix `eleven-gb-daniel` la manque aussi en flottant, sans un bit retiré. C'est un cas marginal de cette voix-là, et le compter contre le codec aurait fait payer à la compression une faute qui ne lui appartient pas.
+**Ce que la compression achèterait a changé depuis les n° 1 et 2** (non mesuré) : la prise part pendant qu'on parle, et le modèle d'une redite ne repart pas. Ce qui reste sur le chemin critique est l'envoi du modèle au premier tour d'une phrase.
+
+**Le FLAC remplace tout ça, écrit le 2026-09-11** (`capture/Flac.kt`). Sans perte, donc le serveur lit les échantillons mêmes et la matrice est la même au bit près : ni réglage, ni estampille, c'est du transport. Il part toujours, pour le modèle comme pour chaque morceau d'une prise. L'encodeur est écrit dans l'app plutôt que pris à la plateforme, dont l'encodeur varie d'un appareil à l'autre et ne tourne pas sur le poste ; `bench/flac.py` le tient contre le décodeur de référence, sur des cas limites et sur l'audio du jeu d'essai.
+
+Mesuré, taille du FLAC rapportée aux échantillons bruts, les 87 fichiers se relisant identiques :
+
+| | encodeur de l'app | libFLAC |
+|---|---|---|
+| rendus `eleven-gb-daniel` (16) | 53,4 % | 53,2 % |
+| rendus `eleven-us-eric` (36) | 52,7 % | 52,1 % |
+| prises du jeu d'essai (27) | 78,4 % | 76,9 % |
+
+Découpé en morceaux d'une seconde, chacun encodé seul, libFLAC ne perd que 0,3 point. Le rendu, qui est l'envoi resté sur le chemin critique, passe donc à peu près à moitié, ce que le μ-law donnait au prix de la bande. **Le μ-law est écarté.** Les prises réelles portent leurs silences, qui se compressent presque entièrement ; le jeu d'essai en porte peu, et ce que ça vaut sur le téléphone n'est pas mesuré. Et **`09-walkin` n'est pas une victime de la compression**, contrairement à ce que ce doc a d'abord écrit : la voix `eleven-gb-daniel` la manque aussi en flottant, sans un bit retiré. C'est un cas marginal de cette voix-là, et le compter contre le codec aurait fait payer à la compression une faute qui ne lui appartient pas.
 
 **Écarté et parké** : couper les silences avant d'envoyer. `../analysis.md` en donne l'argument — au-dessus d'une demi-seconde on est hors du domaine des phonèmes — mais l'essai en a déjà été fait dans ce projet et s'est mal passé, et rien ne dit aujourd'hui si le seuil était en cause. À reprendre par le seuil, pas par le principe.
 

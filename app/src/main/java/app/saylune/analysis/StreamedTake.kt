@@ -1,5 +1,6 @@
 package app.saylune.analysis
 
+import app.saylune.capture.Flac
 import app.saylune.capture.Following
 import app.saylune.capture.WavFile
 import app.saylune.chain.ChainFailure
@@ -104,9 +105,14 @@ internal class StreamedTake(
         }
     }
 
-    /** Send [bytes] as starting at [at], and hand back how much the server now holds. */
+    /**
+     * Send the samples [bytes] as starting at [at], and hand back how much the server now
+     * holds. They travel in FLAC, each piece a file of its own; [at] and the answer count
+     * bytes of the samples, never of what travelled.
+     */
     private fun sent(at: Long, bytes: ByteArray): Long {
-        val answer = Http.post("$base/take/$id?at=$at", headers, "application/octet-stream", bytes)
+        val answer = Http.post("$base/take/$id?at=$at", headers, "audio/flac",
+                               Flac.encodePcm(bytes))
         return JSONObject(answer.decodeToString()).getLong("held")
     }
 

@@ -284,13 +284,25 @@ class Handler(BaseHTTPRequestHandler):
         self.answer(audio)
 
     def piece(self, name, query, body):
-        """A piece of a take being said: raw 16-bit samples, from `at` on."""
+        """A piece of a take being said, in FLAC, whose samples start at byte `at`.
+
+        Decoded here and held as raw 16-bit samples: `at`, the answer and the
+        digest of the close all count bytes of samples, never of what travelled.
+        """
         try:
             at = int(query["at"][0])
         except (KeyError, ValueError):
             return self.fail(400, "at manque\n")
-        if at < 0 or len(body) % 2:
-            return self.fail(400, "morceau hors d'un échantillon entier\n")
+        try:
+            samples, rate = sf.read(io.BytesIO(body), dtype="int16")
+        except Exception as trouble:
+            return self.fail(400, f"morceau illisible : {trouble}\n")
+        if rate != SAMPLE_RATE or samples.ndim > 1:
+            return self.fail(400, f"{rate} Hz sur {samples.ndim} canaux, "
+                                  f"attendu {SAMPLE_RATE} Hz mono\n")
+        body = samples.astype("<i2").tobytes()
+        if at < 0:
+            return self.fail(400, "at négatif\n")
         if at + len(body) > MAX_SECONDS * SAMPLE_RATE * 2:
             return self.fail(413, f"plafond {MAX_SECONDS} s\n")
         held = self.takes.piece(name, at, body)
