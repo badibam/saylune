@@ -53,19 +53,19 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 | 10 | histoire | aucune | anglais | plate | apprenant | partagé | scène | rien | deux | temporaire | embranchement | | | |
 | 11 | histoire | mécanique | anglais | montée | monde | secret perso | histoire | influence | un | rien | réussi/raté | | | |
 | 12 | histoire | enjeu d'histoire | hasard | va-et-vient | interroge | secret apprenant | scène | choix suite | narr+un | toute la scène | la note | | | |
-| 13 | histoire | mécanique | temps | seuil | monde | secret apprenant | histoire | rien | narr+un | temporaire | la note | | | |
+| 13 | histoire | mécanique | temps | seuil | monde | secret apprenant | histoire | rien | narr+un | temporaire | la note | le dernier train | sur trois scènes, l'orage arrive au vingtième passage de l'histoire et raccourcit les tours jusqu'au bout | T14 |
 | 14 | histoire | humeur | hasard | détente | monde | secret perso | histoire | choix bloque | deux | successives | fausse mort | l'aubergiste | une auberge sur trois scènes : le couple bougon se radoucit au hasard ; une seule grâce dans toute l'histoire | T12 ; la grâce unique tient |
-| 15 | défi | aucune | ce qui est dit | plate | interroge | partagé | passage | trou | un | toute la scène | la note | | | |
+| 15 | défi | aucune | ce qui est dit | plate | interroge | partagé | passage | trou | un | toute la scène | la note | l'entretien | un recruteur interroge sur le poste choisi au lancement, sous « donne des exemples » ; la note tranche au bout de huit passages | tient |
 | 16 | histoire | enjeu d'histoire | anglais | montée | apprenant | secret apprenant | passage | choix bloque | narr+un | rien | fausse mort | la corde | expédition, la crevasse : la corde s'use à chaque phrase à reprendre | T6, T7 |
 | 17 | libre | humeur | anglais | montée | interroge | partagé | passage | choix suite | deux | rien | jamais | | | |
 | 18 | histoire | humeur | temps | détente | interroge | secret apprenant | passage | influence | narr+un | toute la scène | embranchement | | | |
 | 19 | histoire | enjeu d'histoire | ce qui est dit | seuil | apprenant | secret apprenant | passage | influence | deux | successives | réussi/raté | | | |
-| 20 | histoire | mécanique | ce qui est dit | montée | interroge | secret apprenant | histoire | trou | trois+ | toute la scène | embranchement | | | |
+| 20 | histoire | mécanique | ce qui est dit | montée | interroge | secret apprenant | histoire | trou | trois+ | toute la scène | embranchement | le conseil de guerre | trois conseillers interrogent l'apprenant, espion ; leurs soupçons raccourcissent les tours et décident de la suite | tient |
 | 21 | libre | humeur | ce qui est dit | va-et-vient | monde | secret perso | scène | rien | un | rien | jamais | la voisine | la vieille voisine qui parle d'elle-même, humeur au gré de ce qui est dit, un deuil qu'elle tait | T11 |
 | 22 | histoire | enjeu d'histoire | hasard | seuil | apprenant | partagé | scène | trou | un | temporaire | fausse mort | | | |
 | 23 | histoire | aucune | temps | plate | apprenant | secret perso | scène | choix suite | narr+un | successives | embranchement | | | |
 | 24 | histoire | enjeu d'histoire | anglais | détente | apprenant | partagé | histoire | rien | trois+ | toute la scène | fausse mort | | | |
-| 25 | histoire | humeur | temps | plate | interroge | secret perso | histoire | choix suite | trois+ | temporaire | fausse mort | | | |
+| 25 | histoire | humeur | temps | plate | interroge | secret perso | histoire | choix suite | trois+ | temporaire | fausse mort | le jury | trois jurés au froid constant ; un premier rejet se rattrape une fois | tient |
 | 26 | défi | humeur | temps | montée | apprenant | partagé | scène | influence | un | successives | la note | | | |
 | 27 | histoire | humeur | ce qui est dit | détente | monde | secret perso | histoire | trou | narr+un | temporaire | réussi/raté | | | |
 | 28 | histoire | humeur | temps | va-et-vient | apprenant | secret apprenant | scène | choix bloque | trois+ | temporaire | embranchement | le dîner de famille | la tension monte aux disputes et retombe aux toasts ; l'apprenant sait les fiançailles rompues, et on lui demande de le dire | tient |
@@ -73,7 +73,7 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 | 30 | libre | humeur | ce qui est dit | seuil | apprenant | secret perso | scène | choix bloque | trois+ | rien | jamais | | | |
 | 31 | libre | aucune | ce qui est dit | plate | interroge | secret perso | passage | influence | narr+un | rien | jamais | | | |
 | 32 | histoire | mécanique | ce qui est dit | plate | interroge | partagé | scène | rien | un | successives | embranchement | | | |
-| 33 | défi | aucune | hasard | plate | apprenant | partagé | scène | choix bloque | un | temporaire | la note | | | |
+| 33 | défi | aucune | hasard | plate | apprenant | partagé | scène | choix bloque | un | temporaire | la note | la roue | une animatrice tire le sujet au hasard, puis bloque sur « celui-ci ou l'autre ? » juste après une consigne de trois passages | T13 |
 | 34 | libre | humeur | hasard | détente | monde | partagé | passage | rien | trois+ | rien | jamais | | | |
 | 35 | histoire | mécanique | anglais | seuil | interroge | secret apprenant | histoire | rien | un | successives | embranchement | l'alibi | l'enquêteur en trois interrogatoires, l'apprenant sachant l'alibi faux | T8 |
 
@@ -90,8 +90,15 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 - **T7 — tranché** (V16) : rouvrir une scène d'histoire rejoue les scènes d'avant ; un moteur qui a changé rend l'histoire non reprenable (`scene-state.md`).
 - **T8 — tranché** (V35) : une case vit aussi longtemps que ce qui la déclare, scène ou histoire, un levier comme une autre (`scene-state.md`).
 - **T9 — tranché** (V2) : une liste ordonnée se déplace d'un cran, un levier vers le dur ou le facile, une case de la fiche vers le haut ou le bas (`scene-state.md`).
-- **T10 — le hasard ne dit pas ses chances** (V1). Un sphinx irrité une fois sur trois demande un tirage pondéré ; le doc ne connaît que « parmi des valeurs données ». Proposition : chaque valeur d'un tirage peut porter un poids, égal par défaut.
+- **T10 — tranché** (V1) : chaque valeur d'un tirage peut porter un poids, égal par défaut (`scene-state.md`).
 - **T11 — tranché** (V3, V21) : faire parler un personnage prend un texte écrit d'avance ou une direction au meneur, qui fait un tour sans phrase de l'apprenant (`scene-state.md`).
 - **T12 — tranché** (V14) : un blocage suspend tous les événements de la scène sauf ceux de la question, et un moment manqué ne se rattrape pas ; attendre sous pression est un chemin (`scene-state.md`).
 
 **Ce qui tient, au deuxième lot.** La grâce unique dans toute l'histoire (V14) s'écrit sans rien de neuf, les activations vivant à la scène : une case d'histoire `reprieve-used`, et à l'ouverture de chaque scène un événement qui, si elle est vraie, désactive la grâce. Le secret du sphinx (V1) protège l'apprenant comme prévu : le juge, qui ignore la réponse, ne marque pas une mauvaise réponse comme hors de propos. Au dîner (V28), la tension lue sur `app.passage` monte et descend sans rien de neuf, et le mensonge de l'apprenant sur ce qu'il sait n'est pas marqué, le juge voyant son secret.
+
+**Troisième lot.**
+
+- **T13 — une consigne compte-t-elle les passages bloqués ?** (V33). Un blocage suspend les événements, et la durée d'une consigne n'en est pas un. Proposition : elle les compte, étant parlés et jugés comme les autres.
+- **T14 — rien ne tourne dans toutes les scènes d'une histoire** (V13). L'orage au vingtième passage de l'histoire demande un compteur que chaque fiche incrémente ; une fiche qui l'oublie l'arrête sans rien dire — l'argument qui a fait vivre les cases à l'histoire. La grâce unique (V14) s'écrit de même avec un événement recopié dans chaque scène. Proposition à trancher.
+
+**Ce qui tient, au troisième lot.** Un défi sans pression (V15) se tient par sa fin seule, la note tranchant à la clôture sur les cases de la séance. Un trou dans une histoire (V20) se demande là où sa case est déclarée, au lancement de l'histoire ou de la scène, sans règle neuve. Une fausse mort sous une pression plate (V25) n'est pas une paire impossible : elle porte sur un vrai/faux que le meneur écrit — le jury rejette —, et non sur un compteur qui descend.

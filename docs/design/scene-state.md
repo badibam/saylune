@@ -119,7 +119,7 @@ Un texte d'événement pour le meneur n'a pas de durée : il se place dans la co
 
 **Demander une case à l'apprenant** : *au lancement, demander `anchor` — « Ce que Dana te reproche »*. C'est ce que font les trous aujourd'hui, avec la même forme que le reste. **Au lancement seulement** : en cours de partie, une question à l'apprenant passe par le dialogue (plus bas).
 
-**Tirer une case au hasard** : *à l'ouverture, tirer `mood`.*
+**Tirer une case au hasard** : *à l'ouverture, tirer `mood`.* Chaque valeur peut porter un poids, égal par défaut — un sphinx irrité une fois sur trois se tire *calme 2, irrité 1*. Le poids est au tirage, pas à la case : la même case se tire avec d'autres chances à un autre moment.
 
 **Ce qui est notifié au moment d'un événement est écrit par l'auteur.** Un texte que l'IA écrirait devrait exister à la fermeture du passage, et aucun appel n'est à la fois fini à ce moment et fait pour ça : le meneur a fini avant de connaître le jugement, le juge ne fait pas de fiction, et un appel de plus ferait attendre le micro. La phrase de l'auteur s'affiche en outre à côté de la phrase mécanique, qu'un texte improvisé peut contredire (`activity.md`). La liberté du meneur est sa réplique suivante, où il joue la réaction comme il veut.
 
