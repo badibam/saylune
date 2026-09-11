@@ -40,8 +40,10 @@ Un **serveur d'émission** vend des crédits, décompte, et rend un jeton ; le t
 
 Aujourd'hui un seul appel rend un contrat entier : la réponse, `intended`, les quatre marquages, la difficulté, l'écho, la clé de menu. Il se coupe en deux, distillés d'un même état :
 
-- **celui qui parle** — écrit la réplique, et rien d'autre ;
-- **celui qui juge** — `intended`, les marquages, la difficulté, la clé de menu ; il tourne **pendant que l'apprenant écoute**.
+- **celui qui parle** — écrit la réplique, et décide ce qui fait tourner l'histoire : le oui/non des conditions jugées et la clé de menu ;
+- **celui qui juge** — `intended`, les marquages, la difficulté ; il tourne **pendant que l'apprenant écoute**.
+
+**Ce qui fait tourner l'histoire est à celui qui parle** (tranché le 2026-09-11). Le juge ne reçoit pas la mise en scène, donc il ne sait pas ce qu'une condition comme *« elle a entendu la vraie excuse »* veut dire pour ce personnage ; et il rend son verdict une fois la réplique dite, donc un choix de sa part ne se jouerait qu'au tour d'après.
 
 ### Le contrat gagne un champ
 
