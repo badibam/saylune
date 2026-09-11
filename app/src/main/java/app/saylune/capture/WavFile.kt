@@ -20,6 +20,9 @@ object WavFile {
     const val CHANNELS = 1
     const val BITS = 16
 
+    /** Where the samples start in a wav written here: the header is always this long. */
+    const val HEADER_BYTES = 44
+
     /**
      * Wrap [pcm] as a wav at [target], via a temporary that is renamed -- so a reader either
      * finds a whole turn or finds nothing.
@@ -36,7 +39,7 @@ object WavFile {
 
     private fun header(dataBytes: Int): ByteArray {
         val byteRate = SAMPLE_RATE * CHANNELS * BITS / 8
-        return ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN).apply {
+        return ByteBuffer.allocate(HEADER_BYTES).order(ByteOrder.LITTLE_ENDIAN).apply {
             put("RIFF".toByteArray())
             putInt(36 + dataBytes)
             put("WAVE".toByteArray())

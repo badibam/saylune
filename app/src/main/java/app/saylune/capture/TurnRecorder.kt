@@ -52,7 +52,11 @@ import java.io.File
  * windowing is written yet. The top goes when the windowing lands, and the lever stays
  * (`../../../../../../TODO.md`).
  */
-class TurnRecorder(private val context: Context) {
+class TurnRecorder(
+    private val context: Context,
+    /** Who takes the take in while it is said, asked once per take. Null for nobody. */
+    private val follower: (File) -> Following? = { null },
+) {
 
     private val _state = MutableStateFlow(CaptureState())
     val state: StateFlow<CaptureState> = _state.asStateFlow()
@@ -62,11 +66,15 @@ class TurnRecorder(private val context: Context) {
 
     private var job: Job? = null
     private var pcm: File? = null
+    private var following: Following? = null
 
     /** Open the mic: begin the turn, or carry on the one already started. */
     fun open(scope: CoroutineScope, capture: Capture = Capture()) {
         if (job != null || _state.value.ending != null) return
-        val file = pcm ?: newFile().also { pcm = it }
+        val file = pcm ?: newFile().also {
+            pcm = it
+            following = follower(it)
+        }
         _state.value = _state.value.copy(recording = true, silenceMs = 0)
         job = scope.launch(Dispatchers.IO) { read(file, capture) }
     }
@@ -88,6 +96,8 @@ class TurnRecorder(private val context: Context) {
     /** Throw the turn away and start over. */
     fun discard() {
         pause()
+        following?.dropped()
+        following = null
         pcm?.delete()
         pcm = null
         _state.value = CaptureState()
@@ -108,9 +118,16 @@ class TurnRecorder(private val context: Context) {
      */
     suspend fun send(): File? = withContext(Dispatchers.IO) {
         pause()
-        val samples = pcm?.takeIf { it.length() > 0 } ?: return@withContext null
+        val samples = pcm?.takeIf { it.length() > 0 } ?: run {
+            following?.dropped()
+            following = null
+            return@withContext null
+        }
         val whole = File(samples.parentFile, samples.nameWithoutExtension + ".wav")
         WavFile.wrap(samples, whole)
+        // Before the samples go: the follower may still be reading them.
+        following?.closed(whole)
+        following = null
         Trace.add("capture: the turn, whole", "bytes" to whole.length().toString())
         samples.delete()
         pcm = null

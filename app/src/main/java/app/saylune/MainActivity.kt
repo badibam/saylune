@@ -88,7 +88,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         hideTheNavigationBar()
         val store = SecretStore(applicationContext)
-        val recorder = TurnRecorder(applicationContext)
+        val analysis = Analyses.chosen(applicationContext, store)
+        val recorder = TurnRecorder(applicationContext) { analysis.follow(it) }
         // The three links are resolved at the moment they are used, not here: the user
         // picks a provider per link in the settings, and the next turn uses it.
         val pipeline = TurnPipeline(
@@ -96,7 +97,7 @@ class MainActivity : ComponentActivity() {
             recognition = ChosenRecognition(store),
             conversation = ChosenConversation(store),
             synthesis = ChosenSynthesis(applicationContext, store),
-            analysis = Analyses.chosen(applicationContext, store),
+            analysis = analysis,
             archive = Archive.of(applicationContext).dao(),
         )
         setContent {

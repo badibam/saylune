@@ -1,6 +1,8 @@
 package app.saylune.analysis
 
+import app.saylune.capture.Following
 import app.saylune.chain.ChainFailure
+import app.saylune.debug.Trace
 import app.saylune.embedded.AcousticPass
 import app.saylune.embedded.Layer
 import app.saylune.embedded.PassReading
@@ -8,6 +10,8 @@ import app.saylune.providers.Http
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutionException
 
 /**
  * The acoustic pass, asked of a machine that is not this one.
@@ -36,7 +40,34 @@ class RemoteMatrix(
 
     override val version: String = "remote:${endpoint.trimEnd('/')}"
 
+    /**
+     * Readings of takes that were streamed, by the path of the wav they were closed into.
+     *
+     * Bounded, because a take whose analysis never runs -- the words' gate closed -- is never
+     * asked for, and its reading would otherwise stay here for good.
+     */
+    private val streamed = object : LinkedHashMap<String, CompletableFuture<PassReading>>() {
+        override fun removeEldestEntry(
+            eldest: MutableMap.MutableEntry<String, CompletableFuture<PassReading>>,
+        ) = size > STREAMED
+    }
+
+    /** Send the take being said as it grows (`docs/design/remote-analysis.md`). */
+    fun follow(pcm: File): Following =
+        StreamedTake(pcm, endpoint.trimEnd('/'), token, ::parsed) { wav, reading ->
+            synchronized(streamed) { streamed[wav.absolutePath] = reading }
+        }
+
     override fun read(wav: File): PassReading {
+        synchronized(streamed) { streamed.remove(wav.absolutePath) }?.let { early ->
+            Trace.add("analysis: the take was already there", "wav" to wav.name)
+            return try {
+                early.get()
+            } catch (failure: ExecutionException) {
+                throw failure.cause as? ChainFailure
+                    ?: ChainFailure("the streamed take could not be read", failure.cause)
+            }
+        }
         val answer = Http.post(
             url = "${endpoint.trimEnd('/')}/matrix",
             headers = mapOf("Authorization" to "Bearer $token"),
@@ -49,7 +80,7 @@ class RemoteMatrix(
     /** Nothing to release: the session lives at the far end and outlives any one turn. */
     override fun close() = Unit
 
-    private fun parsed(answer: ByteArray): PassReading {
+    internal fun parsed(answer: ByteArray): PassReading {
         if (answer.size < HEAD) throw ChainFailure(
             "the analysis server answered ${answer.size} bytes, too short to be a reading"
         )
@@ -91,6 +122,9 @@ class RemoteMatrix(
         const val VERSION = 1
         // magic 4, version 2, frames 4, symbols 2, seconds 4, millis 4
         const val HEAD = 20
+
+        /** More streamed readings than turns can be waiting at once. */
+        const val STREAMED = 4
 
         /**
          * A 16-bit float widened, by hand.

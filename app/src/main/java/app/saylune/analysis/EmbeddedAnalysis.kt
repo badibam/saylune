@@ -2,6 +2,7 @@ package app.saylune.analysis
 
 import android.content.Context
 import app.saylune.BuildConfig
+import app.saylune.capture.Following
 import app.saylune.R
 import app.saylune.embedded.AcousticMatrix
 import app.saylune.embedded.AcousticPass
@@ -68,8 +69,17 @@ class EmbeddedAnalysis(
 ) : Analysis {
 
     private val lock = Mutex()
-    private var engine: Engine? = null
+    /** Volatile: [follow] reads it from the screen's thread, outside the lock. */
+    @Volatile private var engine: Engine? = null
     private var refused: Readiness.Off? = null
+
+    /**
+     * The engine in place when the take opens is the one that follows it. If a change of
+     * choice rebuilds the engine before the turn is read, the new one has no streamed reading
+     * and reads both audios itself -- the two still go through one pass.
+     */
+    override fun follow(pcm: File): Following? =
+        (engine?.matrix as? RemoteMatrix)?.follow(pcm)
 
     /**
      * The set on disk the refusal was given against ([Weights.onDisk]).

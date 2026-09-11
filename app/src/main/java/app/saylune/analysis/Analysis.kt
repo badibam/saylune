@@ -1,6 +1,7 @@
 package app.saylune.analysis
 
 import androidx.annotation.StringRes
+import app.saylune.capture.Following
 import app.saylune.judged.Kept
 import app.saylune.marking.AddedSound
 import app.saylune.marking.TurnMarking
@@ -61,6 +62,14 @@ interface Analysis {
      * drop something says so through [Analysed.dropped] instead of quietly shortening.
      */
     suspend fun examine(said: File, model: File, text: String, kept: Kept): Analysed
+
+    /**
+     * Who takes in the take [pcm] while it is said, or null when nothing is to be gained.
+     *
+     * Only a pass on another machine has anything to gain: the take is there when it ends,
+     * and its pass can run while the reply is being made.
+     */
+    fun follow(pcm: File): Following? = null
 }
 
 /**
