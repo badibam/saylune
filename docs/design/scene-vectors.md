@@ -42,12 +42,12 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 | V | porte | pression | moteur | trajectoire | initiative | savoir | durée | décision | voix | langue | fin | nom | scène | tient ? |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | défi | humeur | hasard | montée | interroge | secret perso | passage | rien | narr+un | temporaire | réussi/raté | | | |
-| 2 | défi | mécanique | ce qui est dit | détente | monde | partagé | scène | choix bloque | un | toute la scène | fausse mort | | | |
+| 2 | défi | mécanique | ce qui est dit | détente | monde | partagé | scène | choix bloque | un | toute la scène | fausse mort | le dégel | garde-frontière qui laisse de plus en plus de temps à mesure qu'il est rassuré | T1, T2, T9 |
 | 3 | histoire | aucune | hasard | plate | monde | secret apprenant | histoire | influence | trois+ | rien | embranchement | | | |
-| 4 | arcade | mécanique | anglais | va-et-vient | apprenant | secret apprenant | passage | trou | deux | successives | la note | | | |
+| 4 | arcade | mécanique | anglais | va-et-vient | apprenant | secret apprenant | passage | trou | deux | successives | la note | le mot glissé | jeu télévisé : glisser le mot choisi au lancement sans que les deux animateurs le repèrent | T3, T4 |
 | 5 | histoire | enjeu d'histoire | temps | seuil | apprenant | secret perso | histoire | choix suite | deux | toute la scène | embranchement | | | |
 | 6 | histoire | enjeu d'histoire | temps | plate | interroge | partagé | scène | choix bloque | trois+ | successives | réussi/raté | | | |
-| 7 | libre | humeur | temps | seuil | interroge | secret apprenant | scène | trou | un | rien | jamais | | | |
+| 7 | libre | humeur | temps | seuil | interroge | secret apprenant | scène | trou | un | rien | jamais | la surprise | le voisin curieux, et la fête que l'apprenant prépare en secret | T5 |
 | 8 | histoire | humeur | ce qui est dit | va-et-vient | apprenant | partagé | histoire | influence | narr+un | temporaire | fausse mort | | | |
 | 9 | histoire | enjeu d'histoire | ce qui est dit | détente | monde | secret perso | passage | choix suite | trois+ | rien | la note | | | |
 | 10 | histoire | aucune | anglais | plate | apprenant | partagé | scène | rien | deux | temporaire | embranchement | | | |
@@ -56,7 +56,7 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 | 13 | histoire | mécanique | temps | seuil | monde | secret apprenant | histoire | rien | narr+un | temporaire | la note | | | |
 | 14 | histoire | humeur | hasard | détente | monde | secret perso | histoire | choix bloque | deux | successives | fausse mort | | | |
 | 15 | défi | aucune | ce qui est dit | plate | interroge | partagé | passage | trou | un | toute la scène | la note | | | |
-| 16 | histoire | enjeu d'histoire | anglais | montée | apprenant | secret apprenant | passage | choix bloque | narr+un | rien | fausse mort | | | |
+| 16 | histoire | enjeu d'histoire | anglais | montée | apprenant | secret apprenant | passage | choix bloque | narr+un | rien | fausse mort | la corde | expédition, la crevasse : la corde s'use à chaque phrase à reprendre | T6, T7 |
 | 17 | libre | humeur | anglais | montée | interroge | partagé | passage | choix suite | deux | rien | jamais | | | |
 | 18 | histoire | humeur | temps | détente | interroge | secret apprenant | passage | influence | narr+un | toute la scène | embranchement | | | |
 | 19 | histoire | enjeu d'histoire | ce qui est dit | seuil | apprenant | secret apprenant | passage | influence | deux | successives | réussi/raté | | | |
@@ -75,4 +75,18 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 | 32 | histoire | mécanique | ce qui est dit | plate | interroge | partagé | scène | rien | un | successives | embranchement | | | |
 | 33 | défi | aucune | hasard | plate | apprenant | partagé | scène | choix bloque | un | temporaire | la note | | | |
 | 34 | libre | humeur | hasard | détente | monde | partagé | passage | rien | trois+ | rien | jamais | | | |
-| 35 | histoire | mécanique | anglais | seuil | interroge | secret apprenant | histoire | rien | un | successives | embranchement | | | |
+| 35 | histoire | mécanique | anglais | seuil | interroge | secret apprenant | histoire | rien | un | successives | embranchement | l'alibi | l'enquêteur en trois interrogatoires, l'apprenant sachant l'alibi faux | T8 |
+
+## Ce que les vecteurs trouvent
+
+Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; il est ouvert tant que `scene-state.md` ne l'a pas repris.
+
+- **T1 — à quel moment partent les événements qui lisent une case écrite par le meneur** (V2). Le meneur l'écrit dans son appel, qui n'est pas un moment de la liste. Proposition : à la fin de la tentative, puisque ce qu'il écrit appartient à la tentative.
+- **T2 — une reformulation retire les écritures du meneur, pas encore ce qu'elles ont déclenché** (V2). Le garde rassuré a fait passer la durée du tour à 20 s, notification affichée ; l'apprenant reformule, le meneur répond autrement. Proposition : tout ce qu'une écriture du meneur a déclenché part avec elle et se recalcule, comme à la réouverture ; un levier qui revient s'annonce comme tout levier qui change. Ce qui vient des mesures reste, la tentative ayant eu lieu.
+- **T3 — une consigne cachée au meneur ne s'écrit pas** (V4). Glisser un mot sans que les animateurs le repèrent est une exigence que le juge doit connaître et le meneur ignorer ; une consigne va toujours aux deux. Proposition : une consigne choisit ses lecteurs comme un texte, le juge suivant l'apprenant.
+- **T4 — la durée d'une consigne n'a pas d'unité, et deux consignes sur le même marquage ne disent pas si elles s'ajoutent** (V4). Proposition à trancher : une durée en passages ou jusqu'à un événement qui la retire ; deux consignes s'ajoutent.
+- **T5 — en Libre, un événement qui lit une case de l'app fait de la pression par la porte de derrière** (V7). Un voisin plus soupçonneux à chaque silence de 5 s est un réglage de fluidité que l'apprenant n'a pas choisi, l'argument qui retire leviers et consignes de Libre. Proposition : en Libre, un test ne lit de l'app que `app.passage`.
+- **T6 — l'issue d'une scène ne vit pas assez longtemps pour qu'un embranchement la lise** (V16). La fin vit à la scène et la vérification refuse un embranchement sur une case qui ne vit pas toute l'histoire ; or `../reference.md` dit que l'issue est ce qu'une scène suivante a le droit de lire. Proposition : l'issue de chaque scène est une case de l'histoire. Il reste à dire ce que fait une histoire après une scène ratée.
+- **T7 — rouvrir une scène d'histoire demande les cases de l'histoire à son ouverture** (V16). Rejouer la seule scène ne les rend pas, rejouer toute l'histoire suppose que le moteur n'a changé pour aucune scène. Proposition : garder leur valeur à l'ouverture de chaque scène.
+- **T8 — une pression mécanique ne traverse pas les scènes** (V35). Les leviers vivent à la scène, et aucun effet ne donne à une case la valeur d'une autre. Proposition : l'histoire peut déclarer un levier qui vit toute l'histoire, comme ses cases.
+- **T9 — déplacer un levier à liste d'un cran n'est pas écrit** (V2). Le déplacement est dit des nombres ; pour une liste ordonnée, il faut dire vers le dur ou vers le facile, par le sens que le levier déclare.
