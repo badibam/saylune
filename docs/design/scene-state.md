@@ -13,13 +13,26 @@ Une vingtaine de notions font aujourd'hui bouger une scène, chacune ajoutée po
 
 ## Les cases
 
-Tout ce qui peut changer pendant une scène est une case : un nom et une valeur. La position d'un levier, les vies, la patience du barman, un événement actif ou non, ce que le modèle a établi, ce que la mesure a lu, un tirage, la voix tirée d'un personnage, la fin.
+Tout ce qui peut changer pendant une scène est une case : un nom et une valeur. La position d'un levier, les vies, la patience du barman, un événement actif ou non, ce que le modèle a établi, ce que la mesure a lu, un tirage, la fin.
+
+**Quatre sortes de valeurs.**
+
+- **Vrai ou faux** — Lou a ri, le voyageur est arrivé, un événement est actif. Une liste ne peut pas se réduire à *oui / non* : c'est alors un vrai/faux, qui ne s'écrit que d'une façon.
+- **Nombre**, avec ses limites — `patience` de 0 à 3, `score` à partir de 0 sans maximum. Un déplacement s'arrête à la limite.
+- **Liste**, une valeur parmi des valeurs écrites d'avance — ce que fait Val, l'humeur tirée. Une liste peut être **ordonnée**, et dit alors dans quel sens elle va : A est le haut des notes ; pour un levier, le bout le plus dur n'est pas toujours le dernier cran, l'écho étant le plus dur à *none* (`HardSide`, `levers/Levers.kt`).
+- **Texte** — ce que Lou a confié, le trou de l'apprenant. Aucun événement ne le teste, aucun code ne comprenant *« the flat in Lyon »* ; il est lu par le modèle et par l'écran, et cité dans d'autres textes.
+
+**La sorte ne dépend pas de l'écrivain**, à deux limites près : le hasard n'écrit pas de texte, ne sachant que choisir parmi des valeurs données ; et les cases de la mesure sont déclarées par l'app, pas par la fiche. Le modèle peut écrire un nombre (*combien de verres le barman a servis*), l'auteur un texte (*« the platform »*, cité ensuite).
+
+**Toute case peut être vide** : pas encore demandée au modèle, rien de mesuré (la note de prononciation d'un passage dont l'analyse n'a pas tourné), laissée vide par l'apprenant, ou sans valeur de départ jusqu'à ce qu'un événement la remplisse. La raison du vide n'est pas gardée, aucun cas n'ayant besoin de la lire. *« Je ne sais pas »* n'est pas un vide mais une réponse du modèle (plus bas, ouvert).
+
+**La voix et le genre tirés d'un personnage ne sont pas des cases** : ce sont ses attributs, tirés une fois et gardés avec lui, donc toute l'histoire dans une histoire. Aucun événement ne les teste, et leurs valeurs viennent du catalogue d'un fournisseur que l'auteur ne connaît pas.
 
 **Six écrivains.** L'auteur, l'apprenant, la mesure, le modèle qui parle, le hasard, un événement. Le juge n'en est pas un : il rend des marques, et c'est la mesure qui en tire les cases de note.
 
 **Une case, un seul écrivain pendant la partie**, fixé par sa sorte. Une case de la mesure n'est écrite que par la mesure, sinon une fiche pourrait adoucir une note ; une case du modèle n'est écrite que par lui, ce qui a été établi dans l'histoire ayant été dit ; un événement ne change que les cases de l'auteur. La **valeur de départ** peut en revanche venir de plusieurs sources dans un ordre fixé : le genre d'un personnage vient de la fiche, sinon de l'apprenant, sinon du hasard.
 
-**Une case vit aussi longtemps que ce à quoi elle appartient.** À la scène : les leviers, les activations, la fin, et les cases de la mesure — celles-ci jamais au-delà, rien de ce qui a été mesuré ailleurs n'entrant dans la lecture d'un tour (`../reference.md`). À l'histoire : ses personnages avec leur voix et leur genre tirés, et les faits que l'auteur veut garder d'une scène à l'autre.
+**Une case vit aussi longtemps que ce à quoi elle appartient.** À la scène : les leviers, les activations, la fin, et les cases de la mesure — celles-ci jamais au-delà, rien de ce qui a été mesuré ailleurs n'entrant dans la lecture d'un tour (`../reference.md`). À l'histoire : les faits que l'auteur veut garder d'une scène à l'autre.
 
 **Un texte peut citer une case**, et l'app le réécrit à chaque envoi avec la valeur du moment : *« Your patience with them: {patience} out of 3. »* C'est ce que fait déjà `{anchor}`.
 
@@ -31,7 +44,9 @@ Un événement dépend de trois choses.
 2. **Être actif.** Un événement peut être actif ou non au départ, et un autre événement l'active ou le désactive.
 3. **Un test sur une case**, d'une de deux sortes :
    - **un état** — `lives` = 0, note de correction ≤ C, silence ≥ 5 s, passage multiple de 5. Il repart à chaque moment où il est vrai : chaque mauvaise phrase coûte une vie ;
-   - **un changement** — `named` devient oui, `lives` diminue, un levier devient plus dur. Il ne part qu'une fois par changement.
+   - **un changement** — `named` devient vrai, `lives` diminue, un levier devient plus dur. Il ne part qu'une fois par changement.
+
+**Un test sur une case vide est toujours faux**, sauf le test fait pour ça, « est vide ». Sans quoi « note de prononciation ≤ C → une vie en moins » coûterait une vie pour une analyse qui n'a pas tourné.
 
 **Un seul test par événement, et l'activation sert de « et ».** La fausse mort s'écrit ainsi : A (actif) — quand `lives` = 0, remettre une vie, désactiver A, activer B ; B (inactif) — quand `lives` = 0, terminer. Combiner deux tests ouvrirait la voie au « ou », puis aux parenthèses, donc au langage de conditions que `rules/Rule.kt` refuse parce qu'on ne pourrait plus dire ce que fait une fiche sans la jouer. Décidé pour cette version ; un cas réel qui ne s'écrirait pas avec l'activation rouvrirait la question.
 
@@ -52,7 +67,7 @@ Une consigne (*« Tell it in the past tense »*) est le même texte envoyé à t
 
 **Faire parler le personnage**, sans attendre l'apprenant : à l'ouverture, à la fermeture d'un passage, à la clôture. Jamais pendant un enregistrement ni à la fin d'une tentative.
 
-**Demander une case au modèle** : *à la fermeture du passage, si `named` = non, demander `named`.* La case ne dit que ce qu'elle est ; quand elle est demandée, et jusqu'à quand, est toujours écrit dans un événement, avec les mêmes tests que partout.
+**Demander une case au modèle** : *à la fermeture de chaque passage, demander `named`* ; et un second événement, *quand `named` devient vrai, désactiver le premier*. La case ne dit que ce qu'elle est ; quand elle est demandée, et jusqu'à quand, est toujours écrit dans un événement, avec les mêmes tests et la même activation que partout.
 
 **Tirer une case au hasard** : *à l'ouverture, tirer `mood`.*
 
@@ -131,17 +146,16 @@ Rien de ce qui s'écrivait ne devient impossible. Un auteur écrit un événemen
 
 ## Exemples
 
-**Dana.** Case `named`, oui/non, écrite par le modèle, départ non. À la fermeture de chaque passage, si `named` = non : demander `named`. Quand `named` devient oui : à l'apprenant, une fois, *« Dana a dit ce qui l'a blessée. »*
+**Dana.** Case `named`, vrai/faux, écrite par le modèle, vide au départ. Un événement actif demande `named` à la fermeture de chaque passage. Quand `named` devient vrai : à l'apprenant, une fois, *« Dana a dit ce qui l'a blessée »*, et l'événement qui demande se désactive.
 
 **Le barman.** Au tour 7, l'apprenant répond *« Yes there is »* à *« Is it so? »*. Le modèle répond normalement ; le juge marque, la porte des mots se ferme. À la fermeture du passage, l'événement « porte des mots fermée » retire une vie, fait baisser `patience` de 1 et envoie au modèle, une fois, *« Reproach them. »* `patience` atteint 0, un second événement passe la durée du tour à 10 s et envoie à l'apprenant *« Le barman s'impatiente, il ne te laisse plus parler longtemps. »* Au tour 8, le barman fait son reproche. Un texte permanent pour le modèle cite `{patience}`, donc il la connaît à chaque tour.
 
 **La confiance.** Case `trust`, liste *grows / stays / drops*, demandée au modèle à chaque passage. Quand `trust` = drops : une vie en moins. Quand `trust` = grows : une vie en plus.
 
-**Le quai.** Case `lou-laughed`, oui/non, demandée jusqu'à oui. Quand elle devient oui : au fil, le narrateur, *« The replacement bus will leave at 1:40. »*
+**Le quai.** Case `lou-laughed`, vrai/faux, demandée à chaque passage jusqu'à ce qu'elle devienne vraie. Alors : au fil, le narrateur, *« The replacement bus will leave at 1:40. »*
 
 ## Ouvert
 
-- **Les sortes de valeurs.** Proposé : le texte, que seuls le modèle et l'écran lisent ; la liste, ordonnée ou non — oui/non en est une à deux valeurs, les notes et les crans d'un levier des listes ordonnées ; le nombre. Où ranger la voix tirée, qui ne se teste pas.
 - **La description du personnage chez le juge.** Elle lui a été retirée pour qu'elle ne déteigne pas sur `intended`, que le modèle qui parle écrit désormais ; la raison ne tient plus, c'est à revérifier. Et ce que l'apprenant veut éviter, qui n'est pas un réglage de mesure mais n'a rien à faire dans un jugement.
 - **Une réplique provoquée à la fermeture d'un passage.** Refusée pour réagir à une note, parce qu'elle casse le fil ; pas tranchée pour le reste — l'annonce du quai en est une.
 - **« Je ne sais pas »**, valeur possible d'une case du modèle quand il n'a le droit ni de déduire ni d'inventer. Un événement qui lit la case doit savoir qu'elle peut valoir ça.
