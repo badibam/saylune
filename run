@@ -197,14 +197,14 @@ def task_bench():
     )
 
 
-def task_tile():
-    """Open a Claude Code session on the tile authoring guide.
+def task_scene():
+    """Open a Claude Code session on the scene authoring guide.
 
     The guide is a file rather than a prompt held here, so that it stays readable
     and versioned on its own, and so that nothing about the definition schema is
     written twice: the session reads the parser and the catalogue itself.
     """
-    guide = ROOT / "docs" / "tile-authoring.md"
+    guide = ROOT / "docs" / "scene-authoring.md"
     if not guide.exists():
         print(f"{guide} is missing.", file=sys.stderr)
         return
@@ -279,7 +279,7 @@ ACTIONS = {
     "install-release": task_install_release,
     "logs": task_logs,
     "bench": task_bench,
-    "tile": task_tile,
+    "scene": task_scene,
     "devices": task_devices,
     "release": task_release,
     "clean": task_clean,
@@ -292,7 +292,7 @@ LABELS = {
     "logs": "logs       follow logcat, filtered on the app",
     "devices": "devices    list attached devices and their state",
     "bench": "bench      read the labelled set, fault by fault",
-    "tile": "tile       open a Claude session to write a Free-door tile",
+    "scene": "scene      open a Claude session to write a scene",
     "release": "release    assemble the release APK",
     "clean": "clean      drop build outputs",
 }
@@ -324,7 +324,7 @@ def menu():
     choices += [Separator("Release")]
     choices += [Choice(LABELS[k], k) for k in ("release", "install-release")]
     choices += [Separator("Bench"), Choice(LABELS["bench"], "bench")]
-    choices += [Separator("Content"), Choice(LABELS["tile"], "tile")]
+    choices += [Separator("Content"), Choice(LABELS["scene"], "scene")]
     choices += [Separator(""), Choice(LABELS["clean"], "clean")]
     choices += [Choice("quit", _QUIT)]
 
