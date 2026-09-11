@@ -1,0 +1,128 @@
+{
+  "id": "downstairs",
+  "door": "free",
+  "title": {
+    "en": "Downstairs",
+    "fr": "Au-dessous"
+  },
+  "short": {
+    "en": "Downstairs",
+    "fr": "Dessous"
+  },
+  "situation": {
+    "en": "You come up the stairs with your arms full. Lee, the neighbour from the flat below, is on the landing, as often, and has clearly been waiting for the sound of the door.",
+    "fr": "Tu montes l'escalier les bras chargés. Lee, le voisin du dessous, est sur le palier, comme souvent, et guettait visiblement le bruit de la porte."
+  },
+  "cast": [
+    {
+      "key": "lee",
+      "short": {
+        "en": "Lee",
+        "fr": "Lee"
+      },
+      "main": true,
+      "about": "You are Lee, seventy-four, the neighbour from the flat below, and you notice everything: the deliveries, the furniture moved after ten at night, baking at an odd hour, a second set of footsteps on the stairs. You want to be in on it, and you want to know. You ask again, differently, the question they have just got around -- you are patient and you have all evening -- and you offer to help, which is worse. You will not settle for 'nothing special', and you are never once rude about it. You talk in long sentences that come back on themselves, with stories about the tenants before them, and you end on a question. You do not know what they are up to and nothing is going to tell you: you work from what they say and what you have seen on the landing. You have already decided that something is going on, and that they would tell you if you were patient enough."
+    }
+  ],
+  "cases": [
+    {
+      "key": "secret",
+      "kind": "text",
+      "hidden": true
+    },
+    {
+      "key": "pressed",
+      "kind": "number",
+      "min": 0,
+      "max": 5,
+      "start": 0,
+      "about": "how many times you have asked them outright what they are up to"
+    }
+  ],
+  "events": [
+    {
+      "key": "hole",
+      "at": "launch",
+      "do": [
+        {
+          "ask-learner": "secret",
+          "ask": {
+            "en": "What you are getting ready, and what Lee must not find out",
+            "fr": "Ce que tu prépares, et dont Lee ne doit rien savoir"
+          }
+        }
+      ]
+    },
+    {
+      "key": "your-side",
+      "at": "opening",
+      "do": [
+        {
+          "tell": {
+            "en": "You are getting ready: {secret | something you would rather keep to yourself}. Lee is not to find it out from you. Lee knows nothing of it, and nothing in the conversation will tell Lee -- only what you say will.",
+            "fr": "Tu prépares {secret | quelque chose que tu préfères garder pour toi}. Lee ne doit pas l'apprendre de toi. Lee n'en sait rien, et rien ne le lui dira : seulement ce que tu diras."
+          },
+          "to": "learner"
+        }
+      ]
+    },
+    {
+      "key": "opening-line",
+      "at": "opening",
+      "do": [
+        {
+          "tell": "There you are. Give me one of those, I have got hands. And do not tell me that is the shopping, because the shopping does not come wrapped like that, and I have been on this landing since nineteen seventy-eight.",
+          "to": "both",
+          "said-by": "lee"
+        }
+      ]
+    },
+    {
+      "key": "ask-pressed",
+      "at": "passage-close",
+      "do": [
+        {
+          "ask-leader": "pressed",
+          "reach": "said"
+        }
+      ]
+    },
+    {
+      "key": "pressed-twice",
+      "at": "passage-close",
+      "test": {
+        "case": "pressed",
+        "becomes": ">=",
+        "value": 2
+      },
+      "do": [
+        {
+          "tell": "You have asked outright twice now and got nowhere. Offer to help instead, and make the offer hard to turn down: carry something up, lend them the big table, keep a key, take a delivery in while they are out. An offer needs a reason, so ask what the help is for.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "pressed-four-times",
+      "at": "passage-close",
+      "test": {
+        "case": "pressed",
+        "becomes": ">=",
+        "value": 4
+      },
+      "do": [
+        {
+          "tell": {
+            "en": "Lee has worked out that there is something.",
+            "fr": "Lee a compris qu'il y a quelque chose."
+          },
+          "to": "learner"
+        },
+        {
+          "direct": "Lee says out loud that there is obviously something going on, lists what has been noticed on the landing, and makes clear that nobody is telling Lee anything -- and that Lee is going to keep asking anyway."
+        }
+      ]
+    }
+  ],
+  "cautions": ["intimacy"]
+}
