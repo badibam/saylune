@@ -369,6 +369,7 @@ fun ConversationScreen(
                     onReplay = if (pipeline.replaysLeft(spoken.id) != 0) {
                         { scope.launch { pipeline.replay(spoken.id) } }
                     } else null,
+                    stage = spoken.kind == app.saylune.chain.Said.Kind.StageDirection,
                 )
                 return@forEach
             }

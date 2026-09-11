@@ -3,6 +3,7 @@ package app.saylune.ui
 import android.graphics.Paint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -85,9 +86,20 @@ fun Heard(
     channels: Channels,
     /** Play this answer again, or null where the lever leaves no replay. */
     onReplay: (() -> Unit)? = null,
+    /**
+     * Whether it is a stage direction, which is said to nobody.
+     *
+     * **It has no line naming it**, the narrator being nobody the learner talks to, and its
+     * text is in the dim ink, a cell in: matter of the story beside the replies, not one of
+     * them. There is no italic to lean on, the font having none. **The display lever holds for
+     * it all the same** -- it is said aloud, so reading it instead of hearing it takes the
+     * listening away exactly as for a reply -- and at *only who speaks* there is nothing left.
+     */
+    stage: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     if (display == Display.Nothing) return
+    if (stage && display == Display.Speaker) return
     val scramble = rememberScramble()
     // **Uncovered by hand, one turn at a time, and it goes back covered.** Keyed on the text,
     // so the state belongs to the turn and not to the place it sits in the thread. It is not
@@ -95,19 +107,20 @@ fun Heard(
     // and bringing it back uncovered would make the position mean less than it says.
     var shown by remember(text) { mutableStateOf(false) }
     Column(modifier) {
-        TurnLabel(
+        if (!stage) TurnLabel(
             name = speaker, following = null, pace = null, channels = channels,
             onPlay = onReplay,
         )
         if (display == Display.Speaker) return@Column
         val covered = display.scrambles && !shown
+        val inset = if (stage) Modifier.padding(start = Saylune.grid.cell) else Modifier
         Text(
             if (covered) scramble(text) else text,
             modifier = if (display == Display.Revealable) {
-                Modifier.clickable { shown = !shown }
-            } else Modifier,
+                inset.clickable { shown = !shown }
+            } else inset,
             style = Saylune.type.text,
-            color = Saylune.palette.ink.srgb,
+            color = if (stage) Saylune.palette.dim.srgb else Saylune.palette.ink.srgb,
         )
     }
 }
