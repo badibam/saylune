@@ -183,3 +183,22 @@ export HF_HOME=~/saylune/tmp/hf ACOUSTIC_MODEL=timit-ipa
 `HF_HOME` est obligatoire et `matrix.py` le réclame explicitement plutôt que de choisir un défaut. `export.py` prend plusieurs minutes : il passe par la tâche de fond du harnais, et **sans tube filtrant dans la commande**, faute de quoi le journal reste vide jusqu'à la fin.
 
 **Refabriquer le graphe sur place plutôt que l'envoyer** est ce qui a été fait, et c'est le bon geste : 342 Mo sur un lien montant domestique contre 1,26 Go tirés à vitesse de datacentre, pour un résultat que le garde-fou d'`export.py` prouve fidèle.
+
+### Le serveur en service
+
+**L'adresse ne vit pas ici**, le dépôt étant public : elle est derrière l'alias `saylune-analysis` du `~/.ssh/config` du poste, seule ligne à changer quand l'instance est remontée.
+
+Sur la machine, dans `~/saylune` : `serve.py` est une copie posée à la racine du clone, pas le `server/serve.py` du clone ; `.serve.env`, lisible par son seul propriétaire, porte les quatre variables du lancement, jeton compris ; `serve.log` reçoit la sortie ; `weights/` les poids, que `serve.py` tire lui-même de la release.
+
+**Mettre à jour**, depuis la racine du projet :
+
+```
+scp server/serve.py saylune-analysis:saylune/serve.py.new
+ssh saylune-analysis
+cd ~/saylune && pkill -f "python3 -u serve.py"
+mv serve.py serve.py.old && mv serve.py.new serve.py
+set -a; . ./.serve.env; set +a
+setsid nohup tmp/venv/bin/python3 -u serve.py >> serve.log 2>&1 < /dev/null &
+```
+
+Vérifier de l'extérieur : `/health` répond `ok`, et `POST /take/0123456789abcdef?at=0` sans jeton répond `401`.
