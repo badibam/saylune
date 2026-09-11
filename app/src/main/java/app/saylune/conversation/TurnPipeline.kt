@@ -552,6 +552,14 @@ data class ConversationState(
     }
 
     /**
+     * The utterance that opened the passage [of] is in: itself, or what it points back at.
+     *
+     * One step and never a walk, because every attempt points at the opener directly -- a
+     * rewording as a repeat -- and it is by that link that [readings] gathers them.
+     */
+    fun opener(of: String): String = utterances.firstOrNull { it.id == of }?.repeats ?: of
+
+    /**
      * The model to imitate for the utterance [of], read through what it repeats.
      *
      * A repeat says the same text, so it is the same render; asking the utterance it repeats
@@ -2203,6 +2211,12 @@ class TurnPipeline(
                        "repeats" to spoken.repeats)
             return
         }
+        // **The text and the model are the last reading's; the link is the passage's.** A
+        // repeat points at the utterance that opened the passage, as a rewording does, and
+        // never at the reading it was said after: [readings] gathers what points at the
+        // opener, so a repeat pointing at a repeat was measured, stored, and never shown --
+        // the first repeat of a passage appeared and every one after it vanished.
+        val root = _state.value.opener(of)
         // Its own clock: this is pipe B alone, and timing it from the conversation turn it
         // repeats would add every second of that turn to a chain that never ran here.
         Trace.turn("— redo —")
@@ -2220,7 +2234,7 @@ class TurnPipeline(
             val analysed = analysis.examine(said, model, spoken.text, kept)
             val stamp = Takes.keep(context, said, model, emptyList(), spoken.text, false,
                                    analysed, redo = true, stumbling = stumbling,
-                                   turn = turnOf(of), attempt = attemptOf(of))
+                                   turn = turnOf(root), attempt = attemptOf(root))
             val again = Utterance(
                 speaker = Speaker.Learner,
                 activity = spoken.activity,
@@ -2233,7 +2247,10 @@ class TurnPipeline(
                 recorded = analysed.recorded,
                 take = stamp,
                 engine = (_state.value.analysis as? Readiness.On)?.version,
-                repeats = spoken.id,
+                repeats = root,
+                // Without it the passage never counted its repeats, and the lever that bounds
+                // them never bit.
+                attempt = Attempt.Repeat,
             )
             _state.update { it.copy(utterances = it.utterances + again) }
             // **The sheets are measured on this take, like on any other.** Without this the

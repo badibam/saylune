@@ -265,6 +265,26 @@ class PassageTest {
         )
     }
 
+    /**
+     * **A repeat said after a repeat is still a reading of the passage.** The retake is said
+     * on the last reading, and pointed at that reading it was measured, stored, and never
+     * shown: only the first repeat of a passage ever appeared. Built here the way
+     * `redoLocked` builds it -- the last reading for the words, its opener for the link.
+     */
+    @Test
+    fun `a repeat of a repeat is still shown`() {
+        val opener = read("I am twenty five")
+        var run = state(opener)
+        repeat(3) {
+            val last = run.readings(opener.id).last().id
+            val again = read("I am twenty five", repeats = run.opener(last),
+                             attempt = Attempt.Repeat)
+            run = state(*(run.utterances + again).toTypedArray())
+        }
+        assertEquals(4, run.readings(opener.id).size)
+        assertEquals(run.utterances.last().id, run.readings(opener.id).last().id)
+    }
+
     // ── The gates ───────────────────────────────────────────────────────────────────────
 
     private val weights = Weights(Sheets.all.mapNotNull { Sheets.scoredPathOf(it) }
