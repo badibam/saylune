@@ -46,38 +46,38 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 | 2 | défi | mécanique | ce qui est dit | détente | monde | partagé | scène | choix bloque | un | toute la scène | fausse mort | le dégel | garde-frontière qui laisse de plus en plus de temps à mesure qu'il est rassuré | T1, T2, T9 |
 | 3 | histoire | aucune | hasard | plate | monde | secret apprenant | histoire | influence | trois+ | rien | embranchement | le marché aux rumeurs | trois marchands se disputent la ville ; l'apprenant, héritier incognito, penche d'un côté sans le savoir | T11 |
 | 4 | arcade | mécanique | anglais | va-et-vient | apprenant | secret apprenant | passage | trou | deux | successives | la note | le mot glissé | jeu télévisé : glisser le mot choisi au lancement sans que les deux animateurs le repèrent | T3, T4 |
-| 5 | histoire | enjeu d'histoire | temps | seuil | apprenant | secret perso | histoire | choix suite | deux | toute la scène | embranchement | | | |
+| 5 | histoire | enjeu d'histoire | temps | seuil | apprenant | secret perso | histoire | choix suite | deux | toute la scène | embranchement | le marchand de cartes | le marchand plie bagage au douzième passage de l'histoire ; sa carte est fausse, lui seul le sait | tient |
 | 6 | histoire | enjeu d'histoire | temps | plate | interroge | partagé | scène | choix bloque | trois+ | successives | réussi/raté | le tribunal | trois juges interrogent ; le plaidoyer bloque sans limite, et la consigne change à chaque phase de l'audience | tient |
 | 7 | libre | humeur | temps | seuil | interroge | secret apprenant | scène | trou | un | rien | jamais | la surprise | le voisin curieux, et la fête que l'apprenant prépare en secret | T5 |
-| 8 | histoire | humeur | ce qui est dit | va-et-vient | apprenant | partagé | histoire | influence | narr+un | temporaire | fausse mort | | | |
+| 8 | histoire | humeur | ce qui est dit | va-et-vient | apprenant | partagé | histoire | influence | narr+un | temporaire | fausse mort | le mentor | le respect du vieux maître monte et descend sur toute l'histoire, avec une seule seconde chance | tient |
 | 9 | histoire | enjeu d'histoire | ce qui est dit | détente | monde | secret perso | passage | choix suite | trois+ | rien | la note | le bivouac | trois compagnons parlent entre eux autour du feu, l'un trahit ; qui monte la garde se repose une fois | tient |
-| 10 | histoire | aucune | anglais | plate | apprenant | partagé | scène | rien | deux | temporaire | embranchement | | | |
-| 11 | histoire | mécanique | anglais | montée | monde | secret perso | histoire | influence | un | rien | réussi/raté | | | |
+| 10 | histoire | aucune | anglais | plate | apprenant | partagé | scène | rien | deux | temporaire | embranchement | la dictée du capitaine | sans enjeu déclaré, la suite de l'histoire dépend de la correction de la scène | tient ; élargit le point ouvert |
+| 11 | histoire | mécanique | anglais | montée | monde | secret perso | histoire | influence | un | rien | réussi/raté | la fièvre | sur toute l'histoire, chaque phrase à reprendre raccourcit les tours ; le médecin cache le diagnostic | tient |
 | 12 | histoire | enjeu d'histoire | hasard | va-et-vient | interroge | secret apprenant | scène | choix suite | narr+un | toute la scène | la note | le casino | le croupier et le narrateur ; la chance fait monter et descendre les jetons, l'apprenant sait le jeu truqué | T15 |
 | 13 | histoire | mécanique | temps | seuil | monde | secret apprenant | histoire | rien | narr+un | temporaire | la note | le dernier train | sur trois scènes, l'orage arrive au vingtième passage de l'histoire et raccourcit les tours jusqu'au bout | T14 |
 | 14 | histoire | humeur | hasard | détente | monde | secret perso | histoire | choix bloque | deux | successives | fausse mort | l'aubergiste | une auberge sur trois scènes : le couple bougon se radoucit au hasard ; une seule grâce dans toute l'histoire | T12 ; la grâce unique tient |
 | 15 | défi | aucune | ce qui est dit | plate | interroge | partagé | passage | trou | un | toute la scène | la note | l'entretien | un recruteur interroge sur le poste choisi au lancement, sous « donne des exemples » ; la note tranche au bout de huit passages | tient |
 | 16 | histoire | enjeu d'histoire | anglais | montée | apprenant | secret apprenant | passage | choix bloque | narr+un | rien | fausse mort | la corde | expédition, la crevasse : la corde s'use à chaque phrase à reprendre | T6, T7 |
 | 17 | libre | humeur | ce qui est dit | montée | interroge | partagé | passage | choix suite | deux | rien | jamais | le rire de Lou | sur un quai, Lou s'ouvre à mesure que ce qui est dit l'amuse ; son amie demande « on attend le suivant ? » | tient ; T5 l'a fait réécrire |
-| 18 | histoire | humeur | temps | détente | interroge | secret apprenant | passage | influence | narr+un | toute la scène | embranchement | | | |
-| 19 | histoire | enjeu d'histoire | ce qui est dit | seuil | apprenant | secret apprenant | passage | influence | deux | successives | réussi/raté | | | |
+| 18 | histoire | humeur | temps | détente | interroge | secret apprenant | passage | influence | narr+un | toute la scène | embranchement | le douanier fatigué | le douanier se radoucit au fil des passages et demande « quoi d'autre à déclarer ? » | tient |
+| 19 | histoire | enjeu d'histoire | ce qui est dit | seuil | apprenant | secret apprenant | passage | influence | deux | successives | réussi/raté | les deux témoins | deux témoins, et ce que l'apprenant laisse échapper fait basculer l'enquête | tient |
 | 20 | histoire | mécanique | ce qui est dit | montée | interroge | secret apprenant | histoire | trou | trois+ | toute la scène | embranchement | le conseil de guerre | trois conseillers interrogent l'apprenant, espion ; leurs soupçons raccourcissent les tours et décident de la suite | tient |
 | 21 | libre | humeur | ce qui est dit | va-et-vient | monde | secret perso | scène | rien | un | rien | jamais | la voisine | la vieille voisine qui parle d'elle-même, humeur au gré de ce qui est dit, un deuil qu'elle tait | T11 |
-| 22 | histoire | enjeu d'histoire | hasard | seuil | apprenant | partagé | scène | trou | un | temporaire | fausse mort | | | |
-| 23 | histoire | aucune | temps | plate | apprenant | secret perso | scène | choix suite | narr+un | successives | embranchement | | | |
-| 24 | histoire | enjeu d'histoire | anglais | détente | apprenant | partagé | histoire | rien | trois+ | toute la scène | fausse mort | | | |
+| 22 | histoire | enjeu d'histoire | hasard | seuil | apprenant | partagé | scène | trou | un | temporaire | fausse mort | le vœu | l'apprenant écrit son vœu au lancement ; le génie tire s'il l'exauce | T16 |
+| 23 | histoire | aucune | temps | plate | apprenant | secret perso | scène | choix suite | narr+un | successives | embranchement | le fil du récit | un narrateur conte, un personnage écoute et cache sa fin ; le récit bifurque sur un choix | tient |
+| 24 | histoire | enjeu d'histoire | anglais | détente | apprenant | partagé | histoire | rien | trois+ | toute la scène | fausse mort | la tempête | trois marins ; chaque phrase juste calme la tempête de toute l'histoire | tient |
 | 25 | histoire | humeur | temps | plate | interroge | secret perso | histoire | choix suite | trois+ | temporaire | fausse mort | le jury | trois jurés au froid constant ; un premier rejet se rattrape une fois | tient |
-| 26 | défi | humeur | temps | montée | apprenant | partagé | scène | influence | un | successives | la note | | | |
-| 27 | histoire | humeur | ce qui est dit | détente | monde | secret perso | histoire | trou | narr+un | temporaire | réussi/raté | | | |
+| 26 | défi | humeur | temps | montée | apprenant | partagé | scène | influence | un | successives | la note | le chronomètre | un examinateur s'impatiente à chaque passage, les consignes s'enchaînent, la note tranche | tient |
+| 27 | histoire | humeur | ce qui est dit | détente | monde | secret perso | histoire | trou | narr+un | temporaire | réussi/raté | la lettre | le narrateur lit la lettre écrite au lancement ; la sœur, qui sait tout, s'adoucit | T16 |
 | 28 | histoire | humeur | temps | va-et-vient | apprenant | secret apprenant | scène | choix bloque | trois+ | temporaire | embranchement | le dîner de famille | la tension monte aux disputes et retombe aux toasts ; l'apprenant sait les fiançailles rompues, et on lui demande de le dire | tient |
 | 29 | histoire | mécanique | hasard | va-et-vient | monde | partagé | histoire | choix suite | un | toute la scène | réussi/raté | la traversée | le capitaine parle seul ; la météo tirée à chaque passage allonge ou raccourcit les tours de toute l'histoire | T15 |
-| 30 | libre | humeur | ce qui est dit | seuil | apprenant | secret perso | scène | choix bloque | trois+ | rien | jamais | | | |
-| 31 | libre | aucune | ce qui est dit | plate | interroge | secret perso | passage | influence | narr+un | rien | jamais | | | |
-| 32 | histoire | mécanique | ce qui est dit | plate | interroge | partagé | scène | rien | un | successives | embranchement | | | |
+| 30 | libre | humeur | ce qui est dit | seuil | apprenant | secret perso | scène | choix bloque | trois+ | rien | jamais | la veillée | trois amis et un jeu d'aveux qui attend une réponse ; l'un d'eux cache le sien | tient |
+| 31 | libre | aucune | ce qui est dit | plate | interroge | secret perso | passage | influence | narr+un | rien | jamais | le guide du musée | le narrateur décrit les salles, le guide pose des questions et garde un secret de conservateur | tient |
+| 32 | histoire | mécanique | ce qui est dit | plate | interroge | partagé | scène | rien | un | successives | embranchement | le serment | un chevalier interroge ; la durée des tours fixée pour toute la scène, les consignes changent | tient |
 | 33 | défi | aucune | hasard | plate | apprenant | partagé | scène | choix bloque | un | temporaire | la note | la roue | une animatrice tire le sujet au hasard, puis bloque sur « celui-ci ou l'autre ? » juste après une consigne de trois passages | T13 |
-| 34 | libre | humeur | hasard | détente | monde | partagé | passage | rien | trois+ | rien | jamais | | | |
+| 34 | libre | humeur | hasard | détente | monde | partagé | passage | rien | trois+ | rien | jamais | la fête foraine | trois forains d'humeur tirée au sort parlent entre eux | tient |
 | 35 | histoire | mécanique | anglais | seuil | interroge | secret apprenant | histoire | rien | un | successives | embranchement | l'alibi | l'enquêteur en trois interrogatoires, l'apprenant sachant l'alibi faux | T8 |
-| 36 | défi | humeur | anglais | seuil | apprenant | partagé | scène | choix suite | un | rien | réussi/raté | | | |
+| 36 | défi | humeur | anglais | seuil | apprenant | partagé | scène | choix suite | un | rien | réussi/raté | le vendeur | convaincre un vendeur qui se ferme à la troisième phrase à reprendre, et demande « cash ou carte ? » | tient |
 
 ## Ce que les vecteurs trouvent
 
@@ -110,3 +110,10 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 - **T15 — tranché** (V12, V29) : au début d'un moment, les cases de l'app, les écritures du meneur et les tirages sans condition sont posés avant tout événement, et chaque événement part au plus une fois par moment (`scene-state.md`).
 
 **Ce qui tient, au quatrième lot.** Les consignes successives du tribunal (V6), posées au passage N, attendent avec le passage pendant que le plaidoyer bloque, sans règle neuve. Le bivouac (V9) demande des cases au meneur dans un tour sans phrase de l'apprenant (T11) : c'est un appel du meneur comme un autre, et ses écritures se lisent à la fermeture suivante.
+
+**Cinquième lot, les seize restants.**
+
+- **T16 — un texte qui cite une case vide** (V22, V27). Le vœu laissé vide au lancement, le narrateur qui lit *« You wished for {wish} »* : le doc dit que toute case peut être vide et qu'un texte cite la valeur du moment, pas ce qu'il cite quand il n'y en a pas. Proposition à trancher.
+- **Une suite qui dépend de l'anglais sans que l'apprenant le sache** (V10). Un événement de clôture qui lit la correction de la séance et écrit une case de l'histoire s'écrit sans rien de neuf, et l'embranchement la lit. Ce n'est pas un trou du modèle mais le point ouvert d'annoncer les règles d'un défi, qui vaut aussi pour une histoire.
+
+**Ce qui tient, au cinquième lot.** Tout le reste, sans règle neuve : ce que les quatre premiers lots ont tranché y suffit — compteurs et secondes chances d'histoire (T14), leviers d'histoire (T8), porte de la réponse dans Libre (V30), tirages lus dans leur moment (T15).
