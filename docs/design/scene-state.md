@@ -109,6 +109,8 @@ Un texte d'événement pour le meneur n'a pas de durée : il se place dans la co
 
 **Demander une case au meneur** : *à la fermeture de chaque passage, demander `named`* ; et un second événement, *quand `named` devient vrai, désactiver le premier*. La case ne dit que ce qu'elle est ; quand elle est demandée, et jusqu'à quand, est toujours écrit dans un événement, avec les mêmes tests et la même activation que partout.
 
+**Ce que le meneur écrit, les événements le lisent à la fermeture du passage.** Il l'écrit dans son appel, qui n'est pas un moment, et c'est le premier moment où c'est définitif : une tentative refaite emporte ses écritures avant que rien ne les ait lues, donc il n'y a rien à défaire. Au poste-frontière, le garde rassuré dans son appel l'est dans sa réplique même, et le tour s'allonge avant le micro suivant. La réponse à une question fait exception, ayant son propre moment (plus bas).
+
 **Demander une case à l'apprenant** : *au lancement, demander `anchor` — « Ce que Dana te reproche »*. C'est ce que font les trous aujourd'hui, avec la même forme que le reste. **Au lancement seulement** : en cours de partie, une question à l'apprenant passe par le dialogue (plus bas).
 
 **Tirer une case au hasard** : *à l'ouverture, tirer `mood`.*
@@ -144,7 +146,7 @@ Avec un seul appel, le meneur répondrait avant que les événements tournent, e
 - **Le narrateur** : l'app rejoue sa phrase telle quelle, avec l'audio déjà synthétisé, sans appeler le meneur et sans ligne de plus dans le fil, puis le micro se rouvre. Une question du narrateur vient du jeu et n'interpelle personne dans la scène : le jeu la repose. Le prix est qu'aucun personnage ne répond à *« I'll go back »* ; l'auteur qui le veut fait poser la question par un personnage.
 - **Un personnage** : l'app envoie au meneur *« They have not answered Lou's question. As Lou, react to what they said, then ask again in other words. Do not move the story past this choice. »* — Lou : *« Back? The rocks are down behind us. Left or right — pick one. »*
 
-**Une réponse reformulée refait les deux appels, et les écritures de la tentative refaite disparaissent avec sa réplique.** C'est la règle générale, pas une règle des questions : **ce que le meneur écrit appartient à la tentative.** `activity.md` refuse de garder une réplique qui répondait à une phrase qui n'existe plus ; garder ce qu'elle a établi reviendrait au même par un autre chemin. Les écritures du meneur étant gardées avec leur tour, l'app sait lesquelles retirer.
+**Une réponse reformulée refait les deux appels, et les écritures de la tentative refaite disparaissent avec sa réplique — avec tout ce qu'elles ont déclenché au moment de la réponse**, qui se recalcule comme à la réouverture : la montre révélée quitte le fil comme la réplique, et un levier qui revient s'annonce comme tout levier qui change. Ce qui vient des mesures reste, la tentative ayant eu lieu. C'est la règle générale, pas une règle des questions : **ce que le meneur écrit appartient à la tentative.** `activity.md` refuse de garder une réplique qui répondait à une phrase qui n'existe plus ; garder ce qu'elle a établi reviendrait au même par un autre chemin. Les écritures du meneur étant gardées avec leur tour, l'app sait lesquelles retirer.
 
 **Un blocage peut enfermer qui ne comprend pas la question** — texte des répliques brouillé, accent difficile, reconnaissance qui déforme la réponse. La phrase redite et la question reformulée aident, rien ne le garantit : le blocage est à réserver aux vrais embranchements.
 

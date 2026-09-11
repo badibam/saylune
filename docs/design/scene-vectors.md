@@ -81,8 +81,8 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 
 Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; il est ouvert tant que `scene-state.md` ne l'a pas repris.
 
-- **T1 — à quel moment partent les événements qui lisent une case écrite par le meneur** (V2). Le meneur l'écrit dans son appel, qui n'est pas un moment de la liste. Proposition : à la fin de la tentative, puisque ce qu'il écrit appartient à la tentative.
-- **T2 — une reformulation retire les écritures du meneur, pas encore ce qu'elles ont déclenché** (V2). Le garde rassuré a fait passer la durée du tour à 20 s, notification affichée ; l'apprenant reformule, le meneur répond autrement. Proposition : tout ce qu'une écriture du meneur a déclenché part avec elle et se recalcule, comme à la réouverture ; un levier qui revient s'annonce comme tout levier qui change. Ce qui vient des mesures reste, la tentative ayant eu lieu.
+- **T1 — tranché** (V2) : les événements lisent ce que le meneur écrit à la fermeture du passage (`scene-state.md`).
+- **T2 — tranché** (V2) : ce qu'une réponse à une question a déclenché part avec la tentative refaite ; ailleurs, T1 fait qu'il n'y a rien à défaire (`scene-state.md`).
 - **T3 — une consigne cachée au meneur ne s'écrit pas** (V4). Glisser un mot sans que les animateurs le repèrent est une exigence que le juge doit connaître et le meneur ignorer ; une consigne va toujours aux deux. Proposition : une consigne choisit ses lecteurs comme un texte, le juge suivant l'apprenant.
 - **T4 — la durée d'une consigne n'a pas d'unité, et deux consignes sur le même marquage ne disent pas si elles s'ajoutent** (V4). Proposition à trancher : une durée en passages ou jusqu'à un événement qui la retire ; deux consignes s'ajoutent.
 - **T5 — en Libre, un événement qui lit une case de l'app fait de la pression par la porte de derrière** (V7). Un voisin plus soupçonneux à chaque silence de 5 s est un réglage de fluidité que l'apprenant n'a pas choisi, l'argument qui retire leviers et consignes de Libre. Proposition : en Libre, un test ne lit de l'app que `app.passage`.
