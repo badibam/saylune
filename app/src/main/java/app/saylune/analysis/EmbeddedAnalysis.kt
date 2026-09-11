@@ -9,6 +9,7 @@ import app.saylune.embedded.Layer
 import app.saylune.keys.Secret
 import app.saylune.keys.SecretStore
 import app.saylune.providers.Provider
+import app.saylune.providers.Renders
 import app.saylune.providers.Task
 import kotlinx.coroutines.flow.first
 import app.saylune.embedded.Added
@@ -140,7 +141,9 @@ class EmbeddedAnalysis(
 
             // Both readings walk the same grid, decoded once from the model, so the two
             // face each other sound for sound.
-            val modelReading = engine.matrix.read(model)
+            val modelReading = ModelReadings.of(
+                Renders.reading(context, model, engine.version), engine.probe,
+            ) { engine.matrix.read(model) }
             val saidReading = engine.matrix.read(said)
             val modelFrames = Frames.of(modelReading)
             val saidFrames = Frames.of(saidReading)

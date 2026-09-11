@@ -58,7 +58,11 @@ Deux prix, à écrire maintenant. Une prise qu'on jette aura été envoyée pour
 
 ### 2. Garder la matrice du modèle avec sa synthèse
 
-Le modèle est réexpédié à chaque redite : mesuré, `8,5 s → 0,92 s` puis `8,5 s → 0,88 s` pour le même audio. Le cache des synthèses est indexé par le texte, la voix et le dialecte ; lui adjoindre **la matrice à côté du wav** supprime la moitié des octets d'un tour redit, sans rien changer d'autre. La matrice porte déjà l'estampille de ce qui l'a produite, donc une matrice calculée ici et une calculée là-bas ne se confondront pas.
+Le modèle était réexpédié à chaque redite : mesuré, `8,5 s → 0,92 s` puis `8,5 s → 0,88 s` pour le même audio. **C'est écrit le 2026-09-11** (`analysis/ModelReadings.kt`) : la lecture du modèle est gardée dans le cache des synthèses, nommée par les octets du wav et l'estampille du moteur, donc une lecture d'ici et une de là-bas ne se confondent pas. Elle sert aussi en local, où le téléphone refaisait la passe du modèle à chaque redite. Elle tombe sous le même plafond que les wav, et avec eux.
+
+**Elle est gardée repliée** : un nombre par trame pour la couche 19, la forme que le serveur renvoie déjà. Entière, la couche d'une phrase de 6 s pèse 1,2 Mo, douze fois le wav. Sur une redite locale le modèle est donc replié et la prise entière, le même calcul dans deux ordres. Mesuré avant d'écrire, sur les 96 prises du jeu d'essai et 28 500 mots aux syllabes tirées au hasard : aucune syllabe élue ne change, et aucun score ne bouge de plus de 9,5e-07. Les syllabes tirées ne sont pas celles de vrais mots, ce qui ne compte pas pour un arrondi. Ce qui a été gardé est aussi ce qui sert au premier tour, donc un modèle rend les mêmes chiffres à chaque tour mesuré contre lui.
+
+Rien de tout ça n'a encore tourné sur le téléphone.
 
 ### 3. μ-law 8 bits sur ce qui monte
 

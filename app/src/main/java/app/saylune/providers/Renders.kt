@@ -41,6 +41,22 @@ internal object Renders {
         return kept
     }
 
+    /**
+     * Where the acoustic reading of [wav] is kept, for the engine that [version] names.
+     *
+     * Beside the renders, so the ceiling counts it and [prune] evicts it like one. Named by
+     * the bytes of the audio and not by its path: a sentence rendered again under the same
+     * key can come back as different samples, and a reading of the old ones would then face
+     * a model that says the same words another way.
+     */
+    fun reading(context: Context, wav: File, version: String): File {
+        val audio = MessageDigest.getInstance("SHA-256").digest(wav.readBytes())
+            .joinToString("") { "%02x".format(it) }.take(32)
+        val engine = MessageDigest.getInstance("SHA-256").digest(version.toByteArray())
+            .joinToString("") { "%02x".format(it) }.take(16)
+        return File(home(context), "$audio-$engine.reading")
+    }
+
     private fun home(context: Context) = File(context.cacheDir, "renders").apply { mkdirs() }
 
     /**

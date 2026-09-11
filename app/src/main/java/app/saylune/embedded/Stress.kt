@@ -15,6 +15,35 @@ import kotlin.math.exp
 object Stress {
 
     /**
+     * The layer with the probe already applied, one scalar per frame, bias left out --
+     * the form a remote pass sends and a kept model reading is stored in.
+     *
+     * Per frame, in double: the frame dotted with `weight / deviation`, less the mean
+     * dotted with the same. [parts] then averages these over a span, which is the same
+     * arithmetic as averaging the frames first, in the other order. Measured on the 96
+     * takes of the test set over 28 500 drawn words: no elected syllable changes, and no
+     * score moves by more than 9.5e-07 (`docs/design/remote-analysis.md`).
+     */
+    fun fold(layer: Layer.Whole, probe: Probe): Layer.Folded {
+        val width = probe.mean.size
+        require(layer.width == width) {
+            "the hidden layer is ${layer.width} wide and the probe $width"
+        }
+        val direction = DoubleArray(width) {
+            probe.weight[it].toDouble() / probe.deviation[it]
+        }
+        var offset = 0.0
+        for (column in 0 until width) offset -= probe.mean[column] * direction[column]
+        val frames = layer.hidden.size / width
+        return Layer.Folded(FloatArray(frames) { frame ->
+            val base = frame * width
+            var total = offset
+            for (column in 0 until width) total += layer.hidden[base + column] * direction[column]
+            total.toFloat()
+        })
+    }
+
+    /**
      * The eligibility bar, on the model side. A word whose elected syllable does not lead
      * the runner-up by this much receives no mark at all: a word the model does not stress
      * clearly cannot be got wrong. Set by measure, not by taste -- between 0.80 and 0.94
