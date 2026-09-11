@@ -2221,6 +2221,17 @@ class TurnPipeline(
         // repeats would add every second of that turn to a chain that never ran here.
         Trace.turn("— redo —")
         Trace.add("redo: same sentence, same model", "text" to spoken.text)
+        // **Measuring, like a turn's analysis, and for the same reason.** The screen reads one
+        // thing to know whether it may act -- the phase -- and a repeat left it idle while it
+        // held the lock: the big button stayed lit and waited on the lock with nothing said,
+        // and the small one opened a take before the one ahead of it had been read.
+        withPhase(Phase.Measuring) { measureRepeat(of, root, spoken, model, audio, capture, ending) }
+    }
+
+    private suspend fun measureRepeat(
+        of: String, root: String, spoken: Utterance, model: File, audio: File,
+        capture: String?, ending: Ending?,
+    ) {
         try {
             // The kept stretches are the ones the model file was rendered on, so they come
             // from the turn being repeated and never from this take: nothing judges a redo --
