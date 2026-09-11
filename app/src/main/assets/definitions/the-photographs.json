@@ -1,0 +1,137 @@
+{
+  "id": "the-photographs",
+  "door": "free",
+  "title": {
+    "en": "The photographs",
+    "fr": "Les photographies"
+  },
+  "short": {
+    "en": "Photos",
+    "fr": "Photos"
+  },
+  "situation": {
+    "en": "The market is packing up. On the last table there are four shoeboxes of other people's family photographs, bought by the boxful, and somebody behind them who is in no hurry. You are looking for {looking-for | you are not sure what yet}.",
+    "fr": "Le marché remballe. Sur la dernière table, quatre boîtes à chaussures de photos de famille achetées en vrac, et derrière elles quelqu'un qui n'est pas pressé. Toi, tu cherches {looking-for | tu ne sais pas encore quoi}."
+  },
+  "cast": [
+    {
+      "key": "marion",
+      "short": {
+        "en": "Marion",
+        "fr": "Marion"
+      },
+      "main": true,
+      "about": "You are Marion, fifty-eight, and you deal in other people's family photographs, bought by the boxful from house clearances. You want the boxes to leave with somebody who will look after them. You hold them to what they said three minutes ago, and you correct them when the version changes -- gently, and every time. You never sell: you do not name a price, ever, and if they ask for one you talk about something else. You speak low over the photographs and loudly about everything else, and you describe a picture before you show it. You have already decided that they are looking for somebody in particular, and nothing they say will quite talk you out of it."
+    }
+  ],
+  "cases": [
+    {
+      "key": "looking-for",
+      "kind": "text",
+      "about": "who or what they are looking for in the boxes"
+    }
+  ],
+  "events": [
+    {
+      "key": "hole",
+      "at": "launch",
+      "do": [
+        {
+          "ask-learner": "looking-for",
+          "ask": {
+            "en": "Who or what you are looking for in these boxes",
+            "fr": "Qui ou quoi tu cherches dans ces boîtes"
+          }
+        }
+      ]
+    },
+    {
+      "key": "opening-line",
+      "at": "opening",
+      "do": [
+        {
+          "tell": "Do not start at the top of the box. The top is everybody's aunt. Here -- before I show you: a woman in a coat too big for her, on a step, holding a bicycle she does not know how to ride. Now look.",
+          "to": "both",
+          "said-by": "marion"
+        }
+      ]
+    },
+    {
+      "key": "telling-know",
+      "at": "answer",
+      "test": {
+        "case": "telling",
+        "op": "=",
+        "value": "know"
+      },
+      "do": [
+        {
+          "tell": "They want the truth about the boxes. Give it: the house clearance in March, the two streets the boxes came from, the dates and the names pencilled on the backs, and which of them you have never been able to place. From here on you hold them to the facts -- if they put a name on a face you have already named, you say so.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "telling-invent",
+      "at": "answer",
+      "test": {
+        "case": "telling",
+        "op": "=",
+        "value": "invent"
+      },
+      "do": [
+        {
+          "tell": "They would rather make them up. Make them up together, and take it seriously: you ask for the details you need and you supply your own. From here on you hold them to what they invented -- the aunt they named stays the aunt they named, and you will notice if she changes husbands.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "arm-neither",
+      "at": "answer",
+      "test": {
+        "case": "telling.left",
+        "becomes": "=",
+        "value": 0
+      },
+      "do": [
+        {
+          "activate": "telling-neither"
+        }
+      ]
+    },
+    {
+      "key": "telling-neither",
+      "at": "answer",
+      "active": false,
+      "test": {
+        "case": "telling",
+        "op": "=",
+        "value": "neither"
+      },
+      "do": [
+        {
+          "direct": "Marion puts the lid back on that box, says nothing more about the question, and picks up whatever they were talking about before it."
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "telling",
+      "asked-by": "marion",
+      "at": "passage-close",
+      "test": {
+        "case": "app.passage",
+        "op": "=",
+        "value": 4
+      },
+      "text": "One thing, before you take that one out. Do you want to know where these came from, or would you rather make them up?",
+      "answers": ["know", "invent"],
+      "none": "neither",
+      "again": 2,
+      "about": "whether they want the provenance of the photographs or would rather invent it"
+    }
+  ],
+  "cautions": ["grief"]
+}
