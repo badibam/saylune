@@ -19,8 +19,8 @@ android {
         applicationId = "app.saylune"
         minSdk = 26
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.2.0"
 
         // The engine ships for the two instruction sets real phones run. The other two the
         // library carries, x86 and x86_64, are emulators, and they cost 42 MB of the 72 the
