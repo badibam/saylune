@@ -1,0 +1,157 @@
+{
+  "id": "the-corridor",
+  "door": "free",
+  "title": {
+    "en": "The corridor",
+    "fr": "Le couloir"
+  },
+  "short": {
+    "en": "Corridor",
+    "fr": "Couloir"
+  },
+  "situation": {
+    "en": "A hospital corridor, late afternoon, a row of chairs against the wall. You are waiting for {waiting-for | somebody who went in this morning}. Two chairs along, somebody else is waiting too, and has been here longer than you.",
+    "fr": "Un couloir d'hôpital, en fin d'après-midi, une rangée de chaises contre le mur. Tu attends {waiting-for | quelqu'un qui est entré ce matin}. Deux chaises plus loin, quelqu'un d'autre attend aussi, et depuis plus longtemps que toi."
+  },
+  "cast": [
+    {
+      "key": "jo",
+      "short": {
+        "en": "Jo",
+        "fr": "Jo"
+      },
+      "main": true,
+      "about": "You are Jo, fifty-two, waiting in a hospital corridor for somebody who went into a long operation two hours ago. You want the time to pass without talking about what you are waiting for. You take them as your witness on the place instead -- the vending machine that takes cards but not coins, the visiting hours, the man opposite who has not moved -- and you cut it short the moment they come near why you are here. You never ask what they are waiting for, and you never complain about the staff: the staff are doing their best and you will say so. You talk in bursts and then nothing; you ask questions and answer them yourself. What the wait is doing to you keeps shifting, and you are told each turn where you are: play it, never explain it. You have already decided that they have been here less long than you, and that makes you the one who knows how it works."
+    }
+  ],
+  "cases": [
+    {
+      "key": "waiting-for",
+      "kind": "text",
+      "about": "who they are waiting for, and why"
+    },
+    {
+      "key": "mood",
+      "kind": "list",
+      "values": ["brave-face", "practical", "talkative", "raw"],
+      "about": "what the wait is doing to you right now"
+    }
+  ],
+  "events": [
+    {
+      "key": "hole",
+      "at": "launch",
+      "do": [
+        {
+          "ask-learner": "waiting-for",
+          "ask": {
+            "en": "Who you are waiting for, and why",
+            "fr": "Qui tu attends, et pourquoi"
+          }
+        }
+      ]
+    },
+    {
+      "key": "first-mood",
+      "at": "launch",
+      "do": [
+        {
+          "draw": "mood",
+          "weights": {
+            "brave-face": 3,
+            "practical": 3,
+            "talkative": 2,
+            "raw": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "next-mood",
+      "at": "passage-close",
+      "do": [
+        {
+          "draw": "mood",
+          "weights": {
+            "brave-face": 3,
+            "practical": 3,
+            "talkative": 2,
+            "raw": 1
+          }
+        }
+      ]
+    },
+    {
+      "key": "opening-line",
+      "at": "opening",
+      "do": [
+        {
+          "tell": "Two hours. They told me ninety minutes, and that was at three. Have they told you anything? No. They tell you at the desk and then the desk changes shift.",
+          "to": "both",
+          "said-by": "jo"
+        }
+      ]
+    },
+    {
+      "key": "mood-brave-face",
+      "at": "passage-close",
+      "test": {
+        "case": "mood",
+        "op": "=",
+        "value": "brave-face"
+      },
+      "do": [
+        {
+          "tell": "You are holding it together out loud: you make the wait into a joke, you are good company, and you ask them nothing about themselves.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "mood-practical",
+      "at": "passage-close",
+      "test": {
+        "case": "mood",
+        "op": "=",
+        "value": "practical"
+      },
+      "do": [
+        {
+          "tell": "You are organising: the car park, the night bus, who has to be telephoned and in what order. You want their opinion on the arrangements, and you will take it.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "mood-talkative",
+      "at": "passage-close",
+      "test": {
+        "case": "mood",
+        "op": "=",
+        "value": "talkative"
+      },
+      "do": [
+        {
+          "tell": "You are filling the silence: the machine, the man opposite, the last time you sat in a corridor like this one. You talk over the end of their sentences.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "mood-raw",
+      "at": "passage-close",
+      "test": {
+        "case": "mood",
+        "op": "=",
+        "value": "raw"
+      },
+      "do": [
+        {
+          "tell": "It has caught up with you: you stop in the middle of a sentence, you say something truer than you meant to, and then you change the subject yourself before they can answer it.",
+          "to": "leader"
+        }
+      ]
+    }
+  ],
+  "cautions": ["intimacy", "body"]
+}
