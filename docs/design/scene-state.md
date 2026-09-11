@@ -136,29 +136,31 @@ Un texte d'événement pour le meneur n'a pas de durée : il se place dans la co
 
 **Le meneur évalue la réponse, et en choisit toujours une.** La case est une liste — *left / right* — ou un texte — un nom —, et **elle a toujours une valeur « pas de réponse »**, marquée comme telle dans la fiche : *ni l'un ni l'autre*, *n'a pas répondu*. Le propre d'une question est de ne pas laisser le choix de ne pas répondre : *« I'll go back »* et *« Hmm »* y tombent tous deux, et une réponse qui tombe à côté n'est jamais ignorée ni forcée vers une option. Le meneur la lit au cran « déduire » — *« Maybe… yeah, why not »* vaut oui —, jamais « inventer », qui déciderait à la place de l'apprenant ; « je ne sais pas » n'a pas lieu d'être, la valeur « pas de réponse » en tenant lieu.
 
-**La fiche dit ce que devient « pas de réponse » : un chemin comme les autres, ou un blocage.** Un chemin, l'auteur l'écrit comme n'importe quel événement — au colis, ne pas répondre à *« Do you open it? »* laisse le colis fermé. Un blocage retient l'histoire : elle n'avance pas au-delà du choix tant qu'il n'est pas fait. **Un blocage suspend tous les événements de la scène, sauf ceux de la question** — la reposer, faire évaluer la réponse. Horloges, vies, patience, passage N attendent ; l'app, elle, marque, note et ferme ses portes, rien de cela n'étant un événement, et les leviers gardent leur valeur. Ce qui doit se passer pendant l'attente est un chemin : un garde qui s'impatiente est une question dont « pas de réponse » retire de la patience et repose la question. **Un moment manqué ne se rattrape pas** : l'aubergiste qui devait sortir au passage 8 d'un blocage des passages 7 à 9 ne sort pas, rattraper ferait partir d'un coup des événements datés du passé. Ce qui doit suivre le choix se déclenche sur la réponse.
+**Une question est une troisième porte, la porte de la réponse**, à côté de celle des mots et de celle du son (`../reference.md`) : le passage ne se ferme pas tant qu'elle n'a pas de réponse. Les deux autres sont des portes de la langue, qui lisent une note et ne se règlent pas ; celle-ci est une porte de l'histoire, qui lit la réponse évaluée par le meneur. **Une non-réponse est une tentative du même passage**, et `app.passage` n'avance pas. Chaque porte compte ses tentatives à part : une non-réponse ne consomme pas le levier des essais, qui borne les réparations de la langue.
 
-**Jamais de repli qui tranche à la place de l'apprenant** : *« Robin revient avant que tu te décides »* ferait dire à l'histoire une chose que personne n'a décidée, et tomberait au milieu du fil.
+**Les trois portes se lisent dans l'ordre mots, réponse, son.** La réponse ne s'évalue que sur une phrase que la porte des mots laisse passer : si *« Yes, I open it »* porte une faute qui ferme la porte des mots, l'app joue l'écho de reprise et la réponse n'est pas regardée, comme l'analyse du son ne tourne pas sur une phrase qu'on va reformuler. Une réponse évaluée n'est donc jamais défaite, seule la porte des mots faisant reformuler. Le son vient en dernier, attendant l'analyse.
+
+**La fiche dit combien de fois la question se repose avant que « pas de réponse » soit la réponse.** Zéro, c'est un chemin tout de suite — au colis, ne pas répondre à *« Do you open it? »* laisse le colis fermé ; *N*, la question se repose *N* fois, puis le chemin ; sans limite, c'est un blocage, où l'histoire n'avance pas au-delà du choix. Le nombre est à l'auteur, en Libre aussi : ce n'est pas une pression mais la façon dont l'histoire attend. Il donne une issue à qui ne comprend pas la question — texte des répliques brouillé, accent difficile, reconnaissance qui déforme la réponse —, que le blocage peut enfermer. **Jamais de repli qui tranche sans que l'auteur l'ait écrit** : *« Robin revient avant que tu te décides »*, venu de nulle part, ferait dire à l'histoire une chose que personne n'a décidée.
+
+**Tant que la question se repose, les événements de la scène attendent, sauf ceux de la question** — la reposer, faire évaluer la réponse. Le passage ne se fermant pas, rien ne part à sa fermeture ; les horloges, les vies et la patience attendent aussi ; l'app, elle, marque, note et ferme ses portes, rien de cela n'étant un événement, et les leviers gardent leur valeur. Ce qui doit se passer pendant l'attente est un chemin : un garde qui s'impatiente est une question reposée zéro fois, dont le chemin retire de la patience et la pose à nouveau. L'aubergiste qui sort au passage 8 sort après le choix, le passage 7 durant jusqu'à lui ; une horloge qui aurait sonné pendant l'attente ne se rattrape pas, rattraper ferait partir d'un coup des événements datés du passé.
 
 **Un tour de réponse se fait en deux appels.**
 
-1. L'apprenant répond : *« Yes, I open it. »*
+1. L'apprenant répond : *« Yes, I open it. »* Le juge marque, et la porte des mots laisse passer.
 2. **Un appel court au meneur, qui ne rend que la réponse** : `opened` = vrai. Aucune réplique.
-3. **Le moment « réponse à une question »** : les événements qui lisent la réponse partent — le narrateur dira *« Inside, wrapped in newspaper: a gold watch »*, le meneur recevra *« They have seen the watch »*. Ce moment ne voit ni les notes ni les portes, le juge n'ayant pas encore rendu son verdict.
+3. **Le moment « réponse à une question »** : les événements qui lisent la réponse partent — le narrateur dira *« Inside, wrapped in newspaper: a gold watch »*, le meneur recevra *« They have seen the watch »*.
 4. **L'appel ordinaire du meneur**, qui répond en sachant tout ce qui en découle : Robin, depuis la porte, *« What are you doing? »*
 
-Avec un seul appel, le meneur répondrait avant que les événements tournent, et raconterait une conséquence que l'auteur a écrite autrement — *« some old letters »* là où la fiche dit une montre. Le prix est un appel de plus avant la voix, sur ces tours seulement ; l'appel est court et sa latence n'est pas mesurée (`providers.md`).
+Avec un seul appel, le meneur répondrait avant que les événements tournent, et raconterait une conséquence que l'auteur a écrite autrement — *« some old letters »* là où la fiche dit une montre. Le prix, sur ces tours seulement : un appel de plus avant la voix, et l'appel ordinaire qui attend le juge au lieu de tourner à côté. Aucune des deux latences n'est mesurée (`providers.md`).
 
-**Quand ça bloque, qui a posé la question décide de la suite.**
+**Quand la question se repose, qui l'a posée décide de la forme.**
 
 - **Le narrateur** : l'app rejoue sa phrase telle quelle, avec l'audio déjà synthétisé, sans appeler le meneur et sans ligne de plus dans le fil, puis le micro se rouvre. Une question du narrateur vient du jeu et n'interpelle personne dans la scène : le jeu la repose. Le prix est qu'aucun personnage ne répond à *« I'll go back »* ; l'auteur qui le veut fait poser la question par un personnage.
-- **Un personnage** : l'app envoie au meneur *« They have not answered Lou's question. As Lou, react to what they said, then ask again in other words. Do not move the story past this choice. »* — Lou : *« Back? The rocks are down behind us. Left or right — pick one. »*
+- **Un personnage** : l'app envoie au meneur *« They have not answered Lou's question. As Lou, react to what they said, then ask again in other words. Do not move the story past this choice. »* — Lou : *« Back? The rocks are down behind us. Left or right — pick one. »* **La question reposée prend la place de la question dans le fil**, comme la réplique d'une reformulation prend celle de la précédente, et la version remplacée reste en base, ayant été dite. Elle répond à une tentative qui n'est plus celle affichée : le prix de toute reformulation, déjà admis.
 
-**Une réponse reformulée refait les deux appels, et les écritures de la tentative refaite disparaissent avec sa réplique — avec tout ce qu'elles ont déclenché au moment de la réponse**, qui se recalcule comme à la réouverture : la montre révélée quitte le fil comme la réplique, et un levier qui revient s'annonce comme tout levier qui change. Ce qui vient des mesures reste, la tentative ayant eu lieu. C'est la règle générale, pas une règle des questions : **ce que le meneur écrit appartient à la tentative.** `activity.md` refuse de garder une réplique qui répondait à une phrase qui n'existe plus ; garder ce qu'elle a établi reviendrait au même par un autre chemin. Les écritures du meneur étant gardées avec leur tour, l'app sait lesquelles retirer.
+**Ce que le meneur écrit appartient à la tentative.** `activity.md` refuse de garder une réplique qui répondait à une phrase qui n'existe plus ; garder ce qu'elle a établi reviendrait au même par un autre chemin. Les écritures du meneur étant gardées avec leur tour, l'app sait lesquelles retirer.
 
-**Un blocage peut enfermer qui ne comprend pas la question** — texte des répliques brouillé, accent difficile, reconnaissance qui déforme la réponse. La phrase redite et la question reformulée aident, rien ne le garantit : le blocage est à réserver aux vrais embranchements.
-
-**Le gabarit.** Une question, c'est une case et quatre ou cinq événements — la poser, la faire évaluer, lire la réponse, bloquer ou suivre le chemin. La fiche l'écrit en une fois :
+**Le gabarit.** Une question, c'est une case et quatre ou cinq événements — la poser, la faire évaluer, lire la réponse, la reposer, suivre le chemin. La fiche l'écrit en une fois :
 
 ```
 question  direction
@@ -166,7 +168,7 @@ question  direction
   quand          : fermeture du passage 7
   texte          : "The tunnel splits. Left or right?"
   réponses       : left / right / neither (pas de réponse)
-  pas de réponse : bloque                (ou un chemin, traité par un événement)
+  pas de réponse : reposer 2 fois, puis un chemin   (0 : le chemin tout de suite ; sans limite : bloque)
 ```
 
 L'app le déplie au chargement en cases et en événements ; le moteur ne connaît rien d'autre. **Ce n'est pas le raccourci refusé plus bas** : celui-là donnait une seconde façon de dire une chose qu'un seul événement dit déjà, celui-ci nomme un motif de plusieurs pièces qui ne se lit pas d'un coup d'œil déplié. Une erreur de vérification dit de quelle question vient l'événement fautif, et la fiche dépliée s'affiche sur demande.

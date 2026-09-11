@@ -82,7 +82,7 @@ Trente-cinq, choisis un à un, chacun couvrant le plus de paires encore absentes
 Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; il est ouvert tant que `scene-state.md` ne l'a pas repris.
 
 - **T1 — tranché** (V2) : les événements lisent ce que le meneur écrit à la fermeture du passage (`scene-state.md`).
-- **T2 — tranché** (V2) : ce qu'une réponse à une question a déclenché part avec la tentative refaite ; ailleurs, T1 fait qu'il n'y a rien à défaire (`scene-state.md`).
+- **T2 — tranché** (V2) : T1 fait qu'une écriture du meneur n'est lue qu'une fois définitive, et la réponse à une question ne s'évalue que sur une phrase que la porte des mots laisse passer ; rien n'est jamais à défaire (`scene-state.md`).
 - **T3 — tranché** (V4) : une consigne peut être pour l'apprenant seul, et l'app le lui dit (`scene-state.md`). Il en sort une scène à écrire, **le point faible** : un secret du personnage que l'apprenant doit percer, qui se joue sur l'histoire et jamais sur les marques.
 - **T4 — tranché** (V4) : une consigne dure un nombre de passages ou la scène, un événement peut la lever, et toutes celles en vigueur s'appliquent (`scene-state.md`).
 - **T5 — tranché** (V7) : en Libre, un test ne lit de l'app que `app.passage` (`scene-state.md`).
@@ -92,13 +92,13 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 - **T9 — tranché** (V2) : une liste ordonnée se déplace d'un cran, un levier vers le dur ou le facile, une case de la fiche vers le haut ou le bas (`scene-state.md`).
 - **T10 — tranché** (V1) : chaque valeur d'un tirage peut porter un poids, égal par défaut (`scene-state.md`).
 - **T11 — tranché** (V3, V21) : faire parler un personnage prend un texte écrit d'avance ou une direction au meneur, qui fait un tour sans phrase de l'apprenant (`scene-state.md`).
-- **T12 — tranché** (V14) : un blocage suspend tous les événements de la scène sauf ceux de la question, et un moment manqué ne se rattrape pas ; attendre sous pression est un chemin (`scene-state.md`).
+- **T12 — tranché** (V14) : tant que la question se repose, les événements de la scène attendent sauf ceux de la question ; ce qui doit se passer pendant l'attente est un chemin (`scene-state.md`).
 
 **Ce qui tient, au deuxième lot.** La grâce unique dans toute l'histoire (V14) s'écrit sans rien de neuf, les activations vivant à la scène : une case d'histoire `reprieve-used`, et à l'ouverture de chaque scène un événement qui, si elle est vraie, désactive la grâce. Le secret du sphinx (V1) protège l'apprenant comme prévu : le juge, qui ignore la réponse, ne marque pas une mauvaise réponse comme hors de propos. Au dîner (V28), la tension lue sur `app.passage` monte et descend sans rien de neuf, et le mensonge de l'apprenant sur ce qu'il sait n'est pas marqué, le juge voyant son secret.
 
 **Troisième lot.**
 
-- **T13 — une consigne compte-t-elle les passages bloqués ?** (V33). Un blocage suspend les événements, et la durée d'une consigne n'en est pas un. Proposition : elle les compte, étant parlés et jugés comme les autres.
+- **T13 — dissous** (V33) : une non-réponse est une tentative du même passage, qui n'avance donc pas ; une consigne de trois passages dure trois vrais passages. La question est devenue une troisième porte, avec ses tentatives et un nombre de fois où elle se repose (`scene-state.md`).
 - **T14 — tranché** (V13, V14) : l'histoire déclare des événements qui tournent dans chacune de ses scènes (`scene-state.md`).
 
 **Ce qui tient, au troisième lot.** Un défi sans pression (V15) se tient par sa fin seule, la note tranchant à la clôture sur les cases de la séance. Un trou dans une histoire (V20) se demande là où sa case est déclarée, au lancement de l'histoire ou de la scène, sans règle neuve. Une fausse mort sous une pression plate (V25) n'est pas une paire impossible : elle porte sur un vrai/faux que le meneur écrit — le jury rejette —, et non sur un compteur qui descend.
