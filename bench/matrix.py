@@ -478,7 +478,7 @@ def stale(wav, held):
     return len(held["probabilities"]) != frames_for(sf.info(wav).frames)
 
 
-def companded(audio, bits=8, mu=255.0):
+def companded(audio, bits=8, mu=255.0, fixed=False):
     """The waveform through G.711 mu-law and back, at [bits] bits a sample.
 
     **A different family of loss from a codec, which is the whole reason to read
@@ -492,11 +492,13 @@ def companded(audio, bits=8, mu=255.0):
     reading could not promise (`../docs/design/remote-analysis.md`).
     """
     audio = np.asarray(audio, dtype=np.float64)
-    peak = np.abs(audio).max()
+    # Normalised in and back out, so the companding law sees the full scale it
+    # was written for whatever the take was recorded at -- unless [fixed], where
+    # the scale is the 16-bit one, the only form a take sent a second at a time
+    # can have: its peak is not known until it has been said.
+    peak = 1.0 if fixed else np.abs(audio).max()
     if peak <= 0:
         return audio.astype(np.float32)
-    # Normalised in and back out, so the companding law sees the full scale it
-    # was written for whatever the take was recorded at.
     x = audio / peak
     compressed = np.sign(x) * np.log1p(mu * np.abs(x)) / np.log1p(mu)
     steps = 2 ** (bits - 1)
@@ -505,14 +507,14 @@ def companded(audio, bits=8, mu=255.0):
     return (expanded * peak).astype(np.float32)
 
 
-def rounded_off(audio, bits):
+def rounded_off(audio, bits, fixed=False):
     """The waveform quantised to [bits] linear, for what plain depth costs.
 
     The control beside [companded]: same number of bits, no law. What separates
-    the two readings is the law and nothing else.
+    the two readings is the law and nothing else. [fixed] as there.
     """
     audio = np.asarray(audio, dtype=np.float64)
-    peak = np.abs(audio).max()
+    peak = 1.0 if fixed else np.abs(audio).max()
     if peak <= 0:
         return audio.astype(np.float32)
     steps = 2 ** (bits - 1)
@@ -522,13 +524,16 @@ def rounded_off(audio, bits):
 def squeezed(audio):
     """The waveform through whatever [SQUEEZED] names, and back.
 
-    `ulaw` and `ulawN` are the companding law; `linN` is plain depth; a bare
-    number is Opus at that many kbit/s.
+    `ulaw` and `ulawN` are the companding law; `linN` is plain depth; an `f`
+    after either (`ulawf8`, `linf8`) holds the scale fixed at 16-bit full scale
+    instead of each file's peak; a bare number is Opus at that many kbit/s.
     """
     if SQUEEZED.startswith("ulaw"):
-        return companded(audio, bits=int(SQUEEZED[4:] or 8))
+        fixed = SQUEEZED[4:5] == "f"
+        return companded(audio, bits=int(SQUEEZED[4 + fixed:] or 8), fixed=fixed)
     if SQUEEZED.startswith("lin"):
-        return rounded_off(audio, bits=int(SQUEEZED[3:]))
+        fixed = SQUEEZED[3:4] == "f"
+        return rounded_off(audio, bits=int(SQUEEZED[3 + fixed:]), fixed=fixed)
     return through_opus(audio, int(SQUEEZED))
 
 

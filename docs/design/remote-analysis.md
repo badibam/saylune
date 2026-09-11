@@ -91,7 +91,23 @@ Lu sur le jeu d'essai étiqueté, ce que la profondeur coûte, plancher des tém
 
 **Huit bits est le point de fonctionnement, et sept ne l'est pas** : à 8 bits le plancher reste dix fois sous la plus faible faute, à 7 il la touche et il n'y a plus de bande.
 
-Trois réserves, écrites parce qu'elles se prendraient pour des promesses. La mesure **normalise chaque fichier sur son maximum** avant de quantifier, ce qui est un gain par fichier donc un traitement — le μ-law téléphonique travaille à échelle fixe, et c'est à cette échelle-là qu'il faudra remesurer. Le **linéaire 8 bits laisse le même plancher** (0,003), donc la loi n'est pas ce qui achète le résultat et le choix entre les deux n'est pas tranché. Et **`09-walkin` n'est pas une victime de la compression**, contrairement à ce que ce doc a d'abord écrit : la voix `eleven-gb-daniel` la manque aussi en flottant, sans un bit retiré. C'est un cas marginal de cette voix-là, et le compter contre le codec aurait fait payer à la compression une faute qui ne lui appartient pas.
+**L'échelle fixe est la seule possible depuis l'envoi en flux** (n° 1) : une prise partie une seconde à la fois ne connaît pas son maximum. La mesure ci-dessus normalisait chaque fichier sur le sien, ce qui est un gain par fichier donc un traitement. Remesuré le 2026-09-11 à la pleine échelle du 16 bits (`SQUEEZE=ulawf8` et `linf8`, `faults.py`, poids arrondis), les deux normalisées rejouées à côté comme contrôle et retombées sur leurs chiffres :
+
+| | pire témoin | `09-walkin`, voix `eleven-us-eric` | bande vide sur ce cas |
+|---|---|---|---|
+| PCM 16 bits | 0,003 | 0,031 | 0,028 |
+| μ-law 8 bits, normalisé | 0,004 | 0,022 | 0,018 |
+| linéaire 8 bits, normalisé | 0,003 | 0,023 | 0,020 |
+| μ-law 8 bits, échelle fixe | 0,006 | 0,018 | 0,012 |
+| linéaire 8 bits, échelle fixe | 0,003 | 0,018 | 0,015 |
+
+La bande se lit sur `09-walkin` parce que c'est la seule faute lue dans toutes les variantes : `18-walkin-full` et `17-sink-full` ont un écart médian autour de la barre de 0,20 et entrent ou sortent de la comparaison selon la variante, donc « la plus faible faute » n'était pas le même cas d'une ligne à l'autre.
+
+**Aucune des deux ne tient la bande du PCM, et le linéaire n'est pas propre non plus** : à échelle fixe, `01-sink` lu contre `eleven-us-eric` voit son écart médian passer de 0,003 à 0,046, et `17-sink-full` sort de la comparaison.
+
+**Et ce jeu ne peut pas juger l'échelle fixe pour un appareil faible.** Ses prises ont toutes leur crête entre −4,6 et −2,5 dBFS, donc presque la pleine échelle ; les rendus des deux voix sortent 10 dB plus bas en moyenne (−25,8 à −20,8 dBFS, contre −16,7 à −10,3). Que le plancher du μ-law monte de 0,004 à 0,006 alors que les prises ont à peine bougé d'échelle va dans le sens d'un côté modèle qui paie ; ce n'est pas isolé. Ce qui manque est le niveau des vraies prises du téléphone, capturées sans gain automatique, qui vivent sur l'appareil.
+
+**Ce que la compression achèterait a changé depuis les n° 1 et 2** (non mesuré) : la prise part pendant qu'on parle, et le modèle d'une redite ne repart pas. Ce qui reste sur le chemin critique est l'envoi du modèle au premier tour d'une phrase. Et **`09-walkin` n'est pas une victime de la compression**, contrairement à ce que ce doc a d'abord écrit : la voix `eleven-gb-daniel` la manque aussi en flottant, sans un bit retiré. C'est un cas marginal de cette voix-là, et le compter contre le codec aurait fait payer à la compression une faute qui ne lui appartient pas.
 
 **Écarté et parké** : couper les silences avant d'envoyer. `../analysis.md` en donne l'argument — au-dessus d'une demi-seconde on est hors du domaine des phonèmes — mais l'essai en a déjà été fait dans ce projet et s'est mal passé, et rien ne dit aujourd'hui si le seuil était en cause. À reprendre par le seuil, pas par le principe.
 
