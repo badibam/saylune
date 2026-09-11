@@ -53,13 +53,13 @@ Deux régimes et deux états de la fiche, donc quatre viviers, et rien d'autre :
 
 **Un filtre peut vider la liste.** On relâche alors l'accent d'abord, le genre ensuite ; une liste encore vide est un `ChainFailure` et jamais un tirage dans une autre langue. L'ordre dit ce qui compte : le genre est dit au personnage dans sa mise en scène, donc un désaccord s'entend comme une faute de l'app, là où un accent qui diverge est une nuance. **L'ordre de relâchement est défini dans l'app et porte sur les axes** ; l'ordre d'écriture des tags dans une fiche n'a aucun effet, sans quoi un auteur qui réordonne changerait le comportement sans le voir.
 
-**Un tirage par personnage, sans remise** : deux personnages d'une même scène ne peuvent pas recevoir la même voix, sinon rien ne dit plus qui parle. Cette règle était une précaution quand un seul personnage parlait par tour ; elle devient **porteuse** depuis qu'un tour est une suite d'énoncés où deux personnages se répondent d'affilée (`the-turn.md`).
+**Un tirage par personnage, sans remise** : deux personnages d'une même scène ne peuvent pas recevoir la même voix, sinon rien ne dit plus qui parle. Cette règle était une précaution quand un seul personnage parlait par tour ; elle devient **porteuse** depuis qu'un tour est une suite d'énoncés où deux personnages se répondent d'affilée (`Said`, dans `chain/Conversation.kt`).
 
 **Ce qui est tiré entre au journal** (`Activity.chosen`), au même titre que le tirage de genre. C'est le critère du projet appliqué : ce qui dépend d'un aléa que rien ne reproduit se stocke.
 
 ## Le narrateur, troisième régime
 
-Le narrateur dit les didascalies du fil (`the-turn.md`). Sa voix n'est **ni l'étalon ni un tirage**, et les deux raisons du tirage sont précisément celles qui ne mordent pas sur lui.
+Le narrateur dit les didascalies du fil (`Said.Kind.StageDirection`). Sa voix n'est **ni l'étalon ni un tirage**, et les deux raisons du tirage sont précisément celles qui ne mordent pas sur lui.
 
 Il ne porte **aucune mesure**, comme un personnage : il ne passe donc aucun test d'étalonnage, et rien ne le rapproche de la voix de référence. Mais le tirage sert **la rencontre** — croiser quelqu'un qu'on n'a pas choisi — et un narrateur n'est pas quelqu'un qu'on rencontre. Il parle en outre dans **toutes** les tuiles : tiré, il changerait à chaque séance, là où c'est la seule voix qui a une raison de rester la même d'une histoire à l'autre. C'est la voix du jeu et non celle d'un rôle.
 
