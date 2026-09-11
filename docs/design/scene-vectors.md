@@ -84,7 +84,7 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 - **T1 — tranché** (V2) : les événements lisent ce que le meneur écrit à la fermeture du passage (`scene-state.md`).
 - **T2 — tranché** (V2) : ce qu'une réponse à une question a déclenché part avec la tentative refaite ; ailleurs, T1 fait qu'il n'y a rien à défaire (`scene-state.md`).
 - **T3 — tranché** (V4) : une consigne peut être pour l'apprenant seul, et l'app le lui dit (`scene-state.md`). Il en sort une scène à écrire, **le point faible** : un secret du personnage que l'apprenant doit percer, qui se joue sur l'histoire et jamais sur les marques.
-- **T4 — la durée d'une consigne n'a pas d'unité, et deux consignes sur le même marquage ne disent pas si elles s'ajoutent** (V4). Proposition à trancher : une durée en passages ou jusqu'à un événement qui la retire ; deux consignes s'ajoutent.
+- **T4 — tranché** (V4) : une consigne dure un nombre de passages ou la scène, un événement peut la lever, et toutes celles en vigueur s'appliquent (`scene-state.md`).
 - **T5 — tranché** (V7) : en Libre, un test ne lit de l'app que `app.passage` (`scene-state.md`).
 - **T6 — tranché** (V16) : l'issue de chaque scène est une case de l'histoire, et une scène qui peut rater oblige l'histoire à dire ce qui suit (`scene-state.md`).
 - **T7 — tranché** (V16) : rouvrir une scène d'histoire rejoue les scènes d'avant ; un moteur qui a changé rend l'histoire non reprenable (`scene-state.md`).
