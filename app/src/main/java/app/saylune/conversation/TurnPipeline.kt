@@ -1101,6 +1101,7 @@ class TurnPipeline(
         // What the leader wrote in the run just loaded is behind the state this starts from,
         // so nothing of it is read again: the scene starts where it starts.
         fed = run.map { it.id }.toMutableSet()
+        emptied()
         Trace.add("conversation: opened", "activity" to activity.id,
                   "utterances" to _state.value.utterances.size.toString())
         return true
@@ -1193,6 +1194,7 @@ class TurnPipeline(
         }
         Trace.add("conversation: begun", "activity" to fresh.id)
         fed = mutableSetOf()
+        emptied()
         // **The launch, which happened on the situation screen**: what the learner typed into
         // the holes is written into its cases here, where the events of that moment read it.
         run(Moment.Launch, fresh.filled.mapValues { (_, text) -> Value.Words(text) })
@@ -1518,7 +1520,7 @@ class TurnPipeline(
                     // it waits it cannot, and writing it early held the continuation while the
                     // echo was what played, so the screen ran ahead of the voice by a whole reply.
                     val speaking = if (waits) null else async {
-                        say(said.id, compose(reply.echo, reply.said), reply.established)
+                        say(said.id, heldFirst(compose(reply.echo, reply.said)), reply.established)
                     }
 
                     // **Where it waits, the voice cannot go out yet -- but the render can.** The
@@ -1642,12 +1644,14 @@ class TurnPipeline(
                         if (echoing) {
                             say(
                                 said.id,
-                                listOf(Said(Said.Kind.Speech, Speaker.SAYLUNE, reply.echo!!)),
+                                heldFirst(
+                                    listOf(Said(Said.Kind.Speech, Speaker.SAYLUNE, reply.echo!!)),
+                                ),
                                 reply.established,
                             )
                         } else {
-                            say(said.id, compose(reply.echo, reply.said), reply.established,
-                                ahead?.await())
+                            say(said.id, heldFirst(compose(reply.echo, reply.said)),
+                                reply.established, ahead?.await())
                         }
                     }
                     Trace.add("turn: said, and done")
@@ -2470,11 +2474,11 @@ class TurnPipeline(
         )
         directions += out.directions.filterNot { it.held }.map { it.prose }
         // A line written in advance is said as it stands; one a chain that read the turn
-        // produced waits for the next place a turn may fall, the leader having just answered
-        // without knowing the judgement.
+        // produced waits for the leader's next turn, which it opens -- the leader having just
+        // answered without knowing the judgement.
         out.thread.forEach { said ->
             val line = listOf(Said(Said.Kind.Speech, said.who, said.text.inLanguage(Text.BASE)))
-            if (said.held) later += line else scripts += line
+            if (said.held) withheld += line else scripts += line
         }
         asking += out.asking.map {
             Asked(it.case, engine.case(it.case)?.about ?: it.case, engine.kindOf(it.case), it.reach)
@@ -2534,7 +2538,8 @@ class TurnPipeline(
             Trace.add("turn: the answer is not looked at", "question" to question.key,
                       "why" to "the turn was not let through")
             reply.echo?.let {
-                say(said.id, listOf(Said(Said.Kind.Speech, Speaker.SAYLUNE, it)), emptyMap())
+                say(said.id, heldFirst(listOf(Said(Said.Kind.Speech, Speaker.SAYLUNE, it))),
+                    emptyMap())
             }
             return
         }
@@ -2625,7 +2630,7 @@ class TurnPipeline(
                 )
             }
             withPhase(Phase.Speaking) {
-                say(said.id, compose(echo, reply.said), reply.established)
+                say(said.id, heldFirst(compose(echo, reply.said)), reply.established)
             }
         } catch (failure: ChainFailure) {
             Trace.fail("turn: the answer was read and the reply gave way",
@@ -2710,6 +2715,21 @@ class TurnPipeline(
 
     /** The turns of the leader whose writings a moment has already read. */
     private var fed = mutableSetOf<String>()
+
+    /**
+     * Empty everything a moment laid and no call has carried, the conversation being another.
+     *
+     * All four queues are transport and belong to the sitting that filled them: a scene left
+     * with a line nobody said would have the next one say it, in a thread where nothing had
+     * happened. They are in memory like every effective position, so a reopening finds them
+     * empty and the scene starts where it starts (`../../../../../../TODO.md`).
+     */
+    private fun emptied() {
+        directions = mutableListOf()
+        scripts = mutableListOf()
+        withheld = mutableListOf()
+        asking = mutableListOf()
+    }
 
     /**
      * The sitting is over: **the coda runs, then it is filed**.
@@ -2811,11 +2831,33 @@ class TurnPipeline(
     private var scripts = mutableListOf<List<Said>>()
 
     /**
-     * The lines a chain that read the turn produced, which wait for the **next** such place:
-     * the leader has just answered without knowing the judgement, and a character who replies
-     * as though he had understood and then says *"wait, what?"* contradicts the thread.
+     * The lines a chain that **read the turn** produced, which wait for the leader's next turn.
+     *
+     * The leader has just answered without knowing the judgement, so a line reacting to it now
+     * would contradict the reply the learner has just heard -- a barman who answers as though
+     * he had understood and then says *"wait, what?"*. What it waits for is the next **call**,
+     * and not the next place a turn may fall: those are two different instants, and the second
+     * is a whole exchange later, which lands the reaction two turns after what it reacts to.
+     *
+     * **It opens that turn**, ahead of the reply: it belongs to the moment before it, and a
+     * turn of speech is heard in the order things happened. The echo stays attached to the
+     * leader's own first speech, where it picks the slip up.
      */
-    private var later = mutableListOf<List<Said>>()
+    private var withheld = mutableListOf<List<Said>>()
+
+    /**
+     * [turn] with every withheld line in front of it, taken off the queue.
+     *
+     * Called where **the leader takes a turn** and nowhere else: a line that waits for a call
+     * has to wait for a call, and not for the replay of a held continuation nor for a line
+     * said with no call at all.
+     */
+    private fun heldFirst(turn: List<Said>): List<Said> {
+        if (withheld.isEmpty()) return turn
+        val lines = withheld.flatten()
+        withheld = mutableListOf()
+        return lines + turn
+    }
 
     /**
      * The cases a moment has asked the leader for and no call has carried yet.
@@ -2901,10 +2943,7 @@ class TurnPipeline(
         val asked = why != Provoked.ByRule ||
             directions.isNotEmpty() || (sweeping && asking.isNotEmpty())
         val scripted = scripts.toList()
-        // What a chain that read the turn is holding waits for the next place a turn may fall,
-        // which is the next one after this.
-        scripts = later
-        later = mutableListOf()
+        scripts = mutableListOf()
         if (scripted.isEmpty() && !asked) return
         // **One phase around all of it**, so the mic cannot arm in the gap between a scripted
         // turn ending and the model's turn being asked for.
@@ -2938,7 +2977,8 @@ class TurnPipeline(
                 // in one take of the speaker, and it answers nobody -- which is the one thing
                 // that tells it from the rest.
                 val entering = withPhase(Phase.Speaking) {
-                    say(answers = null, turn = reply.said, established = reply.established)
+                    say(answers = null, turn = heldFirst(reply.said),
+                        established = reply.established)
                 }
                 // Keyed by the utterance that opens it, there being no passage to key it by.
                 // Nothing opens it from the screen; what this is for is clearing the body,
