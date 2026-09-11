@@ -2,11 +2,14 @@ package app.saylune.providers
 
 import app.saylune.activity.Text
 import app.saylune.chain.Asked
+import app.saylune.chain.Exchange
 import app.saylune.chain.Present
+import app.saylune.chain.Said
 import app.saylune.chain.Scene
 import app.saylune.scene.Kind
 import app.saylune.scene.Reach
 import app.saylune.scene.Role
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -225,5 +228,40 @@ class ConversationPromptTest {
             emptyList(), "I go there yesterday", "Ah, yesterday!", Present(passage = 6),
         )
         assertFalse(message.contains("passage 6"))
+    }
+
+    // ── What an event tells the leader is part 3 ────────────────────────────────────────
+
+    private val record = listOf(
+        Exchange.ofLearner("I'd like a table."),
+        Exchange(false, listOf(Said(Said.Kind.Speech, "barman", "We're full tonight."))),
+        Exchange.aside(listOf("Reproach them.", "(state) The barman's patience: 0 out of 3 (was 1).")),
+    )
+
+    /**
+     * It is laid where it went and it stays there, so the leader reads it dated rather than as
+     * a given of the start -- and it is the app talking, never a turn the leader wrote.
+     */
+    @Test
+    fun `what an event tells the leader is a message of its own, in its place`() {
+        val turns = ConversationPrompt.turns(record, "and tomorrow", Present())
+        assertEquals(4, turns.length())
+        assertEquals("user", turns.getJSONObject(2).getString("role"))
+        assertTrue(turns.getJSONObject(2).getString("content").contains("Reproach them."))
+        assertFalse(turns.getJSONObject(1).getString("content").contains("Reproach them."))
+    }
+
+    /** It governs no turn, so it is not in the part rebuilt for the turn to come. */
+    @Test
+    fun `what an event tells the leader is not repeated in the turn's own part`() {
+        assertFalse(ConversationPrompt.present(Present()).contains("Reproach them."))
+    }
+
+    /** The judge sees what the learner can know, and a text for the leader is a secret. */
+    @Test
+    fun `the judge is not shown what an event told the leader`() {
+        val message = ConversationPrompt.judged(record, "and tomorrow", "Fine.", Present())
+        assertFalse(message.contains("Reproach them."))
+        assertTrue(message.contains("We're full tonight."))
     }
 }

@@ -44,14 +44,7 @@ internal class ReplicateConversation(
             "transcript" to transcript,
         )
 
-        val messages = JSONArray().apply {
-            history.forEachIndexed { at, exchange ->
-                if (exchange.fromLearner) put(ConversationPrompt.message("user", exchange.text))
-                else put(ConversationPrompt.message("assistant",
-                    ConversationPrompt.answered(history, at)))
-            }
-            put(ConversationPrompt.message("user", ConversationPrompt.turn(transcript, present)))
-        }
+        val messages = ConversationPrompt.turns(history, transcript, present)
 
         val content = ask(ConversationPrompt.system(scene), messages)
         return ReplyReader.read(content, transcript, present.provoked != null, present.asking)

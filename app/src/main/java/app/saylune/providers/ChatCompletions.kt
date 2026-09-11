@@ -51,14 +51,7 @@ internal object ChatCompletions {
             "transcript" to transcript,
         )
 
-        val turns = JSONArray().apply {
-            history.forEachIndexed { at, exchange ->
-                if (exchange.fromLearner) put(ConversationPrompt.message("user", exchange.text))
-                else put(ConversationPrompt.message("assistant",
-                                                   ConversationPrompt.answered(history, at)))
-            }
-            put(ConversationPrompt.message("user", ConversationPrompt.turn(transcript, present)))
-        }
+        val turns = ConversationPrompt.turns(history, transcript, present)
         val content = post(base, key, model, ConversationPrompt.system(scene), turns, extra)
         return ReplyReader.read(content, transcript, present.provoked != null, present.asking)
     }

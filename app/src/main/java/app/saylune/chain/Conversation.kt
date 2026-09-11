@@ -130,15 +130,16 @@ data class Present(
      */
     val instructions: List<String> = emptyList(),
     /**
-     * What a rule has just told the model, in an author's words.
+     * The turn an event has directed, in an author's words -- *the traveller arrives and argues
+     * with Lou*.
      *
-     * **This is the front door, and it is the only way the state reaches the model.** A lost
-     * life, a failed passage, a threshold that just got shorter reach it only if a rule decided
-     * to say so. That is what gives an author control over what their character knows: with no
-     * rule the fault changes nothing in the scene; with one, the receptionist sighs and doubts
-     * the booking was ever made.
+     * **It is here and not in the conversation**, where every other text for the leader sits:
+     * it governs the turn about to be taken rather than saying something about the world, and
+     * a direction read thirty turns after the moment it asked for would have nothing to direct.
+     * What an event merely tells the leader is placed in the conversation at the passage it
+     * went, and stays there ([Exchange.told]).
      */
-    val said: List<String> = emptyList(),
+    val directed: List<String> = emptyList(),
     /**
      * Whether this turn has **no learner turn in front of it**.
      *
@@ -243,15 +244,31 @@ data class Exchange(
     val fromLearner: Boolean,
     val said: List<Said>,
     val established: Map<String, String> = emptyMap(),
+    /**
+     * What the app told the leader **here**, nobody having spoken it: the texts an event sent
+     * it, and the line a case it knows left when it changed.
+     *
+     * An exchange carrying these carries nothing else. It sits at the passage where the texts
+     * went and stays there, so the leader reads them dated -- a barman who changed mood four
+     * times has four traces in their places, and can play the path and not just the state.
+     * Laid in a heading rebuilt every turn instead, they would read as a given of the start.
+     */
+    val told: List<String> = emptyList(),
 ) {
 
     /** The turn as one string, for whoever reads it whole rather than utterance by utterance. */
-    val text: String get() = said.joinToString(" ") { it.text }
+    val text: String get() = if (isAside) told.joinToString("\n") else said.joinToString(" ") { it.text }
+
+    /** Whether this is the app talking to the leader rather than a turn somebody spoke. */
+    val isAside: Boolean get() = told.isNotEmpty()
 
     companion object {
         /** The learner's turn, which is always one speech of theirs. */
         fun ofLearner(text: String) =
             Exchange(true, listOf(Said(Said.Kind.Speech, Speaker.LEARNER, text)))
+
+        /** What the app tells the leader between two turns, in the author's words. */
+        fun aside(told: List<String>) = Exchange(false, emptyList(), told = told)
     }
 }
 

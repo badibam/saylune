@@ -34,9 +34,10 @@ import org.json.JSONObject
  *
  * 1. [SPEAKING] -- permanent, identical for every activity and every user.
  * 2. [activity] -- frozen at launch: the brief, the cast, what earlier scenes answered.
- * 3. the history -- past turns, replies only, stable at the head and growing at the tail.
+ * 3. the history -- past turns, replies only, plus what an event told the leader at the
+ *    passage it went, stable at the head and growing at the tail.
  * 4. [present] -- rebuilt every turn: the instructions in force, the state of the levers the
- *    model holds, the message a rule has just laid, the questions of this turn.
+ *    model holds, the turn an event has directed, the questions of this turn.
  *
  * **1 and 2 are the system message; 3 is the message list; 4 rides on the last message**,
  * in front of the turn it governs. Parts 1 and 2 are what a provider's cache can keep, and the
@@ -331,9 +332,10 @@ internal object ConversationPrompt {
      * whose channel does not exist yet says nothing either.
      *
      * **The state reaches the model through the front door alone.** A lost life, a failed
-     * passage, a threshold that just got shorter reach it only if a rule decided to tell it,
-     * by a message, in an author's words. Pasting the state here permanently would make it
-     * react always, in every scene, without anyone having wanted it to.
+     * passage, a threshold that just got shorter reach it only if an event decided to tell it,
+     * in an author's words -- and that text is laid in the conversation where it went, not
+     * here. Pasting the state here permanently would make it react always, in every scene,
+     * without anyone having wanted it to.
      */
     fun present(present: Present): String {
         val lines = mutableListOf<String>()
@@ -362,8 +364,10 @@ internal object ConversationPrompt {
         // the part rebuilt every turn, because that is what they are: put at one moment and at
         // no other, so laid where they apply rather than in a heading every call carries.
         present.asking.forEach { lines += asked(it) }
-        // What a rule has just laid, which is the whole of what the state says to the model.
-        present.said.forEach { lines += it }
+        // The turn an event has directed, which is what asked for this turn to be taken at
+        // all. What an event merely tells the leader is not here: it is placed in the
+        // conversation at the passage it went, where it is read with its date.
+        present.directed.forEach { lines += it }
         present.ending?.let {
             lines += when (it) {
                 Ending.ByLength -> "The turn you are reading was cut off: the recording " +
@@ -532,12 +536,21 @@ internal object ConversationPrompt {
         .filter { it.isNotBlank() }
         .joinToString("\n\n")
 
-    /** The conversation up to this turn, said plainly, the learner's side named as theirs. */
-    private fun record(history: List<Exchange>): String =
-        if (history.isEmpty()) ""
-        else "The conversation so far:\n\n" + history.joinToString("\n") {
+    /**
+     * The conversation up to this turn, said plainly, the learner's side named as theirs.
+     *
+     * **What the app told the leader is left out**, and that is the rule and not a tidying:
+     * the judge sees what the learner can know, and a text for the leader alone is a secret of
+     * the scene. What was shown to the learner is in the thread already, as a turn somebody
+     * said.
+     */
+    private fun record(history: List<Exchange>): String {
+        val spoken = history.filterNot { it.isAside }
+        return if (spoken.isEmpty()) ""
+        else "The conversation so far:\n\n" + spoken.joinToString("\n") {
             (if (it.fromLearner) "Learner: " else "Character: ") + it.text
         }
+    }
 
     /**
      * Part 4 for the judge: the instructions in force, and how the recording stopped.
@@ -613,6 +626,27 @@ internal object ConversationPrompt {
         history.getOrNull(at - 1)?.takeIf { it.fromLearner }?.let { said.put("intended", it.text) }
         return said.toString()
     }
+
+    /**
+     * Part 3 and part 4 as the message list: every past turn in its role, then the turn to come.
+     *
+     * **One copy, though two routes assemble a call.** What a turn of history becomes is the
+     * same question whichever provider is asked, and the two loops that answered it separately
+     * were two things to keep in step.
+     *
+     * An **aside** -- what an event told the leader, and the line a case it knows left when it
+     * changed -- goes in the app's role and never in the leader's: read back as the leader's
+     * own writing, it would take what it was told for something it had already said.
+     */
+    fun turns(history: List<Exchange>, transcript: String, present: Present): JSONArray =
+        JSONArray().apply {
+            history.forEachIndexed { at, exchange ->
+                if (exchange.isAside || exchange.fromLearner)
+                    put(message("user", exchange.text))
+                else put(message("assistant", answered(history, at)))
+            }
+            put(message("user", turn(transcript, present)))
+        }
 
     fun message(role: String, content: String): JSONObject =
         JSONObject().put("role", role).put("content", content)

@@ -515,6 +515,20 @@ data class ConversationState(
      * of the close asks the character to speak, that answer ends too.
      */
     val closedPassage: String? = null,
+    /**
+     * What an event has told the leader, by the passage it went at: the texts for the leader,
+     * and the line a case it knows left when it changed. Nothing spoke them.
+     *
+     * **They are laid in the conversation and stay there**, at the passage they went, so a
+     * character that changed four times leaves four traces in their places and the leader can
+     * play the path and not just the state. Zero is what went before the first passage opened
+     * -- the launch and the opening.
+     *
+     * In memory and never stored, like every effective position: what an event wrote is
+     * remade by replaying the moments, which is what a reopening owes and does not yet do
+     * (`../../../../../../TODO.md`).
+     */
+    val told: Map<Int, List<String>> = emptyMap(),
 ) {
 
     /**
@@ -676,6 +690,10 @@ data class ConversationState(
             if (provoked.isNotEmpty()) out += asTurn(provoked)
             provoked = mutableListOf()
         }
+        // **What an event told the leader is laid where it went**, and what went before the
+        // first passage opens the record: the launch and the opening are a moment like any
+        // other, and their texts are things the leader was told before anybody spoke.
+        told[0]?.let { out += Exchange.aside(it) }
         utterances.forEach { one ->
             // **A provoked turn answers nobody and belongs to no passage**, so what says when
             // it was said is its place in the run and nothing else. It falls between passages
@@ -693,6 +711,9 @@ data class ConversationState(
                 if (one.id == passages.getOrNull(next)?.opener?.id) {
                     out += exchangesOf(passages[next])
                     next++
+                    // The texts of every moment of this passage, after it and before the turn
+                    // a close may have provoked: told, then spoken.
+                    told[next]?.let { out += Exchange.aside(it) }
                 }
             }
         }
@@ -1352,7 +1373,7 @@ class TurnPipeline(
                             // with it.
                             passage = _state.value.passages().size + if (rewords == null) 1 else 0,
                             instructions = it.instructions,
-                            said = it.prose,
+                            directed = it.directed,
                             asking = it.asked,
                         )
                     },
@@ -2375,11 +2396,15 @@ class TurnPipeline(
         )
         _state.update { it.copy(scene = out.state, notices = it.notices + out.notices) }
         // **The state reaches the leader by the front door alone**: the texts an event sends
-        // it, the line each case it knows leaves when it changes, and the line a chain that
-        // read the turn is holding back until the next call.
-        messages += out.leader +
-            out.changed.map { line(it) } +
-            out.directions.filter { it.held }.map { it.prose }
+        // it, the line each case it knows leaves when it changes, and the prose of a directed
+        // turn a chain that read the turn is holding back. All of it is laid in the
+        // conversation at this passage, which is where it happened and where it stays.
+        tell(
+            passage,
+            out.leader +
+                out.changed.map { line(it) } +
+                out.directions.filter { it.held }.map { it.prose },
+        )
         directions += out.directions.filterNot { it.held }.map { it.prose }
         // A line written in advance is said as it stands; one a chain that read the turn
         // produced waits for the next place a turn may fall, the leader having just answered
@@ -2405,6 +2430,18 @@ class TurnPipeline(
         val ended = out.state.ended
         if (was == null && ended != null && moment != Moment.Closing) ending(ended)
         return out.fired
+    }
+
+    /**
+     * Lay [lines] in the conversation at [at], the passage they went at.
+     *
+     * Zero is before the first passage opens, which is where the launch and the opening put
+     * theirs. Nothing is laid for a moment that told the leader nothing, which is nearly every
+     * one.
+     */
+    private fun tell(at: Int, lines: List<String>) {
+        if (lines.isEmpty()) return
+        _state.update { it.copy(told = it.told + (at to (it.told[at].orEmpty() + lines))) }
     }
 
     /** A real draw, weighted as the event that asks for it says. */
@@ -2549,15 +2586,6 @@ class TurnPipeline(
     }
 
     /**
-     * What an event has told the leader and the next call has not yet carried.
-     *
-     * Held here rather than on the state because it is **transport**: it belongs to the call
-     * being built, it is emptied by it, and nothing on screen reads it. The screen's half of a
-     * change is the notice, which is a different thing said to a different reader.
-     */
-    private var messages = mutableListOf<String>()
-
-    /**
      * The turns an event has directed and nobody has taken yet. **One of these is what makes
      * there be a turn at all**, where a text for the leader only rides on the next one.
      */
@@ -2587,8 +2615,8 @@ class TurnPipeline(
     private var asking = mutableListOf<Asked>()
 
     /**
-     * The instructions standing, what an event has just said, and the cases being asked for --
-     * **taken off the queue**, the call being what delivers them.
+     * The instructions standing, the turn an event has directed, and the cases being asked for
+     * -- **taken off the queue**, the call being what delivers them.
      *
      * The leader is given the instructions it is allowed to know; the judge is given all of
      * them, since it reads what the learner reads and every instruction is shown to him.
@@ -2598,11 +2626,9 @@ class TurnPipeline(
         val door = FrontDoor(
             instructions = standing.filterNot { it.hidden }.map { it.text.inLanguage(Text.BASE) },
             judged = standing.map { it.text.inLanguage(Text.BASE) },
-            laid = messages.toList(),
             directed = directions.toList(),
             asked = asking.toList(),
         )
-        messages = mutableListOf()
         directions = mutableListOf()
         asking = mutableListOf()
         return door
@@ -2615,14 +2641,15 @@ class TurnPipeline(
      * wrote no utterance at all -- the learner's turn is written after the reply, and there is
      * no AI turn -- so the fiction is where it was and the passage number has not moved.
      *
-     * **A direction goes back as a plain text for the leader.** The prose is not wrong and an
-     * author wrote it, so it enters by the front door on the next turn; what is wrong is that
-     * it asked for a turn *then*, and that instant has gone. Kept as a direction, the next
-     * passage's close would have the character speak out of time -- *"ah, there you are"* after
-     * two exchanges, which is the one thing here that cannot be caught up.
+     * **A direction goes back as a plain text for the leader**, laid in the conversation at
+     * the passage it was to be taken at. The prose is not wrong and an author wrote it, so the
+     * leader reads it where it happened; what is wrong is that it asked for a turn *then*, and
+     * that instant has gone. Kept as a direction, the next passage's close would have the
+     * character speak out of time -- *"ah, there you are"* after two exchanges, which is the
+     * one thing here that cannot be caught up.
      */
     private fun putBack(door: FrontDoor) {
-        messages = (door.laid + door.directed + messages).toMutableList()
+        tell(_state.value.passages().size, door.directed)
         asking = (door.asked + asking).toMutableList()
     }
 
@@ -2686,7 +2713,7 @@ class TurnPipeline(
                         // provoked turn falls between passages, never inside one.
                         passage = _state.value.passages().size + 1,
                         instructions = door.instructions,
-                        said = door.prose,
+                        directed = door.directed,
                         provoked = why,
                         asking = door.asked,
                     ),
@@ -2763,25 +2790,16 @@ class TurnPipeline(
         write(of)
     }
 
-    /**
-     * What the call about to go carries from the front door.
-     *
-     * [laid] keeps the messages whole rather than their prose alone, so a call that never went
-     * can hand them back with the flag that says one of them asked for a turn.
-     */
+    /** What the call about to go carries from the front door. */
     private data class FrontDoor(
         /** The instructions the leader is allowed to know, in the words the file wrote. */
         val instructions: List<String>,
         /** Every instruction standing, which is what the judge marks against. */
         val judged: List<String>,
-        val laid: List<String>,
-        /** What asked for a turn to be taken now, and is said in the same breath as the rest. */
+        /** What asked for a turn to be taken now, in the author's words. */
         val directed: List<String>,
         val asked: List<Asked>,
-    ) {
-        /** What goes into the prompt: everything an event has just told the leader. */
-        val prose: List<String> get() = laid + directed
-    }
+    )
 
     companion object {
         /**
