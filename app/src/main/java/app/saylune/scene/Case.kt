@@ -52,6 +52,17 @@ data class Case(
 /** Who declares a case, read off its name. */
 enum class Family { Lever, App, File }
 
+/**
+ * What [key] holds, whichever family declares it, the file's cases being [declared]. An unknown
+ * name fails outright: a file is written against the catalogues, so a name nobody declares is a
+ * writing mistake and never something to guess at.
+ */
+fun kindOf(key: String, declared: Map<String, Case>): Kind = when (family(key)) {
+    Family.Lever -> leverOf(key).asKind()
+    Family.App -> AppCases.kindOf(key) ?: error("$key: the app declares no such case")
+    Family.File -> declared[key]?.kind ?: error("$key: the file declares no such case")
+}
+
 fun family(key: String): Family = when {
     key.startsWith(LEVER) -> Family.Lever
     key.startsWith(APP) -> Family.App
@@ -180,7 +191,7 @@ object AppCases {
             put("$APP$key", kind)
             put("$SITTING$key", kind)
         }
-        nodePaths().forEach { both("$it.note", NOTES) }
+        treePaths().forEach { both("$it.note", NOTES) }
         Sheets.all.forEach { sheet ->
             val path = Sheets.pathOf(sheet)
             both("$path.figure", FIGURE)
@@ -189,7 +200,7 @@ object AppCases {
     }
 
     /** Every node of the tree that gives a note, branches and sheets alike. */
-    private fun nodePaths(): List<String> = buildList {
+    fun treePaths(): List<String> = buildList {
         fun walk(node: app.saylune.sheets.Node, above: String) {
             val path = if (above.isEmpty()) node.name else "$above/${node.name}"
             if (node.name.isNotEmpty()) add(path)

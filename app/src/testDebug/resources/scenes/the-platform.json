@@ -1,0 +1,67 @@
+{
+  "id": "the-platform",
+  "door": "free",
+  "title": { "en": "The platform", "fr": "Le quai" },
+  "short": { "en": "Platform", "fr": "Le quai" },
+  "situation": {
+    "en": "One in the morning, on a platform. Lou is waiting for the same train as you.",
+    "fr": "Une heure du matin, sur un quai. Lou attend le même train que toi."
+  },
+  "cast": [
+    {
+      "key": "lou",
+      "main": true,
+      "short": { "en": "Lou", "fr": "Lou" },
+      "about": "You are Lou, twenty-nine, stuck on this platform too. You let things die, then offer something far too personal and regret it."
+    },
+    {
+      "key": "traveller",
+      "short": { "en": "Traveller", "fr": "Voyageur" },
+      "about": "A traveller in a hurry, who argues with anybody about anything."
+    }
+  ],
+  "cases": [
+    { "key": "laughed", "kind": "flag", "about": "Whether they have made Lou laugh" }
+  ],
+  "events": [
+    {
+      "key": "board",
+      "at": "opening",
+      "do": [
+        { "tell": { "en": "The 1.12 to Lyon is delayed by forty minutes." }, "to": "both", "said-by": "narrator" }
+      ]
+    },
+    {
+      "key": "arrives",
+      "at": "passage-close",
+      "test": { "case": "app.passage", "op": "=", "value": 8 },
+      "do": [ { "direct": "A third traveller arrives and argues with Lou about the timetable." } ]
+    },
+    {
+      "key": "ask-laugh",
+      "at": "passage-close",
+      "do": [ { "ask-leader": "laughed", "reach": "deduce" } ]
+    },
+    {
+      "key": "confides",
+      "at": "passage-close",
+      "test": { "case": "laughed", "becomes": "=", "value": true },
+      "do": [
+        { "tell": "Lou trusts them now: she tells them something she has told nobody.", "to": "leader" },
+        { "deactivate": "ask-laugh" }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "key": "wait",
+      "asked-by": "lou",
+      "at": "passage-close",
+      "test": { "case": "app.passage", "op": "=", "value": 12 },
+      "text": { "en": "Do we wait for the next one, or do we walk?" },
+      "answers": [ "wait", "walk" ],
+      "none": "neither",
+      "again": 1
+    }
+  ]
+}

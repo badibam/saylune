@@ -50,11 +50,7 @@ class Engine(cases: List<Case>, private val events: List<Event>) {
     fun case(key: String): Case? = declared[key]
 
     /** What [key] holds, whichever family declares it. An unknown name fails outright. */
-    fun kindOf(key: String): Kind = when (family(key)) {
-        Family.Lever -> leverOf(key).asKind()
-        Family.App -> AppCases.kindOf(key) ?: error("$key: the app declares no such case")
-        Family.File -> declared[key]?.kind ?: error("$key: the file declares no such case")
-    }
+    fun kindOf(key: String): Kind = kindOf(key, declared)
 
     /** Where a scene starts: every case at its starting value, the events active at first. */
     fun start(positions: Positions): State = State(
@@ -105,9 +101,11 @@ class Engine(cases: List<Case>, private val events: List<Event>) {
             if (value == null) held - key else held + (key to value)
         })
 
+        // **While a question waits, every event waits but its own** -- save at the answer, the
+        // moment that reads it, where what follows from the answer has to go.
         val listening = events.filter {
             it.at == moment && it.key in now.active &&
-                (now.awaiting == null || it.question == now.awaiting)
+                (now.awaiting == null || moment == Moment.Answer || it.question == now.awaiting)
         }
 
         // The draws of events testing nothing but the moment are laid with the rest of step 0,
@@ -202,6 +200,9 @@ class Engine(cases: List<Case>, private val events: List<Event>) {
                             out.notices += Notice.Instruction(lifted.instruct, on = false)
                         }
                         is Effect.Direct -> out.directions += Directed(effect.prose, held)
+                        is Effect.Pose -> now = now.copy(awaiting = effect.question)
+                        is Effect.Release -> now = now.copy(awaiting = null)
+                        is Effect.Reask -> out.reasks += effect.question
                         is Effect.AskLeader -> out.asking += effect
                         is Effect.AskLearner -> {
                             require(moment == Moment.Launch) {
@@ -231,6 +232,7 @@ class Engine(cases: List<Case>, private val events: List<Event>) {
             asking = out.asking,
             learnerAsks = out.learnerAsks,
             drawn = out.drawn,
+            reasks = out.reasks,
             changed = declared.values.filter { !it.hidden }.mapNotNull { case ->
                 val from = before.values[case.key]
                 val to = now.values[case.key]
@@ -394,6 +396,7 @@ class Engine(cases: List<Case>, private val events: List<Event>) {
         val asking = mutableListOf<Effect.AskLeader>()
         val learnerAsks = mutableListOf<Effect.AskLearner>()
         val drawn = mutableListOf<Pair<String, String>>()
+        val reasks = mutableListOf<String>()
     }
 }
 
@@ -457,6 +460,8 @@ data class Resolution(
     val learnerAsks: List<Effect.AskLearner>,
     /** What chance drew, by case, to be stored. */
     val drawn: List<Pair<String, String>>,
+    /** The questions to put again, by key: the asker decides the form. */
+    val reasks: List<String>,
     /** Every case known to the leader that changed over the moment, from its value at the start. */
     val changed: List<Change>,
 )

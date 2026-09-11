@@ -144,6 +144,17 @@ sealed interface Effect {
      * the draw's and not the case's, so the same case draws with other odds at another moment.
      */
     data class Draw(val case: String, val weights: Map<String, Int> = emptyMap()) : Effect
+
+    // The three below are never written in a file: a question unfolds into them at loading.
+
+    /** A question is put: the passage does not close until it has an answer. */
+    data class Pose(val question: String) : Effect
+
+    /** It has its answer, or the author's path once it has been asked enough times. */
+    data class Release(val question: String) : Effect
+
+    /** It was not answered, and is asked again in the form its asker calls for. */
+    data class Reask(val question: String) : Effect
 }
 
 /**

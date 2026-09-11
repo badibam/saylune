@@ -1,0 +1,52 @@
+{
+  "id": "the-volley",
+  "door": "arcade",
+  "title": { "en": "The volley", "fr": "La rafale" },
+  "short": { "en": "Volley", "fr": "Rafale" },
+  "situation": {
+    "en": "Questions, faster and faster. Three lives.",
+    "fr": "Des questions, de plus en plus vite. Trois vies."
+  },
+  "cast": [
+    {
+      "key": "host",
+      "main": true,
+      "short": { "en": "Host", "fr": "Animatrice" },
+      "about": "You host a quiz. One short question a turn, never a comment on the answer."
+    }
+  ],
+  "levers": { "lives": "counted", "lives.left": 3 },
+  "cases": [
+    { "key": "score", "kind": "number", "min": 0, "start": 0, "hidden": true }
+  ],
+  "events": [
+    { "key": "first", "at": "opening", "do": [ { "direct": "Fire the first question." } ] },
+    {
+      "key": "good",
+      "at": "passage-close",
+      "test": { "case": "app.words-gate", "op": "=", "value": false },
+      "do": [ { "shift": "score", "by": 1 } ]
+    },
+    {
+      "key": "bad",
+      "at": "passage-close",
+      "test": { "case": "app.words-gate", "op": "=", "value": true },
+      "do": [ { "shift": "lever.lives.left", "by": -1 } ]
+    },
+    {
+      "key": "ramp",
+      "at": "passage-close",
+      "test": { "case": "app.passage", "every": 5 },
+      "do": [
+        { "step": "lever.ai-turn.complexity", "way": "harder" },
+        { "step": "lever.ai-turn.display", "way": "harder" }
+      ]
+    },
+    {
+      "key": "over",
+      "at": "passage-close",
+      "test": { "case": "lever.lives.left", "op": "=", "value": 0 },
+      "do": [ { "finish": "failed" } ]
+    }
+  ]
+}

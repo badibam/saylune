@@ -1,0 +1,72 @@
+{
+  "id": "the-counter",
+  "door": "challenges",
+  "title": { "en": "The counter", "fr": "Le comptoir" },
+  "short": { "en": "Counter", "fr": "Comptoir" },
+  "situation": {
+    "en": "The kitchen closes in ten minutes. Get a table from the barman.",
+    "fr": "La cuisine ferme dans dix minutes. Obtiens une table du barman."
+  },
+  "cast": [
+    {
+      "key": "barman",
+      "main": true,
+      "short": { "en": "Barman", "fr": "Barman" },
+      "about": "You are the barman, fifty, on your feet since noon. You give a table to whoever makes it easy for you."
+    }
+  ],
+  "levers": { "lives": "counted", "lives.left": 3 },
+  "cases": [
+    { "key": "patience", "kind": "number", "min": 0, "max": 3, "start": 3, "about": "The barman's patience" },
+    { "key": "accepted", "kind": "flag", "about": "Whether the barman has agreed to give them a table" }
+  ],
+  "events": [
+    {
+      "key": "polite",
+      "at": "opening",
+      "do": [
+        {
+          "instruct": "polite",
+          "marking": "spans",
+          "text": { "en": "Be polite without ever saying \"please\".", "fr": "Sois poli sans jamais dire « please »." }
+        }
+      ]
+    },
+    {
+      "key": "badly",
+      "at": "passage-close",
+      "test": { "case": "app.words-gate", "op": "=", "value": true },
+      "do": [
+        { "shift": "lever.lives.left", "by": -1 },
+        { "shift": "patience", "by": -1 },
+        { "tell": "Reproach them.", "to": "leader" }
+      ]
+    },
+    {
+      "key": "impatient",
+      "at": "passage-close",
+      "test": { "case": "patience", "becomes": "=", "value": 0 },
+      "do": [
+        { "put": "lever.turn-length", "value": 10 },
+        {
+          "tell": { "en": "The barman is getting impatient.", "fr": "Le barman s'impatiente, il ne te laisse plus parler longtemps." },
+          "to": "learner"
+        }
+      ]
+    },
+    { "key": "ask", "at": "passage-close", "do": [ { "ask-leader": "accepted", "reach": "deduce" } ] },
+    {
+      "key": "won",
+      "at": "passage-close",
+      "test": { "case": "accepted", "becomes": "=", "value": true },
+      "do": [ { "finish": "passed" } ]
+    },
+    {
+      "key": "lost",
+      "at": "passage-close",
+      "test": { "case": "lever.lives.left", "op": "=", "value": 0 },
+      "do": [ { "finish": "failed" } ]
+    }
+  ],
+  "cautions": [ "pressure" ]
+}
