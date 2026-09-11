@@ -37,6 +37,40 @@ class ReplyReaderTest {
         assertNull(reply.echo)
     }
 
+    /**
+     * A call that settles the answer to a question takes no turn at all: what it owes is the
+     * learner's words written out, the slip if there was one, and the answer. The reply is
+     * asked for after the events that follow from the answer have run.
+     */
+    @Test fun `a call that settles an answer takes no turn`() {
+        val reply = ReplyReader.read(
+            """{"intended": "Yes, I open it.", "established": {"opened": "yes"}}""",
+            "yes i open it",
+            asking = listOf(
+                Asked("opened", "Did they open it?", Kind.Choice(listOf("yes", "no", "neither")),
+                      Reach.Deduce, none = "neither"),
+            ),
+            settling = true,
+        )
+        assertTrue(reply.said.isEmpty())
+        assertEquals("Yes, I open it.", reply.intended)
+        assertEquals("yes", reply.established["opened"])
+    }
+
+    /** The value that says there was no answer is one of the case's own, so it reads back. */
+    @Test fun `no answer is an answer like any other`() {
+        val reply = ReplyReader.read(
+            """{"intended": "I'll go back.", "established": {"opened": "neither"}}""",
+            "ill go back",
+            asking = listOf(
+                Asked("opened", "Did they open it?", Kind.Choice(listOf("yes", "no", "neither")),
+                      Reach.Deduce, none = "neither"),
+            ),
+            settling = true,
+        )
+        assertEquals("neither", reply.established["opened"])
+    }
+
     @Test fun `a reply with nothing to say is the contract broken`() {
         assertTrue(runCatching {
             ReplyReader.read("""{"intended": "I go there yesterday"}""", "x")

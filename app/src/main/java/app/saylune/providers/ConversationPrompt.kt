@@ -414,8 +414,14 @@ internal object ConversationPrompt {
                     "from what has been said; and where there is nothing to conclude from, " +
                     "decide."
         }
+        val missing = asked.none?.let {
+            " A question leaves no choice of not answering: read \"maybe, why not\" as a yes, " +
+                "and where they went somewhere else, said nothing to the point, or refused to " +
+                "pick, answer exactly \"$it\" -- never ignore what they said and never force " +
+                "it onto one of the options."
+        }.orEmpty()
         return "Settle this, under the key \"${asked.key}\" of \"established\": " +
-            "${asked.about}. $shape $far"
+            "${asked.about}. $shape $far$missing"
     }
 
     /**
@@ -456,10 +462,11 @@ internal object ConversationPrompt {
     fun turn(transcript: String, present: Present): String =
         listOf(
             present(present),
-            when (present.provoked) {
-                Provoked.ByRule -> PROVOKED
-                null -> "What they just said, as the recogniser heard it:\n\n$transcript"
+            when {
+                present.provoked != null -> PROVOKED
+                else -> "What they just said, as the recogniser heard it:\n\n$transcript"
             },
+            if (present.settling) SETTLING else "",
         )
             .filter { it.isNotBlank() }
             .joinToString("\n\n")
@@ -480,6 +487,29 @@ internal object ConversationPrompt {
      * the opening down with it: the model answered without a field it had just been asked for.
      * What has nothing to attach to is named; nothing else is forbidden.
      */
+    val SETTLING = """
+        Do not take a turn this time. They have just answered a question the story put to
+        them, and the answer has to be read before anybody replies to it -- what follows from
+        it is written elsewhere, and a reply made now would tell it wrong. So leave "said" out
+        entirely, and answer with "intended", with "echo" if there is a slip to pick up, and
+        with "established", whose questions are listed below. You will be asked for your reply
+        straight after this, knowing everything that follows from the answer.
+    """.trimIndent()
+
+    /**
+     * The direction to put a question again, where a **character** asked it.
+     *
+     * It says the three things that make a re-ask a re-ask: react to what was said, so the
+     * learner is not talking to a wall; put it in other words, a sentence repeated verbatim
+     * being what a machine does; and do not move the story past the choice, which is the whole
+     * reason the passage is being held.
+     *
+     * A question the narrator put is never re-asked this way: the game puts it again itself.
+     */
+    fun reasked(who: String): String =
+        "They have not answered $who's question. As $who, react to what they said, then ask " +
+            "again in other words. Do not move the story past this choice."
+
     val PROVOKED = """
         Nobody has spoken to you this turn. You are taking it of your own accord, on the
         instruction you have just been given. There is no learner turn to read, so

@@ -47,7 +47,8 @@ internal class ReplicateConversation(
         val messages = ConversationPrompt.turns(history, transcript, present)
 
         val content = ask(ConversationPrompt.system(scene), messages)
-        return ReplyReader.read(content, transcript, present.provoked != null, present.asking)
+        return ReplyReader.read(content, transcript, present.provoked != null, present.asking,
+                               present.settling)
     }
 
     /**

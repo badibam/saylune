@@ -44,11 +44,29 @@ internal object ReplyReader {
         transcript: String,
         provoked: Boolean = false,
         asking: List<Asked> = emptyList(),
+        settling: Boolean = false,
     ): Reply {
         val parsed = parsed(content)
 
-        val turn = turn(parsed, content)
+        // **A call that only settles an answer takes no turn**, so there is none to read and
+        // none to require: what it owes is the answer, which is checked like any other.
+        val turn = if (settling) emptyList() else turn(parsed, content)
         val established = established(parsed, asking, content)
+
+        if (settling) {
+            val intended = parsed.optString("intended").ifBlank { transcript }
+            Trace.add(
+                "conversation: settled an answer without taking a turn",
+                "intended" to intended,
+                "settled" to established.keys.joinToString().ifEmpty { null },
+            )
+            return Reply(
+                intended = intended,
+                said = emptyList(),
+                echo = parsed.optString("echo").trim().ifBlank { null },
+                established = established,
+            )
+        }
 
         if (provoked) {
             Trace.add("conversation: spoke of its own accord", "said" to written(turn),

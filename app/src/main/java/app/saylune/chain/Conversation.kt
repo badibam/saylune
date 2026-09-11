@@ -172,13 +172,41 @@ data class Present(
      * already gone without, and the next call is the earliest there is.
      */
     val asking: List<Asked> = emptyList(),
+    /**
+     * Whether this call **settles the answer to a question and takes no turn**.
+     *
+     * A question is a gate of the story, and the leader has to read the answer before the
+     * events that follow from it run -- otherwise it would answer with a consequence the
+     * author wrote otherwise, *"some old letters"* where the file says a stolen watch. So the
+     * turn that answers one is two calls: this one, which writes out what the learner said and
+     * evaluates the answer, and then the ordinary one, which speaks knowing all of it.
+     *
+     * What it costs is one more call before the voice, on those turns alone. It writes
+     * `intended` and the echo as any call does -- they are a reading of the learner's turn and
+     * not a reply, so they belong to whichever call comes first -- and [Reply.said] comes back
+     * empty.
+     */
+    val settling: Boolean = false,
 )
 
 /**
  * A case the leader is asked to write on this turn: its key, the line that says what it is,
  * what it holds, and how far the leader may go.
  */
-data class Asked(val key: String, val about: String, val kind: Kind, val reach: Reach) {
+data class Asked(
+    val key: String,
+    val about: String,
+    val kind: Kind,
+    val reach: Reach,
+    /**
+     * The value that says there was **no answer**, on a case a question put to the learner.
+     *
+     * A question does not leave the choice of not answering: *"I'll go back"* and *"Hmm"* both
+     * fall here, and an answer that lands beside the question is never ignored nor forced onto
+     * an option. Null on every case that is not a question's.
+     */
+    val none: String? = null,
+) {
     companion object {
         /**
          * The one answer that is not the fiction: **it does not know**. Offered at the first
@@ -334,7 +362,9 @@ data class Reply(
      */
     val intended: String?,
     /**
-     * The turn: **a run of utterances**, said one after another, never empty.
+     * The turn: **a run of utterances**, said one after another, never empty -- save on a
+     * call that only settles the answer to a question ([Present.settling]), which takes no
+     * turn at all.
      *
      * It was one line, plus [echo] as the opening of that same line, and every turn went out
      * under a single identity. A turn is a run because a scene is: one character speaks and

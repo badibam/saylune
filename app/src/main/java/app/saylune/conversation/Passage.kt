@@ -56,10 +56,12 @@ data class Passage(
      * words' side. Both are levers that may be zero, and either may be *no maximum*.
      */
     fun spare(kind: Attempt, settings: Positions): Boolean {
-        val allowed = (settings.of(kind.lever) as? Count)?.n ?: return true
+        val lever = kind.lever ?: return true
+        val allowed = (settings.of(lever) as? Count)?.n ?: return true
         return when (kind) {
             Attempt.Rewording -> rewordings
             Attempt.Repeat -> repeats
+            Attempt.Unanswered -> 0
         } < allowed
     }
 
@@ -88,13 +90,24 @@ data class Passage(
  * new to answer and it stays what it was -- an exercise, which improves the passage's note and
  * gives the sound analysis a turn it would never have had on a malformed one.
  */
-enum class Attempt(val lever: String) {
+enum class Attempt(val lever: String?) {
     Rewording("rewordings-allowed"),
     Repeat("retakes-allowed"),
+
+    /**
+     * The question was put and this turn did not answer it, so it is asked again and the
+     * learner speaks into the same passage.
+     *
+     * **It has no lever**, and that is the third gate's own rule: each gate counts its
+     * attempts apart, and how many times a question is put again is the author's, written on
+     * the question itself. A gate of the story is not a repair of the language, so a
+     * non-answer does not spend what bounds the repairs.
+     */
+    Unanswered(null),
 }
 
 /**
- * Where a passage stands. **Four, and there is no fifth.**
+ * Where a passage stands. **Five, and there is no sixth.**
  *
  * *Failed* is not one of them: that is a word about an activity's outcome, beside *passed* and
  * *the note decides*, and using it here mixes two planes. What is said of a passage is
@@ -105,6 +118,16 @@ sealed interface Standing {
 
     /** Nothing to redo. The big button is available and closing it repairs it. */
     object Open : Standing
+
+    /**
+     * A question is on the table and the turn did not answer it. **The passage does not close**
+     * until it does, and what the learner says next is another attempt at it.
+     *
+     * The third gate, read between the other two: they are gates of the language, reading a
+     * note that does not settle; this one is a gate of the story, reading the answer the
+     * leader evaluated.
+     */
+    object ToAnswer : Standing
 
     /** The words have to change. What repairs it is a rewording. */
     object ToReword : Standing

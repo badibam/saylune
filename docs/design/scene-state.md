@@ -154,6 +154,10 @@ Un texte d'événement pour le meneur n'a pas de durée : il se place dans la co
 
 Avec un seul appel, le meneur répondrait avant que les événements tournent, et raconterait une conséquence que l'auteur a écrite autrement — *« some old letters »* là où la fiche dit une montre. Le prix, sur ces tours seulement : un appel de plus avant la voix, et l'appel ordinaire qui attend le juge au lieu de tourner à côté. Aucune des deux latences n'est mesurée (`providers.md`).
 
+**C'est l'appel court qui écrit `intended` et l'écho**, l'appel ordinaire n'existant pas encore quand le juge doit marquer. Ni l'un ni l'autre n'est une réplique : ce sont une lecture de ce que l'apprenant a dit et une reprise de son erreur, écrites à l'aveugle du jugement, donc ils appartiennent au premier appel du meneur quel qu'il soit. L'écho du premier appel ouvre la réplique du second, au lieu d'être redemandé.
+
+**Porte des mots fermée, la réponse n'est pas regardée et l'écho seul est joué.** Rien n'est évalué sur une phrase qu'on va remplacer. Le prix est là : il n'y a pas de continuation en main, donc la sortie d'un passage bloqué — quand les reformulations s'épuisent — coûte un appel ordinaire au lieu d'être gratuite. Sur ces tours seulement, et rien n'est refabriqué.
+
 **Quand la question se repose, qui l'a posée décide de la forme.**
 
 - **Le narrateur** : l'app rejoue sa phrase telle quelle, avec l'audio déjà synthétisé, sans appeler le meneur et sans ligne de plus dans le fil, puis le micro se rouvre. Une question du narrateur vient du jeu et n'interpelle personne dans la scène : le jeu la repose. Le prix est qu'aucun personnage ne répond à *« I'll go back »* ; l'auteur qui le veut fait poser la question par un personnage.

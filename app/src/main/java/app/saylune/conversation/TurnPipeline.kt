@@ -41,6 +41,9 @@ import app.saylune.scene.Change
 import app.saylune.scene.Engine
 import app.saylune.scene.Kind
 import app.saylune.scene.Moment
+import app.saylune.scene.Question
+import app.saylune.scene.Reach
+import app.saylune.scene.Resolution
 import app.saylune.scene.Notice
 import app.saylune.scene.Outcome
 import app.saylune.scene.SceneFile
@@ -60,6 +63,7 @@ import app.saylune.levers.Stepped
 import app.saylune.marking.AddedSound
 import app.saylune.marking.TurnMarking
 import app.saylune.providers.ChosenSynthesis
+import app.saylune.providers.ConversationPrompt
 import app.saylune.providers.words
 import app.saylune.store.ArchiveDao
 import app.saylune.store.Recordings
@@ -634,6 +638,10 @@ data class ConversationState(
         if (wordsGate != null && passage.spare(Attempt.Rewording, settings)) {
             return Standing.ToReword
         }
+        // **The three gates read in the order words, answer, sound.** A question is evaluated
+        // only on a sentence the words' gate lets through, and the sound comes last, waiting
+        // on the analysis.
+        if (standing.awaiting != null) return Standing.ToAnswer
         if (soundGate != null && passage.spare(Attempt.Repeat, settings)) {
             return Standing.ToSayAgain
         }
@@ -681,8 +689,9 @@ data class ConversationState(
      * owned: it will not pick up a fault that keeps coming back of its own accord, and a rule
      * is what that takes.
      */
-    fun history(): List<Exchange> {
-        val passages = passages()
+    fun history(without: String? = null): List<Exchange> {
+        val run = if (without == null) utterances else utterances.filterNot { it.id == without }
+        val passages = Passage.of(run)
         val out = mutableListOf<Exchange>()
         var next = 0
         var provoked = mutableListOf<Utterance>()
@@ -694,7 +703,7 @@ data class ConversationState(
         // first passage opens the record: the launch and the opening are a moment like any
         // other, and their texts are things the leader was told before anybody spoke.
         told[0]?.let { out += Exchange.aside(it) }
-        utterances.forEach { one ->
+        run.forEach { one ->
             // **A provoked turn answers nobody and belongs to no passage**, so what says when
             // it was said is its place in the run and nothing else. It falls between passages
             // by construction -- at the opening, or at a passage's close -- so putting each
@@ -718,6 +727,10 @@ data class ConversationState(
             }
         }
         flush()
+        // What was told at a passage this record does not carry -- the turn being answered is
+        // left out of it, so the moment that has just run laid its texts beyond the last
+        // passage here. Said last, which is where they happened.
+        told.keys.filter { it > next }.sorted().forEach { out += Exchange.aside(told.getValue(it)) }
         return out
     }
 
@@ -1081,6 +1094,8 @@ class TurnPipeline(
                 // however it ends.
                 opening = null,
                 closedPassage = null,
+                // What an event told the leader belongs to the scene that is being left.
+                told = emptyMap(),
             )
         }
         // What the leader wrote in the run just loaded is behind the state this starts from,
@@ -1173,6 +1188,7 @@ class TurnPipeline(
                 failure = null,
                 opening = null,
                 closedPassage = null,
+                told = emptyMap(),
             )
         }
         Trace.add("conversation: begun", "activity" to fresh.id)
@@ -1336,11 +1352,27 @@ class TurnPipeline(
         _state.update {
             it.copy(failure = null, pending = Pending(take, position, closedBy))
         }
+        // **A question on the table makes the next turn an attempt at the same passage.** The
+        // passage did not close, so `app.passage` has not moved and the answer belongs to the
+        // choice being waited on. The passage the question was first put at is another matter:
+        // it was closed by the moment that put it, so the first answer opens the next one like
+        // any turn.
+        val answering = _state.value.standing.awaiting
+        val question = answering?.let { key ->
+            _state.value.definition.questions.firstOrNull { it.key == key }
+        }
+        val attempting = rewords ?: _state.value.open()
+            ?.takeIf { answering != null && it.opener.id != _state.value.closedPassage }
+            ?.opener?.id
         // **Taken before the call and put back if the call gives way.** What the front door
-        // carries is a rule's message and the questions of the moment just past, and the call
+        // carries is a directed turn and the questions of the moment just past, and the call
         // is what delivers them: dropped on a link that gave way, a question the app chose to
         // put would simply never be asked, and nothing would say so.
-        val door = frontDoor()
+        //
+        // **It is not opened on a turn that settles an answer**: what it carries either asks
+        // for a turn or rides on one, and the turn of such a moment is the call that comes
+        // after the answer. Only the instructions are read, and reading them takes nothing.
+        val door = frontDoor(taking = question == null)
         withPhase(Phase.Hearing) {
             try {
                 val heard = recognition.transcribe(take)
@@ -1359,6 +1391,10 @@ class TurnPipeline(
                 // would see the sentence it is being handed a second time inside the record --
                 // and the reply, or not, depending on which coroutine got there first.
                 val before = _state.value.history()
+                // **A turn that answers a question is settled before anybody replies to it**,
+                // so this call takes no turn: it writes the learner's words out, picks up the
+                // slip if there is one, and evaluates the answer. The reply is asked for after
+                // the events that follow from the answer have run.
                 val reply = conversation.reply(
                     before, heard,
                     scene = scene(),
@@ -1371,10 +1407,12 @@ class TurnPipeline(
                             // a turn that rewords nothing opens the next one. Derived from the
                             // run, like the passages themselves, so it cannot fall out of step
                             // with it.
-                            passage = _state.value.passages().size + if (rewords == null) 1 else 0,
+                            passage = _state.value.passages().size +
+                                if (attempting == null) 1 else 0,
                             instructions = it.instructions,
                             directed = it.directed,
-                            asking = it.asked,
+                            asking = it.asked + listOfNotNull(question?.let(::asked)),
+                            settling = question != null,
                         )
                     },
                 )
@@ -1402,14 +1440,20 @@ class TurnPipeline(
                     capture = position,
                     ending = closedBy,
                     // A rewording is an attempt at the passage it points back at; a turn that
-                    // rewords nothing opens one of its own.
-                    repeats = rewords,
-                    attempt = rewords?.let { Attempt.Rewording },
+                    // rewords nothing opens one of its own. A turn that did not answer the
+                    // question standing on the passage is an attempt at it too, and spends
+                    // none of the repairs' counters.
+                    repeats = attempting,
+                    attempt = when {
+                        rewords != null -> Attempt.Rewording
+                        attempting != null -> Attempt.Unanswered
+                        else -> null
+                    },
                 )
                 // The call that has just answered belongs to the passage this attempt is in, and
                 // the passage is named by the utterance that opened it: a rewording is an attempt
                 // at the one it points back at.
-                Trace.askedFor(rewords ?: said.id)
+                Trace.askedFor(attempting ?: said.id)
                 _state.update {
                     it.copy(
                         utterances = it.utterances + said,
@@ -1428,7 +1472,7 @@ class TurnPipeline(
                 // is the opening of the reply and it plays with it whatever the note -- so the
                 // voice goes out first and the marks land under it. Where it waits, what is
                 // played is the note's to choose, so the verdict comes first.
-                val waits =
+                val waits = question != null ||
                     (_state.value.positions.of(Levers.ADVANCE_WORDS.key) as? At)?.name == "waits"
 
                 coroutineScope {
@@ -1453,6 +1497,9 @@ class TurnPipeline(
                         runCatching { conversation.judge(
                             before,
                             said = intended,
+                            // On a turn that settles an answer nothing has been said back yet:
+                            // what the learner will hear of this call is the echo, if there is
+                            // one, and the reply comes after the answer's own moment.
                             answered = joined(compose(reply.echo, reply.said)),
                             // The half of the brief addressed to the learner, and the only thing
                             // of the scene the judge is given. The staging has no parameter to
@@ -1492,7 +1539,8 @@ class TurnPipeline(
                     // renders as it always did, and it is that one that reports.
                     // **Only where the turn is one utterance.** A run of several is rendered
                     // one at a time as it is said, there being no single text to render.
-                    val ahead = if (!waits || reply.said.size != 1) null else async {
+                    val ahead = if (question != null || !waits || reply.said.size != 1) null
+                    else async {
                         runCatching {
                             synthesis.speak(
                                 compose(reply.echo, reply.said).single().text, synthesis.voice(),
@@ -1562,7 +1610,13 @@ class TurnPipeline(
                         }
                     }
 
-                    if (speaking != null) speaking.await() else {
+                    if (speaking != null) speaking.await()
+                    else if (question != null) {
+                        answered(
+                            question, said, reply, heard, closedBy,
+                            settled = judged != null && closing == null,
+                        )
+                    } else {
                         // **The echo and the continuation are two portions of one utterance, and
                         // the app composes them.** They are not two candidate replies: the echo is
                         // the opening -- *"Ah, you're twenty-five!"* -- and the continuation is
@@ -1841,7 +1895,7 @@ class TurnPipeline(
             wordsGate = state.wordsGate != null,
             soundGate = if (sounded) state.soundGate != null else null,
         ) + sittingCases()
-        spentAtEnd = attempt to run(Moment.AttemptEnd, outside, spent)
+        spentAtEnd = attempt to spentIn(Moment.AttemptEnd, outside, spent)
     }
 
     /** The rules the end of the last attempt has fired so far, and which attempt that was. */
@@ -1954,6 +2008,15 @@ class TurnPipeline(
         // and the opening line ends exactly like any other answer.
         val opener = _state.value.open()?.opener?.id
         if (opener == null || opener == _state.value.closedPassage) return@withLock
+        // **The answer's gate**: a passage on which a question stands does not close until it
+        // has an answer, so nothing of the close fires -- no clock, no life, no patience. What
+        // the learner says next is another attempt at this same passage, and `app.passage`
+        // does not move. The app goes on marking and noting all the same: none of that is an
+        // event.
+        _state.value.standing.awaiting?.let {
+            Trace.add("passage: held on a question", "question" to it)
+            return@withLock
+        }
         _state.value.held?.let { continuation ->
             Trace.add("passage: the attempts ran out, the held continuation is played")
             _state.update { it.copy(held = null) }
@@ -2340,7 +2403,7 @@ class TurnPipeline(
         // fresh recording is a fresh moment, and what names it is where the run stands.
         val recording = _state.value.utterances.size
         val spent = recordingSpent?.takeIf { it.first == recording }?.second.orEmpty()
-        recordingSpent = recording to run(
+        recordingSpent = recording to spentIn(
             Moment.Recording,
             mapOf(
                 AppCases.TURN_TIME to Value.Num(elapsedMs / 1_000.0),
@@ -2381,9 +2444,9 @@ class TurnPipeline(
      */
     private suspend fun run(
         moment: Moment, outside: Map<String, Value?> = emptyMap(), spent: Set<String> = emptySet(),
-    ): Set<String> {
+    ): Resolution? {
         val definition = _state.value.definition
-        if (definition.events.none { it.at == moment }) return spent
+        if (definition.events.none { it.at == moment }) return null
         val engine = Engine(definition.cases, definition.events)
         // Whether it was already over when this moment began, which is what tells an ending
         // that has just fallen from one this moment inherited.
@@ -2429,7 +2492,7 @@ class TurnPipeline(
         // its say -- and the coda runs then, never inside the moment that ended it.
         val ended = out.state.ended
         if (was == null && ended != null && moment != Moment.Closing) ending(ended)
-        return out.fired
+        return out
     }
 
     /**
@@ -2443,6 +2506,154 @@ class TurnPipeline(
         if (lines.isEmpty()) return
         _state.update { it.copy(told = it.told + (at to (it.told[at].orEmpty() + lines))) }
     }
+
+    /**
+     * What follows a turn that answered a question: **the answer's own moment, then the reply**.
+     *
+     * [settled] is whether the answer stands at all -- the judge read the turn and the words'
+     * gate let it through. Where it does not, the answer is **not looked at**: the sentence is
+     * going to be reworded, so evaluating it would settle the story on a phrase about to be
+     * replaced. What the learner hears then is the echo and nothing else; the reply comes with
+     * the answer that stands, and a passage whose rewordings run out is left by the big button
+     * and asked again.
+     *
+     * Where it stands, the case is written, the events that read it go -- the narrator says
+     * what is in the parcel, the leader is told they have seen the watch -- and only then is
+     * the reply asked for. That order is the whole reason for the second call: asked before
+     * them, the leader would tell a consequence the author wrote otherwise.
+     *
+     * **The echo of the call that settled is what opens the reply.** It picks up a slip of the
+     * turn just spoken, which no later call has any reason to write again, so it is carried
+     * across rather than asked for twice.
+     */
+    private suspend fun answered(
+        question: Question, said: Utterance, reply: Reply, heard: List<Word>,
+        closedBy: Ending?, settled: Boolean,
+    ) {
+        if (!settled) {
+            Trace.add("turn: the answer is not looked at", "question" to question.key,
+                      "why" to "the turn was not let through")
+            reply.echo?.let {
+                say(said.id, listOf(Said(Said.Kind.Speech, Speaker.SAYLUNE, it)), emptyMap())
+            }
+            return
+        }
+        val kind = cases().kindOf(question.key)
+        val answer = reply.established[question.key]?.let { written(kind, it) }
+        Trace.add("turn: the answer", "question" to question.key, "answered" to answer?.toString())
+        val out = run(Moment.Answer, mapOf(question.key to answer))
+        // **Put again in the form its asker calls for**, or answered and the story moves on.
+        if (out != null && question.key in out.reasks) putAgain(question, said, reply, heard, closedBy)
+        else replying(said, reply.echo, heard, closedBy)
+    }
+
+    /**
+     * The question is put again, the turn not having answered it.
+     *
+     * **Who put it decides the form.** The **narrator** comes from the game and interpellates
+     * nobody in the scene, so the game puts it again: its line is played as it stands, out of
+     * the cache, with no call and no further line in the thread. The price is that nothing
+     * answers *"I'll go back"*, and an author who wants an answer has a character ask.
+     *
+     * A **character** is somebody who was spoken to, so the leader takes a turn: it reacts to
+     * what was said and asks again in other words, told not to move the story past the choice.
+     * That turn answers this attempt, so the next answer supersedes it exactly as a rewording
+     * supersedes the reply it replaced.
+     */
+    private suspend fun putAgain(
+        question: Question, said: Utterance, reply: Reply, heard: List<Word>, closedBy: Ending?,
+    ) {
+        Trace.add("turn: the question is put again", "question" to question.key)
+        val line = question.text?.inLanguage(Text.BASE)
+        val narrator = question.askedBy == Speaker.NARRATOR && line != null
+        if (!narrator) {
+            replying(said, reply.echo, heard, closedBy, ConversationPrompt.reasked(question.askedBy))
+            return
+        }
+        // Said again out of the cache, and the mic opens on it as on any end of a turn: the
+        // utterance that carries it is the one already in the thread, so nothing is added.
+        val asked = _state.value.utterances.lastOrNull {
+            !it.speaker.isLearner && it.text == line
+        }
+        // **Nothing silent here.** The line was said when the question was put, so it is in
+        // the thread; where it is not, playing nothing would arm no mic and leave the learner
+        // before a question nobody puts again. It is said instead, and the trace says so.
+        if (asked == null) {
+            Trace.fail("turn: the question's line is not in the thread", "question" to question.key)
+            replying(said, reply.echo, heard, closedBy, ConversationPrompt.reasked(question.askedBy))
+            return
+        }
+        withPhase(Phase.Speaking) {
+            Loudspeaker.take(Loudspeaker.By.App) {
+                Playback.sound(synthesis.speak(asked.text, synthesis.voice())) {}
+            }
+        }
+        spoke(asked.id)
+    }
+
+    /**
+     * Ask the leader for the reply to [said], which is an ordinary call made late.
+     *
+     * [echo] is what the call that settled the answer picked up, laid in front of the reply as
+     * it is everywhere else. [directing] is prose for this turn alone -- the direction to put a
+     * question again -- and it goes in the part rebuilt for the turn, where it governs.
+     *
+     * **A link that gives way here costs the reply and nothing else.** The turn has been said,
+     * marked and answered, and the events that followed have run: there is nothing to send
+     * again, so the failure is shown and the sitting carries on
+     * (`../../../../../../TODO.md`).
+     */
+    private suspend fun replying(
+        said: Utterance, echo: String?, heard: List<Word>, closedBy: Ending?,
+        directing: String? = null,
+    ) {
+        val door = frontDoor()
+        try {
+            val reply = withPhase(Phase.Thinking) {
+                conversation.reply(
+                    // Without the turn being answered: it rides in the tail of the call as any
+                    // turn does, and the asides the answer's moment laid are in their place.
+                    _state.value.history(without = said.id), heard,
+                    scene = scene(),
+                    present = Present(
+                        _state.value.positions, closedBy,
+                        passage = _state.value.passages().size,
+                        instructions = door.instructions,
+                        directed = door.directed + listOfNotNull(directing),
+                        asking = door.asked,
+                    ),
+                )
+            }
+            withPhase(Phase.Speaking) {
+                say(said.id, compose(echo, reply.said), reply.established)
+            }
+        } catch (failure: ChainFailure) {
+            Trace.fail("turn: the answer was read and the reply gave way",
+                       "why" to failure.message)
+            putBack(door)
+            _state.update { it.copy(failure = failure.message) }
+        }
+    }
+
+    /** The cases of the scene, for reading what a key holds and what it is called. */
+    private fun cases() = Engine(_state.value.definition.cases, emptyList())
+
+    /** One question, as the leader is asked to settle it. */
+    private fun asked(question: Question): Asked = Asked(
+        key = question.key,
+        about = cases().case(question.key)?.about ?: question.key,
+        kind = cases().kindOf(question.key),
+        // **Deduce and never invent**: *"maybe, why not"* is a yes, and deciding for somebody
+        // who said nothing would take the choice out of the learner's hands. *It does not know*
+        // has no place either, the value that says there was no answer standing for it.
+        reach = Reach.Deduce,
+        none = question.none,
+    )
+
+    /** What [run] fired, the ones it was handed included: a moment cut in two stays one. */
+    private suspend fun spentIn(
+        moment: Moment, outside: Map<String, Value?> = emptyMap(), spent: Set<String> = emptySet(),
+    ): Set<String> = run(moment, outside, spent)?.fired ?: spent
 
     /** A real draw, weighted as the event that asks for it says. */
     private val chance = Chance.of(kotlin.random.Random.Default)
@@ -2618,19 +2829,24 @@ class TurnPipeline(
      * The instructions standing, the turn an event has directed, and the cases being asked for
      * -- **taken off the queue**, the call being what delivers them.
      *
+     * [taking] false reads the instructions alone and takes nothing, for the one call that
+     * asks for no turn: what the queues hold waits for the call that does.
+     *
      * The leader is given the instructions it is allowed to know; the judge is given all of
      * them, since it reads what the learner reads and every instruction is shown to him.
      */
-    private fun frontDoor(): FrontDoor {
+    private fun frontDoor(taking: Boolean = true): FrontDoor {
         val standing = _state.value.standing.instructions.map { it.instruct }
         val door = FrontDoor(
             instructions = standing.filterNot { it.hidden }.map { it.text.inLanguage(Text.BASE) },
             judged = standing.map { it.text.inLanguage(Text.BASE) },
-            directed = directions.toList(),
-            asked = asking.toList(),
+            directed = if (taking) directions.toList() else emptyList(),
+            asked = if (taking) asking.toList() else emptyList(),
         )
-        directions = mutableListOf()
-        asking = mutableListOf()
+        if (taking) {
+            directions = mutableListOf()
+            asking = mutableListOf()
+        }
         return door
     }
 

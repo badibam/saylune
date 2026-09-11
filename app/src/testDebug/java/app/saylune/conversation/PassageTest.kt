@@ -9,6 +9,7 @@ import app.saylune.marking.TurnMarking
 import app.saylune.notes.Measured
 import app.saylune.notes.Passage as Scored
 import app.saylune.notes.Weights
+import app.saylune.scene.State as SceneState
 import app.saylune.sheets.Sheet
 import app.saylune.sheets.Sheets
 import org.junit.Assert.assertEquals
@@ -79,8 +80,8 @@ class PassageTest {
         assertEquals(1, passage.rewordings)
         assertEquals(2, passage.repeats)
         val settings = Positions(mapOf(
-            Attempt.Rewording.lever to Count(1),
-            Attempt.Repeat.lever to Count(3),
+            Attempt.Rewording.lever!! to Count(1),
+            Attempt.Repeat.lever!! to Count(3),
         ))
         assertFalse(passage.spare(Attempt.Rewording, settings))
         assertTrue(passage.spare(Attempt.Repeat, settings))
@@ -453,6 +454,81 @@ class PassageTest {
 
     // ── The way out of a blocked passage ────────────────────────────────────────────────
 
+    // ── What the leader is told, and where ──────────────────────────────────────────────
+
+    /**
+     * **A text for the leader is laid at the passage it went at and stays there**, so a fact
+     * settled at the twelfth passage is read as having been settled then, not as a given of
+     * the start.
+     */
+    @Test
+    fun `what an event told the leader sits after the passage it went at`() {
+        val opener = said("I'd like a table")
+        val run = state(opener, replied(opener.id, "We're full tonight.")).copy(
+            told = mapOf(1 to listOf("Reproach them.")),
+        )
+        val history = run.history()
+        assertEquals(3, history.size)
+        assertEquals(listOf("Reproach them."), history.last().told)
+        assertFalse(history.first().isAside)
+    }
+
+    /**
+     * The turn being answered is left out of the record for the call that follows it -- it
+     * rides in the tail of that call -- and what the moment just laid comes out all the same,
+     * at the end, which is where it happened.
+     */
+    @Test
+    fun `a record without the turn being answered still carries what was just told`() {
+        val opener = said("Yes, I open it")
+        val run = state(opener).copy(told = mapOf(1 to listOf("They have seen the watch.")))
+        val history = run.history(without = opener.id)
+        assertEquals(1, history.size)
+        assertEquals(listOf("They have seen the watch."), history.single().told)
+    }
+
+    // ── The third gate: the answer ──────────────────────────────────────────────────────
+
+    /** A scene waiting on the answer to [on], everything else where it starts. */
+    private fun asking(on: String) =
+        SceneState(values = emptyMap(), positions = Positions(), active = emptySet(), awaiting = on)
+
+    /**
+     * **A question put and not answered holds the passage**, which is what makes it a gate: it
+     * does not close, so nothing of its close fires and `app.passage` does not move.
+     *
+     * The big button stays available all the same, and that is not a contradiction: it closes
+     * the passage *and* opens a turn, and what the learner owes here is a turn. The refusal
+     * lives in the close itself.
+     */
+    @Test
+    fun `a question standing holds the passage and still lets the learner speak`() {
+        val waiting = state(said("I'll go back")).copy(scene = asking("direction"))
+        assertEquals(Standing.ToAnswer, waiting.standing())
+        assertTrue(waiting.closes())
+    }
+
+    /**
+     * **The three gates read in the order words, answer, sound.** An answer is evaluated only
+     * on a sentence the words' gate let through -- settling the story on a phrase about to be
+     * replaced is what that avoids -- and the sound comes last, waiting on the analysis.
+     */
+    @Test
+    fun `the words come before the answer, and the answer before the sound`() {
+        val opener = said("I go there yesterday")
+        val both = state(opener).copy(
+            activity = Shipped.freeConversation().copy(settings = waiting("words")),
+            scene = asking("direction"),
+            wordsGate = Closing.Aptitudes(listOf("correctness")),
+        )
+        assertEquals(Standing.ToReword, both.standing())
+        val sound = state(opener).copy(
+            scene = asking("direction"),
+            soundGate = Closing.Aptitudes(listOf("pronunciation")),
+        )
+        assertEquals(Standing.ToAnswer, sound.standing())
+    }
+
     private fun waiting(vararg on: String) = Positions(
         on.associate { "advance.$it" to At("waits") } +
             mapOf("correctness.sends-back" to At("yes")),
@@ -484,7 +560,7 @@ class PassageTest {
         val spent = state(opener).copy(
             activity = Shipped.freeConversation().copy(
                 settings = Positions(
-                    waiting("words").all() + mapOf(Attempt.Rewording.lever to Count(0)),
+                    waiting("words").all() + mapOf(Attempt.Rewording.lever!! to Count(0)),
                 ),
             ),
             wordsGate = Closing.Aptitudes(listOf("correctness")),
@@ -504,8 +580,8 @@ class PassageTest {
             activity = Shipped.freeConversation().copy(
                 settings = Positions(
                     waiting("words", "sound").all() + mapOf(
-                        Attempt.Rewording.lever to Count(0),
-                        Attempt.Repeat.lever to Count(0),
+                        Attempt.Rewording.lever!! to Count(0),
+                        Attempt.Repeat.lever!! to Count(0),
                     ),
                 ),
             ),
@@ -537,7 +613,7 @@ class PassageTest {
         val opener = said("I go there yesterday")
         val left = state(opener).copy(
             activity = Shipped.freeConversation().copy(
-                settings = Positions(mapOf(Attempt.Rewording.lever to Count(0))),
+                settings = Positions(mapOf(Attempt.Rewording.lever!! to Count(0))),
             ),
             wordsGate = Closing.Aptitudes(listOf("correctness")),
             soundGate = Closing.Aptitudes(listOf("pronunciation")),

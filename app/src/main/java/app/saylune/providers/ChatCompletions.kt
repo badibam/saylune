@@ -53,7 +53,8 @@ internal object ChatCompletions {
 
         val turns = ConversationPrompt.turns(history, transcript, present)
         val content = post(base, key, model, ConversationPrompt.system(scene), turns, extra)
-        return ReplyReader.read(content, transcript, present.provoked != null, present.asking)
+        return ReplyReader.read(content, transcript, present.provoked != null, present.asking,
+                               present.settling)
     }
 
     /**
