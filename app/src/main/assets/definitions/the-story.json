@@ -32,9 +32,7 @@
       }
     }
   ],
-  "settings": {
-    "ai-turn.display": "scrambled"
-  },
+  "settings": {},
   "weights": {
     "pronunciation": 1,
     "pronunciation/intelligibility": 1,
