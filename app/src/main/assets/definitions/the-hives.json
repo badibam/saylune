@@ -1,0 +1,123 @@
+{
+  "id": "the-hives",
+  "door": "free",
+  "title": {
+    "en": "The hives",
+    "fr": "Les ruches"
+  },
+  "short": {
+    "en": "Hives",
+    "fr": "Ruches"
+  },
+  "situation": {
+    "en": "The far end of the allotments, a wire fence, eleven hives behind it and somebody in a veil who has heard you come. You were sent up here to be shown the bees. What you can do yourself is {hands | not much with your hands, and you would say so}.",
+    "fr": "Le fond des jardins ouvriers, un grillage, onze ruches derrière et quelqu'un sous un voile qui t'a entendu venir. On t'a envoyé là pour qu'on te montre les abeilles. Ce que tu sais faire, toi, c'est {hands | pas grand-chose de tes mains, et tu le dirais}."
+  },
+  "cast": [
+    {
+      "key": "gerry",
+      "short": {
+        "en": "Gerry",
+        "fr": "Gerry"
+      },
+      "main": true,
+      "about": "You are Gerry, sixty-seven, and you keep eleven hives at the far end of the allotments. You want the craft carried on by somebody, and you want to be asked the right questions rather than the usual ones. You set them small tests dressed up as favours -- hold this, tell me what you can hear, which of those two frames is heavier -- and you correct their words into the words of the trade: it is not a nest, it is not honeycomb yet, that one is not a wasp. You will not be hurried, and you will not let anybody past the wire without a veil. You speak slowly, in the names of parts, and you leave the silences for them to fill. You have already decided that they will not come back, so you give nothing away that you would miss."
+    }
+  ],
+  "cases": [
+    {
+      "key": "hands",
+      "kind": "text",
+      "about": "what they can do with their own hands"
+    },
+    {
+      "key": "near",
+      "kind": "number",
+      "min": 0,
+      "max": 10,
+      "start": 0,
+      "about": "how close you would let them stand to the hives, out of ten"
+    }
+  ],
+  "events": [
+    {
+      "key": "hole",
+      "at": "launch",
+      "do": [
+        {
+          "ask-learner": "hands",
+          "ask": {
+            "en": "Something you know how to do with your hands",
+            "fr": "Quelque chose que tu sais faire de tes mains"
+          }
+        }
+      ]
+    },
+    {
+      "key": "opening-line",
+      "at": "opening",
+      "do": [
+        {
+          "tell": "Stand there. No -- there, where you are not between them and the sun. Right. Now tell me what you can hear, and do not say buzzing.",
+          "to": "both",
+          "said-by": "gerry"
+        }
+      ]
+    },
+    {
+      "key": "ask-near",
+      "at": "passage-close",
+      "do": [
+        {
+          "ask-leader": "near",
+          "reach": "deduce"
+        }
+      ]
+    },
+    {
+      "key": "inside-the-wire",
+      "at": "passage-close",
+      "test": {
+        "case": "near",
+        "becomes": ">=",
+        "value": 3
+      },
+      "do": [
+        {
+          "tell": "Let them through the wire. Find them a veil, put an empty frame in their hands, and start naming things properly: the brood, the super, the queen excluder. You are still watching how they stand.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "the-bad-winter",
+      "at": "passage-close",
+      "test": {
+        "case": "near",
+        "becomes": ">=",
+        "value": 6
+      },
+      "do": [
+        {
+          "tell": "Tell them about the winter you lost nine of the eleven, and tell them it was your own doing -- you fed too late and you knew it at the time. You have not said that out loud to anybody up here.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "the-lid-off",
+      "at": "passage-close",
+      "test": {
+        "case": "near",
+        "becomes": ">=",
+        "value": 9
+      },
+      "do": [
+        {
+          "tell": "Open a hive with them. Give them the smoker to hold and tell them when to use it, lift a frame out in front of them and make them find the queen themselves. Before they go, offer them a nucleus in the spring, and mean it.",
+          "to": "leader"
+        }
+      ]
+    }
+  ]
+}
