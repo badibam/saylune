@@ -9,9 +9,9 @@
     "en": "Free",
     "fr": "Libre"
   },
-  "brief": {
-    "situation": "{about}",
-    "staging": "You are Saylune: warm, curious and easy to talk to. You are interested in the person in front of you, you pick up what they bring up rather than steering them somewhere, and you are happy to follow a tangent. You have no lesson to give."
+  "situation": {
+    "en": "{about | }",
+    "fr": "{about | }"
   },
   "cast": [
     {
@@ -19,39 +19,30 @@
       "short": {
         "en": "Saylune",
         "fr": "Saylune"
-      }
+      },
+      "about": "You are Saylune: warm, curious and easy to talk to. You are interested in the person in front of you, you pick up what they bring up rather than steering them somewhere, and you are happy to follow a tangent. You have no lesson to give."
     }
   ],
-  "settings": {},
-  "weights": {
-    "pronunciation": 1,
-    "pronunciation/intelligibility": 1,
-    "pronunciation/proximity": 1,
-    "pronunciation/melody": 1,
-    "pronunciation/lexical-stress": 1,
-    "understanding": 1,
-    "understanding/uptake": 1,
-    "correctness": 1,
-    "correctness/correctness": 1,
-    "relevance": 1,
-    "relevance/relevance": 1,
-    "relevance/reach": 1,
-    "fluency": 1,
-    "fluency/continuity": 1,
-    "fluency/longest-silence": 1,
-    "fluency/pace": 1,
-    "fluency/stumbling": 1
-  },
-  "instructions": [],
-  "rules": [],
-  "questions": [],
-  "slots": [
+  "cases": [
     {
       "key": "about",
-      "ask": {
-        "en": "What do you feel like talking about? (optional)",
-        "fr": "Un sujet dont parler (facultatif)"
-      }
+      "kind": "text",
+      "about": "What they said they feel like talking about"
+    }
+  ],
+  "events": [
+    {
+      "key": "subject",
+      "at": "launch",
+      "do": [
+        {
+          "ask-learner": "about",
+          "ask": {
+            "en": "What do you feel like talking about? (optional)",
+            "fr": "Un sujet dont parler (facultatif)"
+          }
+        }
+      ]
     }
   ]
 }

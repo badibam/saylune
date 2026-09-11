@@ -43,17 +43,13 @@ data class ActivityRow(
      * here that a reader would have to follow to know how the sitting was set.
      */
     val settings: String,
-    /** What opens it. Null in a free conversation until the learner writes one. */
-    val brief: String?,
     /** What it looks at. Null while nothing weighs anything. */
     val weights: String?,
     /** Who speaks in it. Null on a sitting made before there were definitions. */
     val cast: String?,
-    /** The instructions in force at the start, by judged marking. */
-    val instructions: String,
-    /** What may change during it, and when. Empty until a definition declares any. */
-    val rules: String,
-    /** What a draw or the AI chose, in order. Without it the sitting stops recomputing. */
+    /** The scene file as it shipped, copied at the opening. Null before scenes were files. */
+    val scene: String?,
+    /** What the learner filled and chance drew, which nothing gives back. */
     val journal: String,
     /** Which definition it came from and at which version. Null for a free conversation. */
     val origin: String?,
@@ -229,7 +225,7 @@ interface ArchiveDao {
     fun passages(learner: String = "learner"): Flow<List<PassageCount>>
 }
 
-@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 14)
+@Database(entities = [ActivityRow::class, UtteranceRow::class], version = 15)
 abstract class Archive : RoomDatabase() {
 
     abstract fun dao(): ArchiveDao
@@ -710,6 +706,42 @@ abstract class Archive : RoomDatabase() {
             }
         }
 
+        /**
+         * The scene comes onto the line, and what the rules engine kept goes.
+         *
+         * A sitting now carries the scene file it was opened from, as it shipped, and the
+         * values nothing gives back -- what the learner filled, what chance drew. The brief,
+         * the instructions, the rules and their journal belonged to the engine this replaces.
+         *
+         * **The sittings already stored get no scene, and that is what is true of them**: they
+         * were played under the other engine, so they stay readable and no longer carry on.
+         * What the learner typed into a hole is in their turns, which nothing here touches.
+         *
+         * The table is rebuilt rather than altered: dropping a column arrived in SQLite 3.35
+         * and `minSdk` 26 ships 3.18.
+         */
+        private val SCENE_ON_THE_LINE = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE `activities_new` (`id` TEXT NOT NULL, " +
+                        "`settings` TEXT NOT NULL, `weights` TEXT, `cast` TEXT, `scene` TEXT, " +
+                        "`journal` TEXT NOT NULL, `origin` TEXT, `engine` INTEGER NOT NULL, " +
+                        "`status` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                        "`startedAt` INTEGER, `endedAt` INTEGER, `prescriber` TEXT NOT NULL, " +
+                        "`outcome_verdict` TEXT, `outcome_judge` TEXT, `outcome_at` INTEGER, " +
+                        "`outcome_score` INTEGER, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "INSERT INTO `activities_new` SELECT `id`, `settings`, `weights`, `cast`, " +
+                        "NULL, '[]', `origin`, `engine`, `status`, `createdAt`, `startedAt`, " +
+                        "`endedAt`, `prescriber`, `outcome_verdict`, `outcome_judge`, " +
+                        "`outcome_at`, `outcome_score` FROM `activities`",
+                )
+                db.execSQL("DROP TABLE `activities`")
+                db.execSQL("ALTER TABLE `activities_new` RENAME TO `activities`")
+            }
+        }
+
         @Volatile private var instance: Archive? = null
 
         fun of(context: Context): Archive = instance ?: synchronized(this) {
@@ -718,7 +750,7 @@ abstract class Archive : RoomDatabase() {
             ).addMigrations(DROP_FORMAT, JUDGED_MARKING, CAPTURE_FACTS, ACTIVITY_IN_SHAPE,
                     SPEAKER_IDENTITY, ATTEMPT_AND_ANSWER, KEYS_IN_ENGLISH, CAST_ON_THE_LINE,
                     NAMED_BY_ITS_DEFINITION, FIGURES_ON_THE_LINE, RECORDING_LENGTH,
-                    ESTABLISHED_ON_THE_TURN, UNREAD_TURN)
+                    ESTABLISHED_ON_THE_TURN, UNREAD_TURN, SCENE_ON_THE_LINE)
                 .build().also { instance = it }
         }
     }

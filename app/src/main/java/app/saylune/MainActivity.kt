@@ -29,6 +29,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.saylune.activity.Definitions
+import app.saylune.store.activity
 import app.saylune.activity.Door
 import app.saylune.activity.Status
 import app.saylune.analysis.Analyses
@@ -344,7 +345,7 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                     theme?.let {
                         SituationScreen(
                             theme = it,
-                            started = sitting?.let { row -> Sitting.readBrief(row.brief.orEmpty()) },
+                            started = sitting?.let { row -> row.activity().filled },
                             passages = counted[it.id] ?: 0,
                             showTriggers = stored[Secret.ShowTriggers] == SHOWN,
                             onStartOver = {
@@ -353,7 +354,11 @@ private fun Root(store: SecretStore, recorder: TurnRecorder, pipeline: TurnPipel
                             onCarryOn = {
                                 sitting?.let { row ->
                                     scope.launch {
-                                        pipeline.open(row.id)
+                                        // **A sitting played under another engine of scenes
+                                        // stays readable and does not carry on**, so what
+                                        // *carry on* opens then is a fresh one: the old is in
+                                        // the store and nothing rewrites it.
+                                        if (!pipeline.open(row.id)) pipeline.begin(it)
                                         stack.add(Screen.Conversation)
                                     }
                                 }

@@ -309,6 +309,10 @@
     <string name="notice_easier">Ça s’allège</string>
     <string name="notice_move">%1$s — %2$s</string>
     <string name="notice_of_sheet">%1$s — %2$s : %3$s</string>
+    <!-- An instruction falling, ceasing, and the one the characters are not told about. -->
+    <string name="notice_instruction_on">Nouvelle consigne : %1$s</string>
+    <string name="notice_instruction_off">%1$s — ce n’est plus demandé</string>
+    <string name="notice_instruction_hidden">Les personnages n’ont pas cette information</string>
     <string name="notes_pushed">Montrer le bilan du passage précédent lors de l&#8217;envoi d&#8217;un nouveau passage</string>
     <!-- La liste des conversations. -->
     <!-- Le cache des voix. -->

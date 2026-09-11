@@ -1,12 +1,10 @@
 package app.saylune.providers
 
-import app.saylune.activity.Answers
-import app.saylune.activity.Question
-import app.saylune.activity.Rung
-import app.saylune.activity.Text
+import app.saylune.chain.Asked
 import app.saylune.chain.ChainFailure
 import app.saylune.chain.Said
-import app.saylune.rules.Trigger
+import app.saylune.scene.Kind
+import app.saylune.scene.Reach
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -45,63 +43,78 @@ class ReplyReaderTest {
         }.exceptionOrNull() is ChainFailure)
     }
 
-    // ── The questions the app puts ──────────────────────────────────────────────────────
+    // ── The cases the app asks the leader for ───────────────────────────────────────────
 
-    private fun question(
+    private fun asked(
         key: String = "mood",
-        answers: Answers = Answers.Free,
-        rung: Rung = Rung.FromTheTalk,
-    ) = Question(key, "How did his talk go?", answers,
-                 moments = listOf(Trigger.Opening), rung = rung)
+        kind: Kind = Kind.Words,
+        reach: Reach = Reach.Said,
+    ) = Asked(key, "How his talk went", kind, reach)
 
-    private val yesNo = Answers.OneOf(listOf(
-        Text(mapOf("en" to "yes")), Text(mapOf("en" to "no")),
-    ))
+    private val yesNo = Kind.Choice(listOf("yes", "no"))
 
-    @Test fun `an answer to a question the app put comes back under its key`() {
+    @Test fun `what the leader wrote comes back under the key it was asked for`() {
         val reply = ReplyReader.read(
             answer(extra = ""","established": {"mood": "His room was half empty."}"""),
             "i go there yesterday",
-            asking = listOf(question()),
+            asking = listOf(asked()),
         )
         assertEquals(mapOf("mood" to "His room was half empty."), reply.established)
     }
 
     /**
-     * **The presence of an answer is checked and its content is not.** That is the whole of
-     * what serving the question buys: the app chose the moment, so a missing answer is the
-     * contract broken and not a model that had nothing to say.
+     * **The presence of an answer is checked and its content is not**, save that the case must
+     * be able to hold it: the app chose the moment, so a missing answer is the contract broken
+     * and not a model that had nothing to say.
      */
-    @Test fun `a question put and not answered is the contract broken`() {
+    @Test fun `a case asked for and not written is the contract broken`() {
         assertTrue(runCatching {
-            ReplyReader.read(answer(), "x", asking = listOf(question()))
+            ReplyReader.read(answer(), "x", asking = listOf(asked()))
         }.exceptionOrNull() is ChainFailure)
     }
 
-    /** A closed shape is checked by membership, on the English that went out. */
-    @Test fun `an answer outside the options offered is refused`() {
+    /** A list is checked by membership, on the values that went out. */
+    @Test fun `a value the case cannot hold is refused`() {
         assertTrue(runCatching {
             ReplyReader.read(
                 answer(extra = ""","established": {"safe": "maybe"}"""),
-                "x", asking = listOf(question("safe", yesNo)),
+                "x", asking = listOf(asked("safe", yesNo)),
             )
         }.exceptionOrNull() is ChainFailure)
     }
 
-    /**
-     * *It does not know* is a member at the first rung and at that one alone -- said rather
-     * than left out, a missing field being indistinguishable from a model that forgot.
-     */
-    @Test fun `it does not know is an option at the first rung and nowhere else`() {
-        val said = ""","established": {"safe": "${Question.DONT_KNOW}"}"""
+    /** A number outside its bounds is one the case cannot hold either. */
+    @Test fun `a number outside the bounds of its case is refused`() {
+        assertTrue(runCatching {
+            ReplyReader.read(
+                answer(extra = ""","established": {"glasses": "14"}"""),
+                "x", asking = listOf(asked("glasses", Kind.Number(0.0, 10.0), Reach.Deduce)),
+            )
+        }.exceptionOrNull() is ChainFailure)
         assertEquals(
-            mapOf("safe" to Question.DONT_KNOW),
+            mapOf("glasses" to "4"),
+            ReplyReader.read(
+                answer(extra = ""","established": {"glasses": "4"}"""),
+                "x", asking = listOf(asked("glasses", Kind.Number(0.0, 10.0), Reach.Deduce)),
+            ).established,
+        )
+    }
+
+    /**
+     * *It does not know* is a value at the first step of the reach and at that one alone --
+     * said rather than left out, a missing field being indistinguishable from a model that
+     * forgot -- and it leaves the case as it was.
+     */
+    @Test fun `it does not know is an answer at the first step and nowhere else`() {
+        val said = ""","established": {"safe": "${Asked.DONT_KNOW}"}"""
+        assertEquals(
+            mapOf("safe" to Asked.DONT_KNOW),
             ReplyReader.read(answer(extra = said), "x",
-                             asking = listOf(question("safe", yesNo))).established,
+                             asking = listOf(asked("safe", yesNo))).established,
         )
         assertTrue(runCatching {
             ReplyReader.read(answer(extra = said), "x",
-                             asking = listOf(question("safe", yesNo, Rung.MayInvent)))
+                             asking = listOf(asked("safe", yesNo, Reach.Invent)))
         }.exceptionOrNull() is ChainFailure)
     }
 
@@ -123,11 +136,8 @@ class ReplyReaderTest {
     }
 
     /**
-     * The echo is the opening of the reply, and the one who speaks decides there is one.
-     *
-     * It used to be tied to a span it had marked a moment earlier; with the marking gone to
-     * the other call, what makes it appear is the slip itself. What keeps the two from
-     * drifting apart is on the judge's side, which is shown this line.
+     * The echo is the opening of the reply, and the one who speaks decides there is one. What
+     * keeps the two from drifting apart is on the judge's side, which is shown this line.
      */
     @Test fun `an echo comes back as the opening of the reply`() {
         val reply = ReplyReader.read(

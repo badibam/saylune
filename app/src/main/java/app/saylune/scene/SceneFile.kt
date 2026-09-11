@@ -46,9 +46,19 @@ data class SceneFile(
     /** The questions as they were written, which the pipeline reads to put and to put again. */
     val questions: List<Question>,
     val cautions: List<Caution>,
+    /**
+     * The file as it shipped, which a sitting copies onto its own line: a scene is a template
+     * applied at creation, so a release that changes or retires the file rewrites nothing.
+     */
+    val source: String,
 ) {
     /** The one the tile shows, or null where nobody stands out. */
     val face: Role? get() = cast.firstOrNull { it.main }
+
+    /** The holes the learner fills before it starts, in the order the file asks them. */
+    val holes: List<Effect.AskLearner> get() = events
+        .filter { it.at == Moment.Launch }
+        .flatMap { it.effects.filterIsInstance<Effect.AskLearner>() }
 }
 
 /**
@@ -158,6 +168,7 @@ object SceneFiles {
             cautions = file.optJSONArray("cautions")?.let { declaredCautions ->
                 (0 until declaredCautions.length()).map { Caution.of(declaredCautions.getString(it)) }
             } ?: emptyList(),
+            source = json,
         ).also { check(it, declaredWeights = weights != null) }
     }
 
@@ -564,6 +575,10 @@ object SceneFiles {
                     is Effect.AskLearner -> {
                         if (event.at != Moment.Launch) say("$where: the learner is asked at the launch only")
                         if (family(effect.case) != Family.File) say("$where: the learner fills cases of the file alone")
+                        // He types words, so the case he fills holds words.
+                        if (kind(effect.case).let { it != null && it !is Kind.Words }) {
+                            say("$where: the learner fills ${effect.case}, which does not hold words")
+                        }
                     }
                     is Effect.Finish, is Effect.Lift, is Effect.Pose, is Effect.Release, is Effect.Reask -> Unit
                 }

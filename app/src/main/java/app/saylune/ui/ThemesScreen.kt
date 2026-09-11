@@ -19,27 +19,25 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import app.saylune.R
-import app.saylune.activity.Definition
+import app.saylune.scene.SceneFile
 import app.saylune.ui.theme.Saylune
 import java.util.Locale
 
 /**
- * The free door: **one tile per theme the app ships**, and the themeless one first.
+ * The free door: **one tile per scene the app ships**, and the themeless one first.
  *
- * **A surface of fixed size, which is what separates it from a catalogue** (`ui.md`): the
- * tiles are the definitions delivered, so how many there are is decided by the app and never
- * by use. One keeps several conversations alive without having a list to administer, and the
- * list of sittings this replaces -- one row per sitting, growing forever -- is gone with the
- * proof of concept it came from.
+ * **A surface of fixed size, which is what separates it from a catalogue** (`ui.md`): the tiles
+ * are the files delivered, so how many there are is decided by the app and never by use. One
+ * keeps several conversations alive without having a list to administer.
  *
- * **The first is full width and the rest are half.** The themeless conversation is always
- * shown first and is not one theme among others: it is the one place where the learner brings
- * the situation himself, so it is given the width rather than a rank.
+ * **The first is full width and the rest are half.** The themeless conversation is always shown
+ * first and is not one theme among others: it is the one place where the learner brings the
+ * situation himself, so it is given the width rather than a rank.
  *
- * **A tile carries a name, a face and a count.** The name is the theme, declared in its file;
+ * **A tile carries a name, a face and a count.** The name is the scene's, declared in its file;
  * the face is the character the file flags as the main one, because one meets somebody rather
  * than launching a subject (`../../../../../../NOTES.md`); and the count is how many passages
- * the sitting behind it holds -- a count of rows, so nothing is stored for it. A theme nobody
+ * the sitting behind it holds -- a count of rows, so nothing is stored for it. A scene nobody
  * has opened shows no count rather than a zero: what it says is *not started*, and a zero says
  * *started and empty*.
  *
@@ -48,11 +46,11 @@ import java.util.Locale
  */
 @Composable
 fun ThemesScreen(
-    /** Every definition the app ships, the free conversation included. */
-    themes: List<Definition>,
-    /** How many passages each theme's sitting holds, by definition id. Absent for unopened. */
+    /** Every scene the app ships behind this door, the free conversation included. */
+    themes: List<SceneFile>,
+    /** How many passages each scene's sitting holds, by id. Absent for unopened. */
     passages: Map<String, Int>,
-    onOpen: (Definition) -> Unit,
+    onOpen: (SceneFile) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val grid = Saylune.grid
@@ -89,9 +87,9 @@ fun ThemesScreen(
     }
 }
 
-/** One theme: what it is called, who one meets there, and how far one got. */
+/** One scene: what it is called, who one meets there, and how far one got. */
 @Composable
-private fun Theme(theme: Definition, passages: Int?, modifier: Modifier, onOpen: () -> Unit) {
+private fun Theme(theme: SceneFile, passages: Int?, modifier: Modifier, onOpen: () -> Unit) {
     val grid = Saylune.grid
     val palette = Saylune.palette
     val type = Saylune.type
@@ -132,7 +130,7 @@ private fun Theme(theme: Definition, passages: Int?, modifier: Modifier, onOpen:
     }
 }
 
-/** The definition with no theme, which is delivered like any other and shown first. */
+/** The scene with no theme, which is delivered like any other and shown first. */
 private const val FREE = "free-conversation"
 
 /** Two to a line, which is what half a portrait width is. */

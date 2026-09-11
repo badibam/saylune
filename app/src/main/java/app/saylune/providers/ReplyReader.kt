@@ -1,8 +1,6 @@
 package app.saylune.providers
 
-import app.saylune.activity.Answers
-import app.saylune.activity.Question
-import app.saylune.activity.Rung
+import app.saylune.chain.Asked
 import app.saylune.chain.ChainFailure
 import app.saylune.chain.Reply
 import app.saylune.chain.Said
@@ -13,6 +11,9 @@ import app.saylune.judged.Marked
 import app.saylune.judged.Span
 import app.saylune.judged.Unreadable
 import app.saylune.judged.unfold
+import app.saylune.scene.Kind
+import app.saylune.scene.Reach
+import app.saylune.scene.Value
 import app.saylune.sheets.Reading
 import app.saylune.sheets.Sheets
 import org.json.JSONArray
@@ -42,7 +43,7 @@ internal object ReplyReader {
         content: String,
         transcript: String,
         provoked: Boolean = false,
-        asking: List<Question> = emptyList(),
+        asking: List<Asked> = emptyList(),
     ): Reply {
         val parsed = parsed(content)
 
@@ -142,34 +143,43 @@ internal object ReplyReader {
      * model says instead of leaving a field out, a gap behind a silence being unreadable.
      */
     private fun established(
-        parsed: JSONObject, asking: List<Question>, content: String,
+        parsed: JSONObject, asking: List<Asked>, content: String,
     ): Map<String, String> {
         if (asking.isEmpty()) return emptyMap()
         val settled = parsed.optJSONObject("established")
-        return asking.associate { question ->
-            val answer = settled?.optString(question.key).orEmpty().trim()
+        return asking.associate { case ->
+            val answer = settled?.optString(case.key).orEmpty().trim()
             if (answer.isBlank()) {
-                Trace.fail("conversation: a question was put and not answered",
-                           "question" to question.key, "content" to content)
-                throw ChainFailure("the model left \"${question.key}\" unanswered")
+                Trace.fail("conversation: a case was asked for and not written",
+                           "case" to case.key, "content" to content)
+                throw ChainFailure("the model left \"${case.key}\" unanswered")
             }
-            val among = question.answers as? Answers.OneOf
-            if (among != null && answer !in allowed(among, question)) {
-                Trace.fail("conversation: an answer outside the options offered",
-                           "question" to question.key, "answered" to answer,
-                           "content" to content)
+            if (!holds(case, answer)) {
+                Trace.fail("conversation: a value the case cannot hold",
+                           "case" to case.key, "answered" to answer, "content" to content)
                 throw ChainFailure(
-                    "the model answered \"$answer\" to \"${question.key}\", " +
-                        "which is not one of its options",
+                    "the model answered \"$answer\" for \"${case.key}\", which cannot hold it",
                 )
             }
-            question.key to answer
+            case.key to answer
         }
     }
 
-    private fun allowed(among: Answers.OneOf, question: Question): List<String> =
-        among.keys + if (question.rung == Rung.FromTheTalk) listOf(Question.DONT_KNOW)
-        else emptyList()
+    /**
+     * Whether [answer] is a value [case] can hold.
+     *
+     * *It does not know* is a value at the first step of the reach and at that one alone: it is
+     * what the model says instead of leaving a field out, a gap behind a silence being
+     * unreadable, and the case is left as it was.
+     */
+    private fun holds(case: Asked, answer: String): Boolean = when {
+        answer == Asked.DONT_KNOW -> case.reach == Reach.Said
+        case.kind is Kind.Flag -> answer == "true" || answer == "false"
+        case.kind is Kind.Number ->
+            answer.toDoubleOrNull()?.let { (case.kind as Kind.Number).holds(Value.Num(it)) } ?: false
+        case.kind is Kind.Choice -> answer in (case.kind as Kind.Choice).among
+        else -> true
+    }
 }
 
 /**

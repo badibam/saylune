@@ -1,150 +1,103 @@
 package app.saylune.activity
 
 import app.saylune.conversation.Speaker
-import app.saylune.rules.Effect
-import app.saylune.rules.Trigger
+import app.saylune.scene.SceneFiles
+import app.saylune.scene.Value
 import app.saylune.sheets.Branch
 import app.saylune.sheets.Sheet
 import app.saylune.sheets.Sheets
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The shipped files are read here as files, off the same folder the app packs.
+ * The shipped scenes are read here as files, off the same folder the app packs.
  *
- * What is proved is that a definition holds together and that the reader is the store's own --
- * not the contents of any one scene, which is material.
+ * What is proved is that a scene holds together and that a sitting takes from it what it keeps
+ * -- not the contents of any one scene, which is material.
  */
 class DefinitionTest {
 
     private val folder = File("src/main/assets/definitions")
 
-    private fun shipped(id: String) =
-        Definitions.parse(id, VERSION, File(folder, "$id.json").readText())
-
-    // ── The files the app ships ─────────────────────────────────────────────────────────
+    private fun shipped(id: String) = Shipped.definition(id)
 
     @Test
-    fun `every shipped definition reads`() {
+    fun `every shipped scene reads`() {
         val files = folder.listFiles { file -> file.extension == "json" }.orEmpty()
-        assertTrue("no definition is shipped at all", files.isNotEmpty())
+        assertTrue("no scene is shipped at all", files.isNotEmpty())
         files.forEach { file -> shipped(file.nameWithoutExtension) }
     }
 
     /**
-     * The free conversation is a delivered definition like any other, which is what takes away
-     * a *default* that would have had to be wired somewhere else.
+     * The free conversation is a shipped scene like any other, which is what takes away a
+     * *default* that would have had to be wired somewhere else: it sets no lever, so every one
+     * of them answers with the catalogue's own.
      */
     @Test
-    fun `the free conversation is one of them, and leaves every lever where the catalogue puts it`() {
+    fun `the free conversation leaves every lever where the catalogue puts it`() {
         val free = shipped(Definitions.FREE_CONVERSATION)
-        assertEquals(emptyMap<String, Any>(), free.settings.all())
-        // The two halves of the brief come from two places here: the file declares who the
-        // character is, the learner writes what to talk about -- and its situation is that
-        // hole and nothing else, so leaving it blank gives back the themeless conversation.
-        assertTrue(free.brief!!.staging.isNotBlank())
-        assertEquals(listOf("about"), free.slots.map { it.key })
-        assertEquals("{about}", free.brief!!.situation)
+        assertEquals(emptyMap<String, Any>(), free.levers.all())
         assertEquals(listOf(Speaker.SAYLUNE), free.cast.map { it.key })
         // Nobody is met in a free conversation: the tile is identified by its place.
-        assertEquals(null, free.face)
+        assertNull(free.face)
+        assertTrue(free.cast.single().about.isNotBlank())
     }
 
     /**
-     * What a hole is worth: **one answer, both sides of the brief**.
-     *
-     * The situation and the staging are written apart and would drift on the first run if two
-     * answers filled them -- a talk on neurophysics and one on gender theory do not make the
-     * same speaker. Written here rather than read off a shipped scene: none of them puts the
-     * hole on both sides today, and the property is the reader's and not any one file's.
+     * **Its situation is the hole and nothing else**, so leaving it blank gives back the
+     * themeless conversation rather than a sentence about an empty subject.
      */
     @Test
-    fun `an answer fills the same hole on both sides of the brief`() {
-        val scene = Definitions.parse(
-            "some-scene", VERSION,
-            minimal(
-                """"brief": { "situation": "A talk on {subject} has just ended.",
-                              "staging": "You have just given a talk on {subject}." },
-                   "slots": [{ "key": "subject", "ask": { "en": "About what?" } }],""",
-            ),
-        )
-        val sitting = Activity.from(scene, mapOf("subject" to "quantum computing"))
-        assertTrue(sitting.brief!!.situation.contains("A talk on quantum computing"))
-        assertTrue(sitting.brief!!.staging.contains("a talk on quantum computing"))
-        assertTrue("{subject}" !in sitting.brief!!.situation + sitting.brief!!.staging)
+    fun `the free conversation's situation is what the learner typed, or nothing`() {
+        val free = shipped(Definitions.FREE_CONVERSATION)
+        assertEquals(listOf("about"), free.holes.map { it.case })
+        val said = free.situation.inLanguage(Text.BASE)
+        assertEquals("cats", SceneFiles.cite(said) { Value.Words("cats") }.trim())
+        assertEquals("", SceneFiles.cite(said) { null }.trim())
     }
 
     /**
      * The gender: chosen where the file leaves it open, drawn where nobody chose, and told to
-     * the character rather than to the learner.
+     * the character in its own description, which the learner never reads.
      */
     @Test
     fun `the main character takes the gender chosen, and one is drawn when none is`() {
-        val scene = shipped("the-statement")
+        val scene = SceneFiles.parse(
+            "the-platform", "test",
+            File("src/testDebug/resources/scenes/the-platform.json").readText(),
+        )
         assertEquals(true, scene.face?.main)
-        assertEquals(null, scene.face?.gender)
+        assertNull(scene.face?.gender)
 
         val chosen = Activity.from(scene, gender = "woman")
-        assertEquals("woman", chosen.cast.single { it.main }.gender)
-        assertTrue(chosen.brief!!.staging.endsWith("You are a woman."))
-        // The situation is what the learner reads and he has just answered it: nothing of the
-        // gender goes there.
-        assertTrue("woman" !in chosen.brief!!.situation)
+        val main = chosen.cast.single { it.main }
+        assertEquals("woman", main.gender)
+        assertTrue(main.about.endsWith("You are a woman."))
 
         val drawn = Activity.from(scene).cast.single { it.main }.gender
         assertTrue(drawn in Activity.GENDERS)
     }
 
     /**
-     * **Nothing behind the Free door ever ends**, having no ending rule, so the coda never
-     * opens and a question waiting on the closing would never be put at all. It is the one
-     * trap of writing scenes for that door, so it is checked rather than remembered.
+     * What a hole is worth: **one answer, on the sitting's line**, cited wherever the scene
+     * names it. Written apart, a situation and a description would drift on the first run.
      */
     @Test
-    fun `no scene of the free door waits on a closing that never comes`() {
-        folder.listFiles { file -> file.extension == "json" }.orEmpty()
-            .map { shipped(it.nameWithoutExtension) }
-            .filter { it.door == Door.Free }
-            .forEach { scene ->
-                scene.questions.forEach { question ->
-                    assertTrue(
-                        "${scene.id}/${question.key} waits on the closing",
-                        question.moments.none { it == Trigger.Closing },
-                    )
-                }
-            }
-    }
-
-    /**
-     * A scene opens on a line of its character, which is what makes the opening call happen at
-     * all -- and so what lets a question of the opening be put before anybody has spoken.
-     */
-    @Test
-    fun `every scene but the plain one opens on a line of its own`() {
-        folder.listFiles { file -> file.extension == "json" }.orEmpty()
-            .map { shipped(it.nameWithoutExtension) }
-            .filter { it.id != Definitions.FREE_CONVERSATION }
-            .forEach { scene ->
-                val opens = scene.rules.filter { it.whenever == Trigger.Opening }
-                assertTrue("${scene.id} opens on nothing", opens.isNotEmpty())
-                assertTrue(
-                    "${scene.id} opens without asking for a turn",
-                    opens.any { rule ->
-                        rule.choice.any { pack ->
-                            pack.effects.any { it is Effect.Message && it.now }
-                        }
-                    },
-                )
-            }
+    fun `what the learner fills is kept on the sitting, by case`() {
+        val sitting = Activity.from(Shipped.free(), mapOf("about" to " cats "))
+        assertEquals(mapOf("about" to "cats"), sitting.filled)
+        // A blank answer is left out, the case staying empty rather than holding nothing.
+        assertEquals(emptyMap<String, String>(), Activity.from(Shipped.free(), mapOf("about" to " ")).filled)
     }
 
     /**
      * What the weights of the free conversation say: **it looks at everything, and every
-     * aptitude counts the same**. A weight being a share among siblings, writing 1 across the
-     * tree is what says it.
+     * aptitude counts the same**. A weight being a share among siblings, 1 across the tree is
+     * what says it -- and behind the free door the app puts it there, a file declaring none.
      */
     @Test
     fun `the free conversation gives every aptitude the same say`() {
@@ -155,114 +108,6 @@ class DefinitionTest {
                 .map { weights.of(it) }
                 .sum()
             assertEquals(branch.name, 1f / Sheets.tree.children.size, share, 1e-5f)
-        }
-    }
-
-    // ── What a definition will not hold ─────────────────────────────────────────────────
-
-    @Test
-    fun `a file that calls itself something else fails`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            Definitions.parse("elsewhere", VERSION, minimal())
-        }
-    }
-
-    @Test
-    fun `a character may not take the learner's key`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            Definitions.parse(
-                "some-scene", VERSION,
-                minimal(
-                    """"cast": [{ "key": "${Speaker.LEARNER}",
-                        "short": { "en": "You" } }],""",
-                ),
-            )
-        }
-    }
-
-    /** Two names, two budgets: only the short one answers to the status line's ten columns. */
-    @Test
-    fun `a short name over what the status line leaves fails`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            Definitions.parse(
-                "some-scene", VERSION,
-                minimal().replace(
-                    """"short": { "en": "Scene" }""",
-                    """"short": { "en": "A far longer name" }""",
-                ),
-            )
-        }
-    }
-
-    /** The long one has no ceiling: a tile has room a status line does not. */
-    @Test
-    fun `a long name is not held to the short one's line`() {
-        val long = Definitions.parse(
-            "some-scene", VERSION,
-            minimal().replace(""""title": { "en": "Scene" }""", """"title": { "en": "A far longer name" }"""),
-        )
-        assertEquals("A far longer name", long.title.inLanguage("en"))
-    }
-
-    /** A shape of answer this build does not know fails outright rather than being dropped. */
-    @Test
-    fun `an unknown shape of answer fails`() {
-        assertThrows(IllegalStateException::class.java) {
-            Definitions.parse(
-                "some-scene", VERSION,
-                minimal(
-                    """"questions": [{ "key": "k", "ask": "did he?", "answers": "a-number",
-                        "when": [{ "kind": "closing", "moment": "Closing" }] }],""",
-                ),
-            )
-        }
-    }
-
-    /**
-     * A question reads back whole: its moments are triggers like a rule's, and its rung says
-     * how far the model may go.
-     */
-    @Test
-    fun `a question carries its moments and its rung`() {
-        val scene = Definitions.parse(
-            "some-scene", VERSION,
-            minimal(
-                """"questions": [{ "key": "safe", "ask": "Is the queen safe?",
-                    "answers": "one-of",
-                    "among": [{ "en": "yes" }, { "en": "no", "fr": "non" }],
-                    "rung": "may-extrapolate", "shown": true,
-                    "when": [{ "kind": "passages", "moment": "PassageClosed",
-                               "at": null, "every": 5 }] }],""",
-            ),
-        )
-        val question = scene.questions.single()
-        assertEquals(listOf("yes", "no"), (question.answers as Answers.OneOf).keys)
-        assertEquals("non", (question.answers as Answers.OneOf).among[1].inLanguage("fr"))
-        assertEquals(Rung.MayExtrapolate, question.rung)
-        assertEquals(true, question.shown)
-        assertEquals(listOf(Trigger.Passages(every = 5)), question.moments)
-    }
-
-    // ── The door ────────────────────────────────────────────────────────────────────────
-
-    /**
-     * Every shipped file says where it is offered. It is read by the screens alone, and a file
-     * that does not say it is a file nobody can place.
-     */
-    @Test
-    fun `every shipped definition declares a door`() {
-        folder.listFiles { file -> file.extension == "json" }.orEmpty().forEach { file ->
-            assertTrue(shipped(file.nameWithoutExtension).door in Door.entries)
-        }
-    }
-
-    @Test
-    fun `a door this build does not know fails`() {
-        assertThrows(IllegalStateException::class.java) {
-            Definitions.parse(
-                "some-scene", VERSION,
-                minimal().replace(""""door": "free"""", """"door": "the-cellar""""),
-            )
         }
     }
 
@@ -278,26 +123,5 @@ class DefinitionTest {
     @Test
     fun `a text with no English at all fails`() {
         assertThrows(IllegalArgumentException::class.java) { Text(mapOf("fr" to "Libre")) }
-    }
-
-    /** The whole tree is weighed, so [minimal] can stand in for any scene. */
-    private fun minimal(extra: String = "") = """
-        {
-          "id": "some-scene",
-          "title": { "en": "Scene" },
-          "short": { "en": "Scene" },
-          "door": "free",
-          $extra
-          "weights": { ${
-        Sheets.tree.children.joinToString(",") { branch ->
-            (listOf(branch) + (branch as Branch).children)
-                .joinToString(",") { """"${Sheets.pathOf(it)}": 1""" }
-        }
-    } }
-        }
-    """.trimIndent()
-
-    private companion object {
-        const val VERSION = "0.1.0"
     }
 }

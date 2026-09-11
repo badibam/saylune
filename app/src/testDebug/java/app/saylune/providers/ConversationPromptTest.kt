@@ -1,14 +1,12 @@
 package app.saylune.providers
 
-import app.saylune.activity.Answers
-import app.saylune.activity.Brief
-import app.saylune.activity.Character
 import app.saylune.activity.Text
-import app.saylune.activity.Question
-import app.saylune.activity.Rung
+import app.saylune.chain.Asked
 import app.saylune.chain.Present
 import app.saylune.chain.Scene
-import app.saylune.rules.Trigger
+import app.saylune.scene.Kind
+import app.saylune.scene.Reach
+import app.saylune.scene.Role
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -20,14 +18,17 @@ import org.junit.Test
  */
 class ConversationPromptTest {
 
-    private val staging = "You are Vera, and you are bored of this job."
+    private val about = "You are Vera, and you are bored of this job."
+
+    private fun role(key: String, about: String = "About $key.") =
+        Role(key, Text(mapOf("en" to key)), about)
 
     // ── Part 1 holds no character ───────────────────────────────────────────────────────
 
     /**
      * The permanent part is what every activity shares, so a trait of character in it would
-     * govern the hostile bouncer as much as the warm partner, and no definition could get out
-     * from under it. Who is speaking comes from the definition.
+     * govern the hostile bouncer as much as the warm partner, and no scene could get out from
+     * under it. Who is speaking comes from the file.
      */
     @Test
     fun `the permanent part carries no persona`() {
@@ -45,8 +46,7 @@ class ConversationPromptTest {
     /**
      * **A turn nobody prompted names only fields the contract declares.** The field of the
      * turn was renamed and this instruction kept the old name, so every turn the character
-     * took of its own accord was written under a key the reader does not know -- and the
-     * sitting gave way on a reply that was there.
+     * took of its own accord was written under a key the reader does not know.
      */
     @Test
     fun `the provoked turn names only declared fields`() {
@@ -60,28 +60,32 @@ class ConversationPromptTest {
 
     // ── Part 2 is the scene ─────────────────────────────────────────────────────────────
 
+    /** A description belongs to whoever it describes, and it goes out with them. */
     @Test
-    fun `the staging reaches the model`() {
-        assertTrue(ConversationPrompt.activity(Scene(brief = Brief("", staging))).contains(staging))
+    fun `a character's description reaches the model`() {
+        assertTrue(ConversationPrompt.activity(Scene(cast = listOf(role("vera", about))))
+                       .contains(about))
     }
 
     /**
-     * **The situation is shown and the staging is not**, and the two travel together here
-     * because part 2 is the only reader that gets both. What keeps the staging off a screen is
-     * elsewhere; what this holds is that neither is dropped on the way to the model.
+     * **The situation is shown and the description is not**, and the two travel together here
+     * because part 2 is the only reader that gets both. What keeps the description off a screen
+     * is elsewhere; what this holds is that neither is dropped on the way to the model.
      */
     @Test
-    fun `both halves of the brief reach the model`() {
-        val part = ConversationPrompt.activity(Scene(brief = Brief("A hotel desk, late", staging)))
+    fun `the situation and the description both reach the model`() {
+        val part = ConversationPrompt.activity(
+            Scene(situation = "A hotel desk, late", cast = listOf(role("vera", about))),
+        )
         assertTrue(part.contains("A hotel desk, late"))
-        assertTrue(part.contains(staging))
+        assertTrue(part.contains(about))
     }
 
     /** Naming the one voice a free conversation has would say nothing it could use. */
     @Test
     fun `who is speaking is only asked for where there are several`() {
-        val alone = Scene(cast = listOf(character("saylune")))
-        val several = Scene(cast = listOf(character("vera"), character("barman")))
+        val alone = Scene(cast = listOf(role("saylune")))
+        val several = Scene(cast = listOf(role("vera"), role("barman")))
         assertFalse(ConversationPrompt.activity(alone).contains("Say who is speaking"))
         assertTrue(ConversationPrompt.activity(several).contains("Say who is speaking"))
     }
@@ -99,37 +103,44 @@ class ConversationPromptTest {
         assertTrue(ConversationPrompt.SPEAKING.contains("carries no instruction of its own"))
     }
 
-    // ── The questions the app puts ──────────────────────────────────────────────────────
+    // ── The cases the app asks the leader for ───────────────────────────────────────────
 
     /**
-     * A question is put in part 4, which is rebuilt every turn, because that is what it is:
-     * put at one moment and at no other. Its shape and its rung go with it rather than being
-     * declared once, a sitting mixing questions of different rungs.
+     * A case is asked for in part 4, which is rebuilt every turn, because that is what it is:
+     * asked at one moment and at no other. What it holds and how far the leader may go go with
+     * it rather than being declared once, a sitting mixing cases of every kind.
      */
     @Test
-    fun `a question is put with its shape and its rung`() {
+    fun `a case is asked for with what it holds and how far the leader may go`() {
         val put = ConversationPrompt.present(Present(asking = listOf(
-            Question("mood", "How did his talk go?", Answers.Free,
-                     moments = listOf(Trigger.Opening), rung = Rung.MayInvent),
+            Asked("mood", "How his talk went", Kind.Words, Reach.Invent),
         )))
         assertTrue(put.contains("\"mood\""))
-        assertTrue(put.contains("How did his talk go?"))
+        assertTrue(put.contains("How his talk went"))
         assertTrue(put.contains("Answer in prose"))
-        // The staircase: the floor is repeated at every rung, or invention overrules truth.
+        // The staircase: the floor is repeated at every step, or invention overrules truth.
         assertTrue(put.contains("Answer from what has been said."))
         assertTrue(put.contains("decide."))
     }
 
-    /** *It does not know* is in the menu at the first rung and at that one alone. */
+    /** *It does not know* is in the menu at the first step and at that one alone. */
     @Test
-    fun `it does not know is offered at the first rung only`() {
-        fun put(rung: Rung) = ConversationPrompt.present(Present(asking = listOf(
-            Question("safe", "Is the queen safe?",
-                     Answers.OneOf(listOf(Text(mapOf("en" to "yes")), Text(mapOf("en" to "no")))),
-                     moments = listOf(Trigger.Closing), rung = rung),
+    fun `it does not know is offered at the first step only`() {
+        fun put(reach: Reach) = ConversationPrompt.present(Present(asking = listOf(
+            Asked("safe", "Whether the queen is safe", Kind.Choice(listOf("yes", "no")), reach),
         )))
-        assertTrue(put(Rung.FromTheTalk).contains(Question.DONT_KNOW))
-        assertFalse(put(Rung.MayExtrapolate).contains(Question.DONT_KNOW))
+        assertTrue(put(Reach.Said).contains(Asked.DONT_KNOW))
+        assertFalse(put(Reach.Deduce).contains(Asked.DONT_KNOW))
+    }
+
+    /** A number says its bounds, which is what makes an answer outside them refusable. */
+    @Test
+    fun `a number is asked for with its bounds`() {
+        val put = ConversationPrompt.present(Present(asking = listOf(
+            Asked("glasses", "How many glasses he has poured", Kind.Number(0.0, 10.0), Reach.Deduce),
+        )))
+        assertTrue(put.contains("0 at the least"))
+        assertTrue(put.contains("10 at the most"))
     }
 
     /**
@@ -147,11 +158,9 @@ class ConversationPromptTest {
     }
 
     /**
-     * The echo is the opening of the utterance, so it is written before what follows it.
-     *
-     * The contract holds that each field written conditions the next, and these two are one
-     * utterance cut in two: asked for the continuation first, the model has to write an
-     * opening for a sentence it has already finished.
+     * The echo is the opening of the utterance, so it is written before what follows it: asked
+     * for the continuation first, the model has to write an opening for a sentence it has
+     * already finished.
      */
     @Test
     fun `the echo is written before the continuation it opens`() {
@@ -164,17 +173,16 @@ class ConversationPromptTest {
     // ── The judge plays nobody ──────────────────────────────────────────────────────────
 
     /**
-     * **What the split closes, and it closes by construction.** The staging addresses the
+     * **What the split closes, and it closes by construction.** The description addresses the
      * character alone and used to ride in the judge's context, held at arm's length by a
      * sentence of prose that nothing checked; the same went for what the learner asked to be
-     * steered around. Neither has a parameter to travel on now -- `judging` takes the
-     * situation and nothing else -- so this checks the head that is actually assembled.
+     * steered around. Neither has a parameter to travel on now.
      */
     @Test
     fun `the judge is given the situation and nothing else of the scene`() {
         val head = ConversationPrompt.judging("A hotel desk, late")
         assertTrue(head.contains("A hotel desk, late"))
-        assertFalse(head.contains(staging))
+        assertFalse(head.contains(about))
         assertFalse(head.contains("Vera"))
     }
 
@@ -218,6 +226,4 @@ class ConversationPromptTest {
         )
         assertFalse(message.contains("passage 6"))
     }
-
-    private fun character(key: String) = Character(key, Text(mapOf("en" to key)))
 }

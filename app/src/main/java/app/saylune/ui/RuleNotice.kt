@@ -19,7 +19,7 @@ import app.saylune.levers.Move
 import app.saylune.levers.Numeric
 import app.saylune.levers.Position
 import app.saylune.levers.Stepped
-import app.saylune.rules.Notice
+import app.saylune.scene.Notice
 import app.saylune.levers.Levers
 import app.saylune.sheets.Sheets
 import app.saylune.ui.theme.Saylune
@@ -91,11 +91,35 @@ fun readingMs(lines: List<String>): Long =
 private const val NOTICE_FLOOR_MS = 3_000L
 private const val NOTICE_PER_CHARACTER_MS = 60L
 
-/** Every line of the notice: the staging, then what moved. */
+/**
+ * Every line of the notice: what an event has to say, then what it moved, then the
+ * instructions that have just fallen or ceased.
+ *
+ * **An instruction kept from the characters says so**: the learner has to know that glissing a
+ * word past them is the game, which is exactly what the instruction asks of him.
+ */
 @Composable
-fun noticeLines(notices: List<Notice>): List<String> =
-    notices.filterIsInstance<Notice.Staged>().map { it.staging.text } +
-        notices.filterIsInstance<Notice.Moved>().map { phraseOf(it.move) }
+fun noticeLines(notices: List<Notice>): List<String> {
+    val language = java.util.Locale.getDefault().language
+    return notices.flatMap { notice ->
+        when (notice) {
+            is Notice.Event ->
+                notice.texts.map { it.inLanguage(language) } + notice.moves.map { phraseOf(it) }
+            is Notice.Instruction -> {
+                val said = notice.instruct.text.inLanguage(language)
+                if (notice.on) {
+                    listOfNotNull(
+                        stringResource(R.string.notice_instruction_on, said),
+                        if (notice.instruct.hidden)
+                            stringResource(R.string.notice_instruction_hidden) else null,
+                    )
+                } else {
+                    listOf(stringResource(R.string.notice_instruction_off, said))
+                }
+            }
+        }
+    }
+}
 
 /**
  * What a move reads as: its lever's phrase for the position it arrived at, and which way it went.

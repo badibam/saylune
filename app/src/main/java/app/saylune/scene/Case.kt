@@ -154,7 +154,9 @@ object AppCases {
     const val SILENCE = "app.silence"
     const val WORDS_GATE = "app.words-gate"
     const val SOUND_GATE = "app.sound-gate"
-    private const val SITTING = "app.sitting."
+    /** What a case of an attempt is called, and what one of the whole sitting is. */
+    const val APP_NOTE = APP
+    const val APP_SITTING = "app.sitting."
     private const val OUTCOME = "app.outcome."
 
     /** The two clocks, which exist while recording and at no other moment. */
@@ -175,11 +177,22 @@ object AppCases {
     private val SOUNDED = setOf("pronunciation/intelligibility", "pronunciation/proximity")
 
     /**
+     * The sheets whose elements are **words**, each carrying a notch of its own column.
+     *
+     * The two sheets read one notch for the whole passage -- the following and the reach --
+     * count nothing: *at least one* of a single notch says no more than the notch itself.
+     */
+    private val COUNTED = setOf(
+        "correctness/correctness", "relevance/relevance", "fluency/stumbling",
+    )
+
+    /**
      * Every app case of one scene, by key.
      *
-     * The notes, the figures and the counts exist twice: once for the attempt or the passage
-     * -- the moment says which --, and once for the whole sitting under `app.sitting.`, which
-     * a closing's note and a round-up need and which *this passage fell to C* does not say.
+     * **The notes exist twice**: once for the attempt or the passage -- the moment says which
+     * -- and once for the whole sitting under `app.sitting.`, which a closing's note and a
+     * round-up need and which *this passage fell to C* does not say. The figures and the counts
+     * exist once: they are what one attempt measured, and nothing sums them.
      */
     private val declared: Map<String, Kind> = buildMap {
         put(PASSAGE, Kind.Number(min = 0.0))
@@ -187,15 +200,14 @@ object AppCases {
         put(SILENCE, Kind.Number(min = 0.0))
         put(WORDS_GATE, Kind.Flag)
         put(SOUND_GATE, Kind.Flag)
-        fun both(key: String, kind: Kind) {
-            put("$APP$key", kind)
-            put("$SITTING$key", kind)
+        treePaths().forEach {
+            put("$APP$it.note", NOTES)
+            put("$APP_SITTING$it.note", NOTES)
         }
-        treePaths().forEach { both("$it.note", NOTES) }
         Sheets.all.forEach { sheet ->
             val path = Sheets.pathOf(sheet)
-            both("$path.figure", FIGURE)
-            notchesOf(sheet).forEach { both("$path.$it.count", COUNT) }
+            put("$APP$path.figure", FIGURE)
+            notchesOf(sheet).forEach { put("$APP$path.$it.count", COUNT) }
         }
     }
 
@@ -214,9 +226,9 @@ object AppCases {
      * A sheet read otherwise counts nothing -- the silences keep their figure in seconds, no
      * threshold on them having a declared meaning.
      */
-    fun notchesOf(sheet: Sheet): List<String> = when {
-        sheet.reading is Reading.Column -> (sheet.reading as Reading.Column).notches.map { it.name }
-        Sheets.pathOf(sheet) in SOUNDED -> SOUND_NOTCHES
+    fun notchesOf(sheet: Sheet): List<String> = when (Sheets.pathOf(sheet)) {
+        in COUNTED -> (sheet.reading as Reading.Column).notches.map { it.name }
+        in SOUNDED -> SOUND_NOTCHES
         else -> emptyList()
     }
 
@@ -243,6 +255,9 @@ object AppCases {
     fun kindOf(key: String): Kind? =
         declared[key] ?: if (key.startsWith(OUTCOME)) OUTCOMES else null
 
+    /** Every app case of a scene, which is what a file is checked against. */
+    val keys: Set<String> get() = declared.keys
+
     /**
      * Whether [key] is read off the turn -- a note, a gate, a figure, a count, a clock.
      *
@@ -258,7 +273,7 @@ object AppCases {
     fun existsAt(key: String, moment: Moment): Boolean = when (key) {
         in CLOCKS -> moment == Moment.Recording
         PASSAGE -> true
-        else -> key.startsWith(OUTCOME) || key.startsWith(SITTING) ||
+        else -> key.startsWith(OUTCOME) || key.startsWith(APP_SITTING) ||
             moment in setOf(Moment.AttemptEnd, Moment.PassageClose, Moment.Answer)
     }
 }

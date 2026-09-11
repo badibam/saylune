@@ -12,12 +12,12 @@ import app.saylune.chain.Said
 import app.saylune.chain.Scene
 import app.saylune.chain.Word
 import app.saylune.activity.Activity
-import app.saylune.activity.Chosen
-import app.saylune.activity.Definition
 import app.saylune.activity.Definitions
-import app.saylune.activity.Question
-import app.saylune.activity.Settled
 import app.saylune.activity.Status
+import app.saylune.activity.Text
+import app.saylune.activity.Writer
+import app.saylune.activity.Written
+import app.saylune.chain.Asked
 import app.saylune.capture.Ending
 import app.saylune.capture.Loudspeaker
 import app.saylune.capture.Playback
@@ -35,15 +35,19 @@ import app.saylune.fluency.Fluency
 import app.saylune.notes.Measured
 import app.saylune.notes.noteOver
 import app.saylune.notes.Passage as Scored
-import app.saylune.rules.Effect
-import app.saylune.rules.Engine
-import app.saylune.rules.Moment
-import app.saylune.rules.Notice
-import app.saylune.rules.Outcome
-import app.saylune.rules.State as RuleState
-import app.saylune.rules.Instructing
-import app.saylune.rules.Trigger
-import app.saylune.rules.holds
+import app.saylune.scene.AppCases
+import app.saylune.scene.Chance
+import app.saylune.scene.Change
+import app.saylune.scene.Engine
+import app.saylune.scene.Kind
+import app.saylune.scene.Moment
+import app.saylune.scene.Notice
+import app.saylune.scene.Outcome
+import app.saylune.scene.SceneFile
+import app.saylune.scene.SceneFiles
+import app.saylune.scene.State as SceneState
+import app.saylune.scene.Value
+import app.saylune.scene.kindOf
 import app.saylune.notes.Sheeting
 import app.saylune.sheets.Sheet
 import app.saylune.sheets.Sheets
@@ -346,7 +350,7 @@ data class Unjudged(
     val said: String,
     val answered: String,
     val before: List<Exchange>,
-    val instructions: List<Instructing>,
+    val instructions: List<String>,
     val ending: Ending?,
     val take: File,
     val heard: List<Word>,
@@ -368,7 +372,7 @@ data class ConversationState(
      * short one the status line has room for -- which lives nowhere else, nothing in the app
      * being named by the model.
      */
-    val definition: Definition,
+    val definition: SceneFile,
     /**
      * Everything said, oldest first. The thread is this run and nothing else carries it.
      *
@@ -436,13 +440,14 @@ data class ConversationState(
      */
     val held: List<Said>? = null,
     /**
-     * What the rules have made of the sitting: the **effective** positions, which rules are
-     * armed, the instructions standing, and the outcome once something has ended it.
+     * What the events have made of the scene: where every case stands, the **effective** lever
+     * positions, which events are active, the instructions in force, the question being waited
+     * on, and the outcome once something has ended it.
      *
      * **The declared position of a lever and its effective position are two things**, and
      * confusing them is what made it look contradictory that the settings are fixed for the
-     * whole sitting while the lives run out. The definition writes the first, which never
-     * moves and lives on the activity's line; the patches move the second, which is what the
+     * whole sitting while the lives run out. The scene file writes the first, which never
+     * moves and lives on the activity's line; the events move the second, which is what the
      * learner lives.
      *
      * Held as a value rather than recomputed on every read because a wave has to see what the
@@ -451,11 +456,11 @@ data class ConversationState(
      * answer with the settings of a sitting one has left. Null means nothing has moved yet, so
      * [positions] reads the declared ones and there is nothing to keep in step.
      *
-     * **What it does not do yet is survive a reopening**: replaying the journal to rebuild it
-     * needs the facts each past moment was read against, which nothing keeps, so a sitting
-     * picked up again starts from its declared positions (`../../../../../../TODO.md`).
+     * **What it does not do yet is survive a reopening**: replaying the moments to rebuild it
+     * is what the doc asks for and nothing does it, so a sitting picked up again starts from
+     * where its scene starts (`../../../../../../TODO.md`).
      */
-    val effective: RuleState? = null,
+    val scene: SceneState? = null,
     /**
      * What the last moment left to show, until the pop-up has shown it.
      *
@@ -520,10 +525,11 @@ data class ConversationState(
      * instant, which is the declared position plus whatever the patches have moved. The
      * declared ones stay on the activity's line, where nothing rewrites them.
      */
-    val positions: Positions get() = (effective ?: stateOf(activity)).positions
+    val positions: Positions get() = scene?.positions ?: activity.settings
 
-    /** Where the rules stand, which is the declared state until one of them has fired. */
-    val standing: RuleState get() = effective ?: stateOf(activity)
+    /** Where the scene stands, which is where it starts until a moment has run. */
+    val standing: SceneState
+        get() = scene ?: Engine(definition.cases, definition.events).start(activity.settings)
 
     /**
      * The attempts at the utterance [of] that still stand, oldest first.
@@ -753,42 +759,7 @@ data class ConversationState(
         }
     }
 
-    /**
-     * What the model has settled so far, by question key, oldest first.
-     *
-     * **Derived from the run and never stored.** Each answer sits on the turn that settled it,
-     * and where that turn sits in the run is what dates it -- so this is a walk, and a walk of
-     * the run cannot fall out of step with the run.
-     *
-     * **Nothing is ever overwritten**: a later answer *succeeds* the one before it rather than
-     * correcting it. *The queen was safe at passage 5 and is not at 15* is a story, not a
-     * mistake put right, so whoever reads one says which it reads -- the last, or the run.
-     */
-    fun settled(): Map<String, List<Settled>> {
-        val out = mutableMapOf<String, MutableList<Settled>>()
-        var passage = 0
-        utterances.forEach { one ->
-            if (one.speaker.isLearner && one.repeats == null) passage++
-            one.established.forEach { (key, answer) ->
-                out.getOrPut(key) { mutableListOf() } += Settled(passage, answer)
-            }
-        }
-        return out
-    }
 }
-
-/**
- * Where a sitting's rules stand when nothing has fired yet: the declared positions, the rules
- * armed at the start, the instructions the definition laid.
- *
- * A rule is **never removed**; what it did is undone, and being armed is what says whether it
- * is watching. So the arming starts from what each rule declares and moves only by a patch.
- */
-fun stateOf(activity: Activity): RuleState = RuleState(
-    positions = activity.settings,
-    armed = activity.rules.filter { it.armed }.map { it.key }.toSet(),
-    instructions = activity.instructions,
-)
 
 /**
  * One turn through the three links: what was heard, what to answer, and the voice answering.
@@ -1050,16 +1021,19 @@ class TurnPipeline(
     private suspend fun openLocked(id: String): Boolean {
         val row = archive.activity(id) ?: return false
         val activity = row.activity()
-        val definition = activity.origin?.let { from ->
-            runCatching { Definitions.of(context, from.definition) }.getOrElse {
-                Trace.fail("conversation: its definition is not shipped any more",
-                           "activity" to id, "definition" to from.definition)
-                return false
-            }
-            // A sitting made before the free conversation was itself a definition has no
-            // origin, and there was no other kind of sitting then: reading `free` for it is a
-            // fact about that release, not a stand-in for something missing.
-        } ?: free
+        // **The scene is read off the sitting's own line**, where it was copied when the
+        // sitting opened: a release that changed the file, or stopped shipping it, rewrites
+        // nothing about how this one is played. A sitting from another engine of scenes has
+        // none: it stays in the store, readable, and does not carry on.
+        val definition = activity.scene?.takeIf { activity.resumable }?.let { source ->
+            runCatching {
+                SceneFiles.parse(activity.origin!!.definition, activity.origin.version, source)
+            }.getOrNull()
+        } ?: run {
+            Trace.fail("conversation: this sitting was played under another engine of scenes",
+                       "activity" to id)
+            return false
+        }
         opened = true
         val run = forgetUnread(archive.utterances(activity.id).map { it.utterance() })
         _state.update {
@@ -1067,11 +1041,10 @@ class TurnPipeline(
                 activity = activity,
                 definition = definition,
                 utterances = run,
-                // **From the declared positions, not from where the last sitting's rules left
-                // them**: replaying the journal to rebuild the effective state needs the facts
-                // each past moment was read against, and nothing keeps those
+                // **From where the scene starts, not from where the last sitting left it**:
+                // rebuilding it means replaying every moment, which nothing does yet
                 // (`../../../../../../TODO.md`).
-                effective = null,
+                scene = null,
                 notices = emptyList(),
                 // The run is another conversation's now, so anything that pointed into the
                 // old one has to go: a retry of a recording from the conversation just left
@@ -1089,6 +1062,9 @@ class TurnPipeline(
                 closedPassage = null,
             )
         }
+        // What the leader wrote in the run just loaded is behind the state this starts from,
+        // so nothing of it is read again: the scene starts where it starts.
+        fed = run.map { it.id }.toMutableSet()
         Trace.add("conversation: opened", "activity" to activity.id,
                   "utterances" to _state.value.utterances.size.toString())
         return true
@@ -1151,13 +1127,13 @@ class TurnPipeline(
      * he chose for its main character where the file left it open.
      */
     suspend fun begin(
-        definition: Definition = free,
+        definition: SceneFile = free,
         answers: Map<String, String> = emptyMap(),
         gender: String? = null,
     ) = writing.withLock { beginLocked(definition, answers, gender) }
 
     private suspend fun beginLocked(
-        definition: Definition = free,
+        definition: SceneFile = free,
         answers: Map<String, String> = emptyMap(),
         gender: String? = null,
     ) {
@@ -1169,7 +1145,7 @@ class TurnPipeline(
                 activity = fresh,
                 definition = definition,
                 utterances = emptyList(),
-                effective = null,
+                scene = null,
                 notices = emptyList(),
                 pending = null,
                 unjudged = null,
@@ -1179,10 +1155,14 @@ class TurnPipeline(
             )
         }
         Trace.add("conversation: begun", "activity" to fresh.id)
+        fed = mutableSetOf()
+        // **The launch, which happened on the situation screen**: what the learner typed into
+        // the holes is written into its cases here, where the events of that moment read it.
+        run(Moment.Launch, fresh.filled.mapValues { (_, text) -> Value.Words(text) })
         // **The opening, which is a moment like any other.** A scene that opens with anything
-        // does it here: a rule on the opening trigger lays its staging line and, where it asks
-        // for one, the character's first turn -- said before anybody has spoken to it.
-        fire(Moment.Opening, world())
+        // does it here: an event of the opening sends its texts and, where it directs one, the
+        // character's first turn -- said before anybody has spoken to it.
+        run(Moment.Opening)
         // **Scheduled and not awaited.** The opening turn is a call and a playback, and the
         // screen has to be there while they happen rather than after them: awaited, pressing
         // *start* sat on the previous screen until the character had finished speaking. It
@@ -1266,7 +1246,7 @@ class TurnPipeline(
                     waiting.before,
                     said = waiting.said,
                     answered = waiting.answered,
-                    situation = _state.value.activity.brief?.situation.orEmpty(),
+                    situation = situation(),
                     present = Present(
                         instructions = waiting.instructions, ending = waiting.ending,
                     ),
@@ -1360,10 +1340,7 @@ class TurnPipeline(
                 val before = _state.value.history()
                 val reply = conversation.reply(
                     before, heard,
-                    scene = Scene(
-                        brief = _state.value.activity.brief,
-                        cast = _state.value.activity.cast,
-                    ),
+                    scene = scene(),
                     // What governs this turn: the levers the model holds, and how the recording
                     // stopped -- which the app knows and does not leave it to guess.
                     present = door.let {
@@ -1459,11 +1436,11 @@ class TurnPipeline(
                             // The half of the brief addressed to the learner, and the only thing
                             // of the scene the judge is given. The staging has no parameter to
                             // travel on.
-                            situation = _state.value.activity.brief?.situation.orEmpty(),
+                            situation = situation(),
                             // What a mark is read against: the instructions in force, and a turn
                             // a clock cut off. Nothing of how the character was told to play.
                             present = Present(
-                                instructions = door.instructions, ending = closedBy,
+                                instructions = door.judged, ending = closedBy,
                             ),
                         ) }
                     }
@@ -1521,7 +1498,7 @@ class TurnPipeline(
                                     said = intended,
                                     answered = joined(compose(reply.echo, reply.said)),
                                     before = before,
-                                    instructions = door.instructions,
+                                    instructions = door.judged,
                                     ending = closedBy,
                                     take = turn,
                                     heard = heard,
@@ -1833,31 +1810,45 @@ class TurnPipeline(
      */
     private suspend fun endOfAttempt(
         attempt: String, measured: List<Measured>, scored: Scored, of: Material,
+        /** Whether the analysis has run, which is what makes the sound's gate readable. */
+        sounded: Boolean = false,
     ) {
         val spent = spentAtEnd?.takeIf { it.first == attempt }?.second.orEmpty()
-        spentAtEnd = attempt to fire(Moment.EndOfAttempt, world(measured, scored, of), spent)
+        val state = _state.value
+        val outside = AppReading.attempt(
+            measured, scored, state.activity.weights, ::sensitivityOf, of,
+            wordsGate = state.wordsGate != null,
+            soundGate = if (sounded) state.soundGate != null else null,
+        ) + sittingCases()
+        spentAtEnd = attempt to run(Moment.AttemptEnd, outside, spent)
     }
 
     /** The rules the end of the last attempt has fired so far, and which attempt that was. */
     private var spentAtEnd: Pair<String, Set<String>>? = null
 
-    /** What the rules read of the sitting right now. */
-    private fun world(
-        measured: List<Measured> = emptyList(),
-        scored: Scored? = null,
-        of: Material = Material(),
-        clocks: Map<Trigger.Clock.Which, Int> = emptyMap(),
-    ) = World(
-        // How many passages have **closed**, which is one fewer than the run holds while the
-        // last one is still open.
-        passage = (_state.value.passages().size - 1).coerceAtLeast(0),
-        measured = measured,
-        scored = scored,
-        weights = _state.value.activity.weights,
-        sensitivity = ::sensitivityOf,
-        material = of,
-        clocks = clocks,
+    /** What the whole sitting makes of each note, which a closing reads and a passage does not. */
+    private fun sittingCases(): Map<String, Value?> = AppReading.sitting(
+        _state.value.passages().map { scoredOf(it.last) },
+        _state.value.activity.weights,
+        ::sensitivityOf,
     )
+
+    /** One attempt as the notes weigh it: its figures, and how much of a sentence it kept. */
+    private fun scoredOf(spoken: Utterance): Scored = Scored(
+        keptWords = spoken.judged?.words()?.kept?.size ?: 0,
+        difficulty = null,
+        measured = spoken.measured.mapNotNull { (path, figure) ->
+            (Sheets.of(path) as? Sheet)?.let { Measured(it, figure) }
+        },
+    )
+
+    /** The situation, in English, with the cases it cites filled in as they stand. */
+    private fun situation(): String = SceneFiles.cite(
+        _state.value.definition.situation.inLanguage(Text.BASE),
+    ) { case -> _state.value.standing.let { Engine(_state.value.definition.cases, emptyList()).read(it, case) } }
+
+    /** What this scene is, as the one who speaks is given it. */
+    private fun scene() = Scene(situation = situation(), cast = _state.value.activity.cast)
 
     /**
      * How severe this sitting is on [sheet], as a position of its sensitivity.
@@ -1958,6 +1949,10 @@ class TurnPipeline(
                 withPhase(Phase.Speaking) { say(attempt, continuation, emptyMap()) }
             }
         }
+        // Read before they are cleared: what the app writes into its own cases at the close is
+        // what the passage ended on, and the gates are about to speak of the next one.
+        val words = _state.value.wordsGate != null
+        val sound = _state.value.soundGate != null
         // The gates spoke about a passage that is over. What follows opens a fresh one, and
         // its own gates are read when its own call returns.
         _state.update { it.copy(wordsGate = null, soundGate = null, closedPassage = opener) }
@@ -1965,28 +1960,30 @@ class TurnPipeline(
         // lives, the end of the sitting. Its note is the last attempt's and the count of
         // attempts is known, which is what makes this the moment for them.
         val last = _state.value.open()?.last
-        val measured = last?.measured.orEmpty().mapNotNull { (path, figure) ->
-            (Sheets.of(path) as? Sheet)?.let { Measured(it, figure) }
+        // **The judgement is read through what the attempt repeats**: nothing judges a repeat,
+        // so a passage said again carries none of its own on its last attempt.
+        val judged = last?.judged ?: last?.repeats?.let { root ->
+            _state.value.utterances.firstOrNull { it.id == root }?.judged
         }
-        fire(
-            Moment.PassageClosed,
-            world(
-                measured = measured,
-                scored = Scored(
-                    keptWords = last?.judged?.words()?.kept?.size ?: 0,
-                    difficulty = null,
-                    measured = measured,
+        val marked = judged?.words()
+        run(
+            Moment.PassageClose,
+            AppReading.attempt(
+                measured = last?.let { scoredOf(it).measured }.orEmpty(),
+                scored = scoredOf(last ?: return@withLock),
+                weights = _state.value.activity.weights,
+                sensitivity = ::sensitivityOf,
+                material = Material(
+                    correctness = marked?.correctness.orEmpty(),
+                    relevance = marked?.relevance.orEmpty(),
+                    stumbling = marked?.stumbling.orEmpty(),
+                    sounds = last.sounds,
                 ),
-            ),
+                wordsGate = words,
+                // Null where the analysis did not run: the gate never spoke about this passage.
+                soundGate = if (last.sounds.isEmpty()) null else sound,
+            ) + sittingCases() + leaderWrites(),
         )
-        // **What is laid only counts for what follows**: a passage already spoken is never
-        // rejudged, so an instruction expires between passages and never inside one.
-        _state.update {
-            // Nothing standing, nothing to age -- and materialising the effective state for a
-            // sitting whose rules never fired would freeze a copy of settings for no reason.
-            if (it.standing.instructions.isEmpty()) it
-            else it.copy(effective = Engine(it.activity.rules).aged(it.standing))
-        }
         // A rule of the close may have asked the character to speak. It falls here, between
         // two passages, which is the only place it can: nothing cuts off somebody recording.
         provokeIfAsked()
@@ -2039,8 +2036,8 @@ class TurnPipeline(
                 relevance = spoken.judged?.words()?.relevance.orEmpty(),
                 stumbling = spoken.judged?.words()?.stumbling.orEmpty(),
                 sounds = analysed.sounds,
-                blanks = Fluency.blanks(timed),
             ),
+            sounded = true,
         )
     }
 
@@ -2316,15 +2313,24 @@ class TurnPipeline(
      * whole seconds.
      */
     suspend fun ticking(elapsedMs: Int, silenceMs: Int) = writing.withLock {
-        if (_state.value.activity.rules.isEmpty()) return@withLock
-        fire(
+        if (_state.value.definition.events.none { it.at == Moment.Recording }) return@withLock
+        // **One moment for the whole recording, whatever the number of ticks**: an event goes
+        // at most once per moment, so a clock past its mark does not fire at every second. A
+        // fresh recording is a fresh moment, and what names it is where the run stands.
+        val recording = _state.value.utterances.size
+        val spent = recordingSpent?.takeIf { it.first == recording }?.second.orEmpty()
+        recordingSpent = recording to run(
             Moment.Recording,
-            world(clocks = mapOf(
-                Trigger.Clock.Which.TurnLength to elapsedMs,
-                Trigger.Clock.Which.Silence to silenceMs,
-            )),
+            mapOf(
+                AppCases.TURN_TIME to Value.Num(elapsedMs / 1_000.0),
+                AppCases.SILENCE to Value.Num(silenceMs / 1_000.0),
+            ),
+            spent,
         )
     }
+
+    /** The events the recording being made has fired so far, and which recording that is. */
+    private var recordingSpent: Pair<Int, Set<String>>? = null
 
     /**
      * Take back what the screen has shown of the last moment.
@@ -2338,63 +2344,124 @@ class TurnPipeline(
     }
 
     /**
-     * Run the rules of [moment] against [world], and land what they do.
+     * Run the events of [moment] on what the app has just read, and land what they do.
      *
-     * **By waves, and the engine is what does that**: every trigger reads the same snapshot,
-     * every effect lands together, and what those made true opens the next wave. This only
-     * hands it the world and takes the result.
+     * [outside] is what does not come from the events: the app's own cases, and what the leader
+     * wrote. The engine lays it first, runs its waves, and hands back everything the moment
+     * produced; this only sends each thing where it belongs.
      *
-     * Three things come back and each goes where it belongs. The **state** replaces the
-     * effective one, which is what every reader of a setting sees from here on. The
-     * **notices** wait on the state until the pop-up has shown them -- a change nobody saw is
-     * a change the learner cannot reconstruct. And what a **draw or the model chose** goes to
-     * the journal and to the store at once: without it the effective state of a sitting no
-     * longer recomputes, and the sitting stops comparing to itself three weeks later.
+     * The **state** replaces the one every reader of a setting sees. The **notices** wait on it
+     * until the pop-up has shown them -- a change nobody saw is a change the learner cannot
+     * reconstruct. The texts for the leader, the lines to say and the cases to ask for wait for
+     * the call that carries them. And what **chance drew** goes to the store at once: it is the
+     * one thing a replay cannot find again.
      *
-     * A sitting with no rules is the ordinary free conversation, and it returns without
-     * building anything.
+     * A scene with no event at this moment returns without building anything.
      */
-    private suspend fun fire(
-        moment: Moment, world: World, spent: Set<String> = emptySet(),
+    private suspend fun run(
+        moment: Moment, outside: Map<String, Value?> = emptyMap(), spent: Set<String> = emptySet(),
     ): Set<String> {
-        val activity = _state.value.activity
-        if (activity.rules.isEmpty()) return spent
+        val definition = _state.value.definition
+        if (definition.events.none { it.at == moment }) return spent
+        val engine = Engine(definition.cases, definition.events)
         // Whether it was already over when this moment began, which is what tells an ending
         // that has just fallen from one this moment inherited.
         val was = _state.value.standing.ended
-        val out = Engine(activity.rules).resolve(moment, _state.value.standing, world, spent)
-        _state.update { it.copy(effective = out.state, notices = it.notices + out.notices) }
-        // **Which questions this moment puts.** They are read against the same world and the
-        // same settled state the rules were, and against what this moment's waves moved -- a
-        // moment is one instant, and a question due at it is due on what that instant made
-        // true, not on what it was before.
-        asking += questionsOf(
-            moment, world, out.state,
-            out.notices.filterIsInstance<Notice.Moved>().map { it.move },
+        val passage = _state.value.passages().size
+        val out = engine.resolve(
+            moment, _state.value.standing,
+            outside + (AppCases.PASSAGE to Value.Num(passage.toDouble())),
+            chance, spent,
         )
-        // The messages are prose for the model, and they are held until a call carries them:
-        // the front door opens on the turn that follows, not on the one just read. **The flag
-        // rides with them**, since a message that declares it provokes a turn is what decides
-        // there is a turn at all.
-        messages += out.messages
-        scripts += out.scripts
-        if (out.chosen.isNotEmpty()) {
-            val at = System.currentTimeMillis()
-            val journal = activity.journal + out.chosen.map {
-                Chosen(it.rule, world.passage, it.pack, at)
-            }
+        _state.update { it.copy(scene = out.state, notices = it.notices + out.notices) }
+        // **The state reaches the leader by the front door alone**: the texts an event sends
+        // it, the line each case it knows leaves when it changes, and the line a chain that
+        // read the turn is holding back until the next call.
+        messages += out.leader +
+            out.changed.map { line(it) } +
+            out.directions.filter { it.held }.map { it.prose }
+        directions += out.directions.filterNot { it.held }.map { it.prose }
+        // A line written in advance is said as it stands; one a chain that read the turn
+        // produced waits for the next place a turn may fall, the leader having just answered
+        // without knowing the judgement.
+        out.thread.forEach { said ->
+            val line = listOf(Said(Said.Kind.Speech, said.who, said.text.inLanguage(Text.BASE)))
+            if (said.held) later += line else scripts += line
+        }
+        asking += out.asking.map {
+            Asked(it.case, engine.case(it.case)?.about ?: it.case, engine.kindOf(it.case), it.reach)
+        }
+        if (out.drawn.isNotEmpty()) {
+            val journal = _state.value.activity.journal +
+                out.drawn.map { (case, value) -> Written(case, value, Writer.Chance, passage) }
             _state.update { it.copy(activity = it.activity.copy(journal = journal)) }
             runCatching { archive.update(_state.value.activity.row()) }.onFailure {
-                Trace.fail("archive: the journal was not written", "why" to it.message)
+                Trace.fail("archive: what chance drew was not written", "why" to it.message)
             }
         }
         // **The ending falls in two moments and not in one instant.** What this moment settled
-        // is read here, after its own waves -- a rule that refilled the lives has already had
+        // is read here, after its own waves -- an event that refilled the lives has already had
         // its say -- and the coda runs then, never inside the moment that ended it.
         val ended = out.state.ended
         if (was == null && ended != null && moment != Moment.Closing) ending(ended)
         return out.fired
     }
+
+    /** A real draw, weighted as the event that asks for it says. */
+    private val chance = Chance.of(kotlin.random.Random.Default)
+
+    /**
+     * The line a case known to the leader leaves when it changes: what it is, where it stands,
+     * and where it stood. **One line per case per moment**, whatever the number of writings.
+     */
+    private fun line(change: Change): String {
+        fun said(value: Value?): String = when (value) {
+            null -> "unknown"
+            is Value.Flag -> if (value.on) "yes" else "no"
+            is Value.Num -> value.n?.let { n ->
+                val whole = if (n % 1.0 == 0.0) n.toLong().toString() else n.toString()
+                (change.case.kind as? Kind.Number)?.max?.let { "$whole out of ${it.toLong()}" }
+                    ?: whole
+            } ?: "no maximum"
+            is Value.Pick -> value.name
+            is Value.Words -> value.text
+        }
+        return "(state) ${change.case.about ?: change.case.key}: " +
+            "${said(change.to)} (was ${said(change.from)})."
+    }
+
+    /**
+     * What the leader wrote and no moment has read yet.
+     *
+     * **Read at the close of a passage and never before**: it writes in its call, and the close
+     * is the first moment where that is final -- a retaken attempt takes its writings with it,
+     * and the thread is what says which reply still stands.
+     */
+    private fun leaderWrites(): Map<String, Value?> {
+        val cases = _state.value.definition.cases.associateBy { it.key }
+        val fresh = _state.value.thread().filter {
+            !it.speaker.isLearner && it.established.isNotEmpty() && it.id !in fed
+        }
+        fed += fresh.map { it.id }
+        return fresh.flatMap { it.established.entries }.mapNotNull { (case, text) ->
+            val kind = runCatching { kindOf(case, cases) }.getOrNull() ?: return@mapNotNull null
+            // **"I don't know" leaves the case as it was**, which is what it is for: it is not
+            // a value, and writing one would be inventing what the leader said it lacked.
+            written(kind, text)?.let { case to it }
+        }.toMap()
+    }
+
+    /** What the leader wrote, as the case holds it, or null where it wrote that it does not know. */
+    private fun written(kind: Kind, text: String): Value? = when {
+        text == Asked.DONT_KNOW -> null
+        kind is Kind.Flag -> Value.Flag(text == "true")
+        kind is Kind.Number -> text.toDoubleOrNull()?.let { Value.Num(it) }
+        kind is Kind.Choice -> Value.Pick(text)
+        else -> Value.Words(text)
+    }
+
+    /** The turns of the leader whose writings a moment has already read. */
+    private var fed = mutableSetOf<String>()
 
     /**
      * The sitting is over: **the coda runs, then it is filed**.
@@ -2410,7 +2477,7 @@ class TurnPipeline(
      */
     private suspend fun ending(declared: Outcome) {
         Trace.add("sitting: it is over", "declared" to declared.name)
-        fire(Moment.Closing, world())
+        run(Moment.Closing, sittingCases())
         // **The closing call exists only where something asked for it.** A sitting whose
         // author wrote no last word ends without one: the character's parting line is never a
         // behaviour of the app, it is a rule somebody wrote.
@@ -2424,7 +2491,7 @@ class TurnPipeline(
         // Failed picked in its place would be invented.
         val verdict = when (declared) {
             Outcome.Passed, Outcome.Failed -> declared
-            Outcome.LetTheNoteDecide ->
+            Outcome.ByNote ->
                 note?.let { if (it.passes) Outcome.Passed else Outcome.Failed } ?: declared
         }
         val at = System.currentTimeMillis()
@@ -2440,7 +2507,7 @@ class TurnPipeline(
                         // model produced each of its markings is not written down anywhere
                         // (`../../../../../../TODO.md`), so naming one here would be a name
                         // picked rather than read.
-                        judge = if (declared == Outcome.LetTheNoteDecide && note != null)
+                        judge = if (declared == Outcome.ByNote && note != null)
                             JUDGED_BY_THE_NOTE else JUDGED_BY_A_RULE,
                         at = at,
                     ),
@@ -2482,57 +2549,61 @@ class TurnPipeline(
     }
 
     /**
-     * What a rule has told the model and the next call has not yet carried.
+     * What an event has told the leader and the next call has not yet carried.
      *
      * Held here rather than on the state because it is **transport**: it belongs to the call
      * being built, it is emptied by it, and nothing on screen reads it. The screen's half of a
      * change is the notice, which is a different thing said to a different reader.
      */
-    private var messages = mutableListOf<Effect.Message>()
+    private var messages = mutableListOf<String>()
 
     /**
-     * The turns the author wrote that a moment has laid and nobody has said yet.
-     *
-     * Held like the messages and for the same reason: they wait for a place where a turn may
-     * fall, which is the same place a provoked turn falls.
+     * The turns an event has directed and nobody has taken yet. **One of these is what makes
+     * there be a turn at all**, where a text for the leader only rides on the next one.
      */
-    private var scripts = mutableListOf<Effect.Script>()
+    private var directions = mutableListOf<String>()
 
     /**
-     * The questions a moment has put and no call has carried yet.
+     * The lines written in advance that a moment has laid and nobody has said yet.
      *
-     * Held beside the messages and emptied by the same gesture, because they are the same kind
-     * of thing: transport for the call being built. **They ride on the first call after the
-     * moment that put them** -- a question due at the end of an attempt is one whose own call
-     * has already gone, so the next one is the earliest there is.
+     * Held like the texts and for the same reason: they wait for a place where a turn may
+     * fall, which is the same place a directed turn falls.
      */
-    private var asking = mutableListOf<Question>()
+    private var scripts = mutableListOf<List<Said>>()
 
     /**
-     * Every question of [moment] that is due right now.
+     * The lines a chain that read the turn produced, which wait for the **next** such place:
+     * the leader has just answered without knowing the judgement, and a character who replies
+     * as though he had understood and then says *"wait, what?"* contradicts the thread.
+     */
+    private var later = mutableListOf<List<Said>>()
+
+    /**
+     * The cases a moment has asked the leader for and no call has carried yet.
      *
-     * A moment is a trigger, exactly as a rule's is, and read by the same reader: a question
-     * served at another instant than the one written would be a question put where nobody
-     * asked for it. **Asked once per moment**, like a rule fires once, and one already waiting
-     * is not asked twice.
+     * **They ride on the first call after the moment that asked** -- one asked at the end of an
+     * attempt is one whose own call has already gone, so the next one is the earliest there is.
      */
-    private fun questionsOf(
-        moment: Moment, facts: World, state: RuleState, moved: List<app.saylune.levers.Move>,
-    ): List<Question> = _state.value.definition.questions
-        .filter { question ->
-            question !in asking &&
-                question.moments.any { it.moment == moment && facts.holds(it, state, moved) }
-        }
+    private var asking = mutableListOf<Asked>()
 
     /**
-     * The instructions standing, what a rule has just said, and the questions being put --
+     * The instructions standing, what an event has just said, and the cases being asked for --
      * **taken off the queue**, the call being what delivers them.
+     *
+     * The leader is given the instructions it is allowed to know; the judge is given all of
+     * them, since it reads what the learner reads and every instruction is shown to him.
      */
     private fun frontDoor(): FrontDoor {
+        val standing = _state.value.standing.instructions.map { it.instruct }
         val door = FrontDoor(
-            _state.value.standing.instructions, messages.toList(), asking.toList(),
+            instructions = standing.filterNot { it.hidden }.map { it.text.inLanguage(Text.BASE) },
+            judged = standing.map { it.text.inLanguage(Text.BASE) },
+            laid = messages.toList(),
+            directed = directions.toList(),
+            asked = asking.toList(),
         )
         messages = mutableListOf()
+        directions = mutableListOf()
         asking = mutableListOf()
         return door
     }
@@ -2540,21 +2611,18 @@ class TurnPipeline(
     /**
      * Put back what a call that never went was carrying, in front of anything since.
      *
-     * **A question goes back as it was, and that breaks nothing**: a call that gave way wrote
-     * no utterance at all -- the learner's turn is written after the reply, and there is no AI
-     * turn -- so the fiction is where it was and the passage number has not moved. It rides on
-     * the retry of the same take. The one place it slides is the opening, where the character
-     * said nothing, the learner speaks first, and the fact is settled alongside that first
-     * reply: one of the three ways of opening, not a break.
+     * **What was asked goes back as it was, and that breaks nothing**: a call that gave way
+     * wrote no utterance at all -- the learner's turn is written after the reply, and there is
+     * no AI turn -- so the fiction is where it was and the passage number has not moved.
      *
-     * **A message goes back without its flag.** The prose is not wrong and an author wrote it,
-     * so it enters by the front door on the next turn like any other message. Its *now* is
-     * wrong: that flag means this instant, and the instant has gone. Kept, the next passage's
-     * close would see it and have the character speak out of time -- *"ah, there you are"*
-     * after two exchanges, which is the one thing here that cannot be caught up.
+     * **A direction goes back as a plain text for the leader.** The prose is not wrong and an
+     * author wrote it, so it enters by the front door on the next turn; what is wrong is that
+     * it asked for a turn *then*, and that instant has gone. Kept as a direction, the next
+     * passage's close would have the character speak out of time -- *"ah, there you are"* after
+     * two exchanges, which is the one thing here that cannot be caught up.
      */
     private fun putBack(door: FrontDoor) {
-        messages = (door.laid.map { it.copy(now = false) } + messages).toMutableList()
+        messages = (door.laid + door.directed + messages).toMutableList()
         asking = (door.asked + asking).toMutableList()
     }
 
@@ -2588,9 +2656,12 @@ class TurnPipeline(
         // **A return needs no message**, which is the one place a turn is taken with nothing
         // laid in front of it: nobody asked, the learner has simply come back.
         val asked = why != Provoked.ByRule ||
-            messages.any { it.now } || (sweeping && asking.isNotEmpty())
+            directions.isNotEmpty() || (sweeping && asking.isNotEmpty())
         val scripted = scripts.toList()
-        scripts = mutableListOf()
+        // What a chain that read the turn is holding waits for the next place a turn may fall,
+        // which is the next one after this.
+        scripts = later
+        later = mutableListOf()
         if (scripted.isEmpty() && !asked) return
         // **One phase around all of it**, so the mic cannot arm in the gap between a scripted
         // turn ending and the model's turn being asked for.
@@ -2598,7 +2669,7 @@ class TurnPipeline(
             // What the author wrote goes first, and without a call: it is said as it stands,
             // and the model reads it in its history if a turn of its own follows.
             scripted.forEach { script ->
-                val entering = say(answers = null, turn = script.said, established = emptyMap())
+                val entering = say(answers = null, turn = script, established = emptyMap())
                 Trace.add("turn: a scripted turn was said", "lines" to entering.size.toString())
             }
             if (!asked) return@withPhase
@@ -2607,10 +2678,7 @@ class TurnPipeline(
             try {
                 val reply = conversation.reply(
                     _state.value.history(), heard = emptyList(),
-                    scene = Scene(
-                        brief = _state.value.activity.brief,
-                        cast = _state.value.activity.cast,
-                    ),
+                    scene = scene(),
                     present = Present(
                         _state.value.positions,
                         ending = null,
@@ -2702,12 +2770,17 @@ class TurnPipeline(
      * can hand them back with the flag that says one of them asked for a turn.
      */
     private data class FrontDoor(
-        val instructions: List<Instructing>,
-        val laid: List<Effect.Message>,
-        val asked: List<Question>,
+        /** The instructions the leader is allowed to know, in the words the file wrote. */
+        val instructions: List<String>,
+        /** Every instruction standing, which is what the judge marks against. */
+        val judged: List<String>,
+        val laid: List<String>,
+        /** What asked for a turn to be taken now, and is said in the same breath as the rest. */
+        val directed: List<String>,
+        val asked: List<Asked>,
     ) {
-        /** What goes into the prompt: the prose, the flag having done its work already. */
-        val prose: List<String> get() = laid.map { it.prose }
+        /** What goes into the prompt: everything an event has just told the leader. */
+        val prose: List<String> get() = laid + directed
     }
 
     companion object {

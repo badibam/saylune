@@ -2,12 +2,11 @@ package app.saylune.chain
 
 import app.saylune.capture.Ending
 import app.saylune.judged.Judgement
-import app.saylune.activity.Brief
-import app.saylune.activity.Character
-import app.saylune.activity.Question
 import app.saylune.conversation.Speaker
 import app.saylune.levers.Positions
-import app.saylune.rules.Instructing
+import app.saylune.scene.Kind
+import app.saylune.scene.Reach
+import app.saylune.scene.Role
 
 /**
  * The language model: one who speaks, one who judges.
@@ -129,7 +128,7 @@ data class Present(
      * learner, who has to read it to follow it; the character, who has to know it to play with
      * it; and the judge, who marks against it. This is the character's copy.
      */
-    val instructions: List<Instructing> = emptyList(),
+    val instructions: List<String> = emptyList(),
     /**
      * What a rule has just told the model, in an author's words.
      *
@@ -171,8 +170,22 @@ data class Present(
      * does: a question due at the end of an attempt is one the call for that attempt has
      * already gone without, and the next call is the earliest there is.
      */
-    val asking: List<Question> = emptyList(),
+    val asking: List<Asked> = emptyList(),
 )
+
+/**
+ * A case the leader is asked to write on this turn: its key, the line that says what it is,
+ * what it holds, and how far the leader may go.
+ */
+data class Asked(val key: String, val about: String, val kind: Kind, val reach: Reach) {
+    companion object {
+        /**
+         * The one answer that is not the fiction: **it does not know**. Offered at the first
+         * step of [Reach] alone, and it leaves the case as it was.
+         */
+        const val DONT_KNOW = "I don't know"
+    }
+}
 
 /**
  * What this activity is, frozen at launch: part 2 of the instruction.
@@ -188,8 +201,10 @@ data class Present(
  * about the scene that the character has to know.
  */
 data class Scene(
-    val brief: Brief? = null,
-    val cast: List<Character> = emptyList(),
+    /** Where the learner stands, in English, with the cases it cites filled in. */
+    val situation: String = "",
+    /** Who the leader plays, each with the description that goes to it. */
+    val cast: List<Role> = emptyList(),
     /**
      * What the learner asked the conversation to stay away from, in their own words.
      *

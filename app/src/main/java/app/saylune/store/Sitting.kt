@@ -1,38 +1,30 @@
 package app.saylune.store
 
-import app.saylune.activity.Brief
-import app.saylune.activity.Character
-import app.saylune.activity.Chosen
 import app.saylune.activity.Origin
 import app.saylune.activity.Text
+import app.saylune.activity.Writer
+import app.saylune.activity.Written
 import app.saylune.levers.At
 import app.saylune.levers.Count
 import app.saylune.levers.Position
 import app.saylune.levers.Positions
 import app.saylune.notes.Weights
-import app.saylune.rules.Instructing
+import app.saylune.scene.Role
 import org.json.JSONArray
 import org.json.JSONObject
 
 /**
  * How a sitting's own settings are written down and read back.
  *
- * These get **one column each and not a table each**, and the reason is the one the store
- * already gives about the marks: what is kept is what the app holds, without a modelling
- * layer added on top. A table of lever positions would be five tables to keep in step for
- * something no query ever asks a question of -- a sitting reads all of its settings or none.
- *
- * **Everything travels by name.** A position is a step's name or a number, an instruction is
- * its marking and its text; nothing here is a rank into a list, which would be a promise never
- * to reorder that list, and which nobody remembers making.
+ * **One column each and not a table each**: a sitting reads all of its settings or none, and
+ * no query asks a question of them. **Everything travels by name**, never by a rank into a
+ * list, which would be a promise never to reorder that list.
  */
 internal object Sitting {
 
     /**
-     * Lever positions, as one object of key to value.
-     *
-     * A number is written as a number, and **no maximum** as null -- which is a position and
-     * not an absence, so the key is still there. A named step is written as its name.
+     * Lever positions, as one object of key to value. **No maximum** is null -- a position and
+     * not an absence, so the key is still there.
      */
     fun write(positions: Positions): String = JSONObject().apply {
         positions.all().forEach { (key, position) ->
@@ -66,41 +58,30 @@ internal object Sitting {
         return Weights(json.keys().asSequence().associateWith { json.getDouble(it).toFloat() })
     }
 
-    /**
-     * The cast, each character with its key and its short name by language.
-     *
-     * Copied onto the line like every other thing a definition lays down: an utterance names
-     * its speaker by key, so a sitting that lost its cast would hold names it cannot read.
-     */
-    fun writeCast(of: List<Character>): String = JSONArray().apply {
-        of.forEach { character ->
+    /** The cast, each one with its key, its short name by language, and its description. */
+    fun writeCast(of: List<Role>): String = JSONArray().apply {
+        of.forEach { role ->
             put(JSONObject()
-                .put("key", character.key)
-                .put("main", character.main)
-                .put("gender", character.gender)
+                .put("key", role.key)
+                .put("main", role.main)
+                .put("gender", role.gender)
+                .put("about", role.about)
                 .put("short", JSONObject().apply {
-                    character.short.byLanguage.forEach { (language, text) -> put(language, text) }
+                    role.short.byLanguage.forEach { (language, text) -> put(language, text) }
                 }))
         }
     }.toString()
 
-    fun readCast(stored: String): List<Character> = JSONArray(stored).objects().map { json ->
+    /** A cast written before descriptions were on the line comes back with none. */
+    fun readCast(stored: String): List<Role> = JSONArray(stored).objects().map { json ->
         val short = json.getJSONObject("short")
-        Character(
+        Role(
             key = json.getString("key"),
             short = Text(short.keys().asSequence().associateWith { short.getString(it) }),
+            about = json.optString("about"),
             main = json.optBoolean("main"),
-            // Written since the launch screen existed; a sitting older than it has none, and
-            // an absent gender is exactly what *no matter* left behind anyway.
             gender = json.optString("gender").takeIf { it.isNotEmpty() },
         )
-    }
-
-    fun write(brief: Brief): String =
-        JSONObject().put("situation", brief.situation).put("staging", brief.staging).toString()
-
-    fun readBrief(stored: String): Brief = JSONObject(stored).let {
-        Brief(it.optString("situation"), it.optString("staging"))
     }
 
     fun write(origin: Origin): String =
@@ -110,40 +91,18 @@ internal object Sitting {
         Origin(it.getString("definition"), it.getString("version"))
     }
 
-    fun writeInstructions(of: List<Instructing>): String = JSONArray().apply {
+    /** What the learner filled and chance drew: the case, the value, who, and when. */
+    fun writeJournal(of: List<Written>): String = JSONArray().apply {
         of.forEach {
             put(JSONObject()
-                .put("marking", it.marking)
-                .put("text", it.text ?: JSONObject.NULL)
-                .put("lasts", it.lasts ?: JSONObject.NULL))
+                .put("case", it.case).put("value", it.value)
+                .put("by", it.by.name).put("passage", it.passage))
         }
     }.toString()
 
-    fun readInstructions(stored: String): List<Instructing> =
-        JSONArray(stored).objects().map {
-            Instructing(
-                marking = it.getString("marking"),
-                text = if (it.isNull("text")) null else it.getString("text"),
-                lasts = if (it.isNull("lasts")) null else it.getInt("lasts"),
-            )
-        }
-
-    /**
-     * The journal: which rule fired, at which passage, and which pack was taken.
-     *
-     * **The choice and nothing else.** The effects follow from the rule and the choice, so
-     * writing them too would be a second source that could drift from the first.
-     */
-    fun writeJournal(of: List<Chosen>): String = JSONArray().apply {
-        of.forEach {
-            put(JSONObject()
-                .put("rule", it.rule).put("passage", it.passage)
-                .put("pack", it.pack).put("at", it.at))
-        }
-    }.toString()
-
-    fun readJournal(stored: String): List<Chosen> = JSONArray(stored).objects().map {
-        Chosen(it.getString("rule"), it.getInt("passage"), it.getInt("pack"), it.getLong("at"))
+    fun readJournal(stored: String): List<Written> = JSONArray(stored).objects().map {
+        Written(it.getString("case"), it.getString("value"), Writer.valueOf(it.getString("by")),
+                it.getInt("passage"))
     }
 
     private fun JSONArray.objects(): List<JSONObject> =

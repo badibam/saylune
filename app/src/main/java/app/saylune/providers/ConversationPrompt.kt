@@ -4,10 +4,9 @@ import app.saylune.chain.Exchange
 import app.saylune.levers.Levers
 import app.saylune.levers.Position
 import app.saylune.capture.Ending
-import app.saylune.activity.Answers
-import app.saylune.activity.Brief
-import app.saylune.activity.Question
-import app.saylune.activity.Rung
+import app.saylune.chain.Asked
+import app.saylune.scene.Kind
+import app.saylune.scene.Reach
 import app.saylune.chain.Provoked
 import app.saylune.chain.Present
 import app.saylune.chain.Said
@@ -307,8 +306,14 @@ internal object ConversationPrompt {
 
     fun activity(scene: Scene): String {
         val lines = mutableListOf<String>()
-        scene.brief?.staging?.takeIf { it.isNotBlank() }?.let { lines += it }
-        scene.brief?.situation?.takeIf { it.isNotBlank() }?.let { lines += "The situation: $it" }
+        // **A description belongs to whoever it describes**, and goes out whenever they are
+        // present. With one voice there is nobody to tell apart, so it is said bare.
+        if (scene.cast.size == 1) {
+            scene.cast.single().about.takeIf { it.isNotBlank() }?.let { lines += it }
+        } else {
+            scene.cast.forEach { lines += "${it.key}: ${it.about}" }
+        }
+        scene.situation.takeIf { it.isNotBlank() }?.let { lines += "The situation: $it" }
         // Only where there are several: naming the one voice a free conversation has would be
         // telling the model something it has no use for.
         if (scene.cast.size > 1) {
@@ -352,7 +357,7 @@ internal object ConversationPrompt {
         // The instructions in force, in the words a definition wrote. They sit here, in part 4,
         // and not with the scene: laid before the history they would be buried under thirty
         // turns at the very moment they have to govern the next one.
-        present.instructions.mapNotNull { it.text }.forEach { lines += it }
+        present.instructions.forEach { lines += it }
         // **The questions of this turn, whose answers are required fields.** They go here, in
         // the part rebuilt every turn, because that is what they are: put at one moment and at
         // no other, so laid where they apply rather than in a heading every call carries.
@@ -381,27 +386,32 @@ internal object ConversationPrompt {
      * the conversation established wins -- or invention overrules the truth and an answer
      * contradicts what has just happened.
      */
-    private fun asked(question: Question): String {
-        val shape = when (val answers = question.answers) {
-            is Answers.Free -> "Answer in prose, a sentence or two."
-            is Answers.OneOf -> "Answer with exactly one of: " +
-                (answers.keys + if (question.rung == Rung.FromTheTalk)
-                    listOf(Question.DONT_KNOW) else emptyList()).joinToString(", ")
+    private fun asked(asked: Asked): String {
+        val unsure = if (asked.reach == Reach.Said) listOf(Asked.DONT_KNOW) else emptyList()
+        val shape = when (val kind = asked.kind) {
+            is Kind.Words -> "Answer in prose, a sentence or two."
+            is Kind.Flag -> "Answer with exactly one of: " +
+                (listOf("true", "false") + unsure).joinToString(", ")
+            is Kind.Choice -> "Answer with exactly one of: " +
+                (kind.among + unsure).joinToString(", ")
+            is Kind.Number -> "Answer with a number" +
+                (kind.min?.let { ", ${it.toLong()} at the least" } ?: "") +
+                (kind.max?.let { ", ${it.toLong()} at the most" } ?: "") + "."
         }
-        val far = when (question.rung) {
-            Rung.FromTheTalk ->
+        val far = when (asked.reach) {
+            Reach.Said ->
                 "Answer only from what has been said in this conversation. If nothing there " +
-                    "settles it, answer exactly \"${Question.DONT_KNOW}\"."
-            Rung.MayExtrapolate ->
+                    "settles it, answer exactly \"${Asked.DONT_KNOW}\"."
+            Reach.Deduce ->
                 "Answer from what has been said. Where that does not settle it, conclude " +
                     "from what has been said."
-            Rung.MayInvent ->
+            Reach.Invent ->
                 "Answer from what has been said. Where that does not settle it, conclude " +
                     "from what has been said; and where there is nothing to conclude from, " +
                     "decide."
         }
-        return "Settle this, under the key \"${question.key}\" of \"established\": " +
-            "${question.ask} $shape $far"
+        return "Settle this, under the key \"${asked.key}\" of \"established\": " +
+            "${asked.about}. $shape $far"
     }
 
     /**
@@ -539,7 +549,7 @@ internal object ConversationPrompt {
      * not a sentence somebody chose to leave unfinished.
      */
     private fun judgeTail(present: Present): String {
-        val lines = present.instructions.mapNotNull { it.text }.toMutableList()
+        val lines = present.instructions.toMutableList()
         present.ending?.let {
             lines += when (it) {
                 Ending.ByLength -> "The turn was cut off: the recording reached the time it " +

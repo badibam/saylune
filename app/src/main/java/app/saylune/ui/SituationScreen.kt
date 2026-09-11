@@ -27,65 +27,48 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import app.saylune.R
-import app.saylune.activity.Brief
 import app.saylune.activity.Caution
-import app.saylune.activity.Definition
+import app.saylune.scene.SceneFile
 import app.saylune.ui.theme.Saylune
 import java.util.Locale
 
 /**
  * What a tile opens: **one screen with two states**.
  *
- * **Filled**, it shows the situation as it was completed, with what the learner brought
- * himself **in colour**, so that one sees at a glance what one added. It costs nothing: the
- * template is in the file and the finished text is on the line, so where the holes were is
- * read back by laying one against the other.
+ * **Filled**, it shows the situation as the learner completed it, with what he brought himself
+ * **in colour**, so that one sees at a glance what one added. It costs nothing: the situation
+ * cites its holes by name, and what filled them is on the sitting's line.
  *
  * **Empty**, it shows the situation with its holes, one question per hole, and the choice of
  * **gender** where the file leaves it open -- *no matter* by default, which is not a third
  * gender but the absence of a constraint, and draws (`activity.md`).
  *
  * **Two ways out, and one of them asks.** *Carry on* takes the sitting as it stands, or opens
- * one where there is none -- so it is called *begin* until there is something to carry on,
- * which is the one place this departs from `ui.md`: two buttons that never change their words
- * would have one of them lying on a theme nobody has opened. *Start over* is the only thing in
- * the app that puts a sitting out of reach -- the old one stays in the base, and with no
- * history screen out of reach is lost to use -- so it asks, on **no** by default, in the
- * register rather than in a dialogue box: the two buttons become the question, and the answer
- * is where the hand already is.
+ * one where there is none -- so it is called *begin* until there is something to carry on.
+ * *Start over* is the only thing in the app that puts a sitting out of reach, so it asks, on
+ * **no** by default, in the register rather than in a dialogue box.
  *
- * **Saying yes puts the old sitting out of reach and starts nothing.** The situation comes
- * back with its holes, and the new sitting is opened by the press on *begin* that follows,
- * like on a theme nobody had touched -- so the questions are asked before a word is spoken,
- * and a scene whose character speaks first does not start talking over an empty situation.
- * What makes the form stay is that the answer is **written down** rather than held here: this
- * screen has no memory of its own between two visits, and a flag held on it let the old
- * sitting stand again on the way back in.
+ * **Saying yes puts the old sitting out of reach and starts nothing.** The situation comes back
+ * with its holes, and the new sitting is opened by the press on *begin* that follows. What makes
+ * the form stay is that the answer is **written down** rather than held here.
  */
 @Composable
 fun SituationScreen(
-    theme: Definition,
-    /** The situation as it stands on the sitting, or null where none was ever opened. */
-    started: Brief?,
+    theme: SceneFile,
+    /** What the learner filled on the sitting that stands, or null where none was opened. */
+    started: Map<String, String>?,
     /**
      * How many passages that sitting holds.
      *
      * **What one carries on is something said, not a row in a table.** A sitting is written the
-     * moment the situation is settled, so a theme opened and left before a word was spoken has
-     * one -- and *carry on* on a conversation with nothing in it says the wrong thing. The word
-     * is *begin* until a passage exists; what pressing does is unchanged, and it opens that
-     * empty sitting rather than piling a second one on top of it.
+     * moment the situation is settled, so a scene opened and left before a word was spoken has
+     * one -- and *carry on* on a conversation with nothing in it says the wrong thing.
      */
     passages: Int,
     /** Whether the learner asked to be shown what a scene declares. Off by default. */
     showTriggers: Boolean,
     onCarryOn: () -> Unit,
-    /**
-     * Put the sitting out of reach, and open none.
-     *
-     * The screen empties because the sitting it was standing on stops being offered, not
-     * because anything here remembers the answer.
-     */
+    /** Put the sitting out of reach, and open none. */
     onStartOver: () -> Unit,
     onStart: (answers: Map<String, String>, gender: String?) -> Unit,
     modifier: Modifier = Modifier,
@@ -97,6 +80,7 @@ fun SituationScreen(
     val answers = remember(theme.id) { mutableStateMapOf<String, String>() }
     var gender by rememberSaveable(theme.id) { mutableStateOf("") }
     var asking by rememberSaveable(theme.id) { mutableStateOf(false) }
+    val situation = theme.situation.inLanguage(language)
 
     Column(modifier.fillMaxSize().padding(horizontal = grid.cell)) {
         Column(
@@ -104,32 +88,34 @@ fun SituationScreen(
             verticalArrangement = Arrangement.spacedBy(grid.cell),
         ) {
             if (started != null) {
+                // What is not filled reads as the text the citation says to write when the case
+                // is empty, which is what the leader is given too.
                 Text(
-                    said(theme.brief?.situation.orEmpty(), started.situation, palette.own.srgb),
+                    filled(situation, started, palette.own.srgb),
                     style = type.text,
                     color = palette.ink.srgb,
                 )
             } else {
-                theme.brief?.situation?.takeIf { it.isNotBlank() }?.let { situation ->
-                    // The holes fill as they are typed, in the same colour they will keep
-                    // once the sitting is open: what one is about to walk into is read here,
-                    // not after pressing.
+                situation.takeIf { it.isNotBlank() }?.let {
+                    // The holes fill as they are typed, in the same colour they will keep once
+                    // the sitting is open: what one is about to walk into is read here, not
+                    // after pressing.
                     Text(
-                        filling(situation, answers, palette.own.srgb, palette.dim.srgb),
+                        filling(it, answers, palette.own.srgb, palette.dim.srgb),
                         style = type.text,
                         color = palette.ink.srgb,
                     )
                 }
-                theme.slots.forEach { slot ->
+                theme.holes.forEach { hole ->
                     Column(verticalArrangement = Arrangement.spacedBy(grid.cell)) {
                         Text(
-                            slot.ask.inLanguage(language),
+                            hole.ask.inLanguage(language),
                             style = type.text,
                             color = palette.ink.srgb,
                         )
                         Field(
-                            value = answers[slot.key].orEmpty(),
-                            onChange = { answers[slot.key] = it },
+                            value = answers[hole.case].orEmpty(),
+                            onChange = { answers[hole.case] = it },
                             placeholder = stringResource(R.string.situation_words),
                         )
                     }
@@ -150,15 +136,13 @@ fun SituationScreen(
             }
             // **Last on the screen, and only where it was asked for.** It is read after the
             // situation and the form, at the moment of pressing rather than before reading what
-            // the scene is -- and to whoever left the setting off it does not exist, because to
-            // them it is a list of what a scene is about and nobody asked for that.
+            // the scene is -- and to whoever left the setting off it does not exist.
             //
             // **It says what the scene is set up to do, never what the sitting will be.** Most
             // of these scenes are built on a hole the learner types themselves, so the author
             // answers for the frame and the rest arrives from the learner and the model. It is
             // shown and never used to hide a tile: matching one person's own words against
-            // these keys is a judgement the app cannot make, and a tile taken away in silence
-            // is what this project refuses everywhere.
+            // these keys is a judgement the app cannot make.
             if (showTriggers) {
                 Column(
                     Modifier.padding(top = grid.cell),
@@ -169,7 +153,7 @@ fun SituationScreen(
                         style = type.text,
                         color = palette.ink.srgb,
                     )
-                    if (theme.triggers.isEmpty()) {
+                    if (theme.cautions.isEmpty()) {
                         Text(
                             stringResource(R.string.situation_triggers_none),
                             style = type.thin,
@@ -180,7 +164,7 @@ fun SituationScreen(
                     // character does to you and what a scene is about are not the same kind of
                     // warning, and read in one list they would be taken for one.
                     Caution.Kind.entries.forEach { kind ->
-                        val declared = theme.triggers.filter { it.kind == kind }
+                        val declared = theme.cautions.filter { it.kind == kind }
                         if (declared.isEmpty()) return@forEach
                         Text(
                             stringResource(
@@ -265,36 +249,24 @@ private fun Way(
 }
 
 /**
- * The finished situation, with what the learner brought in colour.
- *
- * The template is cut on its holes, and what stands between two of its literal pieces in the
- * finished text is what filled a hole. A piece that cannot be found leaves the rest plain --
- * the sitting was opened from another release of the file, which is exactly what the version
- * on its origin exists to make visible, and a colour that guessed would be worse than none.
+ * The situation as the sitting has it: what the learner brought in colour, and what he left
+ * empty as the text the citation says to write instead.
  */
-private fun said(template: String, filled: String, ink: androidx.compose.ui.graphics.Color):
-    AnnotatedString = buildAnnotatedString {
-    val pieces = template.split(HOLE).filter { it.isNotEmpty() }
-    var rest = filled
-    pieces.forEach { piece ->
-        val at = rest.indexOf(piece)
-        if (at < 0) {
-            append(rest)
-            rest = ""
-            return@forEach
-        }
-        if (at > 0) withStyle(SpanStyle(color = ink)) { append(rest.take(at)) }
-        append(piece)
-        rest = rest.drop(at + piece.length)
+private fun filled(
+    template: String, answers: Map<String, String>, ink: androidx.compose.ui.graphics.Color,
+): AnnotatedString = buildAnnotatedString {
+    walk(template) { key, fallback ->
+        val answer = answers[key].orEmpty()
+        if (answer.isEmpty()) append(fallback)
+        else withStyle(SpanStyle(color = ink)) { append(answer) }
     }
-    if (rest.isNotEmpty()) withStyle(SpanStyle(color = ink)) { append(rest) }
 }
 
 /**
- * The situation as it stands while it is being filled: the answers in colour, and a hole
- * nobody has answered yet as a blank to be written on.
+ * The situation while it is being filled: the answers in colour, and a hole nobody has answered
+ * yet as a blank to be written on.
  *
- * The key is never shown. It is the author's name for the hole, in English and in the shape a
+ * The key is never shown. It is the author's name for the case, in English and in the shape a
  * programmer writes -- what the learner is being asked is on the line below, in his language.
  */
 private fun filling(
@@ -303,13 +275,25 @@ private fun filling(
     ink: androidx.compose.ui.graphics.Color,
     dim: androidx.compose.ui.graphics.Color,
 ): AnnotatedString = buildAnnotatedString {
-    var at = 0
-    HOLE.findAll(template).forEach { hole ->
-        append(template.substring(at, hole.range.first))
-        val answer = answers[hole.value.trim('{', '}')].orEmpty()
+    walk(template) { key, _ ->
+        val answer = answers[key].orEmpty()
         if (answer.isEmpty()) withStyle(SpanStyle(color = dim)) { append(BLANK) }
         else withStyle(SpanStyle(color = ink)) { append(answer) }
-        at = hole.range.last + 1
+    }
+}
+
+/**
+ * [template] appended piece by piece, [hole] being handed the case each citation names and what
+ * it says to write when that case is empty.
+ */
+private fun androidx.compose.ui.text.AnnotatedString.Builder.walk(
+    template: String, hole: (key: String, fallback: String) -> Unit,
+) {
+    var at = 0
+    HOLE.findAll(template).forEach { found ->
+        append(template.substring(at, found.range.first))
+        hole(found.groupValues[1].trim(), found.groupValues[2].trim())
+        at = found.range.last + 1
     }
     append(template.substring(at))
 }
@@ -317,9 +301,12 @@ private fun filling(
 /** What an unanswered hole looks like: something to write on. */
 private const val BLANK = "_____"
 
-/** What a hole looks like in a definition's prose: a key in braces. */
+/**
+ * What a citation looks like in a scene's prose: a case in braces, and what to write when it is
+ * empty after a bar.
+ */
 // Both braces escaped: ICU's engine, which Android uses, refuses a bare closing one.
-private val HOLE = Regex("\\{[^}]+\\}")
+private val HOLE = Regex("\\{([^}|]+)(?:\\|([^}]*))?\\}")
 
 /** What the store holds for a gender the learner chose. */
 const val MAN = "man"
