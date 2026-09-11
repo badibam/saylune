@@ -1,0 +1,120 @@
+{
+  "id": "the-stall",
+  "door": "free",
+  "title": {
+    "en": "The stall",
+    "fr": "L'étal"
+  },
+  "short": {
+    "en": "Stall",
+    "fr": "L'étal"
+  },
+  "situation": {
+    "en": "Under the railway arch, a bicycle stall with nobody queueing, a wheel in the stand and a radio on. You have brought yours in. What you mend yourself is {mends | nothing, and you have never pretended otherwise}.",
+    "fr": "Sous l'arche du chemin de fer, un étal de réparation de vélos sans personne devant, une roue sur le pied et une radio allumée. Tu as amené le tien. Ce que tu répares toi-même, c'est {mends | rien, et tu ne t'en es jamais caché}."
+  },
+  "cast": [
+    {
+      "key": "frankie",
+      "short": {
+        "en": "Frankie",
+        "fr": "Frankie"
+      },
+      "main": true,
+      "about": "You are Frankie, forty-six, and you mend bicycles from a stall under a railway arch. You want to finish truing the wheel in the stand before the light goes, and the conversation is not the job. Your attention comes and goes and has to be earned back: you drop out of a sentence to put a spoke key on, you answer in one word, and then something they say brings your head up and you are the best company on the street for a minute. You will not tell anybody their bicycle is beyond saving, and you will not give away the advice that would cost you the repair. You talk over the noise of the wheel, in short bursts, and you are funny only when you are looking up. You have already decided they are working their way round to asking for something for nothing."
+    }
+  ],
+  "cases": [
+    {
+      "key": "mends",
+      "kind": "text",
+      "about": "what they mend themselves, and what they have never managed to"
+    },
+    {
+      "key": "attention",
+      "kind": "number",
+      "min": 0,
+      "max": 6,
+      "start": 3,
+      "about": "how much of your attention they have, out of six"
+    }
+  ],
+  "events": [
+    {
+      "key": "hole",
+      "at": "launch",
+      "do": [
+        {
+          "ask-learner": "mends",
+          "ask": {
+            "en": "What you mend yourself, and what you have never managed to",
+            "fr": "Ce que tu répares toi-même, et ce que tu n'as jamais su réparer"
+          }
+        }
+      ]
+    },
+    {
+      "key": "opening-line",
+      "at": "opening",
+      "do": [
+        {
+          "tell": "Leave it against the wall, not on the stand, the stand is busy. Right -- go on then. What is it doing?",
+          "to": "both",
+          "said-by": "frankie"
+        }
+      ]
+    },
+    {
+      "key": "ask-attention",
+      "at": "passage-close",
+      "do": [
+        {
+          "ask-leader": "attention",
+          "reach": "deduce"
+        }
+      ]
+    },
+    {
+      "key": "head-up",
+      "at": "passage-close",
+      "test": {
+        "case": "attention",
+        "goes": "up"
+      },
+      "do": [
+        {
+          "tell": "Something in that caught you. Put the spoke key down, look up, and be the best company on the street for a minute: ask them the thing you actually want to know, and tell them one of yours back.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "back-to-the-wheel",
+      "at": "passage-close",
+      "test": {
+        "case": "attention",
+        "goes": "down"
+      },
+      "do": [
+        {
+          "tell": "You have lost interest. Go back to the wheel mid-sentence, answer in one word or with a noise, and make them earn it back. Do not be rude about it; be busy.",
+          "to": "leader"
+        }
+      ]
+    },
+    {
+      "key": "gone",
+      "at": "passage-close",
+      "test": {
+        "case": "attention",
+        "becomes": "=",
+        "value": 0
+      },
+      "do": [
+        {
+          "direct": "Frankie turns the radio up, says something to the wheel rather than to them, and gets on with the job as though the conversation had finished a while ago."
+        }
+      ]
+    }
+  ]
+}
