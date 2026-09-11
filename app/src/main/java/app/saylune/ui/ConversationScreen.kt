@@ -401,6 +401,13 @@ fun ConversationScreen(
                 // The small button only opens; the bottom is what pauses and sends, and it
                 // is `repeating` that says where the take goes when it does.
                 onOpenRepeat = {
+                    // **A retake taken by hand spends the arming the answer left pending.**
+                    // The learner has taken the floor that arming was to give them; left
+                    // standing, it only waited for the mic to come free, then closed the
+                    // passage behind their back and opened the mic on a new turn -- the next
+                    // sentence went out as a passage of its own. It comes back with the next
+                    // answer, which a rewording has and a repeat does not.
+                    turn.opening?.let { pipeline.spend(it) }
                     onRepeating(spoken.id)
                     recorder.open(scope, settings)
                 },
