@@ -125,7 +125,8 @@ Un texte d'événement pour le meneur n'a pas de durée : il se place dans la co
 
 ## L'ordre, dans un moment
 
-1. Les événements du moment partent.
+0. Ce qui ne vient pas des événements est posé d'abord : les cases de l'app, ce que le meneur a écrit, et les tirages dont l'événement ne teste que le moment. Au casino, *quand `hand` = gagné, jetons + 1* lit la main qu'on vient de tirer, sans que rien dépende de l'ordre des événements dans la fiche. Un tirage qui retombe sur la même valeur ne change rien : pour réagir à chaque main gagnée, on teste l'état, pas le changement.
+1. Les événements du moment partent, chacun au plus une fois par moment.
 2. Ceux qu'un changement vient de déclencher partent à leur tour, jusqu'à ce que plus rien ne bouge — la patience baisse, elle atteint 0, la durée du tour passe à 10 s. Le moteur actuel le fait par vagues et prouve que ça s'arrête ; la même garantie est due.
 3. Ensuite seulement, l'app regarde si la scène est finie. C'est ce qui permet la fausse mort.
 4. Puis les textes arrivent : la notification s'affiche, le fil joue les répliques écrites, et les textes pour le meneur partent avec l'appel suivant.

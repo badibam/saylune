@@ -107,6 +107,6 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 
 **Quatrième lot.** T5 a rendu V17 impossible — une humeur qui bouge sur l'anglais dans une scène qui ne finit pas — : réécrit sur ce qui est dit, et V36 ajouté pour les deux paires qu'il était seul à tenir, *humeur × l'anglais* et *l'anglais × un choix avec suite*.
 
-- **T15 — tirer puis lire, dans le même moment** (V12, V29). *À la fermeture, tirer `hand`* et *quand `hand` = gagné, jetons + 1* partent au même moment : le second lit-il la main d'avant ou la nouvelle ? Et un tirage qui retombe sur la même valeur n'est pas un changement, donc un test de changement manque les mains gagnées deux fois de suite. Proposition à trancher.
+- **T15 — tranché** (V12, V29) : au début d'un moment, les cases de l'app, les écritures du meneur et les tirages sans condition sont posés avant tout événement, et chaque événement part au plus une fois par moment (`scene-state.md`).
 
 **Ce qui tient, au quatrième lot.** Les consignes successives du tribunal (V6), posées au passage N, attendent avec le passage pendant que le plaidoyer bloque, sans règle neuve. Le bivouac (V9) demande des cases au meneur dans un tour sans phrase de l'apprenant (T11) : c'est un appel du meneur comme un autre, et ses écritures se lisent à la fermeture suivante.
