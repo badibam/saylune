@@ -42,6 +42,22 @@ class ConversationPromptTest {
         assertTrue(ConversationPrompt.SPEAKING.contains("never interrupt"))
     }
 
+    /**
+     * **A turn nobody prompted names only fields the contract declares.** The field of the
+     * turn was renamed and this instruction kept the old name, so every turn the character
+     * took of its own accord was written under a key the reader does not know -- and the
+     * sitting gave way on a reply that was there.
+     */
+    @Test
+    fun `the provoked turn names only declared fields`() {
+        val declared = Regex("""(?m)^\s*"(\w+)":""").findAll(ConversationPrompt.SPEAKING)
+            .map { it.groupValues[1] }.toSet()
+        val named = Regex(""""(\w+)"""").findAll(ConversationPrompt.PROVOKED)
+            .map { it.groupValues[1] }.toSet()
+        assertTrue("$named against $declared", declared.containsAll(named))
+        assertTrue(named.contains("said"))
+    }
+
     // ── Part 2 is the scene ─────────────────────────────────────────────────────────────
 
     @Test

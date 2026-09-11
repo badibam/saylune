@@ -462,7 +462,7 @@ internal object ConversationPrompt {
      * of them left with the marking, and a turn nobody prompted simply does not call the
      * judge. What had to be kept up is gone instead.
      *
-     * **What it must not do is say *`spoken` alone*.** It did, and that took the questions of
+     * **What it must not do is say *`said` alone*.** It did, and that took the questions of
      * the opening down with it: the model answered without a field it had just been asked for.
      * What has nothing to attach to is named; nothing else is forbidden.
      */
@@ -470,7 +470,7 @@ internal object ConversationPrompt {
         Nobody has spoken to you this turn. You are taking it of your own accord, on the
         instruction you have just been given. There is no learner turn to read, so
         "intended" and "echo" have nothing to attach to: leave those two out. Answer with
-        "spoken", and with "established" as well if the instruction for this turn lists
+        "said", and with "established" as well if the instruction for this turn lists
         questions to settle.
     """.trimIndent()
 
