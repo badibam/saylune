@@ -25,10 +25,12 @@ import hashlib
 import io
 import json
 import os
+import re
 import struct
 import sys
 import threading
 import time
+import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -62,6 +64,13 @@ MAX_SECONDS = float(os.environ.get("SAYLUNE_MAX_SECONDS", "35"))
 # probe in 32 because the device averages it before anything reads it.
 MAGIC = b"SAYM"
 VERSION = 1
+
+# A take sent while it is said is held here until it is closed. One nobody
+# closes -- thrown away, or its phone gone -- is forgotten after this long, and
+# no more than this many are held at once.
+TAKE_TTL = float(os.environ.get("SAYLUNE_TAKE_TTL", "600"))
+OPEN_TAKES = int(os.environ.get("SAYLUNE_OPEN_TAKES", "16"))
+NAMED = re.compile(r"^/take/([0-9a-f-]{8,64})(/end|/drop)?$")
 
 
 def held(home, name, digest):
@@ -161,6 +170,47 @@ class Engine:
         return probabilities[0], self.probe.perFrame(hidden), spent
 
 
+class Takes:
+    """Takes arriving while they are said, a piece at a time.
+
+    Each piece names where it starts. One that starts past what is held would
+    leave a hole, so nothing of it is kept, and the answer -- how much is held --
+    tells the phone where to send from. One that overlaps what is held adds only
+    what is new, so a piece sent twice changes nothing.
+    """
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.held = {}
+
+    def sweep(self, now):
+        for name in [name for name, (_, touched) in self.held.items()
+                     if now - touched > TAKE_TTL]:
+            del self.held[name]
+
+    def piece(self, name, at, body):
+        """How much is held once the piece is in, or None when there is no room."""
+        with self.lock:
+            now = time.monotonic()
+            self.sweep(now)
+            if name not in self.held:
+                if len(self.held) >= OPEN_TAKES:
+                    return None
+                self.held[name] = (bytearray(), now)
+            data, _ = self.held[name]
+            if at <= len(data) < at + len(body):
+                data.extend(body[len(data) - at:])
+            self.held[name] = (data, now)
+            return len(data)
+
+    def taken(self, name):
+        """The take, no longer held, or None if it is unknown or forgotten."""
+        with self.lock:
+            self.sweep(time.monotonic())
+            data, _ = self.held.pop(name, (None, 0))
+            return data
+
+
 def rendered(matrix, probe, seconds, millis):
     """The answer on the wire: a fixed header, the matrix, then the probe."""
     frames, symbols = matrix.shape
@@ -174,6 +224,7 @@ def rendered(matrix, probe, seconds, millis):
 class Handler(BaseHTTPRequestHandler):
     engine = None
     token = None
+    takes = Takes()
 
     protocol_version = "HTTP/1.1"
 
@@ -192,21 +243,36 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path != "/health":
-            return self.fail(404, "seule /matrix répond\n")
+            return self.fail(404, "seules /matrix et /take répondent\n")
         self.fail(200, "ok\n")
 
     def do_POST(self):
-        if self.path != "/matrix":
-            return self.fail(404, "seule /matrix répond\n")
         if self.headers.get("Authorization") != f"Bearer {self.token}":
             # Not a wall against a determined visitor: the point is that an
             # unauthenticated endpoint running a 315 M network on a public
             # address is a free compute service for whoever scans.
             return self.fail(401, "jeton absent ou faux\n")
+        address = urllib.parse.urlsplit(self.path)
         length = int(self.headers.get("Content-Length") or 0)
-        if length <= 0:
+        body = self.rfile.read(length) if length > 0 else b""
+        if address.path == "/matrix":
+            return self.whole(body)
+        named = NAMED.match(address.path)
+        if not named:
+            return self.fail(404, "seules /matrix et /take répondent\n")
+        name, verb = named.groups()
+        query = urllib.parse.parse_qs(address.query)
+        if verb == "/drop":
+            self.takes.taken(name)
+            return self.fail(200, "ok\n")
+        if verb == "/end":
+            return self.end(name, query)
+        return self.piece(name, query, body)
+
+    def whole(self, body):
+        """A take sent in one go, as a wav."""
+        if not body:
             return self.fail(400, "corps vide\n")
-        body = self.rfile.read(length)
         try:
             audio, rate = sf.read(io.BytesIO(body), dtype="float32")
         except Exception as trouble:
@@ -215,6 +281,47 @@ class Handler(BaseHTTPRequestHandler):
             return self.fail(400, f"{rate} Hz, attendu {SAMPLE_RATE}\n")
         if audio.ndim > 1:
             return self.fail(400, "mono attendu\n")
+        self.answer(audio)
+
+    def piece(self, name, query, body):
+        """A piece of a take being said: raw 16-bit samples, from `at` on."""
+        try:
+            at = int(query["at"][0])
+        except (KeyError, ValueError):
+            return self.fail(400, "at manque\n")
+        if at < 0 or len(body) % 2:
+            return self.fail(400, "morceau hors d'un échantillon entier\n")
+        if at + len(body) > MAX_SECONDS * SAMPLE_RATE * 2:
+            return self.fail(413, f"plafond {MAX_SECONDS} s\n")
+        held = self.takes.piece(name, at, body)
+        if held is None:
+            return self.fail(503, "trop de prises ouvertes\n")
+        answer = json.dumps({"held": held}).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(answer)))
+        self.end_headers()
+        self.wfile.write(answer)
+
+    def end(self, name, query):
+        """The take closed: read it, if it is exactly what the phone holds."""
+        data = self.takes.taken(name)
+        if data is None:
+            return self.fail(404, "prise inconnue ou oubliée\n")
+        try:
+            size = int(query["bytes"][0])
+            digest = query["sha256"][0]
+        except (KeyError, ValueError):
+            return self.fail(400, "bytes et sha256 manquent\n")
+        if len(data) != size or hashlib.sha256(data).hexdigest() != digest:
+            # Read anyway, this would put marks on an audio nobody said.
+            return self.fail(409, f"{len(data)} octets tenus, {size} annoncés, "
+                                  "ou pas les mêmes\n")
+        # The same numbers soundfile gives a 16-bit wav: each sample over 32768.
+        audio = np.frombuffer(bytes(data), dtype="<i2").astype(np.float32) / 32768
+        self.answer(audio)
+
+    def answer(self, audio):
         seconds = len(audio) / SAMPLE_RATE
         if seconds > MAX_SECONDS:
             return self.fail(413, f"{seconds:.1f} s, plafond {MAX_SECONDS} s\n")

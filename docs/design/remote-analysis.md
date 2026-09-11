@@ -52,7 +52,11 @@ Le montage a tourné en vrai le 2026-09-10 : l'app parle au serveur, les deux au
 
 ### 1. Envoyer pendant que la personne parle
 
-Aujourd'hui l'envoi commence quand le tour est fini, alors que le lien montant n'a rien fait pendant les vingt secondes de parole. Expédié au fil de l'enregistrement, l'audio est déjà là quand la phrase se termine — la passe ne peut toujours pas commencer avant la fin, mais **le transfert sort du chemin critique**. Aucun octet économisé, presque toute l'attente supprimée, et rien à trancher côté doctrine.
+L'envoi commençait quand le tour était fini, alors que le lien montant n'avait rien fait pendant les vingt secondes de parole. **C'est écrit le 2026-09-11** (`analysis/StreamedTake.kt`, `server/serve.py`) : la prise part par morceaux d'une seconde, chacun portant sa position, et le serveur répond ce qu'il tient. Un morceau perdu se renvoie donc depuis là, et une pause ne tient rien ouvert. À la fermeture partent la dernière seconde, la longueur et l'empreinte des échantillons, et un serveur qui tient autre chose refuse au lieu de lire.
+
+**Et la passe de la prise sort du chemin critique avec son envoi** : le serveur la lance dès la fermeture, pendant que le modèle de langue et la synthèse travaillent. Après la synthèse il ne reste que le modèle, et sur une redite il est gardé (n° 2).
+
+Vérifié sur le poste, sur une prise de 33,3 s : la matrice rendue par morceaux est la même au bit près que celle de l'envoi entier ; un morceau renvoyé ne change rien ; un morceau après un trou est refusé puis renvoyé d'où le serveur le dit ; une seconde fermeture rend 404, une prise incomplète 409. **Rien de ça n'a tourné sur le téléphone, et le gain n'est pas mesuré.** Le serveur tient désormais un état : les prises inachevées, seize au plus, oubliées au bout de dix minutes.
 
 Deux prix, à écrire maintenant. Une prise qu'on jette aura été envoyée pour rien, ce qui est un levier existant qui devient payant. Et le silence part au réseau comme le reste, ce que le tuyau A assume déjà.
 
