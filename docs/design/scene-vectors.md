@@ -88,5 +88,5 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 - **T5 — tranché** (V7) : en Libre, un test ne lit de l'app que `app.passage` (`scene-state.md`).
 - **T6 — tranché** (V16) : l'issue de chaque scène est une case de l'histoire, et une scène qui peut rater oblige l'histoire à dire ce qui suit (`scene-state.md`).
 - **T7 — rouvrir une scène d'histoire demande les cases de l'histoire à son ouverture** (V16). Rejouer la seule scène ne les rend pas, rejouer toute l'histoire suppose que le moteur n'a changé pour aucune scène. Proposition : garder leur valeur à l'ouverture de chaque scène.
-- **T8 — tranché** (V35) : une histoire peut déclarer un levier qui vit toute l'histoire (`scene-state.md`).
+- **T8 — tranché** (V35) : une case vit aussi longtemps que ce qui la déclare, scène ou histoire, un levier comme une autre (`scene-state.md`).
 - **T9 — déplacer un levier à liste d'un cran n'est pas écrit** (V2). Le déplacement est dit des nombres ; pour une liste ordonnée, il faut dire vers le dur ou vers le facile, par le sens que le levier déclare.
