@@ -913,8 +913,11 @@ class TurnPipeline(
      * `the-last-train` declares a question every five passages that is never asked outside
      * capture by hand.
      *
-     * So the arming calls this, and what it calls is the gesture itself rather than a copy of
-     * half of it. The screen opens the mic after it, exactly as the finger's path does.
+     * So both call [close]. The finger calls it here, with the event spent, which is what
+     * drops an arming still counting down. The arming calls it **at the start of its
+     * countdown** and spends the event with [spend] once the mic opens: the countdown says
+     * *you speak in three seconds*, so the passage is left behind before it runs, and a rule
+     * of the close speaks and shows its receipt before the learner does.
      */
     suspend fun opens() {
         // **Spent before the close and not after.** Closing a passage can send the character
@@ -923,6 +926,9 @@ class TurnPipeline(
         _state.update { it.copy(opening = null) }
         close()
     }
+
+    /** The arming has opened the mic on the end of [of], so that end opens nothing more. */
+    fun spend(of: String) = _state.update { if (it.opening == of) it.copy(opening = null) else it }
 
     /**
      * Run [body] in [phase], and come back to [Phase.Idle] whatever happens.

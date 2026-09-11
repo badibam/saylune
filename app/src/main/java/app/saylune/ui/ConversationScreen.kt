@@ -60,6 +60,7 @@ import app.saylune.conversation.Side
 import app.saylune.marking.AddedSound
 import app.saylune.marking.TurnMarking
 import app.saylune.ui.theme.Saylune
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -212,36 +213,40 @@ fun ConversationScreen(
     // holding the conversation. Written twice, the two would drift, and the mic would open on a
     // turn the engine then refuses.
     //
-    // **And a receipt standing stops it too, which the button does not.** The implication runs
-    // one way: a notice is dismissed by the finger and never by a clock, precisely so that a
-    // change nobody saw cannot pass -- and the rules of the end of an attempt fire on every
-    // turn, so one lands exactly here, with the voice just finished. Arming over it takes the
-    // reading away, and at the third position sends a turn five seconds later. The button stays
-    // lit: pressing it is a finger, and going on without reading is the learner's to choose.
-    val opens = turn.closes()
+    // **Keyed only on what it does not change itself.** Its own close moves the phase and can
+    // write a fresh event, so keyed on those it was cancelled by its own gesture before the
+    // mic opened. What it waits for is read off the flows instead. A fresh event -- a turn the
+    // close provoked has ended -- restarts it, and the second close is spent at once, a
+    // passage closing once.
     val opening = turn.opening
-    LaunchedEffect(arms, busyOf(turn.phase), opens, turn.notices.isEmpty(), opening) {
-        if (!arms || !opens || opening == null) return@LaunchedEffect
-        if (turn.notices.isNotEmpty()) return@LaunchedEffect
-        if (turn.phase != Phase.Idle) return@LaunchedEffect
-        if (capture.recording || capture.hasAudio) return@LaunchedEffect
-        // The preparation: the time between the end of the AI's answer and the mic being
-        // armed. It lives outside the turn, so it touches no measure.
-        val wait = (turn.positions.of(Levers.PREPARATION.key) as? Count)?.n?.times(1000) ?: 0
-        if (wait > 0) kotlinx.coroutines.delay(wait.toLong())
-        // **The whole gesture and not half of it.** The press this stands in for closes the
-        // passage as well as opening the mic, and the arming used to open the mic alone -- so
-        // at these two positions the close never fell, and the patches, the end of a sitting
-        // by rule and the questions of that moment went with it.
+    LaunchedEffect(arms, opening) {
+        if (!arms || opening == null) return@LaunchedEffect
+        // The app has finished everything it had to say and measure, and the passage may be
+        // left. A repeat in *waits* is what makes it leavable, so this can wait a while.
+        pipeline.state.first { it.phase == Phase.Idle && it.closes() }
+        recorder.state.first { !it.recording && !it.hasAudio }
+        // **The passage closes as the countdown starts, not when it ends.** The countdown says
+        // *you speak in three seconds*, so there is nothing left to do on the sentence before:
+        // no retake, and what the close sets off -- a patch, a scripted or provoked turn -- is
+        // said and shown before the learner's time starts rather than over it.
         //
         // In the pipeline's scope and not this screen's: closing a passage can send the
         // character off to speak, and that is a turn like any other, which has no business
-        // dying because somebody stepped out to read their notes. Waited for all the same --
-        // the mic must not open over that character -- and leaving the screen meanwhile drops
-        // the wait, never the turn.
-        pipeline.turns.launch { pipeline.opens() }.join()
+        // dying because somebody stepped out to read their notes.
+        pipeline.turns.launch { pipeline.close() }.join()
+        pipeline.state.first { it.phase == Phase.Idle }
+        if (pipeline.state.value.over) return@LaunchedEffect
+        // The receipts, until the finger has taken them.
+        pipeline.state.first { it.notices.isEmpty() }
+        // The preparation: the time between the end of the AI's answer and the mic being
+        // armed. It lives outside the turn, so it touches no measure. Read after the close,
+        // which may have moved it.
+        val positions = pipeline.state.value.positions
+        val wait = (positions.of(Levers.PREPARATION.key) as? Count)?.n?.times(1000) ?: 0
+        if (wait > 0) kotlinx.coroutines.delay(wait.toLong())
+        pipeline.spend(opening)
         onRepeating(null)
-        recorder.open(scope, settings)
+        recorder.open(scope, Capture.of(positions))
     }
 
     val grid = Saylune.grid
@@ -409,7 +414,7 @@ fun ConversationScreen(
           send = stringResource(R.string.capture_send),
           // `closes` is false once the sitting is over, and while a turn nobody read holds
           // it, so nothing more opens in either case.
-          mayOpen = !busy && !recordingSomething && opens,
+          mayOpen = !busy && !recordingSomething && turn.closes(),
           // **The pause exists at the first capture position and nowhere else**, the one
           // position that has a pause at all. Greyed at the other two rather than gone: what
           // has no object for the whole sitting still keeps its place in a row whose shape
@@ -435,7 +440,8 @@ fun ConversationScreen(
                   // Read before the close, which is what makes the passage stop being open,
                   // and held until the take goes rather than shown here.
                   closed = turn.open()?.last?.takeIf { it.measured.isNotEmpty() }?.id
-                  pipeline.close()
+                  // The gesture spends the event, so an arming still counting down drops.
+                  pipeline.opens()
                   onRepeating(null)
                   // The recorder keeps the screen's scope: its clocks are the screen's
                   // business and stopping them on the way out is what one wants.
