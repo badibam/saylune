@@ -16,7 +16,6 @@ Une tuile est une **définition d'activité livrée avec l'app** : un fichier de
 
 - `app/src/main/java/app/saylune/activity/Definitions.kt` — `parse()` dit **exactement** quels champs sont lus. On écrit ceux-là et aucun autre.
 - `app/src/main/java/app/saylune/activity/Definition.kt` — ce qu'un fichier doit tenir : un seul personnage principal, pas deux trous sur une même clé, un nom court d'au plus dix caractères, l'anglais obligatoire dans chaque table de langue.
-- `app/src/main/java/app/saylune/levers/Levers.kt` — les clés de levier et leurs positions. **Jamais inventées, toujours lues.**
 - L'arbre des feuilles, pour les chemins de `weights`. Même règle.
 - `app/src/main/assets/definitions/free-conversation.json` — la seule tuile déjà écrite, à lire comme exemple de forme.
 
@@ -29,9 +28,9 @@ Un guide qui recopierait le schéma serait une seconde source qui dérive du par
 - **Le personnage s'écrit contre la pente du modèle, qui est d'être agréable.** Il porte six choses : qui il est concrètement, ce qu'il veut de cette conversation, son défaut qui coûte quelque chose à l'apprenant, ce qu'il ne fera pas, comment il parle, et ce qu'il a déjà décidé sur l'apprenant. Un personnage chaleureux et curieux qui finit par *« and what about you? »* est un échec.
 - **La situation situe l'apprenant à la deuxième personne**, se lit à l'écran, dans sa langue. **La mise en scène situe le personnage**, ne s'affiche jamais, s'écrit en anglais. Jamais l'une dans l'autre.
 - **Une fiche déclare ce qu'elle est faite pour faire**, dans `triggers`, avec les clés de `activity/Cautions.kt` et aucune autre — une clé inconnue fait échouer le chargement, un avertissement perdu par une faute de frappe étant exactement ce contre quoi la liste existe. Deux familles : ce que le personnage **fait** (conflit, hostilité, mensonge, pression, examen, intimité) et ce dont il est **question** (deuil, violence, corps, discrimination, substances, isolement). La règle d'admission d'une clé : l'auteur doit pouvoir répondre oui ou non sur sa propre scène sans rien supposer de qui la jouera. Vide veut dire *rien de déclaré*, jamais *rien à signaler* — la plupart des scènes reposent sur un trou que l'apprenant remplit lui-même, donc l'auteur répond du cadre et pas de la séance. Rien ne filtre là-dessus : la liste s'affiche à qui l'a demandée, et ne retire jamais une tuile.
-- **Le texte français d'une fiche ne s'adresse jamais à l'apprenant.** Le français oblige à choisir entre *tu* et *vous* ; une tournure impersonnelle dit la même chose et ferme la question, là où un réglage la rouvrirait dans chaque fiche pour toujours. C'est la règle des chaînes de l'app, et elle vaut ici pour la même raison. **L'anglais est laissé tel quel** — il ne marque pas l'adresse, donc `you` y est la tournure juste, et l'écart entre les deux langues d'une même fiche est le prix, connu.
+- **Le texte français d'une fiche tutoie l'apprenant** : c'est Saylune qui lui parle — *« Ce que Dana te reproche »*, jamais *« Le reproche de Dana »*. L'anglais dit `you`, qui ne marque pas l'adresse.
 - **Aucun genre fixé, donc un nom non genré**, et plutôt un nom qui porte un âge qu'un nom à la mode.
-- **Aucune horloge.** Un levier qui décrit la personne rencontrée — sa voix, son débit, à quel point elle est dure à suivre — est de plein droit. Un levier qui met l'apprenant sous une horloge — armement automatique, plafond de tour, seuil de silence, budget de tentatives — ne l'est pas : rien en Libre ne l'annonce, la tuile ne montrant qu'un nom et un titre. C'est une règle éditoriale sur les fiches livrées, pas une contrainte du moteur.
+- **Aucun levier** : `settings` reste vide. Aucun levier n'échappe à la pression — la durée du tour et les essais évidemment, mais aussi le texte des répliques, leur longueur et leur complexité, l'écho, l'avance, le bruit —, et en Libre les leviers sont à l'apprenant : une fiche qui en poserait un lui prendrait un réglage. Ce que la personne rencontrée a de difficile — un débit, un accent, des phrases longues — s'écrit dans sa mise en scène. Règle éditoriale aujourd'hui ; le moteur de `design/scene-state.md` la fera vérifier au chargement.
 - **`"door": "free"`**, toujours. C'est ce qui dit par quelle porte la définition est offerte, donc quelle grille l'affiche ; le dossier des définitions porte les quatre portes mêlées. Le guide ne couvre que celle-ci.
 - **Aucun enjeu** : pas de vies, pas de règle de fin, pas d'issue. Donc **aucune question à la fermeture**, la vague de clôture ne s'ouvrant jamais en Libre — les questions se posent tous les cinq passages.
 
@@ -50,7 +49,7 @@ La règle est celle du projet : on interprète comme le ferait un collègue atte
 - une scène qui n'est pas dans `design/tiles.md` ;
 - une définition qui ne serait pas de la porte Libre — ce guide ne l'écrit pas ;
 - une scène dont le moteur fait double emploi avec une déjà écrite ;
-- une règle éditoriale qu'il faudrait enfreindre — une horloge, un genre fixé, deux trous, une question à la fermeture ;
+- une règle éditoriale qu'il faudrait enfreindre — un levier, un genre fixé, deux trous, une question à la fermeture ;
 - un champ que le parseur ne lit pas ;
 - un `id` ou un nom court qui entre en collision avec un existant.
 
@@ -74,7 +73,8 @@ La règle générale, et elle se maintient toute seule : **si `Definitions.parse
 
 ## Les fautes à ne pas faire
 
-- Inventer une clé de levier, un chemin de poids ou un nom de cran — tout se lit dans le code.
+- Poser un levier.
+- Inventer un chemin de poids ou un nom de cran — tout se lit dans le code.
 - Deux trous dans une tuile.
 - Un nom genré alors que la fiche ne fixe pas le genre.
 - Un `short` de plus de dix caractères.
