@@ -196,7 +196,7 @@ Ce qui se vérifie :
 - **les tests** — sur un texte ; sur une valeur hors de la liste ou hors des limites ; sur une case à un moment où elle n'existe pas, `app.silence` à la fermeture du passage ;
 - **les effets** — activer un événement qui n'existe pas ; déplacer une liste qui n'est pas ordonnée ; citer une case inconnue ; faire parler pendant un enregistrement ou à la fin d'une tentative ; une consigne sur un marquage inconnu ;
 - **Libre** — une fiche dont la porte est `free` ne touche aucun levier, ni au départ ni par un événement, ne déclare pas de poids, l'app mettant 1 partout, n'envoie aucune consigne, ne teste aucune case de l'app sauf `app.passage`, et ne termine jamais ;
-- **l'histoire** — une scène qui cite un personnage que l'histoire ne déclare pas ; un embranchement qui lit une case qui ne vit pas toute l'histoire ; une scène qui peut finir ratée sans que l'histoire dise ce qui suit ; une scène qui redéclare une case de l'histoire.
+- **l'histoire** — une scène qui cite un personnage que l'histoire ne déclare pas ; un embranchement qui lit une case qui ne vit pas toute l'histoire ; une scène qui peut finir ratée sans que l'histoire dise ce qui suit ; une scène qui redéclare une case de l'histoire ; un événement de l'histoire qui lit ou écrit une case d'une scène.
 
 Restent invérifiables : qu'une consigne durcisse vraiment, que deux consignes en vigueur ne se contredisent pas, et ce que le meneur fait de ce qu'on lui envoie.
 
@@ -241,6 +241,8 @@ Le **juge** écrit les marques. Rien d'autre.
 **Une fiche de scène déclare donc** ce qui ne bouge pas — le titre, le nom court, la situation, les avertissements, et dans une tuile Libre les personnages —, puis ses cases et ses événements.
 
 **Une histoire a son fichier**, que le bloc d'`activity.md` n'a jamais eu : l'ordre des scènes, les embranchements (un événement au niveau de l'histoire, *après la scène 4, si `has-key` est vrai, scène 5, sinon 5 bis*), les cases qui vivent toute l'histoire, et **les personnages, déclarés une seule fois** — nom, genre, voix, description. Une scène cite ceux qui sont présents par leur clé. La description d'un personnage lui appartient et part au meneur chaque fois qu'il est présent.
+
+**L'histoire déclare aussi des événements, qui tournent à chaque moment de chaque scène** et dont l'activation vit toute l'histoire — les embranchements en sont, au moment « après la scène ». L'orage au vingtième passage de l'histoire est un compteur d'histoire et deux événements d'histoire, là où un événement recopié dans chaque fiche s'arrêterait sans rien dire à la première qui l'oublie ; une grâce unique dans toute l'histoire est la fausse mort écrite dans l'histoire. Dans un moment, ils partent dans la même vague que ceux de la scène.
 
 **L'issue de chaque scène est une case de l'histoire**, `app.outcome.<scène>`, que l'app écrit quand la scène se termine : réussi, raté, ou vide si elle a été abandonnée. L'auteur ne la déclare pas, et un embranchement la lit comme toute case — *après la crevasse, si elle est ratée, le campement des blessés ; sinon, le sommet*. C'est la seule case de l'app qui passe la scène, n'étant pas une mesure mais le résultat, que `../reference.md` fait lire à la scène suivante.
 

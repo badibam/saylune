@@ -99,6 +99,6 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 **Troisième lot.**
 
 - **T13 — une consigne compte-t-elle les passages bloqués ?** (V33). Un blocage suspend les événements, et la durée d'une consigne n'en est pas un. Proposition : elle les compte, étant parlés et jugés comme les autres.
-- **T14 — rien ne tourne dans toutes les scènes d'une histoire** (V13). L'orage au vingtième passage de l'histoire demande un compteur que chaque fiche incrémente ; une fiche qui l'oublie l'arrête sans rien dire — l'argument qui a fait vivre les cases à l'histoire. La grâce unique (V14) s'écrit de même avec un événement recopié dans chaque scène. Proposition à trancher.
+- **T14 — tranché** (V13, V14) : l'histoire déclare des événements qui tournent dans chacune de ses scènes (`scene-state.md`).
 
 **Ce qui tient, au troisième lot.** Un défi sans pression (V15) se tient par sa fin seule, la note tranchant à la clôture sur les cases de la séance. Un trou dans une histoire (V20) se demande là où sa case est déclarée, au lancement de l'histoire ou de la scène, sans règle neuve. Une fausse mort sous une pression plate (V25) n'est pas une paire impossible : elle porte sur un vrai/faux que le meneur écrit — le jury rejette —, et non sur un compteur qui descend.
