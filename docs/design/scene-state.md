@@ -109,6 +109,8 @@ Un texte d'événement pour le meneur n'a pas de durée : il se place dans la co
 
 **Faire parler un personnage**, sans attendre l'apprenant : à l'ouverture, à la fermeture d'un passage, à la clôture. Jamais pendant un enregistrement ni à la fin d'une tentative. À la fermeture d'un passage, c'est une seconde réplique après celle qui vient de répondre à l'apprenant : l'annonce du quai au passage 10, le troisième voyageur qui se dispute avec Lou au passage 8.
 
+**Deux formes : un texte écrit d'avance, ou une direction au meneur.** L'annonce du quai s'écrit d'avance. La dispute, écrite d'avance, ignorerait tout ce qui s'est dit : l'auteur envoie alors *« The traveller arrives and argues with Lou »*, et l'app fait un appel au meneur sans phrase de l'apprenant, qui peut rendre plusieurs répliques de plusieurs personnages. C'est un tour du meneur comme un autre : le micro s'arme à sa fin, comme à la fin de toute réponse, donc il n'attend pas plus.
+
 **Sauf quand la chaîne d'événements est partie d'une case de l'app qui lit le tour** — une note, une porte, une mesure —, directement ou non : la porte des mots se ferme, `patience` baisse, `patience` atteint 0. Le meneur vient alors de répondre sans connaître le jugement, et un barman qui répond comme s'il avait compris puis dit *« Wait, what? »* contredirait le fil. **L'app retient la réplique**, sachant d'où la chaîne est partie, et son texte part avec l'appel suivant : le barman fait son reproche au tour d'après. Le reste de la chaîne ne se retarde pas — les cases, les leviers et la notification se font tout de suite, sans quoi la durée du tour changerait sans qu'on l'ait dit avant le micro. La notification ne contredit pas le fil, n'étant pas une réplique : c'est l'app qui décrit ce qui se passe.
 
 **Demander une case au meneur** : *à la fermeture de chaque passage, demander `named`* ; et un second événement, *quand `named` devient vrai, désactiver le premier*. La case ne dit que ce qu'elle est ; quand elle est demandée, et jusqu'à quand, est toujours écrit dans un événement, avec les mêmes tests et la même activation que partout.
@@ -119,7 +121,7 @@ Un texte d'événement pour le meneur n'a pas de durée : il se place dans la co
 
 **Tirer une case au hasard** : *à l'ouverture, tirer `mood`.*
 
-**Ce qui est affiché au moment d'un événement est écrit par l'auteur.** Un texte que l'IA écrirait devrait exister à la fermeture du passage, et aucun appel n'est à la fois fini à ce moment et fait pour ça : le meneur a fini avant de connaître le jugement, le juge ne fait pas de fiction, et un appel de plus ferait attendre le micro. La phrase de l'auteur s'affiche en outre à côté de la phrase mécanique, qu'un texte improvisé peut contredire (`activity.md`). La liberté du meneur est sa réplique suivante, où il joue la réaction comme il veut.
+**Ce qui est notifié au moment d'un événement est écrit par l'auteur.** Un texte que l'IA écrirait devrait exister à la fermeture du passage, et aucun appel n'est à la fois fini à ce moment et fait pour ça : le meneur a fini avant de connaître le jugement, le juge ne fait pas de fiction, et un appel de plus ferait attendre le micro. La phrase de l'auteur s'affiche en outre à côté de la phrase mécanique, qu'un texte improvisé peut contredire (`activity.md`). La liberté du meneur est sa réplique suivante, où il joue la réaction comme il veut.
 
 ## L'ordre, dans un moment
 
