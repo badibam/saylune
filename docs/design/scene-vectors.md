@@ -113,7 +113,7 @@ Chaque trou dit le vecteur qui l'a montré, ce qui casse, et une proposition ; i
 
 **Cinquième lot, les seize restants.**
 
-- **T16 — un texte qui cite une case vide** (V22, V27). Le vœu laissé vide au lancement, le narrateur qui lit *« You wished for {wish} »* : le doc dit que toute case peut être vide et qu'un texte cite la valeur du moment, pas ce qu'il cite quand il n'y en a pas. Proposition à trancher.
+- **T16 — tranché** (V22, V27) : la citation d'une case sans valeur de départ dit ce qu'elle écrit si la case est vide, et la vérification l'exige (`scene-state.md`).
 - **Une suite qui dépend de l'anglais sans que l'apprenant le sache** (V10). Un événement de clôture qui lit la correction de la séance et écrit une case de l'histoire s'écrit sans rien de neuf, et l'embranchement la lit. Ce n'est pas un trou du modèle mais le point ouvert d'annoncer les règles d'un défi, qui vaut aussi pour une histoire.
 
 **Ce qui tient, au cinquième lot.** Tout le reste, sans règle neuve : ce que les quatre premiers lots ont tranché y suffit — compteurs et secondes chances d'histoire (T14), leviers d'histoire (T8), porte de la réponse dans Libre (V30), tirages lus dans leur moment (T15).

@@ -50,7 +50,7 @@ Tout ce qui peut changer pendant une scène est une case : un nom et une valeur.
 
 **« Je ne sais pas » est une réponse du meneur qui laisse la case telle qu'elle était.** On demande une case au meneur en lui disant jusqu'où il peut aller — seulement ce qui a été dit, déduire, inventer — et au premier cran il peut ne pas savoir. Sa réponse est gardée en base, ce qui la distingue d'un oubli ou d'une réponse mal lue ; la case, elle, ne bouge pas, ne pas savoir n'apportant rien de neuf. Au colis, `robin-opened` demandé à la clôture de la scène 2 et resté vide dit en scène 3 qu'on ne sait pas : vrai, Nico est furieux ; faux, soulagé ; vide, inquiet. Et un `trust` à 7 que le meneur ne sait plus évaluer reste à 7.
 
-**Un texte peut citer une case** ; l'app y met la valeur du moment où il part, comme elle le fait déjà de `{anchor}`.
+**Un texte peut citer une case** ; l'app y met la valeur du moment où il part, comme elle le fait déjà de `{anchor}`. **La citation d'une case sans valeur de départ dit ce qu'elle écrit si la case est vide** — `{wish | nothing at all}` —, et la vérification l'exige : un vœu laissé vide au lancement ne fait pas lire au narrateur *« You wished for »*. Une case qui a une valeur de départ n'en a pas besoin, rien ne vidant une case.
 
 **Une case de la fiche porte une courte description en anglais** — *« the barman's patience »*, *« Val's mood »* —, qui sert à fabriquer les lignes que le meneur lit quand elle change (plus bas).
 
@@ -197,7 +197,7 @@ Ce qui se vérifie :
 
 - **les cases** — un événement qui change une case de l'app ; une case que personne n'écrit et qui n'a pas de valeur de départ ; une liste réduite à *oui / non* ; une case cachée au meneur qu'un événement lui demande ou qu'un texte pour lui cite ;
 - **les tests** — sur un texte ; sur une valeur hors de la liste ou hors des limites ; sur une case à un moment où elle n'existe pas, `app.silence` à la fermeture du passage ;
-- **les effets** — activer un événement qui n'existe pas ; déplacer une liste qui n'est pas ordonnée ; citer une case inconnue ; faire parler pendant un enregistrement ou à la fin d'une tentative ; une consigne sur un marquage inconnu ;
+- **les effets** — activer un événement qui n'existe pas ; déplacer une liste qui n'est pas ordonnée ; citer une case inconnue, ou une case sans valeur de départ sans dire quoi écrire si elle est vide ; faire parler pendant un enregistrement ou à la fin d'une tentative ; une consigne sur un marquage inconnu ;
 - **Libre** — une fiche dont la porte est `free` ne touche aucun levier, ni au départ ni par un événement, ne déclare pas de poids, l'app mettant 1 partout, n'envoie aucune consigne, ne teste aucune case de l'app sauf `app.passage`, et ne termine jamais ;
 - **l'histoire** — une scène qui cite un personnage que l'histoire ne déclare pas ; un embranchement qui lit une case qui ne vit pas toute l'histoire ; une scène qui peut finir ratée sans que l'histoire dise ce qui suit ; une scène qui redéclare une case de l'histoire ; un événement de l'histoire qui lit ou écrit une case d'une scène.
 
