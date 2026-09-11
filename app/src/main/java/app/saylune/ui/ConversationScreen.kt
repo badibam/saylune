@@ -166,7 +166,13 @@ fun ConversationScreen(
             // so the exchange is remade on them; a repeat says the same ones and relaunches
             // nothing -- it is pipe B alone, on a text already settled.
             val rewording = turn.standing() == Standing.ToReword
-            recorder.send()?.let { take ->
+            val sent = recorder.send()
+            // **The retake is over the instant its take leaves the recorder**, not when its
+            // measure comes back. Cleared after the measure, it wiped a retake the learner
+            // opened in between -- tapped as the marks landed -- and that take went out as a
+            // passage of its own.
+            onRepeating(null)
+            sent?.let { take ->
                 // The passage that closed goes up now, before the chain is launched: what it
                 // reports is settled, and the seconds it fills are the ones about to start.
                 // A retake closes nothing, so it pushes nothing.
@@ -178,7 +184,6 @@ fun ConversationScreen(
                     else -> pipeline.redo(said, take, position, ending)
                 }
             }
-            onRepeating(null)
         }
     }
 
