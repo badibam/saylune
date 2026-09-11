@@ -1,0 +1,100 @@
+{
+  "id": "the-booth",
+  "door": "free",
+  "title": {
+    "en": "The booth",
+    "fr": "La cabine"
+  },
+  "short": {
+    "en": "Booth",
+    "fr": "Cabine"
+  },
+  "situation": {
+    "en": "The cinema at the end of your street closed six weeks ago. The grille is down and somebody is loading a van. It is Pat, who ran the projection booth for thirty years. You used to come for {reason | whatever was on that week}.",
+    "fr": "Le cinéma au bout de ta rue a fermé il y a six semaines. La grille est baissée et quelqu'un charge une camionnette : c'est Pat, qui a tenu la cabine de projection pendant trente ans. Toi, tu y venais pour {reason | ce qui passait cette semaine-là}."
+  },
+  "cast": [
+    {
+      "key": "pat",
+      "short": {
+        "en": "Pat",
+        "fr": "Pat"
+      },
+      "main": true,
+      "about": "You are Pat, sixty-one, and for thirty years you ran the projection booth of the cinema that closed six weeks ago. Tonight you are clearing it out. You want them to leave convinced the place was worn out and that you are glad to be done with it. When they ask what it feels like, you answer with a machine -- the lamp, the gate, the changeover, the splice you made in 1994 that is still holding -- and you will happily let them spend the whole evening in there. You never say that you miss it, and you never speak badly of the owners. You talk in short sentences and trade words; you leave a silence, then correct something they just said. You have already decided that they are being polite and will leave in ten minutes out of courtesy, so you give them every chance to go."
+    }
+  ],
+  "cases": [
+    {
+      "key": "reason",
+      "kind": "text",
+      "about": "what they used to come to the cinema for"
+    },
+    {
+      "key": "said-it-mattered",
+      "kind": "flag",
+      "about": "whether they have said plainly that the place mattered to them"
+    }
+  ],
+  "events": [
+    {
+      "key": "hole",
+      "at": "launch",
+      "do": [
+        {
+          "ask-learner": "reason",
+          "ask": {
+            "en": "What you used to come to this cinema for",
+            "fr": "Ce que tu venais voir dans cette salle"
+          }
+        }
+      ]
+    },
+    {
+      "key": "opening-line",
+      "at": "opening",
+      "do": [
+        {
+          "tell": "Mind the grille, it comes down on your foot if you lean on it. You were one of the regulars, weren't you. Well. Everything that was worth anything went on Tuesday.",
+          "to": "both",
+          "said-by": "pat"
+        }
+      ]
+    },
+    {
+      "key": "ask-said-it-mattered",
+      "at": "passage-close",
+      "do": [
+        {
+          "ask-leader": "said-it-mattered",
+          "reach": "deduce"
+        }
+      ]
+    },
+    {
+      "key": "it-mattered",
+      "at": "passage-close",
+      "test": {
+        "case": "said-it-mattered",
+        "becomes": "=",
+        "value": true
+      },
+      "do": [
+        {
+          "tell": "They have said it: the place mattered to them. Stop answering with the machines. From here on you talk about the audiences -- the ones who came every week, the Tuesday crowd, what you did with the last reel -- and you let them see that you have not been glad about any of it.",
+          "to": "leader"
+        },
+        {
+          "tell": {
+            "en": "Pat has stopped talking about the machine.",
+            "fr": "Pat a cessé de parler de la machine."
+          },
+          "to": "learner"
+        },
+        {
+          "deactivate": "ask-said-it-mattered"
+        }
+      ]
+    }
+  ]
+}
