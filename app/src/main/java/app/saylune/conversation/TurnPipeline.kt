@@ -1510,6 +1510,35 @@ class TurnPipeline(
                     val closing = read?.first
                     val groundless = read?.second ?: false
 
+                    // **The analysis runs beside the voice, from the moment a verdict exists.**
+                    // What it needs is the judgement and the take, both in hand now; waiting for
+                    // the voice to end left a blank after it, and at the two automatic capture
+                    // positions the mic waits for the analysis, so the blank was the learner's.
+                    // Caught inside the `async` like the judge, and for the same reason: a
+                    // failure carried back as a value cannot cut the voice off mid-word.
+                    val measuring = async {
+                        runCatching {
+                            if (judged == null) {
+                                // Read on the one channel it has: the text, with nothing marked
+                                // on it. The failure above is what says why, and the sound
+                                // analysis does not run -- it measures a sentence a judgement has
+                                // let through, and there is none.
+                                //
+                                // **And the line says nobody read it**, which the marking cannot:
+                                // a turn whose gate closed carries exactly this marking too, and
+                                // it was read. Written now rather than at the next opening,
+                                // because the process can die between the two and the fact would
+                                // go with it.
+                                update(said.id) {
+                                    it.copy(marking = TurnMarking.wordsOnly(intended), unread = true)
+                                }
+                                write(said.id)
+                            } else {
+                                measure(said, judged, turn, heard, closing, groundless)
+                            }
+                        }
+                    }
+
                     if (speaking != null) speaking.await() else {
                         // **The echo and the continuation are two portions of one utterance, and
                         // the app composes them.** They are not two candidate replies: the echo is
@@ -1552,26 +1581,7 @@ class TurnPipeline(
                     // answer nobody has yet, the press then waiting on the lock with nothing on
                     // screen saying why. Idle is said once there is something to say it about.
                     _state.update { it.copy(phase = Phase.Measuring) }
-
-                    // A new name arrives only when there is a reason for one; any other turn
-                    // leaves the conversation called what it was called.
-
-                    if (judged == null) {
-                        // Read on the one channel it has: the text, with nothing marked on it.
-                        // The failure above is what says why, and the sound analysis does not run
-                        // -- it measures a sentence a judgement has let through, and there is none.
-                        //
-                        // **And the line says nobody read it**, which the marking cannot: a turn
-                        // whose gate closed carries exactly this marking too, and it was read.
-                        // Written now rather than at the next opening, because the process can
-                        // die between the two and the fact would go with it.
-                        update(said.id) {
-                            it.copy(marking = TurnMarking.wordsOnly(intended), unread = true)
-                        }
-                        write(said.id)
-                    } else {
-                        measure(said, judged, turn, heard, closing, groundless)
-                    }
+                    measuring.await().getOrThrow()
                 }
             } catch (failure: ChainFailure) {
                 Trace.fail("turn: a link gave way, the recording is kept", "why" to failure.message)
